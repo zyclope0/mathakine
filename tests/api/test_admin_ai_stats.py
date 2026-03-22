@@ -8,6 +8,8 @@ Tests des endpoints admin IA et config :
 import pytest
 
 from app.models.user import User
+from app.utils.generation_metrics import generation_metrics
+from app.utils.token_tracker import token_tracker
 
 # ─── PUT /api/admin/config (LOT 5.1) ───────────────────────────────────────────
 
@@ -55,6 +57,22 @@ async def test_admin_ai_stats_archiviste(archiviste_client):
     assert "total_tokens" in stats
     assert "total_cost" in stats
     assert "count" in stats
+    assert "by_workload" in stats
+    assert "retention" in stats
+    assert "cost_disclaimer_fr" in stats
+
+
+@pytest.mark.asyncio
+async def test_admin_ai_eval_harness_runs_archiviste(archiviste_client):
+    """GET /api/admin/ai-eval-harness-runs — read-only, structure attendue."""
+    client = archiviste_client["client"]
+    response = await client.get("/api/admin/ai-eval-harness-runs?limit=5")
+    assert response.status_code == 200
+    data = response.json()
+    assert "runs" in data
+    assert "limit" in data
+    assert "disclaimer_fr" in data
+    assert isinstance(data["runs"], list)
 
 
 @pytest.mark.asyncio
@@ -114,6 +132,68 @@ async def test_admin_generation_metrics_archiviste(archiviste_client):
     assert "auto_correction_rate" in summary
     assert "average_duration" in summary
     assert "by_type" in summary
+    assert "by_workload" in summary
+    assert "error_types" in summary
+    assert "retention" in summary
+    assert "metrics_disclaimer_fr" in summary
+
+
+@pytest.mark.asyncio
+async def test_admin_ai_metrics_expose_multi_workload_breakdown(archiviste_client):
+    """Les endpoints admin exposent la ventilation chat / exercices / défis."""
+    token_tracker._usage_history.clear()
+    token_tracker._daily_totals.clear()
+    generation_metrics._generation_history.clear()
+    generation_metrics._validation_failures.clear()
+    generation_metrics._auto_corrections.clear()
+    generation_metrics._success_count.clear()
+    generation_metrics._failure_count.clear()
+
+    token_tracker.track_usage("assistant_chat:simple", 120, 60, model="gpt-5-mini")
+    token_tracker.track_usage("exercise_ai:addition", 100, 50, model="o3")
+    token_tracker.track_usage("sequence", 200, 100, model="o3")
+    generation_metrics.record_generation(
+        "assistant_chat:simple",
+        success=False,
+        validation_passed=False,
+        duration_seconds=1.2,
+        error_type="RateLimitError",
+    )
+    generation_metrics.record_generation(
+        "exercise_ai:addition",
+        success=True,
+        validation_passed=True,
+        duration_seconds=2.0,
+    )
+    generation_metrics.record_generation(
+        "sequence",
+        success=True,
+        validation_passed=True,
+        auto_corrected=True,
+        duration_seconds=3.0,
+    )
+
+    client = archiviste_client["client"]
+    stats_response = await client.get("/api/admin/ai-stats")
+    metrics_response = await client.get("/api/admin/generation-metrics")
+
+    assert stats_response.status_code == 200
+    assert metrics_response.status_code == 200
+
+    stats = stats_response.json()["stats"]
+    summary = metrics_response.json()["summary"]
+
+    assert "assistant_chat" in stats["by_workload"]
+    assert "exercises_ai" in stats["by_workload"]
+    assert "challenges_ai" in stats["by_workload"]
+    assert "assistant_chat" in summary["by_workload"]
+    assert "exercises_ai" in summary["by_workload"]
+    assert "challenges_ai" in summary["by_workload"]
+    assert summary["error_types"]["RateLimitError"] >= 1
+
+    token_tracker._usage_history.clear()
+    token_tracker._daily_totals.clear()
+    generation_metrics._generation_history.clear()
 
 
 @pytest.mark.asyncio

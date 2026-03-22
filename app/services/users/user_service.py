@@ -30,6 +30,7 @@ from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
+from app.services.gamification.gamification_service import GamificationService
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
@@ -373,65 +374,14 @@ class UserService:
             )
             return {"stats_error": "Erreur lors de la récupération des statistiques"}
 
-    # Seuils XP pour chaque niveau (index = niveau - 1).
-    # Modifier ici pour ajouter/ajuster des niveaux — MAX_LEVEL se déduit automatiquement.
-    _LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
-    _LEVEL_TITLES = {
-        1: "Jeune Padawan",
-        2: "Padawan",
-        3: "Chevalier Jedi",
-        4: "Maître Jedi",
-        5: "Grand Maître",
-        6: "Maître du Conseil",
-        7: "Légende Jedi",
-        8: "Gardien de la Force",
-        9: "Seigneur Jedi",
-        10: "Archiviste Jedi",
-        11: "Grand Archiviste",
-    }
-
     @staticmethod
-    def _calculate_user_level(xp: int) -> dict:
+    def build_gamification_level_for_api(user: User) -> Dict[str, Any]:
         """
-        Calcule le niveau utilisateur basé sur les points d'expérience.
+        Snapshot d'affichage gamification compte — délègue au moteur unique.
 
-        Args:
-            xp: Points d'expérience totaux (>= 0)
-
-        Returns:
-            Dictionnaire avec :
-              - current       : niveau actuel (1 à MAX_LEVEL)
-              - title         : titre du niveau
-              - current_xp    : XP accumulés dans le niveau en cours (0 si max)
-              - next_level_xp : XP nécessaires pour le niveau suivant (0 si max atteint)
-              - is_max_level  : True si le niveau maximum est atteint
+        Indépendant du filtre temporel du dashboard ; aligné classement.
         """
-        thresholds = UserService._LEVEL_THRESHOLDS
-        max_level = len(thresholds)
-
-        current_level = 1
-        for i, threshold in enumerate(thresholds):
-            if xp >= threshold:
-                current_level = i + 1
-
-        is_max_level = current_level >= max_level
-
-        if is_max_level:
-            current_level = max_level
-            current_xp = 0
-            next_level_xp = 0
-        else:
-            current_xp = xp - thresholds[current_level - 1]
-            next_level_xp = thresholds[current_level] - thresholds[current_level - 1]
-
-        title = UserService._LEVEL_TITLES.get(current_level, f"Niveau {current_level}")
-        return {
-            "current": current_level,
-            "title": title,
-            "current_xp": current_xp,
-            "next_level_xp": next_level_xp,
-            "is_max_level": is_max_level,
-        }
+        return GamificationService.build_level_indicator_payload(user)
 
     @staticmethod
     def get_user_stats_for_dashboard(
@@ -440,7 +390,9 @@ class UserService:
         """
         Récupère les statistiques complètes pour le tableau de bord utilisateur.
 
-        Agrège XP, niveau, activité récente, progression dans le temps.
+        Agrège l'activité sur la période (sans pseudo-XP ni niveau compte).
+
+        Points / niveau / XP palier persistants : GET /api/users/me (gamification_level, total_points, …).
         Route: GET /api/users/stats
         """
         from datetime import datetime, timezone
@@ -454,10 +406,8 @@ class UserService:
                 "by_exercise_type": {},
             }
 
-        experience_points = stats.get("total_attempts", 0) * 10
         performance_by_type = UserService._compute_performance_by_type(stats)
         recent_activity = UserService._fetch_recent_activity(db, user_id, time_range)
-        level_data = UserService._calculate_user_level(experience_points)
         progress_over_time, exercises_by_day = UserService._compute_progress_over_time(
             db, user_id, time_range
         )
@@ -468,10 +418,8 @@ class UserService:
             "total_challenges": total_challenges,
             "correct_answers": stats.get("correct_attempts", 0),
             "success_rate": stats.get("success_rate", 0),
-            "experience_points": experience_points,
             "performance_by_type": performance_by_type,
             "recent_activity": recent_activity,
-            "level": level_data,
             "progress_over_time": progress_over_time,
             "exercises_by_day": exercises_by_day,
             "lastUpdated": datetime.now(timezone.utc).isoformat(),
@@ -1069,6 +1017,7 @@ class UserService:
             "total_points": user.total_points,
             "current_level": user.current_level,
             "jedi_rank": user.jedi_rank,
+            "gamification_level": UserService.build_gamification_level_for_api(user),
         }
 
     @staticmethod

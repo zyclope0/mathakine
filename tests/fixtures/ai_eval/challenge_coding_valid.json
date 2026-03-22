@@ -1,0 +1,13 @@
+{
+  "challenge_type": "CODING",
+  "title": "César d'entraînement",
+  "description": "Décoder un message avec un décalage connu.",
+  "correct_answer": "BCD",
+  "solution_explanation": "Avec un décalage de 1, chaque lettre avance d'un rang : ABC devient BCD.",
+  "difficulty_rating": 3.0,
+  "visual_data": {
+    "type": "caesar",
+    "shift": 1,
+    "encoded_message": "ABC"
+  }
+}

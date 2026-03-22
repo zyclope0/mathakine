@@ -21,6 +21,7 @@ from app.services.admin.admin_read_service import (
     get_moderation_for_api,
     get_overview_for_api,
     get_reports_for_api,
+    list_ai_eval_harness_runs_for_admin,
     list_badges_for_admin,
     list_challenges_for_admin,
     list_exercises_for_admin,
@@ -640,8 +641,12 @@ async def admin_export(request: Request) -> Response:
 async def admin_ai_stats(request: Request) -> JSONResponse:
     """
     GET /api/admin/ai-stats?days=N&challenge_type=...
-    Stats tokens OpenAI : coûts, volumes, breakdown par type de challenge.
-    Données in-memory collectées par token_tracker depuis challenge_ai_service.
+    Stats tokens OpenAI : coûts estimés, volumes, breakdown par clé runtime / workload.
+
+    Chat Maître Kine : ``/api/chat`` est public et rate-limité ; le workload
+    ``assistant_chat`` apparaît ici comme tout autre usage IA.
+
+    Données in-memory à rétention bornée : ``stats.retention``.
     """
     try:
         days = int(request.query_params.get("days", 1))
@@ -661,8 +666,10 @@ async def admin_generation_metrics(request: Request) -> JSONResponse:
     """
     GET /api/admin/generation-metrics?days=N
     Qualité des générations IA : taux de succès, échecs de validation,
-    auto-corrections, durée moyenne. Données in-memory collectées par
-    generation_metrics depuis challenge_ai_service.
+    auto-corrections, durée moyenne et types d'erreur.
+
+    Inclut le chat public (``assistant_chat``) ; fenêtre in-memory bornée :
+    ``summary.retention``.
     """
     try:
         days = int(request.query_params.get("days", 1))
@@ -672,3 +679,22 @@ async def admin_generation_metrics(request: Request) -> JSONResponse:
         return JSONResponse({"summary": summary, "days": days})
     except ValueError:
         return api_error_response(400, "Paramètre days invalide.")
+
+
+@require_auth
+@require_admin
+async def admin_ai_eval_harness_runs(request: Request) -> JSONResponse:
+    """
+    GET /api/admin/ai-eval-harness-runs?limit=N
+    Derniers runs du harness d'évaluation IA persistés (read-only, IA8/IA12).
+    """
+    try:
+        raw = request.query_params.get("limit", "20")
+        limit = int(raw)
+        if limit < 1 or limit > 100:
+            return api_error_response(400, "limit doit être compris entre 1 et 100.")
+    except ValueError:
+        return api_error_response(400, "Paramètre limit invalide.")
+
+    result = await run_db_bound(list_ai_eval_harness_runs_for_admin, limit=limit)
+    return JSONResponse(result)

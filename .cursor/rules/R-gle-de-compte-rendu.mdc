@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+Toujours rendre compte avec cette structure si le lot est substantiel :
+
+fichiers modifiés
+décision d’architecture
+ce qui a été implémenté
+ce qui a été testé
+résultats de validation
+réserves restantes
+GO / NO-GO

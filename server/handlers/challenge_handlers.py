@@ -12,7 +12,10 @@ from starlette.responses import JSONResponse, Response, StreamingResponse
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.exceptions import ChallengeAttemptRecordError, ChallengeNotFoundError
-from app.schemas.logic_challenge import ChallengeAttemptRequest
+from app.schemas.logic_challenge import (
+    ChallengeAttemptRequest,
+    GenerateChallengeStreamPostBody,
+)
 from app.services.challenges.challenge_attempt_service import submit_challenge_attempt
 from app.services.challenges.challenge_query_service import (
     get_challenge_detail_for_api,
@@ -30,7 +33,7 @@ from app.utils.error_handler import (
     api_error_response,
     get_safe_error_message,
 )
-from app.utils.request_utils import parse_json_body_any
+from app.utils.request_utils import parse_json_body_any, parse_json_body_as_model
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,
@@ -255,7 +258,7 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
 async def generate_ai_challenge_stream(request: Request) -> Response:
     """
     Genere un challenge avec OpenAI en streaming SSE.
-    Handler fin : lecture request, preparation via challenge_stream_service, StreamingResponse.
+    Handler fin : body JSON validé, preparation via challenge_stream_service, StreamingResponse.
     """
     from app.services.challenges.challenge_ai_service import (
         generate_challenge_stream as svc_generate_stream,
@@ -263,11 +266,17 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
     from app.utils.sse_utils import SSE_HEADERS, sse_error_response
 
     try:
+        body_or_err = await parse_json_body_as_model(
+            request, GenerateChallengeStreamPostBody
+        )
+        if isinstance(body_or_err, JSONResponse):
+            return body_or_err
+
         current_user = request.state.user
         stream_result = prepare_stream_context(
-            challenge_type_raw=request.query_params.get("challenge_type", "sequence"),
-            age_group_raw=request.query_params.get("age_group", "10-12"),
-            prompt_raw=request.query_params.get("prompt", ""),
+            challenge_type_raw=body_or_err.challenge_type,
+            age_group_raw=body_or_err.age_group,
+            prompt_raw=body_or_err.prompt,
             user_id=current_user.get("id") if current_user else None,
             accept_language=request.headers.get("Accept-Language", "fr"),
         )

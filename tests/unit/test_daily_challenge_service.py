@@ -3,7 +3,9 @@ from unittest.mock import patch
 
 from app.core.security import get_password_hash
 from app.models.daily_challenge import DailyChallenge
+from app.models.point_event import PointEvent
 from app.models.user import User, UserRole
+from app.services.gamification.point_source import PointEventSourceType
 from app.services.progress.daily_challenge_service import (
     CHALLENGE_TYPE_LOGIC,
     CHALLENGE_TYPE_SPECIFIC,
@@ -111,6 +113,13 @@ def test_record_exercise_completed_updates_volume_and_specific_challenges(db_ses
     assert specific.status == "completed"
     assert logic.status == "pending"
     assert user.total_points == 25
+    assert user.current_level == 1
+    assert user.experience_points == 25
+    pevents = db_session.query(PointEvent).filter(PointEvent.user_id == user.id).all()
+    assert len(pevents) == 2
+    assert {e.source_type for e in pevents} == {
+        PointEventSourceType.DAILY_CHALLENGE_COMPLETED,
+    }
 
 
 def test_record_logic_challenge_completed_updates_only_logic_challenges(db_session):
@@ -159,3 +168,8 @@ def test_record_logic_challenge_completed_updates_only_logic_challenges(db_sessi
     assert logic.status == "completed"
     assert volume.status == "pending"
     assert user.total_points == 20
+    assert user.current_level == 1
+    assert user.experience_points == 20
+    assert (
+        db_session.query(PointEvent).filter(PointEvent.user_id == user.id).count() == 1
+    )

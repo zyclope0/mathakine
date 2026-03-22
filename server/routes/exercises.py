@@ -40,7 +40,7 @@ def get_exercises_routes():
         Route(
             "/api/exercises/generate-ai-stream",
             endpoint=generate_ai_exercise_stream,
-            methods=["GET"],
+            methods=["POST"],
         ),
         Route(
             "/api/exercises/completed-ids",

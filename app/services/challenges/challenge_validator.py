@@ -7,8 +7,18 @@ import json
 from typing import Any, Dict, List, Tuple
 
 from app.core.logging_config import get_logger
+from app.services.challenges.challenge_answer_quality import validate_challenge_choices
 from app.services.challenges.challenge_coding_validation import (
     validate_coding_challenge,
+)
+from app.services.challenges.challenge_contract_policy import (
+    apply_visual_contract_normalization,
+    validate_choices_policy,
+    validate_symmetry_canonical,
+)
+from app.services.challenges.challenge_difficulty_policy import (
+    validate_difficulty_structural_coherence,
+    validate_title_difficulty_coherence,
 )
 from app.services.challenges.challenge_pattern_sequence_validation import (
     validate_pattern_challenge,
@@ -50,6 +60,7 @@ def validate_challenge_logic(challenge_data: Dict[str, Any]) -> Tuple[bool, List
     visual_data = challenge_data.get("visual_data", {})
     correct_answer = challenge_data.get("correct_answer", "")
     solution_explanation = challenge_data.get("solution_explanation", "")
+    title = str(challenge_data.get("title", "") or "")
 
     # Parser visual_data si nécessaire
     if isinstance(visual_data, str):
@@ -59,19 +70,59 @@ def validate_challenge_logic(challenge_data: Dict[str, Any]) -> Tuple[bool, List
             errors.append("visual_data n'est pas un JSON valide")
             return False, errors
 
+    if not isinstance(visual_data, dict):
+        visual_data = {}
+
+    # IA9 — contrat visual (symétrie canonique) avant validateurs typés
+    nv = apply_visual_contract_normalization(
+        challenge_data.get("challenge_type", "") or challenge_type,
+        visual_data,
+    )
+    challenge_data["visual_data"] = nv
+    visual_data = nv
+
+    dr_for_choices = None
+    dr_raw = challenge_data.get("difficulty_rating")
+    if isinstance(dr_raw, (int, float)) and 1.0 <= float(dr_raw) <= 5.0:
+        dr_for_choices = float(dr_raw)
+    errors.extend(
+        validate_choices_policy(
+            challenge_data.get("challenge_type", "") or challenge_type,
+            dr_for_choices,
+            challenge_data.get("choices"),
+        )
+    )
+
     # Dispatch par type de challenge (B3.5)
     validator = _VALIDATORS_BY_TYPE.get(challenge_type)
     if validator:
         type_errors = validator(visual_data, correct_answer, solution_explanation)
         errors.extend(type_errors)
 
-    # Validation générale
     # Convertir en string si c'est une liste
     correct_answer_str = (
-        ",".join(correct_answer)
+        ",".join(str(x) for x in correct_answer)
         if isinstance(correct_answer, list)
         else str(correct_answer) if correct_answer else ""
     )
+
+    errors.extend(
+        validate_challenge_choices(
+            challenge_type,
+            correct_answer_str,
+            challenge_data.get("choices"),
+        )
+    )
+
+    dr = challenge_data.get("difficulty_rating")
+    if isinstance(dr, (int, float)) and 1.0 <= float(dr) <= 5.0:
+        drf = float(dr)
+        errors.extend(validate_title_difficulty_coherence(title, drf))
+        errors.extend(
+            validate_difficulty_structural_coherence(challenge_type, visual_data, drf)
+        )
+
+    # Validation générale
     explanation_str = str(solution_explanation) if solution_explanation else ""
 
     if not correct_answer_str or not correct_answer_str.strip():
@@ -277,6 +328,8 @@ def validate_spatial_challenge(
             errors.append(
                 "Défi de symétrie: les côtés gauche et droite doivent être définis"
             )
+
+        errors.extend(validate_symmetry_canonical(visual_data))
 
     # Vérifier les formes basiques
     shapes = visual_data.get("shapes", [])
@@ -664,6 +717,134 @@ def validate_probability_challenge(
     return errors
 
 
+def validate_deduction_challenge(
+    visual_data: Dict[str, Any], correct_answer: str, explanation: str
+) -> List[str]:
+    """
+    Valide un défi DEDUCTION (grille logique type Einstein / Zebra).
+
+    Contrat structurel + **bijection par catégorie** : sur chaque colonne, une valeur du
+    domaine ne peut être assignée qu'à une seule entité de la première catégorie ; si la
+    taille du domaine égale le nombre de lignes, chaque valeur du domaine doit apparaître
+    exactement une fois (permutation). Ne prouve pas la cohérence avec les ``clues`` ni
+    l'unicité logique globale du puzzle.
+    """
+    errors: List[str] = []
+    _ = explanation
+
+    if not visual_data:
+        errors.append("DEDUCTION: visual_data manquant")
+        return errors
+
+    if str(visual_data.get("type", "")).lower() != "logic_grid":
+        errors.append("DEDUCTION: visual_data.type doit être 'logic_grid'")
+
+    entities = visual_data.get("entities")
+    if not isinstance(entities, dict) or len(entities) < 2:
+        errors.append(
+            "DEDUCTION: entities doit contenir au moins 2 catégories (listes non vides)"
+        )
+        return errors
+
+    category_order = list(entities.keys())
+    categories: List[Tuple[str, List[str]]] = []
+    for cat in category_order:
+        vals = entities[cat]
+        if not isinstance(vals, list) or len(vals) == 0:
+            errors.append(f"DEDUCTION: entities['{cat}'] doit être une liste non vide")
+            return errors
+        categories.append((cat, [str(v).strip() for v in vals if v is not None]))
+
+    clues = visual_data.get("clues", [])
+    if not isinstance(clues, list) or len(clues) < 2:
+        errors.append(
+            "DEDUCTION: fournir au moins 2 indices (clues) pour guider la déduction"
+        )
+
+    if not correct_answer or not str(correct_answer).strip():
+        errors.append("DEDUCTION: correct_answer vide")
+        return errors
+
+    parts = [p.strip() for p in str(correct_answer).split(",") if p.strip()]
+    if not parts:
+        errors.append("DEDUCTION: correct_answer sans association valide")
+        return errors
+
+    n_cat = len(categories)
+    first_cat_allowed = {x.lower() for x in categories[0][1]}
+    expected_n = len(first_cat_allowed)
+
+    if len(parts) != expected_n:
+        errors.append(
+            f"DEDUCTION: attendu {expected_n} associations (une par entité de "
+            f"« {category_order[0]} »), reçu {len(parts)}"
+        )
+
+    first_segments: List[str] = []
+    valid_rows: List[List[str]] = []
+
+    for part in parts:
+        segs = [s.strip() for s in part.split(":")]
+        if len(segs) != n_cat:
+            errors.append(
+                f"DEDUCTION: chaque association doit avoir {n_cat} segments ':' "
+                f"(ordre des catégories: {category_order}), reçu: {part!r}"
+            )
+            continue
+        valid_rows.append(segs)
+        first_segments.append(segs[0].lower())
+        for i, (_cat, allowed) in enumerate(categories):
+            val = segs[i]
+            allowed_l = {a.lower() for a in allowed}
+            if val.lower() not in allowed_l:
+                errors.append(
+                    f"DEDUCTION: la valeur {val!r} n'appartient pas à la catégorie "
+                    f"'{category_order[i]}' pour l'association {part!r}"
+                )
+
+    if len(first_segments) == expected_n and len(set(first_segments)) != len(
+        first_segments
+    ):
+        errors.append(
+            "DEDUCTION: une même entité (première catégorie) apparaît plusieurs fois"
+        )
+
+    seen_first = set(first_segments)
+    missing_entities = first_cat_allowed - seen_first
+    if missing_entities:
+        errors.append(
+            "DEDUCTION: entités manquantes dans correct_answer (première catégorie): "
+            f"{sorted(missing_entities)}"
+        )
+
+    # Bijection structurelle : pas de valeur réutilisée dans une même catégorie (colonnes).
+    if valid_rows:
+        for j in range(n_cat):
+            col_vals = [row[j].lower() for row in valid_rows]
+            if len(col_vals) != len(set(col_vals)):
+                errors.append(
+                    f"DEDUCTION: la catégorie « {category_order[j]} » impose une assignation "
+                    f"one-to-one : une même valeur apparaît pour plusieurs lignes "
+                    f"(ex. deux personnes avec la même valeur)."
+                )
+
+    # Si |domaine catégorie j| == nombre de lignes complètes, exiger une permutation exacte.
+    if len(valid_rows) == expected_n:
+        for j, (_cat, allowed) in enumerate(categories):
+            allowed_l = [str(a).strip() for a in allowed if a is not None]
+            allowed_set = {a.lower() for a in allowed_l}
+            col_set = {row[j].lower() for row in valid_rows}
+            if len(allowed_set) == expected_n and len(col_set) == expected_n:
+                if col_set != allowed_set:
+                    errors.append(
+                        f"DEDUCTION: pour « {category_order[j]} », chaque valeur du domaine "
+                        f"doit apparaître exactement une fois sur les {expected_n} lignes "
+                        f"(bijection) ; obtenu {sorted(col_set)}, attendu {sorted(allowed_set)}"
+                    )
+
+    return errors
+
+
 def validate_chess_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
@@ -723,4 +904,5 @@ _VALIDATORS_BY_TYPE = {
     "RIDDLE": validate_riddle_challenge,
     "PROBABILITY": validate_probability_challenge,
     "CHESS": validate_chess_challenge,
+    "DEDUCTION": validate_deduction_challenge,
 }

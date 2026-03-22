@@ -6,8 +6,9 @@ D2: Contrôle central MAX_CONTENT_LENGTH avant parsing JSON.
 """
 
 import json
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
 
+from pydantic import BaseModel, ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -148,3 +149,33 @@ async def parse_json_body(
         result[field] = value
 
     return result
+
+
+TModel = TypeVar("TModel", bound=BaseModel)
+
+
+async def parse_json_body_as_model(
+    request: Request,
+    model_cls: Type[TModel],
+) -> Union[TModel, JSONResponse]:
+    """
+    Parse le body JSON (limite MAX_CONTENT_LENGTH) et valide avec un modèle Pydantic.
+
+    Retourne l'instance validée ou une JSONResponse 422 avec ``error`` + ``detail`` (errors Pydantic).
+    """
+    raw = await parse_json_body_any(request)
+    if isinstance(raw, JSONResponse):
+        return raw
+    try:
+        return model_cls.model_validate(raw)
+    except ValidationError as e:
+        logger.warning(
+            "parse_json_body_as_model: validation %s — %s", model_cls.__name__, e
+        )
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "Requête invalide",
+                "detail": e.errors(include_url=False),
+            },
+        )

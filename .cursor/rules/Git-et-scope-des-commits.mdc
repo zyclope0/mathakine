@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+Ne pas mélanger des changements sans rapport.
+
+Règles
+regrouper par lots cohérents :
+backend métier
+frontend UI/data
+docs/versioning/release
+config/runtime dev
+éviter git add . si le worktree est large
+préférer plusieurs commits propres à un commit fourre-tout
+ne jamais embarquer des fichiers douteux sans les relire
+Bon principe
+Un commit doit pouvoir être résumé par une intention claire.

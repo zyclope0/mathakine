@@ -71,3 +71,46 @@ def test_parse_pagination_params_dict_like():
     skip, limit = parse_pagination_params(params)
     assert skip == 5
     assert limit == 30
+
+
+def test_invalid_limit_default_exceeds_max_clamped_to_max():
+    """limit invalide → fallback default_limit ; si default > max_limit, clamp max_limit."""
+    params = {"limit": "not-a-number"}
+    skip, limit = parse_pagination_params(params, default_limit=500, max_limit=100)
+    assert skip == 0
+    assert limit == 100
+
+
+def test_invalid_limit_non_positive_default_clamped_to_one():
+    """limit invalide + default_limit <= 0 → limit = 1."""
+    params = {"limit": "x"}
+    skip, limit = parse_pagination_params(params, default_limit=0, max_limit=100)
+    assert skip == 0
+    assert limit == 1
+
+
+def test_invalid_limit_negative_default_clamped_to_one():
+    params = {"limit": "???"}
+    skip, limit = parse_pagination_params(params, default_limit=-10, max_limit=50)
+    assert limit == 1
+
+
+def test_max_limit_zero_effective_floor_one():
+    """max_limit <= 0 : plafond effectif 1, résultat toujours dans [1, 1]."""
+    skip, limit = parse_pagination_params({}, default_limit=20, max_limit=0)
+    assert skip == 0
+    assert limit == 1
+
+
+def test_max_limit_negative_effective_floor_one():
+    skip, limit = parse_pagination_params(
+        {"limit": "99"}, default_limit=5, max_limit=-5
+    )
+    assert limit == 1
+
+
+def test_missing_limit_uses_normalized_default_when_default_gt_max():
+    """Clé limit absente : default_limit trop grand → clamp à max."""
+    skip, limit = parse_pagination_params({}, default_limit=200, max_limit=100)
+    assert skip == 0
+    assert limit == 100

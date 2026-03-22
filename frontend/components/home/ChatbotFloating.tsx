@@ -4,13 +4,14 @@ import { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
+import { useChatAutoScroll } from "@/hooks/chat/useChatAutoScroll";
 import { useTranslations } from "next-intl";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { ChatMessagesView } from "@/components/chat/ChatMessagesView";
+import { ChatSuggestionsBar } from "@/components/chat/ChatSuggestionsBar";
+import { ChatComposer } from "@/components/chat/ChatComposer";
 
 interface ChatbotFloatingProps {
   isOpen?: boolean;
@@ -18,10 +19,7 @@ interface ChatbotFloatingProps {
 }
 
 /**
- * Chatbot Flottant - Version améliorée
- *
- * - Bouton flottant positionné à gauche des boutons d'accessibilité
- * - Chat en drawer slide-in depuis la droite (plus grand et mieux positionné)
+ * Chatbot flottant : portail + drawer ; logique de flux partagée avec {@link Chatbot} via `useChat` et composants `components/chat/*`.
  */
 export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatingProps) {
   const t = useTranslations("home.chatbot");
@@ -32,10 +30,12 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     setInput,
     handleSend,
     sendInputMessage,
-    handleKeyPress,
+    handleKeyDown,
     isLoading,
+    isAwaitingAssistant,
     suggestions,
   } = useChat({
+    sendErrorText: t("sendError"),
     initialMessages: [
       {
         id: "1",
@@ -53,60 +53,47 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     onOpenChange?.(open);
   };
 
-  // Auto-scroll vers le bas
-  useEffect(() => {
-    if (isOpen && messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages, isOpen]);
+  useChatAutoScroll(messagesContainerRef, isOpen, messages);
 
-  // Focus input à l'ouverture
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [isOpen]);
 
-  // Portail vers document.body pour échapper au stacking context z-10 du <main>
-  // Sans ça, le header fixed z-40 passe au-dessus du chatbot z-[9991]
   if (typeof document === "undefined") return null;
 
   return createPortal(
     <>
-      {/* Overlay sombre quand ouvert - z-[9990] au-dessus du footer et du contenu */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-[9990] animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9990] animate-in fade-in bg-black/30 duration-200"
           onClick={() => handleOpenChange(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Panel de chat - Drawer depuis la droite */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="chatbot-title"
         className={cn(
-          "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[9991]",
-          "bg-background border-l shadow-2xl",
-          "transition-all duration-300 ease-out",
-          isOpen ? "translate-x-0 visible opacity-100" : "translate-x-full invisible opacity-0"
+          "fixed right-0 top-0 z-[9991] h-full w-full border-l bg-background shadow-2xl transition-all duration-300 ease-out sm:w-[400px]",
+          isOpen ? "visible translate-x-0 opacity-100" : "invisible translate-x-full opacity-0"
         )}
         aria-hidden={!isOpen ? "true" : undefined}
       >
-        <Card className="flex flex-col h-full rounded-none border-0">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-primary/5">
+        <Card className="flex h-full flex-col rounded-none border-0">
+          <div className="bg-primary/5 flex items-center justify-between border-b p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" />
+              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <MessageCircle className="text-primary h-5 w-5" aria-hidden />
               </div>
               <div>
                 <h2 id="chatbot-title" className="font-semibold">
                   {t("title")}
                 </h2>
-                <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
+                <p className="text-muted-foreground text-xs">{t("subtitle")}</p>
               </div>
             </div>
             <Button
@@ -114,114 +101,56 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
               size="icon"
               className="h-10 w-10"
               onClick={() => handleOpenChange(false)}
-              aria-label="Fermer l'assistant"
+              aria-label={t("closeAssistant")}
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Messages */}
-          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex gap-3",
-                  message.role === "user" ? "justify-end" : "justify-start"
-                )}
-              >
-                {message.role === "assistant" && (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <MessageCircle className="h-4 w-4 text-primary" />
-                  </div>
-                )}
-                <div
-                  className={cn(
-                    "prose prose-sm dark:prose-invert max-w-[85%] rounded-2xl px-4 py-3",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-muted rounded-bl-md"
-                  )}
-                >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
-                </div>
-              </div>
-            ))}
-            {isLoading && messages[messages.length - 1]?.role === "user" && (
-              <div className="flex justify-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                </div>
-                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              </div>
-            )}
+          <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+            <ChatMessagesView
+              messages={messages}
+              variant="drawer"
+              isAwaitingAssistant={isAwaitingAssistant}
+            />
           </div>
 
-          {/* Suggestions (seulement au début) */}
-          {messages.length <= 1 && suggestions.length > 0 && (
-            <div className="px-4 pb-3 border-t pt-3">
-              <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((s, i) => (
-                  <Button
-                    key={i}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSend(s)}
-                    className="text-xs h-8 rounded-full"
-                  >
-                    {s}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
+          <ChatSuggestionsBar
+            visible={messages.length <= 1}
+            variant="drawer"
+            suggestions={suggestions}
+            suggestionsTitle={t("suggestions")}
+            onPick={handleSend}
+            disabled={isLoading}
+          />
 
-          {/* Input */}
-          <div className="p-4 border-t bg-background">
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={t("inputPlaceholder")}
-                disabled={isLoading}
-                className="flex-1 rounded-full bg-muted/50 px-4 py-3"
-                aria-label="Message"
-              />
-              <Button
-                onClick={sendInputMessage}
-                disabled={!input.trim() || isLoading}
-                size="icon"
-                className="h-11 w-11 rounded-full"
-                aria-label="Envoyer"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <ChatComposer
+            variant="drawer"
+            inputRef={inputRef}
+            value={input}
+            onChange={setInput}
+            onKeyDown={handleKeyDown}
+            onSend={sendInputMessage}
+            disabled={isLoading}
+            canSend={Boolean(input.trim())}
+            placeholder={t("inputPlaceholder")}
+            inputAriaLabel={t("inputLabel")}
+            sendAriaLabel={t("sendButton")}
+          />
         </Card>
       </div>
 
-      {/* Bouton flottant - À gauche du bouton d'accessibilité */}
       <Button
+        type="button"
         onClick={() => handleOpenChange(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full",
-          "bg-primary text-primary-foreground border-4 border-primary/20",
+          "bg-primary text-primary-foreground border-primary/20 fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full border-4",
           "shadow-[0_0_20px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]",
           "transition-all duration-200 hover:scale-110",
           "hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-primary)_60%,transparent)]",
-          isOpen && "opacity-0 pointer-events-none"
+          isOpen && "pointer-events-none opacity-0"
         )}
-        aria-label="Ouvrir l'assistant mathématique"
+        aria-label={t("openFabAria")}
       >
         <MessageCircle className="h-7 w-7" />
       </Button>

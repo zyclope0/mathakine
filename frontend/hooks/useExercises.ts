@@ -6,6 +6,7 @@ import type { Exercise } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { usePaginatedContent } from "./usePaginatedContent";
+import type { ContentListOrder } from "@/lib/constants/contentListOrder";
 
 export interface ExerciseFilters {
   exercise_type?: string;
@@ -13,7 +14,7 @@ export interface ExerciseFilters {
   search?: string;
   skip?: number;
   limit?: number;
-  order?: "random" | "recent";
+  order?: ContentListOrder;
   hide_completed?: boolean;
 }
 
@@ -60,7 +61,7 @@ export function useExercises(filters?: ExerciseFilters) {
       // Invalider ET refetch immédiatement pour afficher le nouvel exercice
       // Utiliser la même queryKey que la query principale pour respecter les filtres
       await queryClient.invalidateQueries({ queryKey: ["exercises"] });
-      // Le refetch se fera automatiquement grâce à refetchOnMount: 'always'
+      // Refetch déclenché par invalidation (liste à jour après génération)
       toast.success(t("exercises.generateSuccess"), {
         description: t("exercises.generateSuccessDescription", { title: data.title }),
       });
@@ -79,7 +80,9 @@ export function useExercises(filters?: ExerciseFilters) {
     isLoading,
     isFetching, // Utile pour afficher un indicateur pendant la pagination
     error,
+    /** Fire-and-forget ; le résultat n’est pas remonté au caller. */
     generateExercise: generateMutation.mutate,
+    /** À utiliser quand le caller doit réagir au payload (ex. CTA après création). */
     generateExerciseAsync: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
   };

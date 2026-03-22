@@ -56,6 +56,7 @@ def _prepare_challenge_data(
     tags: Optional[str] = None,
     creator_id: Optional[int] = None,
     generation_parameters: Optional[Dict] = None,
+    choices: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
     Étape 1 : préparation et normalisation des entrées pour création d'un challenge.
@@ -82,6 +83,7 @@ def _prepare_challenge_data(
         "is_active": True,
         "created_at": now,
         "generation_parameters": generation_parameters,
+        "choices": choices,
     }
 
 
@@ -126,6 +128,7 @@ def create_challenge(
     tags: Optional[str] = None,
     creator_id: Optional[int] = None,
     generation_parameters: Optional[Dict] = None,
+    choices: Optional[List[str]] = None,
 ) -> LogicChallenge:
     """
     Créer un nouveau challenge.
@@ -170,6 +173,7 @@ def create_challenge(
         tags=tags,
         creator_id=creator_id,
         generation_parameters=generation_parameters,
+        choices=choices,
     )
     _validate_challenge_data(prepared)
     challenge = _persist_challenge(db, prepared)

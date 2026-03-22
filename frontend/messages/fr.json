@@ -275,6 +275,15 @@
       "allDifficulties": "Toutes les difficultés",
       "allLevels": "Tous les niveaux",
       "allAgeGroups": "Tous les âges",
+      "order": "Tri",
+      "orderRandom": "Aléatoire",
+      "orderRecent": "Plus récents",
+      "expandFilters": "Afficher les filtres par type et par âge",
+      "collapseFilters": "Masquer les filtres par type et par âge",
+      "advancedFiltersRegion": "Filtres par type et par âge",
+      "activeFiltersSummary": "Résumé des critères actifs",
+      "removeTypeFilter": "Retirer le filtre par type",
+      "removeAgeFilter": "Retirer le filtre par tranche d'âge",
       "aiGenerated": "Générés par IA",
       "standard": "Standard",
       "hideCompleted": "Masquer les réussis"
@@ -350,13 +359,17 @@
       "error": "Erreur de génération",
       "errorDescription": "Une erreur est survenue lors de la génération.",
       "validationError": "Erreur de validation",
+      "promptValidationError": "Prompt invalide",
       "connectionError": "Erreur de connexion",
       "connectionErrorDescription": "La génération a été interrompue. Vérifiez votre connexion.",
       "startError": "Erreur",
       "startErrorDescription": "Impossible de démarrer la génération.",
       "authRequired": "Connexion requise",
       "authRequiredDescription": "Vous devez être connecté pour générer des exercices avec l'IA",
-      "login": "Se connecter"
+      "login": "Se connecter",
+      "warningTitle": "Avertissement",
+      "warningFallback": "Le serveur a signalé un avertissement.",
+      "exerciseNotPersisted": "L'exercice n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard."
     },
     "types": {
       "addition": "Addition",
@@ -459,6 +472,12 @@
       "order": "Tri",
       "orderRandom": "Aléatoire",
       "orderRecent": "Plus récents",
+      "expandFilters": "Afficher les filtres par type et par âge",
+      "collapseFilters": "Masquer les filtres par type et par âge",
+      "advancedFiltersRegion": "Filtres par type et par âge",
+      "activeFiltersSummary": "Résumé des critères actifs",
+      "removeTypeFilter": "Retirer le filtre par type",
+      "removeAgeFilter": "Retirer le filtre par tranche d'âge",
       "hideCompleted": "Masquer les réussis"
     },
     "search": {
@@ -490,7 +509,10 @@
       "viewChallenge": "Voir le défi",
       "authRequired": "Connexion requise",
       "authRequiredDescription": "Vous devez être connecté pour générer des défis avec l'IA",
-      "login": "Se connecter"
+      "login": "Se connecter",
+      "warningTitle": "Avertissement",
+      "warningFallback": "Le serveur a signalé un avertissement.",
+      "challengeNotPersisted": "Le défi n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard."
     },
     "list": {
       "loading": "Chargement...",
@@ -823,7 +845,13 @@
       "level": "Niveau",
       "xp": "XP",
       "nextLevel": "Niveau suivant",
-      "xpForNextLevel": "XP pour le niveau {level}"
+      "xpForNextLevel": "XP pour le niveau {level}",
+      "maxLevel": "Niveau maximum atteint ✨"
+    },
+    "profile": {
+      "statsPeriodHint": "Les statistiques ci-dessous (exercices, taux, défis, activité) concernent la période « {period} ». Pour la modifier, ouvre l’onglet « Vue d’ensemble ».",
+      "levelUnavailableTitle": "Niveau de progression indisponible",
+      "levelUnavailableDescription": "Recharge la page ou reconnecte-toi. Si le problème continue, contacte le support."
     },
     "tabs": {
       "tabsLabel": "Sections du tableau de bord",
@@ -864,7 +892,8 @@
         "lastDataUpdate": "Dernière mise à jour des données",
         "executiveSummary": "Résumé exécutif",
         "successRate": "Taux de réussite",
-        "experiencePoints": "Points d'expérience (XP)",
+        "accountTotalPoints": "Points de compte (total)",
+        "accountXpInLevel": "XP dans le palier courant (compte)",
         "averageScoreSecondary": "Score moyen (indicateur secondaire)",
         "incorrectAnswers": "Réponses incorrectes",
         "exercisesSolved": "Exercices résolus",
@@ -1320,7 +1349,10 @@
       "expandLabel": "Agrandir le chat",
       "collapseLabel": "Réduire le chat",
       "suggestions": "Suggestions :",
-      "loading": "Chargement de l'assistant..."
+      "loading": "Chargement de l'assistant...",
+      "sendError": "Désolé, une erreur est survenue. Veuillez réessayer.",
+      "closeAssistant": "Fermer l'assistant",
+      "openFabAria": "Ouvrir l'assistant mathématique"
     },
     "cta": {
       "title": "Prêt à commencer ?",
@@ -1763,6 +1795,16 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_3_0_alpha_1": {
+      "version": "v3.3.0-alpha.1",
+      "date": "22 mars 2026",
+      "items": [
+        "Le chat comprend mieux les demandes d exercice ou de defi et evite mieux les reponses hors sujet, comme une image quand tu demandes simplement un exercice.",
+        "Les generateurs IA d exercices et de defis sont plus fiables : validation plus stricte, moins de faux succes et parcours de fin de generation plus clairs.",
+        "Apres une generation reussie, tu peux rouvrir directement l exercice ou le defi cree depuis le widget.",
+        "La stabilite generale de la couche IA a ete renforcee avant la suite de l alpha : chat, exercices, defis et suivi runtime sont maintenant mieux alignes."
+      ]
+    },
     "release_3_2_0_alpha_1": {
       "version": "v3.2.0-alpha.1",
       "date": "20 mars 2026",

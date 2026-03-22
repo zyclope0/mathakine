@@ -24,9 +24,11 @@ def main():
         print("Vide la table edtech_events. Ajoutez --confirm pour exécuter.")
         return 1
 
-    from sqlalchemy import create_engine, text
-    from app.core.config import settings
     from urllib.parse import urlparse
+
+    from sqlalchemy import create_engine, text
+
+    from app.core.config import settings
 
     url = settings.SQLALCHEMY_DATABASE_URL
     parsed = urlparse(url)

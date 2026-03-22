@@ -1,13 +1,14 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 15/03/2026
+> Updated: 22/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
 
 - this document summarizes active Starlette routes only
 - final truth remains `server/routes/` + `server/handlers/`
+- AI model defaults / allowlists / runtime observability are documented in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`
 - `app/api/endpoints/*` has been archived in `_ARCHIVE_2026/app/api/` and is not part of the runtime
 - the HTML handler `generate_exercise` still exists but is not an active Starlette route
 - auth-sensitive and chat endpoints now rely on distributed Redis rate limiting in production
@@ -32,7 +33,7 @@
 |---|---|---|
 | POST | `/api/users/` | registration, rate limited |
 | GET | `/api/users/` | placeholder / in development |
-| GET | `/api/users/me` | current user |
+| GET | `/api/users/me` | current user (+ `gamification_level`, `total_points`, `current_level`, `jedi_rank`) |
 | PUT | `/api/users/me` | profile update |
 | PUT | `/api/users/me/password` | password change + revocation |
 | DELETE | `/api/users/me` | delete current account |
@@ -42,7 +43,7 @@
 | GET | `/api/users/me/progress/timeline` | progression timeline |
 | GET | `/api/users/me/progress` | global progression |
 | GET | `/api/users/me/challenges/progress` | challenge progression |
-| GET | `/api/users/stats` | user stats |
+| GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |
 | GET | `/api/users/leaderboard` | leaderboard |
 | DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
 
@@ -75,20 +76,22 @@ Contract note:
 | GET | `/api/exercises/interleaved-plan` | interleaved plan |
 | GET | `/api/exercises/{exercise_id}` | exercise detail |
 | POST | `/api/exercises/generate` | active generation route |
-| GET | `/api/exercises/generate-ai-stream` | AI generation SSE |
+| POST | `/api/exercises/generate-ai-stream` | AI generation SSE (JSON body: `exercise_type`, `age_group`, `prompt`; optional legacy `difficulty` → `age_group`) |
 | GET | `/api/exercises/completed-ids` | completed ids |
-| POST | `/api/exercises/{exercise_id}/attempt` | submit answer |
+| POST | `/api/exercises/{exercise_id}/attempt` | submit answer (see note below) |
+
+**Exercise attempt — answer matching (backend):** For types other than TEXTE/MIXTE, after exact trim match, equivalent forms are accepted: trailing `%` vs plain number (e.g. `45%` vs `45`), decimal comma vs dot (`3,5` vs `3.5`), simple fraction vs decimal when at least one side uses `/` (e.g. `1/2` vs `0.5`). Not accepted: e.g. `0100` vs `100`, `0.50` vs `0.5`. Implementation: `app/utils/exercise_answer_compare.py`.
 
 ## Challenges
 
 | Method | Endpoint | Notes |
 |---|---|---|
 | GET | `/api/challenges` | list / filters / hide_completed |
-| GET | `/api/challenges/{challenge_id}` | challenge detail |
+| GET | `/api/challenges/{challenge_id}` | challenge detail (incl. `response_mode` IA9, `choices` filtrés selon politique type) |
 | POST | `/api/challenges/{challenge_id}/attempt` | submit answer |
 | GET | `/api/challenges/{challenge_id}/hint` | hint |
 | GET | `/api/challenges/completed-ids` | completed ids |
-| GET | `/api/challenges/generate-ai-stream` | AI generation SSE |
+| POST | `/api/challenges/generate-ai-stream` | AI generation SSE (JSON body: `challenge_type`, `age_group`, `prompt`) ; événements `status`, `warning`, `challenge`, `error`, `done` — si la validation finale échoue après auto-correction : `error` puis `done`, **pas** d’événement `challenge` ni persistance |
 | GET | `/api/challenges/badges/progress` | challenge badge progress |
 
 ## Badges
@@ -139,8 +142,9 @@ Contract note:
 | PUT | `/api/admin/badges/{badge_id}` | badge update |
 | DELETE | `/api/admin/badges/{badge_id}` | soft delete badge |
 | GET | `/api/admin/analytics/edtech` | EdTech analytics |
-| GET | `/api/admin/ai-stats` | AI stats |
-| GET | `/api/admin/generation-metrics` | generation metrics |
+| GET | `/api/admin/ai-stats` | AI runtime stats : coûts **estimés** (pas compta), tokens, ventilation workload (`assistant_chat` = chat **public** rate-limité). Rétention in-memory bornée (`stats.retention`). |
+| GET | `/api/admin/generation-metrics` | Qualité runtime (incl. chat public) ; clés inconnues → bucket `unknown` (plus d’attribution silencieuse aux défis). `summary.retention`. |
+| GET | `/api/admin/ai-eval-harness-runs?limit=N` | Derniers runs harness **persistés** (IA8) : mode, cible, compteurs, chemins d’artefacts ; distinct du runtime in-memory. |
 
 ## Misc
 
@@ -152,7 +156,7 @@ Contract note:
 | POST | `/api/recommendations/generate` | generate recommendations |
 | POST | `/api/recommendations/complete` | mark recommendation complete |
 | POST | `/api/chat` | public chat, rate limited |
-| POST | `/api/chat/stream` | chat SSE, rate limited |
+| POST | `/api/chat/stream` | public chat SSE, rate limited; runtime model policy and cost observability are described in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md` |
 | GET | `/health` | backend health |
 | GET | `/robots.txt` | robots |
 | GET | `/metrics` | Prometheus metrics |
@@ -163,4 +167,3 @@ Contract note:
 - [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)
 - [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
-

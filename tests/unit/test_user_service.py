@@ -20,6 +20,8 @@ from app.models.progress import Progress
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.schemas.user import UserCreate, UserUpdate
+from app.services.gamification.constants import POINTS_PER_LEVEL
+from app.services.gamification.level_titles import LEVEL_TITLES
 from app.services.users.user_service import UserService
 from app.utils.db_helpers import (
     ENUM_MAPPING,
@@ -175,6 +177,7 @@ def test_serialize_user_profile_for_api():
     user.total_points = 120
     user.current_level = 3
     user.jedi_rank = "padawan"
+    user.experience_points = 20
 
     response_data = UserService.serialize_user_profile_for_api(user)
 
@@ -183,6 +186,51 @@ def test_serialize_user_profile_for_api():
     assert response_data["grade_system"] == "suisse"
     assert response_data["accessibility_settings"] == {"high_contrast": True}
     assert response_data["onboarding_completed_at"] == "2026-03-06T12:00:00"
+    gl = response_data["gamification_level"]
+    assert gl["current"] == 3
+    assert gl["current_xp"] == 20
+    assert gl["next_level_xp"] == POINTS_PER_LEVEL
+    assert gl["jedi_rank"] == "padawan"
+
+
+def test_build_gamification_level_for_api_uses_persisted_fields():
+    user = MagicMock(spec=User)
+    user.total_points = 250
+    user.current_level = 3
+    user.experience_points = 50
+    user.jedi_rank = "padawan"
+
+    gl = UserService.build_gamification_level_for_api(user)
+
+    assert gl["current"] == 3
+    assert gl["current_xp"] == 50
+    assert gl["next_level_xp"] == 100
+    assert gl["title"] == LEVEL_TITLES[3]
+
+
+def test_build_gamification_level_for_api_xp_fallback_from_total_points():
+    user = MagicMock(spec=User)
+    user.total_points = 177
+    user.current_level = 2
+    user.experience_points = None
+    user.jedi_rank = "youngling"
+
+    gl = UserService.build_gamification_level_for_api(user)
+
+    assert gl["current_xp"] == 77
+
+
+def test_build_gamification_level_for_api_high_level_generic_title():
+    user = MagicMock(spec=User)
+    user.total_points = 5000
+    user.current_level = 42
+    user.experience_points = 0
+    user.jedi_rank = "grand_master"
+
+    gl = UserService.build_gamification_level_for_api(user)
+
+    assert gl["title"] == "Niveau 42"
+    assert gl["current"] == 42
 
 
 def test_get_user_by_email():
@@ -1464,74 +1512,3 @@ def test_user_roles_adaptation_for_different_databases():
         adapt_enum_for_db("UserRole", gardien_value, mock_postgres_session)
         == ENUM_MAPPING[("UserRole", gardien_value)]
     )
-
-
-# =============================================================================
-# Tests de régression M3 — _calculate_user_level (borne max fragile)
-# =============================================================================
-
-
-class TestCalculateUserLevel:
-    """Tests de régression pour UserService._calculate_user_level (audit M3).
-
-    Vérifie que le calcul de niveau est correct pour tous les cas :
-    niveaux normaux, borne exacte du niveau max, et XP dépassant le max.
-    """
-
-    def test_level_1_zero_xp(self):
-        result = UserService._calculate_user_level(0)
-        assert result["current"] == 1
-        assert result["title"] == "Jeune Padawan"
-        assert result["current_xp"] == 0
-        assert result["next_level_xp"] > 0
-        assert result["is_max_level"] is False
-
-    def test_level_2_at_threshold(self):
-        result = UserService._calculate_user_level(100)
-        assert result["current"] == 2
-        assert result["is_max_level"] is False
-        assert result["current_xp"] == 0
-        assert result["next_level_xp"] == 200  # 300 - 100
-
-    def test_level_mid_progression(self):
-        result = UserService._calculate_user_level(150)
-        assert result["current"] == 2
-        assert result["current_xp"] == 50  # 150 - 100
-        assert result["next_level_xp"] == 200
-        assert result["is_max_level"] is False
-
-    def test_level_10_before_max(self):
-        """Niveau juste avant le max — next_level_xp doit être calculé, pas 0."""
-        result = UserService._calculate_user_level(4500)
-        assert result["current"] == 10
-        assert result["is_max_level"] is False
-        assert result["current_xp"] == 0
-        assert result["next_level_xp"] == 1000  # 5500 - 4500
-
-    def test_level_11_exactly_at_max_threshold(self):
-        """Régression M3 : xp == 5500 → niveau max, next_level_xp = 0."""
-        result = UserService._calculate_user_level(5500)
-        assert result["current"] == 11
-        assert result["title"] == "Grand Archiviste"
-        assert result["is_max_level"] is True
-        assert result["current_xp"] == 0
-        assert result["next_level_xp"] == 0
-
-    def test_level_11_far_above_max_threshold(self):
-        """Régression M3 : xp >> 5500 → pas d'IndexError, pas de données aberrantes."""
-        result = UserService._calculate_user_level(50000)
-        assert result["current"] == 11
-        assert result["is_max_level"] is True
-        assert result["current_xp"] == 0
-        assert result["next_level_xp"] == 0
-
-    def test_next_level_xp_never_zero_below_max(self):
-        """next_level_xp doit être > 0 tant qu'on n'est pas au niveau max."""
-        thresholds = UserService._LEVEL_THRESHOLDS
-        for i in range(len(thresholds) - 1):
-            xp = thresholds[i]
-            result = UserService._calculate_user_level(xp)
-            assert (
-                result["next_level_xp"] > 0
-            ), f"next_level_xp devrait être > 0 pour xp={xp} (niveau {result['current']})"
-            assert result["is_max_level"] is False

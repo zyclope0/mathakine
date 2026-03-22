@@ -5,6 +5,7 @@
 import app.models.legacy_tables  # noqa: F401
 from app.models.achievement import Achievement, UserAchievement
 from app.models.admin_audit_log import AdminAuditLog
+from app.models.ai_eval_harness_run import AiEvalHarnessCaseResult, AiEvalHarnessRun
 from app.models.attempt import Attempt
 from app.models.daily_challenge import DailyChallenge
 from app.models.diagnostic_result import DiagnosticResult
@@ -18,6 +19,7 @@ from app.models.logic_challenge import (
     LogicChallengeType,
 )
 from app.models.notification import Notification
+from app.models.point_event import PointEvent
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.setting import Setting
@@ -26,6 +28,8 @@ from app.models.user_session import UserSession
 
 __all__ = [
     "AdminAuditLog",
+    "AiEvalHarnessCaseResult",
+    "AiEvalHarnessRun",
     "DailyChallenge",
     "DiagnosticResult",
     "EdTechEvent",
@@ -46,5 +50,6 @@ __all__ = [
     "Achievement",
     "UserAchievement",
     "Notification",
+    "PointEvent",
     "UserSession",
 ]

@@ -23,6 +23,7 @@ from app.exceptions import (
 )
 from app.schemas.exercise import (
     GenerateExerciseRequest,
+    GenerateExerciseStreamPostBody,
     GenerateExerciseStreamQuery,
     InterleavedPlanQuery,
     SubmitAnswerRequest,
@@ -41,7 +42,7 @@ from app.services.exercises.exercise_query_service import (
 )
 from app.services.exercises.exercise_stream_service import prepare_stream_context
 from app.utils.error_handler import ErrorHandler, api_error_response
-from app.utils.request_utils import parse_json_body_any
+from app.utils.request_utils import parse_json_body_any, parse_json_body_as_model
 from app.utils.translation import parse_accept_language
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import normalize_and_validate_exercise_params
@@ -314,7 +315,7 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
 async def generate_ai_exercise_stream(request: Request) -> Response:
     """
     Génère un exercice avec OpenAI en streaming SSE.
-    Délègue la préparation au service exercise_stream_service.
+    Body JSON typé (POST) — le prompt ne transite plus dans l'URL.
     """
     try:
         from app.services.exercises.exercise_ai_service import (
@@ -322,11 +323,16 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
         )
         from app.utils.sse_utils import SSE_HEADERS, sse_error_response
 
-        params = request.query_params
+        body_or_err = await parse_json_body_as_model(
+            request, GenerateExerciseStreamPostBody
+        )
+        if isinstance(body_or_err, JSONResponse):
+            return body_or_err
+
         query = GenerateExerciseStreamQuery(
-            exercise_type=params.get("exercise_type", "addition"),
-            age_group=params.get("age_group") or params.get("difficulty", "6-8"),
-            prompt=params.get("prompt", ""),
+            exercise_type=body_or_err.exercise_type,
+            age_group=body_or_err.age_group,
+            prompt=body_or_err.prompt,
         )
         current_user = request.state.user
         user_id = current_user.get("id") if current_user else None

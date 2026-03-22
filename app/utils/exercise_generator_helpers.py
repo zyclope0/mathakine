@@ -6,7 +6,7 @@ Fonctions pures partagées entre generate_simple_exercise et generate_ai_exercis
 
 import os
 import random
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from app.core.constants import (
     DIFFICULTY_LIMITS,
@@ -210,10 +210,23 @@ def generate_smart_choices(
     num2: int,
     correct_result: int,
     age_group_or_difficulty: str,
+    *,
+    derived_difficulty: Optional[str] = None,
 ) -> list[str]:
-    """Génère 4 choix de réponses (1 correct + 3 distracteurs) calibrés."""
+    """Génère 4 choix de réponses (1 correct + 3 distracteurs) calibrés.
+
+    derived_difficulty : si fourni (INITIE, PADAWAN, …), évite de dériver depuis une
+    chaîne ambiguë (ex. confondre un libellé de niveau avec un groupe d'âge).
+    """
     op = operation_type.upper()
-    derived = get_difficulty_from_age_group(age_group_or_difficulty)
+    derived = (
+        derived_difficulty
+        if derived_difficulty is not None
+        else get_difficulty_from_age_group(age_group_or_difficulty)
+    )
+
+    if op == "SOUSTRACTION":
+        op = "SUBTRACTION"
 
     raw_distractors = _calibrated_distractors(correct_result, num1, num2, op, derived)
 
@@ -290,5 +303,57 @@ def generate_smart_choices(
         if new_str not in unique and _is_plausible_wrong(correct_result, new_val):
             unique.append(new_str)
 
+    # Filet de sécurité : petits quotients (ex. 1) rejettent souvent les distracteurs
+    # « plausibles » comme doublons — compléter avec des entiers distincts strictement.
+    step = 1
+    while len(unique) < 4:
+        trial = correct_result + step
+        step += 1
+        if trial < 1:
+            continue
+        s = str(trial)
+        if s not in unique:
+            unique.append(s)
+
     random.shuffle(unique)
     return unique[:4]
+
+
+def ensure_four_distinct_str_choices(correct: str, extras: list[str]) -> list[str]:
+    """
+    Garantit exactement 4 options QCM distinctes incluant la bonne réponse.
+
+    Utilisé lorsque les distracteurs sont construits manuellement (géométrie, divers)
+    pour éviter les doublons (ex. arrondis identiques).
+    """
+    c = str(correct).strip()
+    out: list[str] = []
+    seen: set[str] = set()
+    for token in [c] + extras:
+        t = str(token).strip()
+        if not t or t in seen:
+            continue
+        seen.add(t)
+        out.append(t)
+        if len(out) >= 4:
+            break
+
+    step = 1
+    while len(out) < 4:
+        candidate: str
+        try:
+            v = float(str(c).replace(",", "."))
+            if abs(v - int(v)) < 1e-9:
+                n = int(v)
+                candidate = str(n + step)
+            else:
+                candidate = f"{v + step * 0.01:.2f}"
+        except ValueError:
+            candidate = f"{c}|{step}"
+        step += 1
+        if candidate not in seen:
+            seen.add(candidate)
+            out.append(candidate)
+
+    random.shuffle(out)
+    return out

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Rate limiting pour les endpoints sensibles (audit 3.4).
 Protege contre bruteforce (login, forgot-password) et enumeration.
 
@@ -24,11 +24,21 @@ RATE_LIMIT_CHAT_MAX = 15  # chat/stream - cout OpenAI, eviter abus
 RATE_LIMIT_AI_MAX_PER_HOUR = 10
 RATE_LIMIT_AI_MAX_PER_DAY = 50
 
+# Generation IA exercices (OpenAI) — cles Redis distinctes des defis ; quotas separes.
+RATE_LIMIT_EXERCISE_AI_MAX_PER_HOUR = 10
+RATE_LIMIT_EXERCISE_AI_MAX_PER_DAY = 50
+
 # Messages d'erreur centralises (429 Too Many Requests)
 MSG_RATE_LIMIT_RETRY = "Trop de tentatives. Veuillez reessayer dans une minute."
 MSG_CHAT_RATE_LIMIT = "Limite de messages atteinte. Veuillez reessayer dans une minute."
 MSG_AI_HOURLY_RATE_LIMIT = "Limite horaire de generation atteinte."
 MSG_AI_DAILY_RATE_LIMIT = "Limite journaliere de generation atteinte."
+MSG_EXERCISE_AI_HOURLY_RATE_LIMIT = (
+    "Limite horaire de generation d'exercices IA atteinte. Reessayez plus tard."
+)
+MSG_EXERCISE_AI_DAILY_RATE_LIMIT = (
+    "Limite journaliere de generation d'exercices IA atteinte. Reessayez demain."
+)
 
 
 def _get_client_ip(request) -> str:
@@ -77,6 +87,26 @@ def check_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optional[str]]:
         return False, MSG_AI_HOURLY_RATE_LIMIT
     if not store.check(daily_key, RATE_LIMIT_AI_MAX_PER_DAY, 86400):
         return False, MSG_AI_DAILY_RATE_LIMIT
+    return True, None
+
+
+def check_exercise_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optional[str]]:
+    """
+    Limites dediees au flux exercices IA (OpenAI), independantes du compteur defis.
+
+    Meme principe que check_ai_generation_rate_limit : refus explicite, pas de contournement.
+    """
+    if os.getenv("TESTING", "false").lower() == "true":
+        return True, None
+
+    store = _get_store()
+    hourly_key = f"rate_limit:exercise_ai_generation:hour:{user_id}"
+    daily_key = f"rate_limit:exercise_ai_generation:day:{user_id}"
+
+    if not store.check(hourly_key, RATE_LIMIT_EXERCISE_AI_MAX_PER_HOUR, 3600):
+        return False, MSG_EXERCISE_AI_HOURLY_RATE_LIMIT
+    if not store.check(daily_key, RATE_LIMIT_EXERCISE_AI_MAX_PER_DAY, 86400):
+        return False, MSG_EXERCISE_AI_DAILY_RATE_LIMIT
     return True, None
 
 

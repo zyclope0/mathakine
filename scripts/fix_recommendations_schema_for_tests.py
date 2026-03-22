@@ -88,9 +88,7 @@ def main():
         if not result.fetchone():
             print("Ajout de la colonne reason_code...")
             conn.execute(
-                text(
-                    "ALTER TABLE recommendations ADD COLUMN reason_code VARCHAR(80)"
-                )
+                text("ALTER TABLE recommendations ADD COLUMN reason_code VARCHAR(80)")
             )
             conn.commit()
         else:
@@ -104,15 +102,11 @@ def main():
             print("Ajout de la colonne reason_params...")
             try:
                 conn.execute(
-                    text(
-                        "ALTER TABLE recommendations ADD COLUMN reason_params JSONB"
-                    )
+                    text("ALTER TABLE recommendations ADD COLUMN reason_params JSONB")
                 )
             except Exception:
                 conn.execute(
-                    text(
-                        "ALTER TABLE recommendations ADD COLUMN reason_params JSON"
-                    )
+                    text("ALTER TABLE recommendations ADD COLUMN reason_params JSON")
                 )
             conn.commit()
         else:

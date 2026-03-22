@@ -275,6 +275,15 @@
       "allDifficulties": "All difficulties",
       "allLevels": "All levels",
       "allAgeGroups": "All ages",
+      "order": "Sort",
+      "orderRandom": "Random",
+      "orderRecent": "Most recent",
+      "expandFilters": "Show type and age filters",
+      "collapseFilters": "Hide type and age filters",
+      "advancedFiltersRegion": "Filters by type and age",
+      "activeFiltersSummary": "Active filter summary",
+      "removeTypeFilter": "Remove type filter",
+      "removeAgeFilter": "Remove age filter",
       "aiGenerated": "AI Generated",
       "standard": "Standard",
       "hideCompleted": "Hide completed"
@@ -350,13 +359,17 @@
       "error": "Generation error",
       "errorDescription": "An error occurred during generation.",
       "validationError": "Validation error",
+      "promptValidationError": "Invalid prompt",
       "connectionError": "Connection error",
       "connectionErrorDescription": "Generation was interrupted. Check your connection.",
       "startError": "Error",
       "startErrorDescription": "Unable to start generation.",
       "authRequired": "Login required",
       "authRequiredDescription": "You must be logged in to generate exercises with AI",
-      "login": "Log in"
+      "login": "Log in",
+      "warningTitle": "Warning",
+      "warningFallback": "The server reported a warning.",
+      "exerciseNotPersisted": "The exercise could not be saved (missing id). Please try again later."
     },
     "types": {
       "addition": "Addition",
@@ -459,6 +472,12 @@
       "order": "Sort",
       "orderRandom": "Random",
       "orderRecent": "Most recent",
+      "expandFilters": "Show type and age filters",
+      "collapseFilters": "Hide type and age filters",
+      "advancedFiltersRegion": "Filters by type and age",
+      "activeFiltersSummary": "Active filter summary",
+      "removeTypeFilter": "Remove type filter",
+      "removeAgeFilter": "Remove age filter",
       "hideCompleted": "Hide completed"
     },
     "search": {
@@ -490,7 +509,10 @@
       "viewChallenge": "View challenge",
       "authRequired": "Login required",
       "authRequiredDescription": "You must be logged in to generate challenges with AI",
-      "login": "Log in"
+      "login": "Log in",
+      "warningTitle": "Warning",
+      "warningFallback": "The server reported a warning.",
+      "challengeNotPersisted": "The challenge could not be saved (missing id). Please try again later."
     },
     "list": {
       "loading": "Loading...",
@@ -836,7 +858,13 @@
       "level": "Level",
       "xp": "XP",
       "nextLevel": "Next level",
-      "xpForNextLevel": "XP for level {level}"
+      "xpForNextLevel": "XP for level {level}",
+      "maxLevel": "Maximum level reached ✨"
+    },
+    "profile": {
+      "statsPeriodHint": "The stats below (exercises, rate, challenges, activity) use the « {period} » period. To change it, open the « Overview » tab.",
+      "levelUnavailableTitle": "Progress level unavailable",
+      "levelUnavailableDescription": "Reload the page or sign in again. If it keeps happening, contact support."
     },
     "export": {
       "pdf": "Export PDF",
@@ -864,7 +892,8 @@
         "lastDataUpdate": "Last data update",
         "executiveSummary": "Executive summary",
         "successRate": "Success rate",
-        "experiencePoints": "Experience points (XP)",
+        "accountTotalPoints": "Account points (total)",
+        "accountXpInLevel": "XP in current level (account)",
         "averageScoreSecondary": "Average score (secondary)",
         "incorrectAnswers": "Incorrect answers",
         "exercisesSolved": "Exercises solved",
@@ -1519,7 +1548,10 @@
       "expandLabel": "Expand chat",
       "collapseLabel": "Collapse chat",
       "suggestions": "Suggestions:",
-      "loading": "Loading assistant..."
+      "loading": "Loading assistant...",
+      "sendError": "Sorry, something went wrong. Please try again.",
+      "closeAssistant": "Close assistant",
+      "openFabAria": "Open math assistant"
     },
     "cta": {
       "title": "Ready to start?",
@@ -1763,6 +1795,16 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_3_0_alpha_1": {
+      "version": "v3.3.0-alpha.1",
+      "date": "March 22, 2026",
+      "items": [
+        "The chat now understands exercise and challenge requests more reliably and avoids off-topic responses, such as generating an image when you simply ask for an exercise.",
+        "AI exercise and challenge generation is now more reliable, with stricter validation, fewer false successes, and clearer end-of-generation states.",
+        "After a successful generation, you can reopen the newly created exercise or challenge directly from the widget.",
+        "Overall AI stability has been reinforced before the next alpha steps: chat, exercises, challenges, and runtime monitoring are now better aligned."
+      ]
+    },
     "release_3_2_0_alpha_1": {
       "version": "v3.2.0-alpha.1",
       "date": "March 20, 2026",

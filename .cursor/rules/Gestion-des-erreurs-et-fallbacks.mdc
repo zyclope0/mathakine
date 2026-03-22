@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+
+Ne jamais laisser un crash brut si un fallback est possible.
+
+Backend
+exceptions métier propres
+messages sûrs
+pas d’exposition stack trace
+Frontend
+état fallback localisé
+message sobre
+pas d’écran cassé si une section échoue
+Règle
+Mieux vaut :
+
+“Impossible de charger ce défi pour le moment”
+que :
+un composant vide
+un spinner infini
+un crash React

@@ -28,11 +28,13 @@ def main():
         print("\n=== Mode dry-run (ajoutez --apply pour exécuter) ===\n")
 
     from sqlalchemy import create_engine, text
+
     from app.core.config import settings
 
     url = settings.SQLALCHEMY_DATABASE_URL
     # Afficher la cible (sans mot de passe)
     from urllib.parse import urlparse
+
     parsed = urlparse(url)
     target = f"{parsed.hostname or 'localhost'}:{parsed.port or 5432}/{parsed.path.lstrip('/') or '?'}"
     print(f"Base ciblée : {target}\n")
@@ -41,40 +43,34 @@ def main():
 
     with engine.connect() as conn:
         # Diagnostic : compter les first_attempt avec timeToFirstAttemptMs
-        r = conn.execute(
-            text("""
+        r = conn.execute(text("""
                 SELECT COUNT(*) FROM edtech_events
                 WHERE event = 'first_attempt' AND payload ? 'timeToFirstAttemptMs'
-            """)
-        )
+            """))
         total_with_time = r.scalar() or 0
         print(f"Événements first_attempt avec timeToFirstAttemptMs : {total_with_time}")
 
         # Échantillon des valeurs (pour diagnostic)
-        r2 = conn.execute(
-            text("""
+        r2 = conn.execute(text("""
                 SELECT payload->>'timeToFirstAttemptMs' as val
                 FROM edtech_events
                 WHERE event = 'first_attempt' AND payload ? 'timeToFirstAttemptMs'
                 ORDER BY created_at DESC
                 LIMIT 10
-            """)
-        )
+            """))
         samples = [row[0] for row in r2.fetchall()]
         if samples:
             print(f"Échantillon (10 derniers) : {samples}")
 
         # Trouver les événements first_attempt avec timeToFirstAttemptMs < 0
-        r = conn.execute(
-            text("""
+        r = conn.execute(text("""
                 SELECT id, user_id, event, payload, created_at
                 FROM edtech_events
                 WHERE event = 'first_attempt'
                 AND payload ? 'timeToFirstAttemptMs'
                 AND (payload->>'timeToFirstAttemptMs')::numeric < 0
                 ORDER BY id
-            """)
-        )
+            """))
         rows = r.fetchall()
 
         if not rows:
@@ -83,23 +79,25 @@ def main():
 
         print(f"Événements first_attempt avec temps négatif : {len(rows)}")
         for row in rows:
-            print(f"  id={row[0]} user_id={row[1]} payload={row[3]} created_at={row[4]}")
+            print(
+                f"  id={row[0]} user_id={row[1]} payload={row[3]} created_at={row[4]}"
+            )
 
         if apply_changes:
             # Retirer la clé timeToFirstAttemptMs du payload
-            result = conn.execute(
-                text("""
+            result = conn.execute(text("""
                     UPDATE edtech_events
                     SET payload = payload - 'timeToFirstAttemptMs'
                     WHERE event = 'first_attempt'
                     AND payload ? 'timeToFirstAttemptMs'
                     AND (payload->>'timeToFirstAttemptMs')::numeric < 0
-                """)
-            )
+                """))
             conn.commit()
             print(f"\n{result.rowcount} enregistrement(s) corrigé(s).")
         else:
-            print(f"\nPour corriger ces {len(rows)} enregistrement(s), relancez avec --apply")
+            print(
+                f"\nPour corriger ces {len(rows)} enregistrement(s), relancez avec --apply"
+            )
 
     return 0
 

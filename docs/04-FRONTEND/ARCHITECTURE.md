@@ -1,6 +1,6 @@
 # Architecture Frontend — Mathakine
 
-> Dernière mise à jour : 03/03/2026  
+> Dernière mise à jour : 06/03/2026  
 > Validé contre le code source réel (post-audit industrialisation)
 
 ---
@@ -40,8 +40,8 @@ frontend/
 │   │   └── users/                # Gestion utilisateurs
 │   ├── api/                      # API Routes Next.js (proxy backend)
 │   │   ├── auth/                 # sync-cookie, check-cookie
-│   │   ├── challenges/           # generate-ai-stream
-│   │   ├── exercises/            # generate-ai-stream
+│   │   ├── challenges/           # generate-ai-stream (POST JSON → proxy SSE backend)
+│   │   ├── exercises/            # generate-ai-stream (POST JSON → proxy SSE backend)
 │   │   ├── chat/                 # stream (chatbot)
 │   │   └── sentry-status/
 │   ├── badges/page.tsx
@@ -87,7 +87,8 @@ frontend/
 │   ├── theme/                    # ThemeSelector, ThemeSelectorCompact
 │   └── ui/                       # shadcn/ui (Button, Card, Dialog, Input, Select…)
 │
-├── hooks/                        # 35 hooks React Query
+├── hooks/                        # 35+ hooks React Query
+│   ├── chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 │   ├── useAuth.ts                # Authentification (login, logout, register)
 │   ├── useExercise(s).ts         # Exercices (liste, détail, pagination)
 │   ├── useChallenge(s).ts        # Défis logiques
@@ -107,6 +108,7 @@ frontend/
 │                                 # AiStats)
 │
 ├── lib/
+│   ├── chat/                     # Types + mapping historique API chat (`README.md`)
 │   ├── api/client.ts             # Client HTTP (fetch + CSRF + auth)
 │   ├── constants/                # Constantes centralisées (exercises, challenges, badges)
 │   ├── stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
@@ -172,6 +174,8 @@ Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
 - Éviter d'exposer l'URL backend en CORS direct
 - Gérer le streaming SSE (génération IA) côté serveur
 - Synchroniser les cookies entre domaines (cross-domain prod)
+
+Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (même origine), comme les flux génération IA — sans réutiliser leurs dispatchers d’événements (schéma différent). Détail : `lib/chat/README.md`.
 
 ---
 

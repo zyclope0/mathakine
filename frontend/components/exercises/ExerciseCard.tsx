@@ -11,7 +11,6 @@ import type { Exercise } from "@/types/api";
 import { Sparkles, Eye, Calendar, ArrowRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useCompletedExercises } from "@/hooks/useCompletedItems";
 
 // Lazy load modal pour réduire le bundle initial
 const ExerciseModal = dynamic(
@@ -23,13 +22,14 @@ const ExerciseModal = dynamic(
 
 interface ExerciseCardProps {
   exercise: Exercise;
+  /** État « résolu » fourni par la page (une seule query completed-ids). */
+  completed: boolean;
 }
 
-export function ExerciseCard({ exercise }: ExerciseCardProps) {
+export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const t = useTranslations("exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
-  const { isCompleted } = useCompletedExercises();
 
   // Logique pour le type d'exercice
   const typeDisplay = getTypeDisplay(exercise.exercise_type);
@@ -41,8 +41,6 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
   const { theme } = useThemeStore();
   const ageGroupDisplay = getAgeDisplay(exercise.age_group);
   const ageGroupBadgeClasses = getAgeGroupColor(exercise.age_group, theme);
-
-  const completed = isCompleted(exercise.id);
 
   return (
     <>
@@ -146,15 +144,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
           </div>
         </CardContent>
       </ContentCardBase>
-      <ExerciseModal
-        exerciseId={exercise.id}
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onExerciseCompleted={() => {
-          // Invalider les queries pour rafraîchir les badges de progression
-          // Le hook useCompletedExercises se mettra à jour automatiquement
-        }}
-      />
+      <ExerciseModal exerciseId={exercise.id} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

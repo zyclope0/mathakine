@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+Toujours préférer :
+
+hook ou helper pour la logique
+composant pur pour le rendu
+À éviter
+fetch ou refetch caché dans un bouton de présentation
+mapping métier dispersé dans JSX
+formatage métier inline répété
+À privilégier
+hooks dédiés
+builders / snapshot builders
+fonctions de formatage testables
+i18n basée sur codes structurés plutôt que texte hardcodé

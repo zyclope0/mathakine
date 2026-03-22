@@ -7,7 +7,7 @@ import type { TimeRange } from "@/hooks/useUserStats";
 import type { ProgressStats } from "@/hooks/useProgressStats";
 import type { ChallengesProgress } from "@/hooks/useChallengesProgress";
 import type { UserStats } from "@/lib/validation/dashboard";
-import type { DailyChallenge } from "@/types/api";
+import type { DailyChallenge, GamificationLevelIndicator } from "@/types/api";
 
 export interface DashboardExportSnapshot {
   username: string;
@@ -19,6 +19,8 @@ export interface DashboardExportSnapshot {
   exportedAt: string;
   /** Dernière mise à jour connue côté stats (API ou activité) */
   lastUpdated: string | null;
+  /** Niveau gamification compte (persistant), hors période d'export */
+  gamification_level: GamificationLevelIndicator | null;
 
   summary: {
     total_exercises: number;
@@ -30,14 +32,14 @@ export interface DashboardExportSnapshot {
     success_rate: number | null;
     /** Métrique secondaire / legacy — pas le KPI principal */
     average_score: number | null;
-    /** Uniquement depuis `experience_points` (pas `xp`) */
-    experience_points: number | null;
+    /** total_points compte (GET /me), hors période d’export */
+    account_total_points: number | null;
+    /** XP dans le palier courant (gamification_level.current_xp) */
+    account_xp_in_level: number | null;
     current_streak: number | null;
     highest_streak: number | null;
     average_time_seconds: number | null;
   };
-
-  level: UserStats["level"] | null;
 
   progressStats: ProgressStats | null;
   challengesProgress: ChallengesProgress | null;
@@ -84,16 +86,15 @@ export function deriveIncorrectAnswersForExport(
   return null;
 }
 
-/** XP exporté : uniquement `experience_points` (pas `stats.xp`). */
-export function selectExperiencePointsForExport(stats: UserStats): number | null {
-  return typeof stats.experience_points === "number" ? stats.experience_points : null;
-}
-
 export interface BuildDashboardExportSnapshotInput {
   username: string;
   timeRange: TimeRange;
   timeRangeLabel: string;
   stats: UserStats;
+  /** Snapshot gamification compte (GET /me) — pas dérivé du timeRange */
+  gamificationLevel?: GamificationLevelIndicator | null;
+  /** total_points depuis GET /me (persistant) */
+  accountTotalPoints?: number | null;
   progressStats?: ProgressStats | null;
   challengesProgress?: ChallengesProgress | null;
   dailyChallenges?: DailyChallenge[];
@@ -108,13 +109,14 @@ export function buildDashboardExportSnapshot(
     timeRange,
     timeRangeLabel,
     stats,
+    gamificationLevel = null,
+    accountTotalPoints = null,
     progressStats = null,
     challengesProgress = null,
     dailyChallenges = [],
   } = input;
 
   const incorrect = deriveIncorrectAnswersForExport(stats, progressStats);
-  const xp = selectExperiencePointsForExport(stats);
 
   const lastUpdated =
     typeof stats.lastUpdated === "string"
@@ -128,6 +130,7 @@ export function buildDashboardExportSnapshot(
     timeRangeSlug: TIME_RANGE_SLUG[timeRange],
     exportedAt: exportedAt.toISOString(),
     lastUpdated,
+    gamification_level: gamificationLevel ?? null,
 
     summary: {
       total_exercises: stats.total_exercises,
@@ -136,14 +139,16 @@ export function buildDashboardExportSnapshot(
       incorrect_answers: incorrect,
       success_rate: typeof stats.success_rate === "number" ? stats.success_rate : null,
       average_score: typeof stats.average_score === "number" ? stats.average_score : null,
-      experience_points: xp,
+      account_total_points: typeof accountTotalPoints === "number" ? accountTotalPoints : null,
+      account_xp_in_level:
+        gamificationLevel != null && typeof gamificationLevel.current_xp === "number"
+          ? gamificationLevel.current_xp
+          : null,
       current_streak: progressStats?.current_streak ?? null,
       highest_streak: progressStats?.highest_streak ?? null,
       average_time_seconds:
         typeof progressStats?.average_time === "number" ? progressStats.average_time : null,
     },
-
-    level: stats.level && typeof stats.level === "object" ? stats.level : null,
 
     progressStats,
     challengesProgress,

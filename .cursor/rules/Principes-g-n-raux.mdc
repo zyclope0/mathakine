@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+Mathakine est une plateforme EdTech gamifiée.
+Chaque modification doit être :
+
+production ready
+typée strictement
+cohérente avec l’architecture existante
+testée ou explicitement justifiée
+sobre côté UX
+alignée avec la vérité runtime et documentaire
+Ne jamais sur-vendre une implémentation.
+Toujours distinguer :
+
+ce qui est prouvé
+ce qui est inféré
+ce qui reste une réserve

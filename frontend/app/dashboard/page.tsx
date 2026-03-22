@@ -24,6 +24,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { VolumeByTypeChartLazy } from "@/components/dashboard/VolumeByTypeChartLazy";
 import { PracticeConsistencyWidget } from "@/components/dashboard/PracticeConsistencyWidget";
@@ -97,6 +98,8 @@ export default function DashboardPage() {
         timeRange,
         timeRangeLabel,
         stats,
+        gamificationLevel: user.gamification_level ?? null,
+        accountTotalPoints: typeof user.total_points === "number" ? user.total_points : null,
         progressStats: progressStats ?? null,
         challengesProgress: challengesProgress ?? null,
         dailyChallenges,
@@ -114,6 +117,7 @@ export default function DashboardPage() {
       await refetch();
       // Invalider progress, challenges et défis quotidiens pour un rafraîchissement complet
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "stats"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] }),
@@ -310,15 +314,29 @@ export default function DashboardPage() {
 
             {/* Onglet Mon Profil — Niveau, badges, stats, tempo, journal */}
             <TabsContent value="profile" className="space-y-6">
-              {stats.level && (
-                <PageSection>
-                  <LevelIndicator level={stats.level} />
-                </PageSection>
-              )}
+              <PageSection>
+                {user?.gamification_level ? (
+                  <LevelIndicator level={user.gamification_level} />
+                ) : (
+                  <Card className="dashboard-card-surface border-dashed">
+                    <CardContent className="p-6 sm:p-8">
+                      <p className="text-sm font-semibold text-foreground">
+                        {t("profile.levelUnavailableTitle")}
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {t("profile.levelUnavailableDescription")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </PageSection>
               <PageSection>
                 <LevelEstablishedWidget />
               </PageSection>
               <PageSection className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  {t("profile.statsPeriodHint", { period: timeRangeLabel })}
+                </p>
                 {stats.recent_activity?.[0]?.time && (
                   <div className="flex justify-end">
                     <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />

@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   buildDashboardExportSnapshot,
   deriveIncorrectAnswersForExport,
-  selectExperiencePointsForExport,
 } from "@/lib/dashboard/buildDashboardExportSnapshot";
 import type { UserStats } from "@/lib/validation/dashboard";
 import type { ProgressStats } from "@/hooks/useProgressStats";
+import type { GamificationLevelIndicator } from "@/types/api";
 
 function baseStats(over: Partial<UserStats> = {}): UserStats {
   return {
@@ -17,32 +17,61 @@ function baseStats(over: Partial<UserStats> = {}): UserStats {
 }
 
 describe("buildDashboardExportSnapshot", () => {
-  it("utilise experience_points pour l’XP exportée (pas xp)", () => {
-    const stats = baseStats({ experience_points: 1200, xp: 999 });
+  it("expose account_total_points depuis accountTotalPoints (GET /me), pas depuis les stats période", () => {
     const snap = buildDashboardExportSnapshot({
       username: "alice",
       timeRange: "30",
       timeRangeLabel: "30 derniers jours",
-      stats,
+      stats: baseStats(),
+      accountTotalPoints: 1250,
     });
-    expect(snap.summary.experience_points).toBe(1200);
+    expect(snap.summary.account_total_points).toBe(1250);
+    expect(snap.gamification_level).toBeNull();
   });
 
-  it("n’utilise pas stats.xp si experience_points est absent", () => {
-    const stats = baseStats({ xp: 500 });
+  it("met account_total_points à null si accountTotalPoints absent", () => {
     const snap = buildDashboardExportSnapshot({
       username: "bob",
       timeRange: "30",
       timeRangeLabel: "30 derniers jours",
-      stats,
+      stats: baseStats(),
     });
-    expect(snap.summary.experience_points).toBeNull();
+    expect(snap.summary.account_total_points).toBeNull();
+  });
+
+  it("expose account_xp_in_level depuis gamification_level.current_xp", () => {
+    const gl: GamificationLevelIndicator = {
+      current: 2,
+      title: "Padawan",
+      current_xp: 37,
+      next_level_xp: 100,
+      jedi_rank: "padawan",
+    };
+    const snap = buildDashboardExportSnapshot({
+      username: "carol",
+      timeRange: "7",
+      timeRangeLabel: "7 derniers jours",
+      stats: baseStats(),
+      gamificationLevel: gl,
+      accountTotalPoints: 100,
+    });
+    expect(snap.summary.account_xp_in_level).toBe(37);
+  });
+
+  it("met account_xp_in_level à null sans gamification_level", () => {
+    const snap = buildDashboardExportSnapshot({
+      username: "dave",
+      timeRange: "all",
+      timeRangeLabel: "Tout",
+      stats: baseStats(),
+    });
+    expect(snap.summary.account_xp_in_level).toBeNull();
   });
 
   it("expose success_rate comme KPI principal depuis les stats", () => {
     const stats = baseStats({ success_rate: 73.4 });
     const snap = buildDashboardExportSnapshot({
-      username: "carol",
+      username: "erin",
       timeRange: "7",
       timeRangeLabel: "7 derniers jours",
       stats,
@@ -53,13 +82,31 @@ describe("buildDashboardExportSnapshot", () => {
   it("ne met pas incorrect_answers à 0 si absent et non dérivable", () => {
     const stats = baseStats();
     const snap = buildDashboardExportSnapshot({
-      username: "dave",
+      username: "frank",
       timeRange: "all",
       timeRangeLabel: "Tout",
       stats,
       progressStats: null,
     });
     expect(snap.summary.incorrect_answers).toBeNull();
+  });
+
+  it("propage gamification_level (persistant) dans l’export", () => {
+    const gl: GamificationLevelIndicator = {
+      current: 3,
+      title: "Chevalier Jedi",
+      current_xp: 20,
+      next_level_xp: 100,
+      jedi_rank: "padawan",
+    };
+    const snap = buildDashboardExportSnapshot({
+      username: "gl_user",
+      timeRange: "30",
+      timeRangeLabel: "30 jours",
+      stats: baseStats(),
+      gamificationLevel: gl,
+    });
+    expect(snap.gamification_level).toEqual(gl);
   });
 
   it("dérive incorrect_answers depuis total_attempts - correct_attempts si possible", () => {
@@ -75,7 +122,7 @@ describe("buildDashboardExportSnapshot", () => {
       by_category: {},
     };
     const snap = buildDashboardExportSnapshot({
-      username: "erin",
+      username: "grace",
       timeRange: "30",
       timeRangeLabel: "30 derniers jours",
       stats,
@@ -98,12 +145,5 @@ describe("deriveIncorrectAnswersForExport", () => {
       by_category: {},
     });
     expect(v).toBe(5);
-  });
-});
-
-describe("selectExperiencePointsForExport", () => {
-  it("retourne experience_points uniquement", () => {
-    expect(selectExperiencePointsForExport(baseStats({ experience_points: 42 }))).toBe(42);
-    expect(selectExperiencePointsForExport(baseStats({ xp: 99 }))).toBeNull();
   });
 });

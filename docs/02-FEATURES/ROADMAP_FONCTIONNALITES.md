@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features â€” Mathakine
 
-> **Document vivant** - Derniere MAJ : 20/03/2026 (F37 ajoute : coherence progression / selecteurs de temporalite, F32 durci, F07/F33/F35 alignes, backlog QCM F05-B2 ajoute, artefact refresh auth F36 formalise)  
+> **Document vivant** - Derniere MAJ : 21/03/2026 (F38 ajoute : progression gamification compte + ledger, F37 conserve sa priorite UX, backlog aligne avec le moteur de gamification persistant)  
 > **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -102,6 +102,7 @@ Un score Ã©levÃ© indique une feature Ã  haute valeur et faible coÃ»t/ris
 | F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) âœ… | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
 | F36 | [UX][TECH] Flash auth au refresh | 2 | 2 | 1 | 1 | 3 | **7.2** | P2 |
 | F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | 3 | 3 | 4 | 2 | 3 | **11.7** | P2 |
+| F38 | [UX][Gamification] Progression compte coherente & historique des gains | 3 | 4 | 2 | 2 | 4 | **10.2** | P2 |
 | F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
@@ -578,6 +579,7 @@ Route: /parent/child/[id] â†’ progression dÃ©taillÃ©e
 | **F35 â€” [TECH] Redaction secrets logs DB âœ…** | ImplÃ©mentÃ© le 07/03/2026. `app/db/base.py` loggue dÃ©sormais une URL redigÃ©e via `redact_database_url_for_log()` (credentials et query params masquÃ©s). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests). |
 | **F36 â€” [UX][TECH] Flash auth au refresh** | Artefact visuel observÃ© aprÃ¨s refresh: pendant ~0.5s, le frontend semble repasser par un Ã©tat "non connectÃ©" avant rehydratation correcte de la session. Backend session validÃ©: login OK, session conservÃ©e aprÃ¨s refresh et aprÃ¨s idle prolongÃ©. Cible: supprimer le flash sans changer la chaÃ®ne de session/cookies. Piste probable: bootstrap auth frontend (`ProtectedRoute`, `current-user`, `validate-token`, `sync-cookie`). Ouvrir un lot dÃ©diÃ© seulement si le symptÃ´me devient gÃªnant ou s'accompagne d'une redirection parasite/perte de session. |
 | **F37 - [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard** | Clarifier la portee des filtres temporels dans le dashboard. Conclusion de l'analyse UX : un controle = un perimetre visible. Les widgets temporels doivent avoir un selecteur local ou une periode partagee explicite ; les widgets cumules doivent afficher un badge de portee (`Cumule`, `Tous les temps`) plutot qu'un faux selecteur. Les vues journalieres redondantes dans `Progression` doivent etre rationalisees au profit d'un widget complementaire (ex : regularite de pratique). Si l'on veut une coherence temporelle complete de l'onglet `Progression`, ouvrir ensuite un lot dedie data/hooks/backend pour exposer une periode explicite sur les widgets aujourd'hui cumules. |
+| **F38 - [UX][Gamification] Progression compte coherente & historique des gains** | Exploiter le moteur unique de gamification persistant et le ledger pour afficher une progression compte lisible, sobre et utile : points totaux, XP dans le palier, points restants avant niveau suivant, historique recent des gains, repartition par source (badges, defis quotidiens, futurs evenements). Regle produit : ne jamais confondre gamification compte avec IRT ou maitrise pedagogique ; la gamification motive et rend visible l'effort, elle ne remplace pas l'evaluation d'apprentissage. Cote UX EdTech : feedback compact, sans bruit ni celebration envahissante pendant les phases de reflexion. Cette fondation peut servir ensuite a F19 (notifications motivees par evenements), F18 (ligues) et F29 (elements profil debloquables). |
 | **F23 â€” [PROP] Exercices adaptatifs SR+IA** | GÃ©nÃ©rer des exercices IA ciblÃ©s sur les concepts Ã  rÃ©viser selon la courbe SR (F04). Score composite trÃ¨s Ã©levÃ© (17.1) mais **dÃ©pend de F04**. DÃ©bloquÃ© aprÃ¨s F04. |
 
 ---
@@ -611,6 +613,63 @@ Route: /parent/child/[id] â†’ progression dÃ©taillÃ©e
 
 ---
 
+### F38 - Progression gamification compte coherente & historique des gains
+
+**Score** : 10.2 | D=3, G=4, E=2, R=2, B=4
+
+**Probleme** : Le moteur de gamification persistant existe desormais (points, niveau, XP dans le palier, rang, ledger des gains), mais il n'est pas encore exploite comme surface produit coherente. Le risque n'est pas technique : c'est de laisser cette fondation invisible, ou pire, de la sur-vendre comme une progression pedagogique alors qu'elle releve de la motivation et du feedback compte.
+
+**Regle produit non negociable** :
+- **Gamification compte** : points, niveau, XP palier, rang, historique des gains.
+- **Progression pedagogique** : IRT, maitrise par type, performance d'exercice.
+- **Interdiction** de fusionner ces deux dimensions dans l'UI ou dans les libelles.
+
+**Conclusion de l'analyse** :
+- Le moteur unique `GamificationService.apply_points` + le ledger `point_events` ouvrent enfin une lecture fiable du compte.
+- Cette lecture doit rester **sobre, compacte, explicite**, et ne jamais concurrencer l'apprentissage en cours.
+- Les gains doivent etre expliques par **source visible** (`badge_awarded`, `daily_challenge_completed`, futures sources), pas par un total opaque.
+
+**Valeur pedagogique / produit (E=2)** :
+- Deci & Ryan (2000) : la motivation extrinseque ne doit pas prendre le dessus sur le sentiment de competence. Utilisee avec moderation, une gamification lisible peut soutenir l'engagement sans polluer l'apprentissage.
+- Hattie & Timperley (2007) : le feedback utile doit repondre a "ou j'en suis" et "quelle est la prochaine etape". Ici : points restants avant le niveau suivant, dernier gain, progression dans le palier.
+- Sweller (1988) : si la gamification devient trop visuelle ou trop bavarde, elle augmente la charge cognitive extrinseque. Les composants doivent rester compacts et secondaires par rapport aux exercices.
+
+**Cibles backlog** :
+1. **Widget compte stable** sur dashboard/profil :
+   - points totaux
+   - XP dans le palier courant
+   - points restants avant niveau suivant
+   - rang/titre courant
+2. **Historique recent des gains** (lecture du ledger) :
+   - dernieres attributions de points
+   - libelle par source
+   - date / delta
+3. **Repartition par source** :
+   - badges
+   - defis quotidiens
+   - futures sources
+4. **Fondation pour suites produit** :
+   - F19 : notifications "il te manque X points pour le niveau suivant"
+   - F18 : ligues / saisons si un jour ouvertes
+   - F29 : elements profil debloquables lies au compte
+
+**Contraintes UX EdTech** :
+- pas de gros panneau gamification qui eclipse la progression pedagogique
+- pas d'animations decoratives pendant les phases de reflexion
+- feedback visuel lisible et localise
+- preferer cartes compactes / historique discret a un "mur" de recompenses
+- textes explicites : `progression compte`, pas `niveau de maitrise`
+
+**Architecture cible** :
+- backend : endpoint de lecture du ledger et agregats par source, branches sur la source de verite persistante existante
+- frontend : composants purs + hook de lecture dedie ; aucune formule de points/niveau cote client
+- export : ne montrer que les donnees persistantes du compte si l'information est vraiment utile
+
+**Effort estime** : 2-5 jours pour un premier lot lisible (historique + widget compte), plus si agregats / pagination / filtres par source.
+
+**Statut** : Backlog actif. A traiter apres stabilisation du moteur persistant, sans rouvrir la confusion avec l'IRT ou la maitrise pedagogique.
+
+---
 ## 6. P3 â€” Investissement long terme {#6-p3}
 
 ### F24 â€” Tuteur IA contextuel
@@ -785,4 +844,5 @@ Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la v
 | ThÃ¨mes visuels | [THEMES.md](THEMES.md) |
 | Internationalisation | [I18N.md](I18N.md) |
 | Badges implÃ©mentÃ©s (archive) | [AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md) |
+
 

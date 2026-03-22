@@ -1,0 +1,12 @@
+{
+  "challenge_type": "SEQUENCE",
+  "title": "Suite simple",
+  "description": "Trouve le prochain terme.",
+  "correct_answer": "10",
+  "solution_explanation": "On ajoute 2 à chaque pas.",
+  "difficulty_rating": 2.5,
+  "visual_data": {
+    "sequence": [2, 4, 6, 8],
+    "pattern": "n+2"
+  }
+}

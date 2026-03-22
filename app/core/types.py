@@ -73,10 +73,8 @@ class DashboardStats(TypedDict):
     total_challenges: int
     correct_answers: int
     success_rate: float
-    experience_points: int
     performance_by_type: Dict[str, Any]
     recent_activity: List[Dict[str, Any]]
-    level: Dict[str, Any]
     progress_over_time: "ChartData"
     exercises_by_day: "ChartData"
     lastUpdated: str

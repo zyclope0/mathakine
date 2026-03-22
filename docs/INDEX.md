@@ -1,20 +1,24 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 21/03/2026
+> Updated: 22/03/2026
 
 ## Read First
 
 1. [Root README](../README.md)
 2. [README_TECH](../README_TECH.md)
 3. [Architecture](00-REFERENCE/ARCHITECTURE.md)
-4. [Features docs map](02-FEATURES/README.md)
-5. [API quick reference](02-FEATURES/API_QUICK_REFERENCE.md)
-6. [Project index](03-PROJECT/README.md)
+4. [AI model governance](00-REFERENCE/AI_MODEL_GOVERNANCE.md)
+5. [Features docs map](02-FEATURES/README.md)
+6. [API quick reference](02-FEATURES/API_QUICK_REFERENCE.md)
+7. [Project index](03-PROJECT/README.md)
 
 ## Current Documented State
 
-- visible product release: `3.2.0-alpha.1`
+> ⚠️ OBSOLÈTE — les baselines locales datées du 19/03/2026 et du 21/03/2026 ci-dessous restent des snapshots historiques.
+> Pour la gouvernance runtime actuelle des modèles IA et de l'observabilité, utiliser d'abord [00-REFERENCE/AI_MODEL_GOVERNANCE.md](00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+
+- visible product release: `3.3.0-alpha.1`
 - backend iterations closed:
   - `exercise/auth/user`
   - `challenge/admin/badge`
@@ -48,6 +52,7 @@
 |---|---|
 | Setup | [00-REFERENCE/GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md) |
 | Global architecture | [00-REFERENCE/ARCHITECTURE.md](00-REFERENCE/ARCHITECTURE.md) |
+| AI model governance | [00-REFERENCE/AI_MODEL_GOVERNANCE.md](00-REFERENCE/AI_MODEL_GOVERNANCE.md) |
 | Testing guide | [01-GUIDES/TESTING.md](01-GUIDES/TESTING.md) |
 | Features docs map | [02-FEATURES/README.md](02-FEATURES/README.md) |
 | Deployment env | [01-GUIDES/DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md) |
@@ -58,6 +63,10 @@
 | Auth flow | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md) |
 | Diagnostic flow | [02-FEATURES/F03_DIAGNOSTIC_INITIAL.md](02-FEATURES/F03_DIAGNOSTIC_INITIAL.md) |
 | Project / governance | [03-PROJECT/README.md](03-PROJECT/README.md) |
+| AI generation governance | [03-PROJECT/PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md](03-PROJECT/PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md) |
+| Harness évaluation génération IA (offline/live) | [03-PROJECT/evaluation/AI_GENERATION_HARNESS.md](03-PROJECT/evaluation/AI_GENERATION_HARNESS.md) |
+| IA11a — Campagne comparative offline | [03-PROJECT/evaluation/IA11A_COMPARATIVE_CAMPAIGN_OFFLINE.md](03-PROJECT/evaluation/IA11A_COMPARATIVE_CAMPAIGN_OFFLINE.md) |
+| IA11b — Campagne comparative live bornée (hybride IA11a) | [03-PROJECT/evaluation/IA11B_BOUNDED_LIVE_CAMPAIGN.md](03-PROJECT/evaluation/IA11B_BOUNDED_LIVE_CAMPAIGN.md) |
 | Runtime + Contracts recap | [03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) |
 | Production Hardening recap | [03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md) |
 | Iteration F archive | [03-PROJECT/archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md](03-PROJECT/archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md) |

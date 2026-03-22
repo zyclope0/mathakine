@@ -149,6 +149,12 @@ CONFIGURATION_INFOMANIAK.md
 *_old_backup.py
 *_fixed.py
 
+# Artefacts locaux d'outillage IA / revue
+.claude/
+.claude-octopus/
+CLAUDE.md
+reports/
+
 # Rapports et logs de nettoyage (temporaires uniquement)
 # NOTE: Les récapitulatifs finaux datés DOIVENT être versionnés !
 NETTOYAGE_*.md

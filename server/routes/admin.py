@@ -3,6 +3,7 @@
 from starlette.routing import Mount, Route
 
 from server.handlers.admin_handlers import (
+    admin_ai_eval_harness_runs,
     admin_ai_stats,
     admin_audit_log,
     admin_badge_get,
@@ -150,6 +151,11 @@ def get_admin_routes():
                 Route(
                     "/generation-metrics",
                     endpoint=admin_generation_metrics,
+                    methods=["GET"],
+                ),
+                Route(
+                    "/ai-eval-harness-runs",
+                    endpoint=admin_ai_eval_harness_runs,
                     methods=["GET"],
                 ),
             ],

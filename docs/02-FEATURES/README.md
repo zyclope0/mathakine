@@ -1,7 +1,7 @@
 # Features Docs - Scope and Truth
 
 > Folder status index for `docs/02-FEATURES`
-> Updated: 2026-03-20
+> Updated: 2026-03-22
 
 ## Purpose
 
@@ -17,6 +17,7 @@ This file defines which document should be trusted for what.
 
 - live code remains the final truth
 - active HTTP/API truth remains `server/routes/` + `server/handlers/`
+- cross-workload AI governance truth now lives in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`
 - active product backlog truth remains [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
 - if a document is marked historical, do not use it as sole implementation source
 - when a feature is already implemented, prefer the dedicated implementation note or runtime code over older ideation docs
@@ -27,6 +28,7 @@ This file defines which document should be trusted for what.
 |---|---|---|---|
 | [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Backlog source of truth | Active | Priorities, implemented history, open follow-ups |
 | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) | Active runtime/API reference | Active | Mirrors current routes at a high level |
+| [CHALLENGE_CONTRACT_IA9.md](CHALLENGE_CONTRACT_IA9.md) | Contrat défis : `response_mode`, `choices`, symétrie | Active | Lot IA9 ; code source `challenge_contract_policy.py` |
 | [AUTH_FLOW.md](AUTH_FLOW.md) | Auth reference | Active | Runtime auth flow reference |
 | [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md) | Implemented feature note | Active reference | Daily challenges are implemented |
 | [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md) | Implemented feature note | Active reference | Diagnostic is implemented; remaining gaps should also appear in roadmap/backlog |
@@ -49,6 +51,7 @@ This file defines which document should be trusted for what.
 
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
 - [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+- [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md)
 - [AUTH_FLOW.md](AUTH_FLOW.md)
 - feature notes already marked implemented when working on the same area
 
@@ -67,4 +70,3 @@ These are useful for rationale and design intent, but they are not the primary t
 2. Historical ideation is not deleted, but must be explicitly marked as historical or partially superseded.
 3. New backlog items must land in [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md), not in scattered standalone notes only.
 4. If a future refactor needs a dedicated spec, that spec must link back to the roadmap item that owns the priority.
-

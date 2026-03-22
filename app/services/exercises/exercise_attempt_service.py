@@ -21,6 +21,7 @@ from app.repositories.exercise_attempt_repository import (
 )
 from app.schemas.exercise import SubmitAnswerResponse
 from app.services.progress.streak_service import update_user_streak
+from app.utils.exercise_answer_compare import answers_equivalent_numeric_tolerant
 from app.utils.json_utils import make_json_serializable
 
 logger = get_logger(__name__)
@@ -29,18 +30,23 @@ logger = get_logger(__name__)
 def _check_answer_correct(exercise: Dict[str, Any], selected_answer: Any) -> bool:
     """
     Détermine si la réponse est correcte selon le type d'exercice.
-    TEXTE/MIXTE : comparaison insensible à la casse ; autres : stricte.
+
+    - TEXTE / MIXTE : insensible à la casse (strip).
+    - Autres types : égalité stricte après strip, puis tolérance explicite :
+      pourcentage (45 % ≈ 45), virgule décimale (3,5 ≈ 3.5), fraction ≈ décimal (1/2 ≈ 0.5).
     """
     correct_answer = exercise.get("correct_answer")
     if not correct_answer:
         return False
-    text_based = [ExerciseType.TEXTE.value, ExerciseType.MIXTE.value]
-    exercise_type = exercise.get("exercise_type", "")
+    text_based = {ExerciseType.TEXTE.value, ExerciseType.MIXTE.value}
+    exercise_type = str(exercise.get("exercise_type", "")).upper()
+    selected = str(selected_answer).strip()
+    correct = str(correct_answer).strip()
     if exercise_type in text_based:
-        return (
-            str(selected_answer).lower().strip() == str(correct_answer).lower().strip()
-        )
-    return str(selected_answer).strip() == str(correct_answer).strip()
+        return selected.lower() == correct.lower()
+    if selected == correct:
+        return True
+    return answers_equivalent_numeric_tolerant(selected, correct)
 
 
 def submit_answer(

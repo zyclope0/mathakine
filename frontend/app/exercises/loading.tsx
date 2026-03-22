@@ -1,9 +1,18 @@
 "use client";
 
-import { LoadingState } from "@/components/layout";
-import { useTranslations } from "next-intl";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PageLayout } from "@/components/layout/PageLayout";
+import { ExercisesListLoadingShell } from "@/components/shared/ListLoadingShells";
 
+/**
+ * Chargement segment /exercises — même structure que la page (header + toolbar + liste skeleton).
+ */
 export default function ExercisesLoading() {
-  const t = useTranslations("exercises");
-  return <LoadingState message={t("list.loading")} />;
+  return (
+    <ProtectedRoute>
+      <PageLayout compact>
+        <ExercisesListLoadingShell />
+      </PageLayout>
+    </ProtectedRoute>
+  );
 }

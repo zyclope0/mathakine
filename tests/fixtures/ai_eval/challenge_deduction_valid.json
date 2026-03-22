@@ -1,0 +1,17 @@
+{
+  "challenge_type": "DEDUCTION",
+  "title": "Grille logique",
+  "description": "Associe chaque personne à sa boisson.",
+  "correct_answer": "Alice:thé,Bob:café",
+  "solution_explanation": "D'après les indices, Alice prend le thé et Bob le café.",
+  "difficulty_rating": 3.2,
+  "visual_data": {
+    "type": "logic_grid",
+    "entities": {
+      "personnes": ["Alice", "Bob"],
+      "boisson": ["thé", "café"]
+    },
+    "clues": ["Alice ne boit pas le café", "Bob ne boit pas le thé"],
+    "description": "indices"
+  }
+}

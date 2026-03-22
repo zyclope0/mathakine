@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+À chaque intervention, challenger explicitement les tests.
+
+Cas obligatoires
+nouvelle fonctionnalité :
+ajouter au moins un test pertinent
+nouvelle implémentation :
+ajouter au minimum un test de non-régression
+correction de bug :
+ajouter le test qui aurait détecté le bug
+refactor :
+vérifier si les tests existants restent suffisants
+sinon compléter
+À la fin de chaque intervention
+Évaluer systématiquement :
+
+faut-il créer un test ?
+faut-il modifier un test existant ?
+faut-il supprimer un test obsolète ?
+Si aucun test n’est ajouté
+Le justifier brièvement dans :
+
+le compte-rendu
+ou la PR
+ou le message de commit si c’est un petit changement
+Règle de qualité
+Ne pas affaiblir un test juste pour faire passer la CI.
+Un test ne doit jamais être rendu plus flou sans justification causale.

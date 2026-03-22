@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+Respecter strictement l’architecture en couches.
+
+Routes / handlers :
+minces
+validation HTTP
+mapping entrée/sortie
+aucune logique métier complexe
+Services :
+logique métier
+orchestration
+décisions produit
+Accès DB :
+isolé
+pas de logique métier cachée dans les handlers
+Utilitaires :
+conversion / formatage / helpers purs
+pas de duplication ad hoc
+Exigences
+pas de any
+typage fort systématique
+fonctions courtes
+noms explicites
+pas de magic strings / magic numbers
+exceptions métier propres
+jamais de stack trace brute exposée au client

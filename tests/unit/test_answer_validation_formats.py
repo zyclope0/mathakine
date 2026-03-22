@@ -100,7 +100,7 @@ def _run_submit(exercise_type, correct_answer, selected_answer, expected_result)
         (ExerciseType.MULTIPLICATION.value, "100", "100", True),
         (ExerciseType.MULTIPLICATION.value, "0100", "100", False),
         (ExerciseType.DIVISION.value, "3.5", "3.5", True),
-        (ExerciseType.DIVISION.value, "3,5", "3.5", False),
+        (ExerciseType.DIVISION.value, "3,5", "3.5", True),
         # Types textuels : lower() + strip()
         (ExerciseType.TEXTE.value, "Paris", "Paris", True),
         (ExerciseType.TEXTE.value, "paris", "Paris", True),
@@ -125,14 +125,15 @@ def test_answer_validation_formats(
     "answer,correct,expected",
     [
         ("1/2", "1/2", True),
-        ("1/2", "0.5", False),
+        ("1/2", "0.5", True),
+        ("0.5", "1/2", True),
         ("0.5", "0.5", True),
         ("0.50", "0.5", False),
-        ("0,5", "0.5", False),
+        ("0,5", "0.5", True),
     ],
 )
 def test_fraction_answer_validation(answer, correct, expected, db_session):
-    """Teste la validation pour les exercices de fractions (comparaison stricte)."""
+    """Fractions : équivalence fraction/décimal et virgule décimale FR."""
     _run_submit(ExerciseType.FRACTIONS.value, correct, answer, expected)
 
 

@@ -1,33 +1,33 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
+import { useChatAutoScroll } from "@/hooks/chat/useChatAutoScroll";
 import { useTranslations } from "next-intl";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
-// ... (le reste du composant)
+import { ChatMessagesView } from "@/components/chat/ChatMessagesView";
+import { ChatSuggestionsBar } from "@/components/chat/ChatSuggestionsBar";
+import { ChatComposer } from "@/components/chat/ChatComposer";
 
 export function Chatbot() {
   const t = useTranslations("home.chatbot");
   const [isOpen, setIsOpen] = useState(true);
 
-  // Utilisation du hook centralisé
   const {
     messages,
     input,
     setInput,
     handleSend,
     sendInputMessage,
-    handleKeyPress,
+    handleKeyDown,
     isLoading,
+    isAwaitingAssistant,
     suggestions,
   } = useChat({
+    sendErrorText: t("sendError"),
     initialMessages: [
       {
         id: "1",
@@ -42,41 +42,31 @@ export function Chatbot() {
     ],
   });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Scroll vers le bas quand de nouveaux messages arrivent (dans le conteneur, pas la page)
-  useEffect(() => {
-    if (isOpen && messagesContainerRef.current) {
-      const container = messagesContainerRef.current;
-      const scrollToBottom = () => {
-        container.scrollTop = container.scrollHeight;
-      };
 
-      setTimeout(scrollToBottom, 100);
-    }
-  }, [messages, isOpen]);
+  useChatAutoScroll(messagesContainerRef, isOpen, messages);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-3 md:space-y-4">
-      <div className="text-center space-y-1 md:space-y-2">
-        <h2 id="chatbot-title" className="text-2xl sm:text-3xl md:text-4xl font-bold">
+    <div className="mx-auto w-full max-w-4xl space-y-3 md:space-y-4">
+      <div className="space-y-1 text-center md:space-y-2">
+        <h2 id="chatbot-title" className="text-2xl font-bold sm:text-3xl md:text-4xl">
           {t("title")}
         </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto px-4 text-sm md:text-base">
+        <p className="text-muted-foreground mx-auto max-w-2xl px-4 text-sm md:text-base">
           {t("description")}
         </p>
       </div>
 
       <Card
         className={cn(
-          "w-full flex flex-col shadow-lg transition-all",
+          "flex w-full flex-col shadow-lg transition-all",
           isOpen ? "h-[500px]" : "h-16"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b bg-primary/5">
+        <div className="bg-primary/5 flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" />
+            <MessageCircle className="text-primary h-5 w-5" />
             <h3 className="font-semibold">{t("title")}</h3>
           </div>
           <Button
@@ -91,87 +81,37 @@ export function Chatbot() {
 
         {isOpen && (
           <>
-            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex items-end gap-2",
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  )}
-                >
-                  {message.role === "assistant" && (
-                    <MessageCircle className="h-6 w-6 text-primary flex-shrink-0" />
-                  )}
-                  <div
-                    className={cn(
-                      "prose prose-sm dark:prose-invert max-w-[85%] rounded-lg px-4 py-2",
-                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                    )}
-                  >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
-                  </div>
-                  {message.role === "user" && <div className="h-6 w-6 flex-shrink-0" />}
-                </div>
-              ))}
-              {isLoading && messages[messages.length - 1]?.role === "user" && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg px-4 py-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+            <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+              <ChatMessagesView
+                messages={messages}
+                variant="embedded"
+                isAwaitingAssistant={isAwaitingAssistant}
+              />
             </div>
 
-            {messages.length <= 1 && suggestions.length > 0 && (
-              <div className="p-4 border-t">
-                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
-                  {t("suggestions")}
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.map((s, i) => (
-                    <Button
-                      key={i}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSend(s)}
-                      className="text-xs"
-                    >
-                      {s}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <ChatSuggestionsBar
+              visible={messages.length <= 1}
+              variant="embedded"
+              suggestions={suggestions}
+              suggestionsTitle={t("suggestions")}
+              onPick={handleSend}
+              disabled={isLoading}
+            />
 
-            <div className="p-4 border-t bg-background">
-              <div className="flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={t("inputPlaceholder")}
-                  disabled={isLoading}
-                  className="flex-1"
-                  aria-label={t("inputLabel")}
-                />
-                <Button
-                  onClick={sendInputMessage}
-                  disabled={!input.trim() || isLoading}
-                  size="icon"
-                  aria-label={t("sendButton")}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">{t("info")}</p>
-            </div>
+            <ChatComposer
+              variant="embedded"
+              inputRef={inputRef}
+              value={input}
+              onChange={setInput}
+              onKeyDown={handleKeyDown}
+              onSend={sendInputMessage}
+              disabled={isLoading}
+              canSend={Boolean(input.trim())}
+              placeholder={t("inputPlaceholder")}
+              inputAriaLabel={t("inputLabel")}
+              sendAriaLabel={t("sendButton")}
+              footerHint={t("info")}
+            />
           </>
         )}
       </Card>

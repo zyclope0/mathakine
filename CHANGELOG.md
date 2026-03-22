@@ -37,6 +37,22 @@ Active references:
 
 ## [Unreleased]
 
+## [3.3.0-alpha.1] - 2026-03-22
+
+### Changed
+- The AI stack is now governed explicitly by workload (`assistant_chat`, `exercises_ai`, `challenges_ai`) with fail-closed model policies and a single runtime governance reference in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`.
+- AI exercise/challenge generation flows now use clearer frontend architecture, stricter end-state handling, and direct CTAs to reopen the newly created resource from the generation widget.
+- The project now includes bounded runtime AI observability plus offline/live comparative evaluation campaigns and persisted harness run visibility in admin monitoring.
+
+### Fixed
+- The public assistant no longer misroutes generic requests such as "create an exercise" to image generation.
+- Exercise and challenge AI streams now expose safe user-facing errors and avoid false success when validation or persistence fails.
+- Runtime AI cost tracking is now more honest on challenge failures/fallbacks and uses bounded in-memory retention for admin monitoring.
+
+### Notes
+- This bump opens a new visible prerelease train because the AI refactor changed user-visible behavior, reliability, and operational governance beyond a simple `alpha.N` bugfix.
+- The product remains in alpha: costs shown in admin are still runtime estimates, not accounting truth.
+
 ## [3.2.0-alpha.1] - 2026-03-20
 
 ### Changed

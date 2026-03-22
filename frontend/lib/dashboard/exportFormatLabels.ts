@@ -12,7 +12,10 @@ export interface DashboardExportFormatLabels {
   lastDataUpdate: string;
   executiveSummary: string;
   successRate: string;
-  experiencePoints: string;
+  /** Points de compte (persistants) */
+  accountTotalPoints: string;
+  /** XP accumulée dans le palier courant (persistant) */
+  accountXpInLevel: string;
   averageScoreSecondary: string;
   incorrectAnswers: string;
   exercisesSolved: string;

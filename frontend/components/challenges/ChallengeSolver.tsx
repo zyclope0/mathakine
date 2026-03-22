@@ -35,6 +35,7 @@ import {
   parsePositionsFromQuestion,
   parsePositionsFromLayout,
 } from "@/lib/utils/visualChallengeUtils";
+import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 
 interface ChallengeSolverProps {
   challengeId: number;
@@ -153,11 +154,21 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       : parsePositionsFromQuestion(challenge.question).length > 0
         ? parsePositionsFromQuestion(challenge.question)
         : parsePositionsFromLayout(challenge.visual_data));
+  const challengeForSync = challenge;
+  const responseModeForSync = challengeForSync
+    ? resolveChallengeResponseMode(challengeForSync)
+    : "open_text";
+  const choicesLen =
+    challengeForSync && Array.isArray(challengeForSync.choices)
+      ? challengeForSync.choices.length
+      : 0;
+  const showMcqForSync = responseModeForSync === "single_choice" && choicesLen > 0;
   const hasVisualButtonsForSync =
-    challenge?.challenge_type?.toLowerCase() === "visual" &&
-    !(Array.isArray(challenge.choices) && challenge.choices.length > 0) &&
-    extractShapeChoicesFromVisualData(challenge.visual_data).length >= 2 &&
-    !!challenge.visual_data;
+    challengeForSync?.challenge_type?.toLowerCase() === "visual" &&
+    responseModeForSync === "interactive_visual" &&
+    !showMcqForSync &&
+    extractShapeChoicesFromVisualData(challengeForSync?.visual_data).length >= 2 &&
+    !!challengeForSync?.visual_data;
   useEffect(() => {
     if (!hasVisualButtonsForSync || !visualPositionsForSync || visualPositionsForSync.length < 2)
       return;
@@ -330,7 +341,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           }
         })()
       : [];
-  const hasChoices = choicesArray.length > 0;
+
+  const responseMode = resolveChallengeResponseMode(challenge);
+  const showMcq = responseMode === "single_choice" && choicesArray.length > 0;
 
   // Choix dérivés pour VISUAL (toutes les formes du défi, pas d'orientation)
   const isVisual = challenge.challenge_type?.toLowerCase() === "visual";
@@ -345,7 +358,10 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         ? parsePositionsFromQuestion(challenge.question)
         : parsePositionsFromLayout(challenge.visual_data);
   const hasVisualButtons =
-    isVisual && !hasChoices && visualChoices.length >= 2 && !!challenge.visual_data;
+    responseMode === "interactive_visual" &&
+    !showMcq &&
+    visualChoices.length >= 2 &&
+    !!challenge.visual_data;
   const isVisualMultiComplete =
     visualPositions.length <= 1 || visualPositions.every((p) => visualSelections[p]);
 
@@ -551,7 +567,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         <div className="bg-muted/80 border border-border border-t-0 p-6 rounded-b-3xl max-w-5xl mx-auto">
           <h3 className="text-lg font-semibold text-foreground mb-4">{t("yourAnswer")}</h3>
           <div className="space-y-4">
-            {hasChoices ? (
+            {showMcq ? (
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 role="radiogroup"
@@ -647,7 +663,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 )}
                 <p className="text-xs text-muted-foreground">{t("visualSelectHint")}</p>
               </div>
-            ) : challenge.challenge_type?.toLowerCase() === "puzzle" && puzzleOrder.length > 0 ? (
+            ) : responseMode === "interactive_order" &&
+              challenge.challenge_type?.toLowerCase() === "puzzle" &&
+              puzzleOrder.length > 0 ? (
               <div className="space-y-3">
                 <div className="p-4 bg-muted/50 rounded-xl border border-border">
                   <p className="text-sm font-medium text-foreground mb-2">{t("currentOrder")}</p>
@@ -670,7 +688,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   aria-label={t("puzzleAnswerLabel")}
                 />
               </div>
-            ) : challenge.challenge_type?.toLowerCase() === "sequence" &&
+            ) : responseMode === "interactive_grid" &&
+              challenge.challenge_type?.toLowerCase() === "sequence" &&
               userAnswer &&
               challenge.visual_data ? (
               <div className="space-y-3">
@@ -691,7 +710,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   aria-label={t("sequenceAnswerLabel")}
                 />
               </div>
-            ) : challenge.challenge_type?.toLowerCase() === "pattern" &&
+            ) : responseMode === "interactive_grid" &&
+              challenge.challenge_type?.toLowerCase() === "pattern" &&
               userAnswer &&
               challenge.visual_data ? (
               <div className="space-y-3">
@@ -712,7 +732,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   aria-label={t("patternAnswerLabel")}
                 />
               </div>
-            ) : challenge.challenge_type?.toLowerCase() === "deduction" && challenge.visual_data ? (
+            ) : responseMode === "interactive_grid" &&
+              challenge.challenge_type?.toLowerCase() === "deduction" &&
+              challenge.visual_data ? (
               <div className="space-y-3">
                 {userAnswer ? (
                   <div className="p-4 bg-muted/50 rounded-xl border border-border">

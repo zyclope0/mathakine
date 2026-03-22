@@ -12,11 +12,14 @@ from app.utils.rate_limit import (
     MSG_AI_DAILY_RATE_LIMIT,
     MSG_AI_HOURLY_RATE_LIMIT,
     MSG_CHAT_RATE_LIMIT,
+    MSG_EXERCISE_AI_DAILY_RATE_LIMIT,
+    MSG_EXERCISE_AI_HOURLY_RATE_LIMIT,
     MSG_RATE_LIMIT_RETRY,
     _check_rate_limit,
     _get_client_ip,
     _rate_limit_response,
     check_ai_generation_rate_limit,
+    check_exercise_ai_generation_rate_limit,
     rate_limit_auth,
     rate_limit_register,
 )
@@ -163,3 +166,42 @@ def test_check_ai_generation_rate_limit_daily(monkeypatch):
     allowed, reason = check_ai_generation_rate_limit(123)
     assert allowed is False
     assert reason == MSG_AI_DAILY_RATE_LIMIT
+
+
+def test_check_exercise_ai_generation_rate_limit_hourly(monkeypatch):
+    """Limite horaire exercices IA : cles distinctes, message dedie."""
+    monkeypatch.setenv("TESTING", "false")
+    seen_keys = []
+
+    class StubStore:
+        def __init__(self):
+            self.calls = 0
+
+        def check(self, key, max_requests, window_sec):
+            seen_keys.append(key)
+            self.calls += 1
+            return self.calls != 1
+
+    monkeypatch.setattr("app.utils.rate_limit._get_store", lambda: StubStore())
+    allowed, reason = check_exercise_ai_generation_rate_limit(456)
+    assert allowed is False
+    assert reason == MSG_EXERCISE_AI_HOURLY_RATE_LIMIT
+    assert any("exercise_ai_generation" in k for k in seen_keys)
+
+
+def test_check_exercise_ai_generation_rate_limit_daily(monkeypatch):
+    """Limite journaliere exercices IA : message dedie."""
+    monkeypatch.setenv("TESTING", "false")
+
+    class StubStore:
+        def __init__(self):
+            self.calls = 0
+
+        def check(self, key, max_requests, window_sec):
+            self.calls += 1
+            return self.calls == 1
+
+    monkeypatch.setattr("app.utils.rate_limit._get_store", lambda: StubStore())
+    allowed, reason = check_exercise_ai_generation_rate_limit(456)
+    assert allowed is False
+    assert reason == MSG_EXERCISE_AI_DAILY_RATE_LIMIT

@@ -209,3 +209,24 @@ def list_feedback_for_admin(limit: int = 500) -> List[Dict[str, Any]]:
     """GET /api/admin/feedback — liste des retours pour l'admin."""
     with sync_db_session() as db:
         return FeedbackService.list_feedback_for_admin(db, limit=limit)
+
+
+def list_ai_eval_harness_runs_for_admin(*, limit: int = 20) -> Dict[str, Any]:
+    """
+    GET /api/admin/ai-eval-harness-runs — derniers runs persistés (IA8), read-only.
+
+    Les coûts/tokens par cas restent des estimations ; ce n'est pas de la compta.
+    """
+    from app.repositories.ai_eval_harness_repository import AiEvalHarnessRepository
+
+    cap = max(1, min(limit, 100))
+    with sync_db_session() as db:
+        runs = AiEvalHarnessRepository.list_recent_runs(db, limit=cap)
+        return {
+            "runs": [AiEvalHarnessRepository.run_to_summary_dict(r) for r in runs],
+            "limit": cap,
+            "disclaimer_fr": (
+                "Runs d'évaluation (harness) persistés : mode offline/live, corpus et compteurs figés "
+                "au moment du run. Distinct des agrégats runtime in-memory."
+            ),
+        }

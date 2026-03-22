@@ -141,22 +141,99 @@ function getShapeIcon(shape: string): string {
   return shapeIconMap[baseShape] || shape.charAt(0).toUpperCase();
 }
 
-/** Scale par défaut pour symétrie avec 8+ items : vue d'ensemble sans débordement */
+type SymmetryCell = Record<string, unknown>;
+
+/**
+ * Ordre stable : ``position`` numérique si présent, sinon ordre d'origine dans le tableau.
+ * (Contrat IA9 : layout[{ side, ... }] — nombre variable d'items par côté.)
+ */
+export function stableSortSymmetryLayoutCells(items: SymmetryCell[]): SymmetryCell[] {
+  return items
+    .map((item, origIdx) => ({ item, origIdx }))
+    .sort((a, b) => {
+      const pa =
+        typeof a.item.position === "number" && !Number.isNaN(a.item.position)
+          ? (a.item.position as number)
+          : a.origIdx;
+      const pb =
+        typeof b.item.position === "number" && !Number.isNaN(b.item.position)
+          ? (b.item.position as number)
+          : b.origIdx;
+      return pa - pb;
+    })
+    .map(({ item }) => item);
+}
+
+/** Export test : partition gauche / droite selon contrat canonique. */
+export function partitionSymmetryLayoutBySide(layout: SymmetryCell[]): {
+  left: SymmetryCell[];
+  right: SymmetryCell[];
+} {
+  const left = stableSortSymmetryLayoutCells(
+    layout.filter((item) => String(item.side ?? "").toLowerCase() === "left")
+  );
+  const right = stableSortSymmetryLayoutCells(
+    layout.filter((item) => String(item.side ?? "").toLowerCase() === "right")
+  );
+  return { left, right };
+}
+
+/** Scale selon le nombre de cellules (évite débordement 6+ par côté). */
 function getDefaultScale(visualData: Record<string, unknown> | null): number {
   if (!visualData) return 1;
   const p =
     typeof visualData === "string"
       ? (() => {
           try {
-            return JSON.parse(visualData);
+            return JSON.parse(visualData) as Record<string, unknown>;
           } catch {
             return {};
           }
         })()
       : visualData;
-  const layout = p?.layout || [];
+  const layout = Array.isArray(p?.layout) ? (p.layout as SymmetryCell[]) : [];
   const isSym = p?.type === "symmetry" || !!p?.symmetry_line;
-  return isSym && Array.isArray(layout) && layout.length >= 8 ? 0.65 : 1;
+  if (!isSym || layout.length === 0) return 1;
+  const { left, right } = partitionSymmetryLayoutBySide(layout);
+  const n = Math.max(left.length, right.length);
+  if (n >= 8) return 0.5;
+  if (n >= 6) return 0.55;
+  if (n >= 4) return 0.65;
+  return 1;
+}
+
+function SymmetryMirrorCell({
+  item,
+  side,
+  idx,
+}: {
+  item: SymmetryCell;
+  side: "left" | "right";
+  idx: number;
+}) {
+  const color = resolveColor(typeof item.color === "string" ? item.color : undefined);
+  const isQuestion = Boolean(item.question) || String(item.shape ?? "").includes("?");
+  const fromLeft = side === "left";
+  return (
+    <motion.div
+      className={`aspect-square min-w-0 border-2 rounded-lg flex items-center justify-center font-semibold text-base sm:text-lg ${
+        isQuestion
+          ? "border-dashed border-primary/70 bg-primary/5 animate-pulse"
+          : fromLeft
+            ? "border-primary bg-primary/10"
+            : "border-primary bg-primary/10"
+      }`}
+      initial={{ opacity: 0, x: fromLeft ? -20 : 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: idx * 0.08 }}
+    >
+      {isQuestion ? (
+        <span className="text-xl sm:text-2xl font-bold text-primary">?</span>
+      ) : (
+        <span style={color ? { color } : undefined}>{getShapeIcon(String(item.shape ?? ""))}</span>
+      )}
+    </motion.div>
+  );
 }
 
 /**
@@ -326,7 +403,6 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
 
           <div className="flex justify-center items-center min-h-[200px] bg-muted/30 rounded-lg p-4 w-full overflow-hidden">
             {symmetryType === "symmetry" && layout.length > 0 ? (
-              // Grille 10 colonnes : vue d'ensemble sans débordement
               <motion.div
                 className="w-full max-w-full"
                 style={{
@@ -336,79 +412,74 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
-                <div
-                  className="grid gap-1 sm:gap-2 w-full"
-                  style={{ gridTemplateColumns: "repeat(11, minmax(0, 1fr))" }}
-                >
-                  {/* Gauche : 5 cellules */}
-                  {layout
-                    .filter((item: Record<string, unknown>) => item.side === "left")
-                    .sort(
-                      (a, b) =>
-                        ((a as Record<string, unknown>).position as number) -
-                        ((b as Record<string, unknown>).position as number)
-                    )
-                    .map((item: Record<string, unknown>, idx: number) => {
-                      const color = resolveColor(
-                        typeof item.color === "string" ? item.color : undefined
-                      );
-                      return (
-                        <motion.div
-                          key={`left-${item.position}`}
-                          className="aspect-square min-w-0 border-2 border-primary rounded-lg flex items-center justify-center font-semibold bg-primary/10 text-base sm:text-lg"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                        >
-                          <span style={color ? { color } : undefined}>
-                            {getShapeIcon(String(item.shape ?? ""))}
-                          </span>
-                        </motion.div>
-                      );
-                    })}
-                  {/* Séparateur symétrie (colonne 6) */}
-                  <div
-                    className={`col-span-1 flex items-center justify-center ${symmetryLine === "vertical" ? "min-h-[3rem]" : ""}`}
-                  >
-                    <div
-                      className={`w-0.5 sm:w-1 h-full min-h-[2.5rem] bg-primary/50 ${symmetryLine === "vertical" ? "" : "rotate-90"}`}
-                    />
-                  </div>
-                  {/* Droit : 5 cellules */}
-                  {layout
-                    .filter((item: Record<string, unknown>) => item.side === "right")
-                    .sort(
-                      (a, b) =>
-                        ((a as Record<string, unknown>).position as number) -
-                        ((b as Record<string, unknown>).position as number)
-                    )
-                    .map((item: Record<string, unknown>, idx: number) => {
-                      const color = resolveColor(
-                        typeof item.color === "string" ? item.color : undefined
-                      );
-                      return (
-                        <motion.div
-                          key={`right-${item.position}`}
-                          className={`aspect-square min-w-0 border-2 rounded-lg flex items-center justify-center font-semibold text-base sm:text-lg ${
-                            item.question
-                              ? "border-dashed border-primary/70 bg-primary/5 animate-pulse"
-                              : "border-primary bg-primary/10"
-                          }`}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                        >
-                          {item.question ? (
-                            <span className="text-xl sm:text-2xl font-bold text-primary">?</span>
-                          ) : (
-                            <span style={color ? { color } : undefined}>
-                              {getShapeIcon(String(item.shape ?? ""))}
-                            </span>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                </div>
+                {(() => {
+                  const cells = layout as SymmetryCell[];
+                  const { left: leftCells, right: rightCells } =
+                    partitionSymmetryLayoutBySide(cells);
+                  const axis = String(symmetryLine ?? "vertical").toLowerCase();
+                  const isVertical = axis === "vertical" || axis === "v";
+
+                  if (isVertical) {
+                    const totalCols = leftCells.length + 1 + rightCells.length;
+                    return (
+                      <div
+                        className="grid gap-1 sm:gap-2 w-full"
+                        style={{
+                          gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))`,
+                        }}
+                      >
+                        {leftCells.map((item, idx) => (
+                          <SymmetryMirrorCell
+                            key={`sym-left-${idx}`}
+                            item={item}
+                            side="left"
+                            idx={idx}
+                          />
+                        ))}
+                        <div className="col-span-1 flex items-center justify-center min-h-[3rem]">
+                          <div className="w-0.5 sm:w-1 h-full min-h-[2.5rem] bg-primary/50" />
+                        </div>
+                        {rightCells.map((item, idx) => (
+                          <SymmetryMirrorCell
+                            key={`sym-right-${idx}`}
+                            item={item}
+                            side="right"
+                            idx={idx}
+                          />
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  /* symmetry_line horizontal : miroir haut/bas ; côté API = left → ligne du haut, right → bas */
+                  return (
+                    <div className="flex flex-col gap-2 sm:gap-3 w-full items-stretch">
+                      <div className="flex flex-wrap justify-center gap-1 sm:gap-2 content-start">
+                        {leftCells.map((item, idx) => (
+                          <SymmetryMirrorCell
+                            key={`sym-top-${idx}`}
+                            item={item}
+                            side="left"
+                            idx={idx}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex justify-center py-1 px-2" aria-hidden>
+                        <div className="h-0.5 sm:h-1 w-full max-w-lg rounded-full bg-primary/50" />
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-1 sm:gap-2 content-start">
+                        {rightCells.map((item, idx) => (
+                          <SymmetryMirrorCell
+                            key={`sym-bottom-${idx}`}
+                            item={item}
+                            side="right"
+                            idx={idx}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {Boolean(visualData?.description) && (
                   <p className="text-xs text-muted-foreground text-center mt-4">
                     {String(visualData?.description ?? "")}

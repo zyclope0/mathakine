@@ -8,8 +8,11 @@ Phase 3, item 3.2 — audit architecture 03/2026.
 """
 
 import re
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.core.ai_config import AIConfig
+from app.core.app_model_policy import resolve_assistant_chat_model
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -18,21 +21,20 @@ logger = get_logger(__name__)
 # Constantes partagées
 # ---------------------------------------------------------------------------
 
-IMAGE_KEYWORDS: Tuple[str, ...] = (
+EXPLICIT_IMAGE_KEYWORDS: Tuple[str, ...] = (
     "image",
     "dessine",
     "dessin",
     "schéma",
+    "schema",
     "diagramme",
     "figure",
     "graphique",
     "visualise",
-    "montre",
-    "créer",
-    "génère",
-    "fais",
     "montre-moi",
-    "affiche",
+    "affiche-moi",
+    "illustration",
+    "représente",
 )
 
 MATH_IMAGE_KEYWORDS: Tuple[str, ...] = (
@@ -74,6 +76,8 @@ _RE_PLACEHOLDER_IMG = re.compile(
 )
 _RE_GENERIC_IMG = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
 
+ASSISTANT_CHAT_METRICS_PREFIX = "assistant_chat"
+
 
 # ---------------------------------------------------------------------------
 # Fonctions publiques
@@ -87,7 +91,7 @@ def detect_image_request(message: str) -> Tuple[bool, bool]:
         (is_image_request, is_math_related)
     """
     lower = message.lower()
-    is_image = any(kw in lower for kw in IMAGE_KEYWORDS)
+    is_image = any(kw in lower for kw in EXPLICIT_IMAGE_KEYWORDS)
     is_math = any(kw in lower for kw in MATH_IMAGE_KEYWORDS) or any(
         kw in lower for kw in MATH_GENERAL_KEYWORDS
     )
@@ -253,14 +257,22 @@ Ton rôle est d'être un guide bienveillant. Tu dois engager les utilisateurs av
 def build_chat_config(
     message: str,
     conversation_history: List[Dict[str, str]],
+    *,
+    user_tier: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Construit la configuration complète pour l'appel OpenAI.
+
+    Le modèle texte suit :mod:`app.core.app_model_policy` (défaut produit ``gpt-5-mini``).
+    ``complexity`` (simple/complex) n'affecte que température / ``max_tokens``.
+
+    Args:
+        user_tier: Stub futur seam abonnement (ex. ``\"premium\"`` -> ``gpt-5.4``).
 
     Returns:
         Dict avec keys: model, messages, temperature, max_tokens, complexity.
     """
     complexity = detect_complexity(message, conversation_history)
-    model = "gpt-4o-mini" if complexity == "simple" else "gpt-4o"
+    model = resolve_assistant_chat_model(user_tier=user_tier)
     estimated_age = estimate_age(message)
     system_prompt = build_system_prompt(estimated_age)
 
@@ -281,6 +293,95 @@ def build_chat_config(
         "max_tokens": max_tokens,
         "complexity": complexity,
     }
+
+
+def assistant_chat_metrics_key(complexity: Optional[str]) -> str:
+    """Clé stable pour l'observabilité runtime du chatbot."""
+    cplx = (complexity or "simple").strip().lower()
+    if cplx not in ("simple", "complex"):
+        cplx = "simple"
+    return f"{ASSISTANT_CHAT_METRICS_PREFIX}:{cplx}"
+
+
+def estimate_chat_prompt_tokens(messages: List[Dict[str, str]]) -> int:
+    """Estimation best-effort des tokens prompt pour le chat."""
+    chars = sum(len(str(m.get("content", ""))) for m in messages)
+    return max(0, chars // 4)
+
+
+def extract_chat_usage_estimate(
+    response_or_usage: Any,
+    *,
+    messages: List[Dict[str, str]],
+    completion_text: str,
+) -> Tuple[int, int]:
+    """
+    Retourne ``(prompt_tokens, completion_tokens)``.
+
+    Utilise ``usage`` si disponible, sinon estimation simple longueur/4.
+    """
+    usage = getattr(response_or_usage, "usage", response_or_usage)
+    prompt_estimate = estimate_chat_prompt_tokens(messages)
+    completion_estimate = max(0, len(completion_text) // 4)
+
+    prompt_tokens = getattr(usage, "prompt_tokens", None)
+    completion_tokens = getattr(usage, "completion_tokens", None)
+
+    return (
+        int(prompt_tokens) if prompt_tokens is not None else prompt_estimate,
+        (
+            int(completion_tokens)
+            if completion_tokens is not None
+            else completion_estimate
+        ),
+    )
+
+
+def generation_duration_seconds(started_at: datetime) -> float:
+    """Durée wall-clock simple partagée par les handlers chat."""
+    return max(0.0, (datetime.now() - started_at).total_seconds())
+
+
+def build_openai_chat_completion_kwargs(
+    cfg: Dict[str, Any],
+    *,
+    stream: bool = False,
+) -> Dict[str, Any]:
+    """
+    Paramètres ``chat.completions.create`` alignés sur la famille du modèle.
+
+    GPT-5 / o3 / o1 n'acceptent pas ``max_tokens`` (utiliser ``max_completion_tokens``).
+    Les pénalités / ``top_p`` classiques ne sont envoyées que pour les modèles type GPT-4o.
+    """
+    model = cfg["model"]
+    messages = cfg["messages"]
+    max_out = int(cfg["max_tokens"])
+    temperature = cfg["temperature"]
+
+    kwargs: Dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+    }
+    if stream:
+        kwargs["stream"] = True
+
+    if AIConfig.is_o1_model(model):
+        kwargs["max_completion_tokens"] = max_out
+    elif AIConfig.is_o3_model(model):
+        kwargs["max_completion_tokens"] = max_out
+        kwargs["reasoning_effort"] = "low"
+    elif AIConfig.is_gpt5_model(model):
+        kwargs["max_completion_tokens"] = max_out
+        kwargs["reasoning_effort"] = "low"
+        kwargs["verbosity"] = "medium"
+    else:
+        kwargs["max_tokens"] = max_out
+        kwargs["temperature"] = temperature
+        kwargs["top_p"] = 0.9
+        kwargs["frequency_penalty"] = 0.3
+        kwargs["presence_penalty"] = 0.1
+
+    return kwargs
 
 
 def cleanup_markdown_images(text: str) -> str:

@@ -14,32 +14,16 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-from app.core.config import settings
-
 
 class AIConfig:
     """Configuration centralisée pour la génération IA."""
 
-    # Modèle plus capable pour défis nécessitant du raisonnement logique/spatial
-    # GPT-5.1 : bon raisonnement logique, 400K contexte
-    # GPT-5-mini : bon rapport qualité/prix pour tâches simples
-    ADVANCED_MODEL: str = "gpt-5.1"  # Modèle avancé pour défis complexes
-    BASIC_MODEL: str = "gpt-5-mini"  # Modèle économique pour tâches simples
+    # Référence historique (non utilisée par le flux défis ; fallback vide o3 → policy dédiée).
+    ADVANCED_MODEL: str = "gpt-5.1"
+    BASIC_MODEL: str = "gpt-5-mini"
 
-    # Modèles par type de challenge
-    # Note: SPATIAL a été fusionné dans VISUAL
-    MODEL_MAP: Dict[str, str] = {
-        "pattern": ADVANCED_MODEL,  # Patterns nécessitent raisonnement logique
-        "sequence": BASIC_MODEL,  # Séquences simples OK avec mini
-        "puzzle": BASIC_MODEL,  # Puzzles OK avec mini + bonne validation
-        "graph": ADVANCED_MODEL,  # Graphes nécessitent cohérence stricte
-        "visual": ADVANCED_MODEL,  # Visual (inclut spatial) NÉCESSITE raisonnement avancé
-        "riddle": BASIC_MODEL,  # Énigmes textuelles OK avec mini
-        "deduction": ADVANCED_MODEL,  # Déduction nécessite logique stricte
-        "coding": ADVANCED_MODEL,  # Cryptographie nécessite raisonnement pour cohérence
-        "chess": ADVANCED_MODEL,  # Échecs : positions tactiques complexes
-        "probability": BASIC_MODEL,  # Probabilités simples OK avec mini
-    }
+    # Résolution modèle **défis** (stream) : ``challenge_ai_model_policy.resolve_challenge_ai_model``.
+    # Fallback stream vide (o3) : ``resolve_challenge_ai_fallback_model``.
 
     # Reasoning Effort : contrôle la profondeur (o3, GPT-5.2)
     # low = rapide/économique, medium = équilibré, high = raisonnement profond
@@ -125,10 +109,17 @@ class AIConfig:
 
     @classmethod
     def get_model(cls, challenge_type: str) -> str:
-        """Retourne le modèle à utiliser pour un type de challenge."""
-        if settings.OPENAI_MODEL_REASONING:
-            return settings.OPENAI_MODEL_REASONING
-        return cls.MODEL_MAP.get(challenge_type.lower(), settings.OPENAI_MODEL)
+        """
+        Modèle OpenAI pour la génération d'un défi.
+
+        Délègue à :func:`app.services.challenges.challenge_ai_model_policy.resolve_challenge_ai_model`
+        (hiérarchie explicite : override défis > legacy ``OPENAI_MODEL_REASONING`` > carte par type > ``o3``).
+        """
+        from app.services.challenges.challenge_ai_model_policy import (
+            resolve_challenge_ai_model,
+        )
+
+        return resolve_challenge_ai_model(challenge_type)
 
     @classmethod
     def get_reasoning_effort(cls, challenge_type: str) -> str:
@@ -167,8 +158,11 @@ class AIConfig:
 
     @classmethod
     def is_gpt5_model(cls, model: str) -> bool:
-        """Vérifie si le modèle est un GPT-5.x."""
-        return model.startswith("gpt-5")
+        """Vérifie si le modèle est un GPT-5.x (gpt-5-mini, gpt-5.4, gpt5-nano, etc.)."""
+        if not model:
+            return False
+        m = model.lower()
+        return m.startswith("gpt-5") or m.startswith("gpt5")
 
     @classmethod
     def get_openai_params(cls, challenge_type: str) -> Dict:

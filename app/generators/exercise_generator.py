@@ -7,10 +7,23 @@ import random
 from app.core.constants import DifficultyLevels, ExerciseTypes, Messages, Tags
 from app.core.logging_config import get_logger
 from app.core.messages import ExerciseMessages, StarWarsNarratives
+from app.generators.exercise_generation_policy import (
+    SIMPLE_TITLE_ADDITION,
+    SIMPLE_TITLE_DIVERS,
+    SIMPLE_TITLE_DIVISION,
+    SIMPLE_TITLE_FRACTIONS,
+    SIMPLE_TITLE_GEOMETRIE,
+    SIMPLE_TITLE_MIXTE,
+    SIMPLE_TITLE_MULTIPLICATION,
+    SIMPLE_TITLE_SUBTRACTION,
+    SIMPLE_TITLE_TEXTE,
+    pick_title_variant,
+)
 from app.utils.exercise_generator_helpers import (
     apply_test_title,
     build_base_exercise_data,
     default_addition_fallback,
+    ensure_four_distinct_str_choices,
     generate_smart_choices,
     init_exercise_context,
 )
@@ -78,8 +91,13 @@ def generate_ai_exercise(exercise_type, age_group):
 
         # Générer des choix intelligents avec erreurs typiques
         choices = generate_smart_choices(
-            "ADDITION", num1, num2, result, derived_difficulty
-        )  # Use derived_difficulty
+            "ADDITION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
+        )
 
         exercise_data.update(
             {
@@ -239,7 +257,12 @@ def generate_ai_exercise(exercise_type, age_group):
 
         # Générer des choix proches mais différents (avec déduplication)
         choices = generate_smart_choices(
-            "DIVISION", num1, num2, result, derived_difficulty
+            "DIVISION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
         )
 
         exercise_data.update(
@@ -909,26 +932,19 @@ def generate_simple_exercise(exercise_type, age_group):
         question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
         correct_answer = str(result)
 
-        # Générer des choix proches mais différents selon la difficulté
-        error_margin = max(
-            1, min(int(max_val * 0.1), 10)
-        )  # Marge d'erreur proportionnelle à la difficulté
-
-        choices = [
-            str(result),  # Bonne réponse
-            str(result + random.randint(1, error_margin)),
-            str(result - random.randint(1, error_margin)),
-            (
-                str(num1 * num2)
-                if num1 * num2 != result
-                else str(result + error_margin + 1)
-            ),  # Distraction: multiplication
-        ]
-        random.shuffle(choices)
+        choices = generate_smart_choices(
+            "ADDITION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
+        )
+        title_salt = num1 + num2 + result
 
         exercise_data.update(
             {
-                "title": ExerciseMessages.TITLE_ADDITION,
+                "title": pick_title_variant(SIMPLE_TITLE_ADDITION, salt=title_salt),
                 "question": question,
                 "correct_answer": correct_answer,
                 "choices": choices,
@@ -952,25 +968,19 @@ def generate_simple_exercise(exercise_type, age_group):
         question = ExerciseMessages.QUESTION_SUBTRACTION.format(num1=num1, num2=num2)
         correct_answer = str(result)
 
-        # Générer des choix proches mais différents selon la difficulté
-        error_margin = max(1, min(int(limits.get("max2", 5) * 0.2), 10))
-
-        choices = [
-            str(result),  # Bonne réponse
-            str(result + random.randint(1, error_margin)),
-            str(
-                result
-                - random.randint(1, min(error_margin, result - 1) if result > 1 else 1)
-            ),
-            (
-                str(num2 - num1) if num2 > num1 else str(result + error_margin + 2)
-            ),  # Erreur: inversion de l'ordre
-        ]
-        random.shuffle(choices)
+        choices = generate_smart_choices(
+            "SOUSTRACTION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
+        )
+        title_salt = num1 + num2 + result
 
         exercise_data.update(
             {
-                "title": ExerciseMessages.TITLE_SUBTRACTION,
+                "title": pick_title_variant(SIMPLE_TITLE_SUBTRACTION, salt=title_salt),
                 "question": question,
                 "correct_answer": correct_answer,
                 "choices": choices,
@@ -991,18 +1001,21 @@ def generate_simple_exercise(exercise_type, age_group):
         question = ExerciseMessages.QUESTION_MULTIPLICATION.format(num1=num1, num2=num2)
         correct_answer = str(result)
 
-        # Générer des choix proches mais différents selon la difficulté
-        choices = [
-            str(result),  # Bonne réponse
-            str(result + num1),  # Erreur: une fois de trop
-            str(result - num2),  # Erreur: une fois de moins
-            str(num1 + num2),  # Erreur: addition au lieu de multiplication
-        ]
-        random.shuffle(choices)
+        choices = generate_smart_choices(
+            "MULTIPLICATION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
+        )
+        title_salt = num1 + num2 + result
 
         exercise_data.update(
             {
-                "title": ExerciseMessages.TITLE_MULTIPLICATION,
+                "title": pick_title_variant(
+                    SIMPLE_TITLE_MULTIPLICATION, salt=title_salt
+                ),
                 "question": question,
                 "correct_answer": correct_answer,
                 "choices": choices,
@@ -1030,20 +1043,19 @@ def generate_simple_exercise(exercise_type, age_group):
         question = ExerciseMessages.QUESTION_DIVISION.format(num1=num1, num2=num2)
         correct_answer = str(result)
 
-        # Générer des choix proches mais différents selon la difficulté
-        choices = [
-            str(result),  # Bonne réponse
-            str(result + 1),  # Une de plus
-            str(max(1, result - 1)),  # Une de moins (minimum 1)
-            (
-                str(num1 // (num2 + 1)) if num2 < 9 else str(result + 2)
-            ),  # Diviseur légèrement différent
-        ]
-        random.shuffle(choices)
+        choices = generate_smart_choices(
+            "DIVISION",
+            num1,
+            num2,
+            result,
+            normalized_age_group,
+            derived_difficulty=derived_difficulty,
+        )
+        title_salt = num1 + num2 + result
 
         exercise_data.update(
             {
-                "title": ExerciseMessages.TITLE_DIVISION,
+                "title": pick_title_variant(SIMPLE_TITLE_DIVISION, salt=title_salt),
                 "question": question,
                 "correct_answer": correct_answer,
                 "choices": choices,
@@ -1235,9 +1247,10 @@ def generate_simple_exercise(exercise_type, age_group):
         random.shuffle(choices)
 
         # Construire l'exercice
+        text_salt = result + len(problem)
         exercise_data.update(
             {
-                "title": "Problème textuel",
+                "title": pick_title_variant(SIMPLE_TITLE_TEXTE, salt=text_salt),
                 "question": problem,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -1269,17 +1282,17 @@ def generate_simple_exercise(exercise_type, age_group):
         question = f"Quelle fraction représente {numerator} part{'s' if numerator > 1 else ''} sur {denominator} ?"
         correct_answer = f"{numerator}/{denominator}"
 
-        choices = [
-            correct_answer,
-            f"{denominator}/{numerator}",  # Inversion
-            f"{numerator}/{denominator + 1}",  # Dénominateur incorrect
-            f"{numerator + 1}/{denominator}",  # Numérateur incorrect
+        pool = [
+            f"{denominator}/{numerator}",
+            f"{numerator}/{denominator + 1}",
+            f"{numerator + 1}/{denominator}",
         ]
-        random.shuffle(choices)
+        choices = ensure_four_distinct_str_choices(correct_answer, pool)
+        frac_salt = numerator + denominator
 
         exercise_data.update(
             {
-                "title": "Exercice sur les fractions",
+                "title": pick_title_variant(SIMPLE_TITLE_FRACTIONS, salt=frac_salt),
                 "question": question,
                 "correct_answer": correct_answer,
                 "choices": choices,
@@ -1370,17 +1383,21 @@ def generate_simple_exercise(exercise_type, age_group):
                     question = f"Un cercle a un rayon de {radius} cm. Quelle est son aire ? (Utilise $\\pi \\approx 3.14$)"
                     explanation = f"L'aire d'un cercle $= \\pi \\times {radius}^2 \\approx {result}$ cm²."
 
-        choices = [
-            str(result),
+        geo_extras = [
             str(round(result * 0.5, 2)),
             str(round(result * 2, 2)),
             str(round(result * 1.5, 2)),
         ]
-        random.shuffle(choices)
+        choices = ensure_four_distinct_str_choices(str(result), geo_extras)
+        try:
+            _r_num = float(result)
+        except (TypeError, ValueError):
+            _r_num = 0.0
+        geo_salt = len(question) + int(abs(_r_num * 100)) % 9_901
 
         exercise_data.update(
             {
-                "title": "Exercice de géométrie",
+                "title": pick_title_variant(SIMPLE_TITLE_GEOMETRIE, salt=geo_salt),
                 "question": question,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -1455,21 +1472,17 @@ def generate_simple_exercise(exercise_type, age_group):
         else:
             explanation = f"Attention à la priorité des opérations ! La multiplication/division se fait avant l'addition/soustraction. Résultat : {result}."
 
-        choices = [
-            str(result),
+        mix_pool = [
             str(result + random.randint(1, 5)),
             str(max(1, result - random.randint(1, 5))),
-            str(a + b + c),  # Erreur courante: additionner tout
+            str(a + b + c),
         ]
-        choices = list(set(choices))  # Supprimer les doublons
-        while len(choices) < 4:
-            choices.append(str(result + random.randint(-10, 10)))
-        choices = list(set(choices))[:4]
-        random.shuffle(choices)
+        choices = ensure_four_distinct_str_choices(str(result), mix_pool)
+        mix_salt = a + b + c + result
 
         exercise_data.update(
             {
-                "title": "Exercice mixte",
+                "title": pick_title_variant(SIMPLE_TITLE_MIXTE, salt=mix_salt),
                 "question": question,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -1579,26 +1592,44 @@ def generate_simple_exercise(exercise_type, age_group):
             explanation = f"Pour calculer {pct}% de {base}, on fait {base} × {pct} ÷ 100 = {result}."
 
         else:  # moyenne
-            # Calcul de moyenne
-            count = random.randint(3, 5)
-            numbers = [random.randint(min_val, max_val) for _ in range(count)]
+            # Moyenne entière exacte : on choisit le dernier terme pour que la somme soit
+            # divisible par count (pas de troncature silencieuse avec //).
+            numbers: list[int] = []
+            count = 3
+            for _gen in range(100):
+                count = random.randint(3, 5)
+                partial = 0
+                nums: list[int] = []
+                for _ in range(count - 1):
+                    n = random.randint(min_val, max_val)
+                    nums.append(n)
+                    partial += n
+                valid_last = [
+                    x for x in range(min_val, max_val + 1) if (partial + x) % count == 0
+                ]
+                if valid_last:
+                    nums.append(random.choice(valid_last))
+                    numbers = nums
+                    break
+            if not numbers:
+                count = random.randint(3, 5)
+                K = random.randint(min_val, max_val)
+                numbers = [K] * count
+
             total = sum(numbers)
+            # total % count == 0 par construction (dernier terme ou [K]*count)
             result = total // count
             numbers_str = ", ".join(map(str, numbers))
             question = f"Quelle est la moyenne de ces nombres : {numbers_str} ?"
-            explanation = f"La moyenne = somme ÷ nombre de valeurs = ({total}) ÷ {count} = {result}."
+            explanation = f"La moyenne = somme ÷ nombre de valeurs = {total} ÷ {count} = {result}."
 
-        # Générer les choix
-        choices = [str(result)]
-        while len(choices) < 4:
-            wrong = result + random.randint(-5, 10)
-            if wrong > 0 and str(wrong) not in choices:
-                choices.append(str(wrong))
-        random.shuffle(choices)
+        div_pool = [str(result + k) for k in (-3, -1, 1, 2, 4, 7) if result + k > 0]
+        choices = ensure_four_distinct_str_choices(str(result), div_pool)
+        div_salt = result + len(question)
 
         exercise_data.update(
             {
-                "title": "Exercice divers",
+                "title": pick_title_variant(SIMPLE_TITLE_DIVERS, salt=div_salt),
                 "question": question,
                 "correct_answer": str(result),
                 "choices": choices,

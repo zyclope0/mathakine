@@ -1,0 +1,9 @@
+{
+  "exercise_type": "addition",
+  "title": "Somme des cristaux",
+  "question": "Tu as 12 cristaux et tu en trouves 8 de plus. Combien en as-tu au total ?",
+  "correct_answer": "20",
+  "choices": ["18", "19", "20", "21"],
+  "explanation": "Pour trouver le total, on additionne les deux quantités : 12 + 8 = 20. C'est une addition simple de nombres entiers positifs que tu peux vérifier en comptant.",
+  "hint": "Pense à regrouper les deux nombres avec une addition."
+}
