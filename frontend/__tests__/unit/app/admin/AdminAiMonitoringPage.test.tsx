@@ -1,11 +1,39 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import AdminAiMonitoringPage from "@/app/admin/ai-monitoring/page";
+
 import {
   useAdminAiEvalHarnessRuns,
   useAdminAiStats,
   useAdminGenerationMetrics,
 } from "@/hooks/useAdminAiStats";
+
+vi.mock("@/components/layout", () => ({
+  PageHeader: ({ title, description }: { title: string; description: string }) => (
+    <div>
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </div>
+  ),
+  PageSection: ({ children }: { children: React.ReactNode }) => <section>{children}</section>,
+  LoadingState: ({ message }: { message: string }) => <div>{message}</div>,
+}));
+
+vi.mock("@/components/ui/card", () => ({
+  Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@/components/ui/select", () => ({
+  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectValue: () => <div />,
+}));
 
 vi.mock("@/hooks/useAdminAiStats", () => ({
   useAdminAiStats: vi.fn(),
@@ -14,7 +42,7 @@ vi.mock("@/hooks/useAdminAiStats", () => ({
 }));
 
 describe("AdminAiMonitoringPage", () => {
-  it("affiche les sections workload et erreurs quand les metriques existent", async () => {
+  it("affiche les sections workload et erreurs quand les metriques existent", () => {
     vi.mocked(useAdminAiStats).mockReturnValue({
       data: {
         days: 7,
@@ -95,7 +123,6 @@ describe("AdminAiMonitoringPage", () => {
       refetch: vi.fn(),
     } as ReturnType<typeof useAdminAiEvalHarnessRuns>);
 
-    const { default: AdminAiMonitoringPage } = await import("@/app/admin/ai-monitoring/page");
     render(<AdminAiMonitoringPage />);
 
     expect(screen.getAllByText(/Assistant chat/i).length).toBeGreaterThan(0);
