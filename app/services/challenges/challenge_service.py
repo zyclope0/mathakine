@@ -280,7 +280,7 @@ def _execute_list_with_ordering(
     Étapes métier :
     1. Ordre "recent" : tri par date décroissante
     2. Ordre "random" avec total fourni : random_offset O(1) (B4.1)
-    3. Ordre "random" sans total : func.random() O(n) fallback
+    3. Ordre "random" sans total : count() puis même chemin random_offset O(1) (pas de ORDER BY RANDOM)
 
     Args:
         query: Requête SQLAlchemy déjà filtrée
@@ -316,7 +316,18 @@ def _execute_list_with_ordering(
             .all()
         )
 
-    return query.order_by(func.random()).offset(offset).limit(limit).all()
+    # Fallback : count pour obtenir total et emprunter le chemin O(1) index-friendly
+    computed_total = query.count()
+    if computed_total == 0:
+        return []
+    max_offset_val = max(0, computed_total - limit - offset)
+    random_offset_val = random.randint(0, max_offset_val) if max_offset_val > 0 else 0
+    return (
+        query.order_by(LogicChallenge.id)
+        .offset(offset + random_offset_val)
+        .limit(limit)
+        .all()
+    )
 
 
 def list_challenges(

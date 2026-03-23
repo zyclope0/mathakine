@@ -78,7 +78,7 @@ def test_list_challenges_order_random_with_total(db_session, sample_challenges):
 
 
 def test_list_challenges_order_random_without_total(db_session, sample_challenges):
-    """list_challenges avec order=random sans total utilise func.random fallback."""
+    """list_challenges avec order=random sans total : count + random_offset (pas ORDER BY RANDOM)."""
     from app.services.challenges.challenge_service import list_challenges
 
     result = list_challenges(
@@ -90,6 +90,44 @@ def test_list_challenges_order_random_without_total(db_session, sample_challenge
         total=None,
     )
     assert len(result) <= 2
+
+
+def test_execute_list_ordering_random_without_total_uses_id_order_not_func_random():
+    """total=None : random_offset sur order_by(id), jamais func.random() (évite scan O(n))."""
+    from unittest.mock import MagicMock
+
+    from app.models.logic_challenge import LogicChallenge
+    from app.services.challenges.challenge_service import _execute_list_with_ordering
+
+    mock_query = MagicMock()
+    tail = MagicMock()
+    tail.all.return_value = ["c1", "c2"]
+    mock_query.order_by.return_value.offset.return_value.limit.return_value = tail
+    mock_query.count.return_value = 10
+
+    out = _execute_list_with_ordering(
+        mock_query, order="random", limit=2, offset=0, total=None
+    )
+    assert out == ["c1", "c2"]
+    mock_query.count.assert_called_once()
+    mock_query.order_by.assert_called_once_with(LogicChallenge.id)
+
+
+def test_execute_list_ordering_random_without_total_empty_count():
+    """total=None et count 0 : liste vide sans order_by."""
+    from unittest.mock import MagicMock
+
+    from app.services.challenges.challenge_service import _execute_list_with_ordering
+
+    mock_query = MagicMock()
+    mock_query.count.return_value = 0
+
+    out = _execute_list_with_ordering(
+        mock_query, order="random", limit=5, offset=0, total=None
+    )
+    assert out == []
+    mock_query.count.assert_called_once()
+    mock_query.order_by.assert_not_called()
 
 
 # --- E3b : create_challenge decomposition ---
