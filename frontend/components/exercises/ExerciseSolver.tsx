@@ -103,6 +103,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       setShowExplanation(false);
       startTimeRef.current = Date.now();
     }
+    // exhaustive-deps: id seul — éviter reset si l’objet exercise est recréé à contenu identique.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercise?.id]);
 

@@ -45,8 +45,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
           completed: data.completed,
         };
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [categoryData]
+    [categoryData, tExercises]
   );
 
   if (isLoading) {

@@ -158,6 +158,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     queueMicrotask(() => {
       onOrderChangeRef.current?.(order);
     });
+    // exhaustive-deps: onOrderChange via ref ; pieces dérivé de visualData — éviter reset sur identité du tableau seule.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pieces.length, visualData]);
 
@@ -196,6 +197,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
       const initialOrder = items.map((item) => item.value);
       queueMicrotask(() => onOrderChange(initialOrder));
     }
+    // exhaustive-deps: intentionnel au montage seulement — inclure items/onOrderChange recréerait des boucles avec le parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Seulement au montage, pas à chaque changement de items
 

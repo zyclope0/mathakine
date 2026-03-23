@@ -1,4 +1,4 @@
-﻿"""
+"""
 Service de gÃ©nÃ©ration d'exercices par IA en streaming.
 Extrait la logique de generate_ai_exercise_stream depuis exercise_handlers.
 """
@@ -51,6 +51,9 @@ EXERCISE_AI_INVALID_JSON_MESSAGE = (
     "La r\u00e9ponse g\u00e9n\u00e9r\u00e9e est invalide. R\u00e9essayez."
 )
 EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE = "Impossible d'enregistrer l'exercice g\u00e9n\u00e9r\u00e9. R\u00e9essayez plus tard."
+
+# \u00c9v\u00e9nement terminal SSE (align\u00e9 sur le flux d\u00e9fis : fin de flux contr\u00f4l\u00e9e apr\u00e8s succ\u00e8s ou erreurs m\u00e9tier/validation/persistance).
+_SSE_DONE = f"data: {json.dumps({'type': 'done'})}\n\n"
 
 
 def _exercise_ai_metrics_key(exercise_type: str) -> str:
@@ -405,6 +408,7 @@ async def generate_exercise_stream(
             )
             msg = format_validation_error_message(reasons)
             yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
+            yield _SSE_DONE
             return
 
         choices_clean = [str(c).strip() for c in choices_raw]
@@ -454,6 +458,7 @@ async def generate_exercise_stream(
                 error_type="persistence_error",
             )
             yield f"data: {json.dumps({'type': 'error', 'message': EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE})}\n\n"
+            yield _SSE_DONE
             return
 
         generation_metrics.record_generation(
@@ -465,6 +470,7 @@ async def generate_exercise_stream(
         )
 
         yield f"data: {json.dumps({'type': 'exercise', 'exercise': normalized_exercise})}\n\n"
+        yield _SSE_DONE
 
     except Exception as gen_error:
         logger.error(f"Erreur lors de la gÃ©nÃ©ration IA: {gen_error}")

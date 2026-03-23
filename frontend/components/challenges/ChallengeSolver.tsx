@@ -143,6 +143,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       setVisualSelections({});
       startTimeRef.current = Date.now();
     }
+    // exhaustive-deps: id seul (voir commentaire ci-dessus) — éviter reset si l’objet challenge est recréé à contenu identique.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge?.id]);
 

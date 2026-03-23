@@ -3,25 +3,7 @@
  */
 import { NextRequest } from "next/server";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
-
-function getBackendUrl(): string {
-  const url =
-    BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
-
-  if (process.env.NODE_ENV === "production") {
-    if (!url || url.includes("localhost")) {
-      throw new Error(
-        "NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost"
-      );
-    }
-  }
-
-  return url;
-}
+import { getBackendUrl } from "@/lib/api/backendUrl";
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,7 +58,7 @@ export async function POST(request: NextRequest) {
       redirect: "manual",
     });
 
-    if (!backendResponse.ok && backendResponse.status !== 200) {
+    if (!backendResponse.ok) {
       return new Response(
         JSON.stringify({
           error: `Backend error: ${backendResponse.status} ${backendResponse.statusText}`,

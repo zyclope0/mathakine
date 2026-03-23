@@ -5,9 +5,21 @@
 > **Realite terrain** : plusieurs items badges sont deja implementes ; le backlog actif restant doit etre pilote par `ROADMAP_FONCTIONNALITES.md` (F06, F13, F21, F26)  
 > **Cible** : Enfants 5-20 ans (dont TSA/TDAH)
 
-> **Lire ce document comme** : une analyse detaillee des choix badges et de l'historique d'implementation, pas comme l'unique source de priorisation actuelle.
+> **Lire ce document comme** : une analyse detaillee des choix badges et de l'historique d'implementation, pas comme l'unique source de priorisation actuelle. Les priorites actives restent dans `ROADMAP_FONCTIONNALITES.md`.
 
 ---
+
+## Verite terrain - 23/03/2026
+
+| Sujet | Etat reel code | Verite terrain |
+|------|----------------|----------------|
+| 4.1 Progression badges verrouilles | [DONE] | `GET /api/challenges/badges/progress` + `useBadgesProgress` + cartes avec barres/progression sont actifs |
+| 4.2 Conditions d obtention visibles | [DONE] | `BadgeCard.tsx` affiche `criteria_text` et progression pour les badges verrouilles |
+| 4.3 Streak | [PARTIAL] | moteur backend `update_user_streak` + champs utilisateur existent, mais pas de boucle produit complete type freeze/alertes |
+| 4.4 Deblocage automatique temps reel | [PARTIAL] | verification automatique apres tentatives cote services exercices/defis ; la celebration UI temps reel reste limitee |
+| 4.6 Filtres et tri | [DONE] | page `/badges` + `BadgeGrid.tsx` gerent filtres statut/categorie/difficulte et tri progression/date/points/categorie |
+| 4.7 Celebrations visuelles | [PARTIAL] | confetti leger sur la page badges quand le total obtenu augmente ; pas encore de modal/son/share complet |
+| 4.8 Badges secrets | [BACKLOG] | pas de strategie produit complete dediee au-dela des mecanismes badges existants |
 
 ## Table des matieres
 
@@ -43,12 +55,12 @@
 | Élément manquant | Impact rétention | Priorité | État |
 |------------------|------------------|----------|------|
 | **Progression vers badges verrouillés** | Très élevé | P0 | ✅ Implémenté 16/02 (GET /api/challenges/badges/progress, barres X/Y) |
-| **Conditions d'obtention visibles** | Élevé | P0 | À faire |
-| **Déblocage automatique temps réel** | Élevé | P1 |
+| **Conditions d'obtention visibles** | Élevé | P0 | [DONE] visibles sur les badges verrouillés (`criteria_text` + progression) |
+| **Déblocage automatique temps réel** | Élevé | P1 | [PARTIAL] vérification backend automatique OK ; célébration UI encore limitée |
 | **Notifications de progression** | Moyen | P1 |
-| **Système de streak** | Très élevé | P1 |
-| **Filtres et tri** | Moyen | P2 |
-| **Célébrations visuelles** | Moyen | P2 |
+| **Système de streak** | Très élevé | P1 | [PARTIAL] moteur backend déjà présent (`current_streak`, `best_streak`) |
+| **Filtres et tri** | Moyen | P2 | [DONE] filtres + tri actifs sur `/badges` |
+| **Célébrations visuelles** | Moyen | P2 | [PARTIAL] confetti léger déjà branché ; modal/son/share encore absents |
 
 ---
 
@@ -168,8 +180,18 @@ Les récompenses imprévisibles créent un engagement plus fort que les récompe
 
 #### 4.2 Conditions d'obtention visibles
 
-**Problème actuel** : L'utilisateur ne sait pas comment obtenir un badge
-**Solution** : Afficher les critères sur chaque badge verrouillé
+**Statut 23/03/2026** : [DONE]
+
+**Réalité terrain** : ce point n'est plus un manque critique. `BadgeCard.tsx` affiche déjà `criteria_text` sur les badges verrouillés et ajoute la progression quand elle est disponible.
+
+**Ce qui est déjà en place** :
+- critères affichés sur les badges verrouillés
+- progression X/Y ou taux de réussite quand le backend fournit `progress_detail`
+- message de proximité ("plus que...", "tu approches") quand le badge est proche
+
+**Ce qui peut encore être amélioré** :
+- harmoniser certains libellés métier pour les badges les plus complexes
+- affiner le wording de proximité si un futur lot produit le demande
 
 **Critères à afficher** :
 - Nombre d'exercices/défis requis
@@ -181,23 +203,40 @@ Les récompenses imprévisibles créent un engagement plus fort que les récompe
 
 #### 4.3 Système de streak (série d'entraînement)
 
+**Statut 23/03/2026** : [PARTIAL]
+
 **Inspiration** : Duolingo (3.6x rétention)
 
-**Implémentation** :
+**Déjà en place** :
+- moteur backend `update_user_streak`
+- champs utilisateur `current_streak`, `best_streak`, `last_activity_date`
+- exploitation possible dans dashboard / profil / badges
+
+**Encore ouvert côté produit** :
 - Compteur de jours consécutifs avec activité
 - Icône flamme 🔥 dans le header
 - Notification si streak en danger
 - "Streak Freeze" (1 gratuit/semaine, achetables avec points)
 - Badges liés aux streaks (7j, 30j, 100j, 365j)
 
-**Données nécessaires** :
-- Nouvelle table `user_streaks` ou champ dans `users`
-- Tracking de la dernière activité quotidienne
+**Données déjà présentes** :
+- champs directement sur `users`
+- mise à jour quotidienne côté backend après activité
 
 #### 4.4 Déblocage automatique en temps réel
 
-**Problème actuel** : L'utilisateur doit cliquer "Vérifier mes badges"
-**Solution** : Vérification automatique après chaque exercice/défi
+**Statut 23/03/2026** : [PARTIAL]
+
+**Réalité terrain** : la vérification automatique n'est plus un manque backend. Les services d'exercices et de défis déclenchent déjà les checks d'attribution après tentative. Le point encore ouvert est surtout UX.
+
+**Déjà en place** :
+- vérification automatique après tentative d'exercice
+- vérification automatique après tentative de défi
+- attribution de points/gains quand un badge débloqué porte une récompense
+
+**Encore incomplet** :
+- mise en scène frontend plus visible au moment exact du déblocage
+- boucle de notification plus explicite hors page badges si produit souhaité
 
 **Implémentation** :
 - Appel API léger après chaque `POST /api/exercises/{id}/attempt`
@@ -219,6 +258,10 @@ Les récompenses imprévisibles créent un engagement plus fort que les récompe
 
 #### 4.6 Filtres et tri
 
+**Statut 23/03/2026** : [DONE]
+
+**Réalité terrain** : ce point est implémenté sur `/badges`.
+
 **Filtres suggérés** :
 - Par statut : Tous / Obtenus / Verrouillés / Proches (>50%)
 - Par catégorie : Progression / Maîtrise / Spécial
@@ -229,7 +272,17 @@ Les récompenses imprévisibles créent un engagement plus fort que les récompe
 - Par date d'obtention
 - Par points de récompense
 
+**Déjà en place dans le code** :
+- filtres statut / catégorie / difficulté
+- vue "proches" (`close`)
+- tri `progress`, `date`, `points`, `category`
+- bouton de reset des filtres
+
 #### 4.7 Célébrations visuelles améliorées
+
+**Statut 23/03/2026** : [PARTIAL]
+
+**Réalité terrain** : une base existe déjà. La page badges déclenche un confetti léger quand le nombre de badges obtenus augmente, mais on n'est pas encore au niveau d'une vraie séquence de célébration produit.
 
 **Au déblocage** :
 - Animation confettis

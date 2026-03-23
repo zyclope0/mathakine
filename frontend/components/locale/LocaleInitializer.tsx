@@ -10,10 +10,9 @@ import { useLocaleStore } from "@/lib/stores/localeStore";
 export function LocaleInitializer() {
   const { locale, setLocale } = useLocaleStore();
 
+  // Première visite : détection navigateur (persist Zustand absent).
   useEffect(() => {
-    // Initialiser la locale seulement si elle n'est pas déjà définie
     if (typeof window !== "undefined" && !localStorage.getItem("locale-preferences")) {
-      // Détecter la langue du navigateur
       const browserLang = navigator.language?.split("-")[0] || "fr";
       const supportedLocales: ("fr" | "en")[] = ["fr", "en"];
       const detectedLocale: "fr" | "en" = supportedLocales.includes(browserLang as "fr" | "en")
@@ -22,12 +21,15 @@ export function LocaleInitializer() {
 
       setLocale(detectedLocale);
     }
+  }, [setLocale]);
 
-    // Appliquer la locale au document
+  // Réhydratation / changement de locale : setLocale met déjà à jour le document,
+  // mais ce sync couvre le premier rendu après rehydrate sans repasser par setLocale.
+  useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.lang = locale;
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [locale]);
 
   return null;
 }

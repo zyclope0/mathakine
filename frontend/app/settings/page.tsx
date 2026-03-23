@@ -190,6 +190,7 @@ function SettingsPageContent() {
     };
     loadSessions();
     loadDiagnosticStatus();
+    // Chargement unique au montage — éviter re-fetch si les callbacks du hook useSettings changent d’identité.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

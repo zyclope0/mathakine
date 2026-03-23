@@ -119,6 +119,8 @@ async def test_generate_exercise_stream_db_exception_yields_error_not_exercise(
     joined = "".join(events)
     assert '"type": "exercise"' not in joined
     assert '"type": "error"' in joined
+    assert '"type": "done"' in joined
+    assert joined.rfind('"type": "done"') > joined.rfind('"type": "error"')
     assert "enregistrer" in joined.lower() or "Réessayez" in joined
 
     persist = [c for c in metrics_calls if c.get("error_type") == "persistence_error"]
@@ -170,6 +172,8 @@ async def test_generate_exercise_stream_no_exercise_id_yields_error_not_exercise
     joined = "".join(events)
     assert '"type": "exercise"' not in joined
     assert '"type": "error"' in joined
+    assert '"type": "done"' in joined
+    assert joined.rfind('"type": "done"') > joined.rfind('"type": "error"')
 
     persist = [c for c in metrics_calls if c.get("error_type") == "persistence_error"]
     assert len(persist) == 1

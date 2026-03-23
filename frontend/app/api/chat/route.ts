@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getBackendUrl } from "@/lib/api/backendUrl";
+
 /**
  * API Route pour le chatbot
  *
@@ -14,28 +16,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Message requis" }, { status: 400 });
     }
 
-    // Appeler le backend pour obtenir la réponse
-    // En développement: peut utiliser localhost par défaut
-    // En production: DOIT être définie via NEXT_PUBLIC_API_BASE_URL
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
-
-    // Validation en production uniquement
-    if (process.env.NODE_ENV === "production") {
-      if (!backendUrl || backendUrl.includes("localhost")) {
-        return NextResponse.json(
-          { error: "Configuration backend invalide en production" },
-          { status: 500 }
-        );
-      }
+    let backendBase: string;
+    try {
+      backendBase = getBackendUrl();
+    } catch (e) {
+      return NextResponse.json(
+        {
+          error: e instanceof Error ? e.message : "Configuration backend invalide en production",
+        },
+        { status: 500 }
+      );
     }
 
-    // Log pour debug (dev uniquement) - Supprimé pour production
-
     try {
-      const response = await fetch(`${backendUrl}/api/chat`, {
+      const response = await fetch(`${backendBase}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

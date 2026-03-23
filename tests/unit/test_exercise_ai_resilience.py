@@ -102,6 +102,8 @@ async def test_generate_exercise_stream_retries_transient_openai_error_then_succ
 
     payloads = _parse_sse_payloads(events)
     assert any(payload.get("type") == "exercise" for payload in payloads)
+    assert payloads[-1].get("type") == "done"
+    assert sum(1 for p in payloads if p.get("type") == "done") == 1
     assert mock_client.chat.completions.create.await_count == 2
     assert openai_ctor.call_args.kwargs["timeout"] == AIConfig.DEFAULT_TIMEOUT
 
@@ -173,3 +175,50 @@ async def test_generate_exercise_stream_unexpected_error_uses_safe_message():
     payloads = _parse_sse_payloads(events)
     error_payload = next(payload for payload in payloads if payload["type"] == "error")
     assert error_payload["message"] == EXERCISE_AI_GENERIC_ERROR_MESSAGE
+    assert not any(p.get("type") == "done" for p in payloads)
+
+
+@pytest.mark.asyncio
+async def test_generate_exercise_stream_validation_failure_yields_error_then_done():
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(
+        return_value=_yield_chunks(_build_stream_chunk(_valid_ai_exercise_json()))
+    )
+
+    with (
+        patch.object(settings, "OPENAI_API_KEY", "sk-test-exercise-validation"),
+        patch("openai.AsyncOpenAI", return_value=mock_client),
+        patch(
+            "app.services.exercises.exercise_ai_service.resolve_exercise_ai_model",
+            return_value="gpt-4o-mini",
+        ),
+        patch(
+            "app.services.exercises.exercise_ai_service.build_exercise_ai_stream_kwargs",
+            return_value={"model": "gpt-4o-mini", "messages": [], "stream": True},
+        ),
+        patch(
+            "app.services.exercises.exercise_ai_service.validate_exercise_ai_output",
+            return_value=(False, ["question_trop_courte"]),
+        ),
+        patch(
+            "app.services.exercises.exercise_ai_service.format_validation_error_message",
+            return_value="Message validation test",
+        ),
+        patch(
+            "app.services.exercises.exercise_ai_service.token_tracker.track_usage",
+            return_value={"tokens": 10, "cost": 0.01},
+        ),
+    ):
+        events: list[str] = []
+        async for line in generate_exercise_stream(
+            "addition", "6-8", "INITIE", "", locale="fr"
+        ):
+            events.append(line)
+
+    payloads = _parse_sse_payloads(events)
+    types = [p.get("type") for p in payloads]
+    assert "error" in types
+    assert types[-1] == "done"
+    assert sum(1 for t in types if t == "done") == 1
+    err = next(p for p in payloads if p.get("type") == "error")
+    assert err.get("message") == "Message validation test"

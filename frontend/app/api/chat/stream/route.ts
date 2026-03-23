@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { getBackendUrl } from "@/lib/api/backendUrl";
+
 /**
  * API Route pour le chatbot avec streaming SSE
  *
@@ -18,13 +20,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:10000";
+    let backendBase: string;
+    try {
+      backendBase = getBackendUrl();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({
+          error: e instanceof Error ? e.message : "Configuration backend invalide en production",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     try {
-      const backendResponse = await fetch(`${backendUrl}/api/chat/stream`, {
+      const backendResponse = await fetch(`${backendBase}/api/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

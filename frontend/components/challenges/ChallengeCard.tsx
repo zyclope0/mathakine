@@ -14,6 +14,7 @@ import type { Challenge } from "@/types/api";
 import { Clock, Eye, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { MathText } from "@/components/ui/MathText";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -57,7 +58,7 @@ export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
                 id={`challenge-description-${challenge.id}`}
                 className="line-clamp-2"
               >
-                {challenge.description}
+                <MathText size="sm">{challenge.description}</MathText>
               </CardDescription>
             </div>
           </div>

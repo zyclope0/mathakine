@@ -47,12 +47,12 @@ L'axe EdTech est **le seul à être évalué à partir de données factuelles**,
 **Références de base utilisées pour le scoring** :
 - Hattie (2009) — *Visible Learning* : méta-analyse de 800+ méta-analyses (>50 000 études)
 - Cepeda et al. (2006) — Pratique distribuée et espacée — *Psychological Bulletin*
-- Hattie & Timperley (2007) — Pouvoir du feedback — *Review of Educational Research*
+- Hattie & Timperley (2007) - Pouvoir du feedback - *Review of Educational Research*
 - VanLehn (2011) — Tuteurs IA vs tuteurs humains — *Educational Psychologist*
 - Bjork (1994) — Desirable difficulties in learning
-- Sweller (1988) — Théorie de la charge cognitive — *Cognitive Science*
+- Sweller (1988) - Theorie de la charge cognitive - *Cognitive Science*
 - Deci & Ryan (2000) — Théorie de l'autodétermination (SDT)
-- Mayer (2001) — Multimedia learning theory
+- Mayer (2001) - Multimedia learning theory
 - Kivetz et al. (2006) — Goal-gradient hypothesis — *Journal of Marketing Research*
 
 > **Convention** : `[PROPOSITION]` = feature suggérée par l'IA, non issue des docs existants. À valider produit avant implémentation.
@@ -64,6 +64,18 @@ Score = (G Ã— 1.5) + (E Ã— 2) + B âˆ’ (D Ã— 0.8) âˆ’ (R Ã— 0
 ```
 
 Un score élevé indique une feature à haute valeur et faible coût/risque. Le score **ne remplace pas** le jugement — il oriente la discussion.
+
+### 1.4 Rituel de mise a jour apres chaque lot
+
+Pour eviter qu'une feature livree "disparaisse" de la roadmap ou qu'un backlog stale survive trop longtemps :
+
+1. relire le code reel du lot termine avant de modifier la roadmap
+2. mettre a jour la ligne de matrice concernee avec un statut explicite : `[DONE]`, `[PARTIAL]`, `[BACKLOG]`
+3. conserver les elements livres dans `2.1 Vue d'avancement` et `8.1 Features livrees et visibles`
+4. si seule une fondation technique a ete posee, documenter le point en `8.2` au lieu de survendre la feature produit
+5. si un document dedie change de verite (badges, workflow, API, IA, etc.), le mettre a jour dans le meme lot que le code
+
+Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee sur la verite terrain.
 
 ---
 
@@ -106,7 +118,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F23 | [PROP] Exercices adaptatifs SR+IA | [BACKLOG] | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | [BACKLOG] | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | [BACKLOG] | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
-| F26 | Filtres et tri badges | [BACKLOG] | 2 | 2 | 1 | 1 | 2 | **6.4** | P3 |
+| F26 | Filtres et tri badges | [DONE] | 2 | 2 | 1 | 1 | 2 | **6.4** | P3 |
 | F27 | Optimisation re-renders exercices/defis | [BACKLOG] | 3 | 2 | 1 | 2 | 2 | **4.8** | P3 |
 | F28 | Mode aventure / histoire narrative | [BACKLOG] | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
 | F29 | Personnalisation avatar / profil | [BACKLOG] | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
@@ -119,7 +131,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
 **[DONE] Implemente dans le code**
-- F01, F02, F03, F05, F06, F07, F12, F13, F22, F32, F33, F35
+- F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35
 
 **[PARTIAL] Fondations deja posees**
 - F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
@@ -144,8 +156,8 @@ Ces quatre features combinent un score composite élevé ET un bénéfice pédag
 **Problème** : Les explications post-réponse (exercices et défis) sont du texte brut. Les formules mathématiques (`a³+b³`) et les étapes structurées sont illisibles.
 
 **Valeur pédagogique (E=5)** :
-- Mayer (2001) — *Multimedia Learning* : la segmentation et la mise en forme du texte réduit la charge cognitive extrinsèque et améliore la compréhension (effet mesuré).
-- Sweller (1988) — Cognitive Load Theory : l'organisation visuelle de l'information réduit la charge cognitive irrélevante.
+- Mayer (2001) - *Multimedia Learning* : la segmentation et la mise en forme du texte reduisent la charge cognitive extrinseque et ameliorent la comprehension (effet mesure).
+- Sweller (1988) - Cognitive Load Theory : l'organisation visuelle de l'information reduit la charge cognitive irrelevante.
 - La lisibilité de l'explication est un vecteur direct du transfert d'apprentissage.
 
 **Ce qu'il faut faire** :
@@ -187,7 +199,7 @@ Ces quatre features combinent un score composite élevé ET un bénéfice pédag
 
 **Valeur pédagogique (E=5)** :
 - Hattie (2009) — *Formative assessment* : d = 0.90 (un des effets les plus élevés en éducation). Identifier le niveau réel avant l'enseignement est la condition préalable à toute personnalisation efficace.
-- Sweller (1988) — L'alignement entre difficulté et compétence prévient la surcharge cognitive (exercices trop faciles = ennui, trop difficiles = anxiété).
+- Sweller (1988) - L'alignement entre difficulte et competence previent la surcharge cognitive (exercices trop faciles = ennui, trop difficiles = anxiete).
 - *Assessment for learning* (Black & Wiliam, 1998) : le diagnostic préalable est la fondation de l'apprentissage adaptatif.
 
 **Algorithme adaptatif (Item Response Theory simplifié)** :
@@ -286,23 +298,23 @@ spaced_repetition_items (
 **Score** : 13.9 | D=4, G=4, E=5, R=3, B=4
 
 **Valeur pédagogique (E=5)** :
-- Vygotsky (1978) — Zone proximale de développement : l'apprentissage optimal se situe juste au-delà de la compétence actuelle. Trop facile â†’ ennui. Trop difficile â†’ anxiété.
+- Vygotsky (1978) - Zone proximale de developpement : l'apprentissage optimal se situe juste au-dela de la competence actuelle. Trop facile -> ennui. Trop difficile -> anxiete.
 - Bjork (1994) — *Desirable difficulties* : un niveau de défi optimal crée une résistance productive (retrieval effort) qui renforce la mémorisation à long terme.
-- Csikszentmihalyi (1990) — État de *flow* : atteint quand difficulté â‰ˆ compétence.
+- Csikszentmihalyi (1990) - Etat de *flow* : atteint quand difficulte ~ competence.
 
 **Implémentation (v3.0.0-alpha.3+, MAJ 06/03/2026)** :
 - `app/services/adaptive_difficulty_service.py` — résolution par cascade (IRT > progression > profil > fallback), proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)
 - `server/handlers/exercise_handlers.py` — branchement adaptatif (`?adaptive=true` par défaut, désactivable par `?adaptive=false` ou `age_group` explicite)
-- `app/utils/exercise_generator_helpers.py` ? distracteurs QCM calibr?s par niveau (INITIE: erreurs ?1 + inversion, PADAWAN: retenue ?10, CHEVALIER/MAITRE/GRAND_MAITRE: magnitude % ; `server/exercise_generator_helpers.py` reste un re-export de compatibilite)
+- `app/utils/exercise_generator_helpers.py` -> distracteurs QCM calibres par niveau (INITIE: erreurs +/-1 + inversion, PADAWAN: retenue +/-10, CHEVALIER/MAITRE/GRAND_MAITRE: magnitude en %, `server/exercise_generator_helpers.py` restant un re-export de compatibilite)
 - **Mode QCM vs saisie libre** : décidé côté frontend par `useIrtScores().resolveIsOpenAnswer(exercise_type)` — saisie libre uniquement si niveau IRT = GRAND_MAITRE pour ce type. Le backend génère toujours les `choices`.
 
 **Référence technique complète** : [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md)
 
-**Seuils adaptation temps réel** : `completion_rate > 85% ET streak >= 3` â†’ boost (+1 niveau) ; `completion_rate < 50% ET streak = 0` â†’ descente (-1 niveau).
+**Seuils adaptation temps reel** : `completion_rate > 85% ET streak >= 3` -> boost (+1 niveau) ; `completion_rate < 50% ET streak = 0` -> descente (-1 niveau).
 
 **Hors scope F05-suite (backlog)** :
 - `/api/ai/generate` — même adaptation pour la génération IA (SSE, complexité séparée)
-- Dashboard widget 'ton niveau s'est ajusté' — âœ… Implémenté 06/03/2026 (`LevelEstablishedWidget` dans l'onglet Vue d'ensemble)
+- Dashboard widget 'ton niveau s'est ajuste' - [DONE] Implemente le 06/03/2026 (`LevelEstablishedWidget` dans l'onglet Vue d'ensemble)
 - Seuils boost/descente configurables via admin
 - **[F05-B1] Saisie libre déclenchée par taux de réussite réel, pas uniquement par niveau IRT** : plutôt que le seuil fixe GRAND_MAITRE, déclencher la saisie libre quand `completion_rate >= 90 % sur les 5 dernières tentatives` pour un type donné — indépendamment du niveau IRT. Fondement : Roediger & Karpicke (2006) Testing Effect + VanLehn (2011) méta-analyse tutoring adaptatif. Éviter d'encoder des erreurs en forçant le recall avant que la récupération soit automatique.
 - **[F05-B2] Distracteurs QCM plus discriminants, moins déductibles** : améliorer la génération des `choices` pour éviter les bonnes réponses visibles par simple élimination. Cible : 3 distracteurs plausibles, de même ordre de grandeur, même format et même unité que la bonne réponse, issus d'erreurs typiques réelles (retenue, inversion, confusion opératoire, off-by-one, confusion quotient/reste) plutôt que de valeurs trop éloignées ou structurellement différentes. Ajouter si possible une instrumentation du taux de sélection des distracteurs pour identifier ceux qui ne trompent jamais. Effort estimé : 1-2 jours. Priorité produit : moyenne-haute, car impact direct sur la valeur pédagogique perçue des exercices.
@@ -314,7 +326,7 @@ spaced_repetition_items (
 
 ### F06 - Conditions d'obtention badges visibles
 
-**Source** : [BADGES_AMELIORATIONS ?4.2](BADGES_AMELIORATIONS.md)  
+**Source** : [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) - section 4.2  
 **Score** : 13.5 | D=2, G=4, E=3, R=1, B=3
 
 **Statut** : [DONE] present dans le code au 23/03/2026 via `frontend/components/badges/BadgeCard.tsx` (affichage des `criteria_text` + progression sur badges verrouilles)
@@ -427,7 +439,7 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 ### F12 - Radar chart par discipline
 
-**Source** : [ANALYTICS_PROGRESSION ?1.3](ANALYTICS_PROGRESSION.md)  
+**Source** : [ANALYTICS_PROGRESSION](ANALYTICS_PROGRESSION.md) - section 1.3  
 **Score** : 10.9 | D=2, G=3, E=3, R=1, B=2
 
 **Statut** : [DONE] present dans le code au 23/03/2026 via `frontend/components/dashboard/CategoryAccuracyChart.tsx` (`RadarChart` Recharts)
@@ -445,7 +457,7 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 ### F13 - Deblocage automatique badges (temps reel)
 
-**Source** : [BADGES_AMELIORATIONS ?4.4](BADGES_AMELIORATIONS.md)  
+**Source** : [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) - section 4.4  
 **Score** : 11.5 | D=2, G=3, E=3, R=1, B=3
 
 **Statut** : [DONE] verification et attribution automatiques deja branchees apres tentative cote exercices et defis
@@ -635,9 +647,9 @@ Route: /parent/child/[id] â†’ progression détaillée
 - **Pas de doublons visuels** : deux widgets journaliers qui repondent presque a la meme question doivent etre fusionnes ou remplaces par un angle pedagogique complementaire (ex : regularite de pratique).
 
 **Valeur pedagogique (E=4)** :
-- Sweller (1988) ? la reduction de charge cognitive extrinseque ameliore la comprehension et la focalisation sur la tache d'apprentissage.
-- Mayer (2001) ? la clarte de presentation et la coherence des signaux visuels ameliorent l'assimilation.
-- Hattie & Timperley (2007) ? un feedback utile doit etre interpretable immediatement ; un filtre ambigu deforme le feedback plutot qu'il ne l'aide.
+- Sweller (1988) - la reduction de charge cognitive extrinseque ameliore la comprehension et la focalisation sur la tache d'apprentissage.
+- Mayer (2001) - la clarte de presentation et la coherence des signaux visuels ameliorent l'assimilation.
+- Hattie & Timperley (2007) - un feedback utile doit etre interpretable immediatement ; un filtre ambigu deforme le feedback plutot qu'il ne l'aide.
 
 **Cible backlog** :
 1. Rationaliser l'onglet `Progression` pour que chaque widget exprime clairement son scope temporel.
@@ -741,7 +753,19 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 ### F26 — Filtres et tri badges
 
-Amélioration ergonomique de la page `/badges`. Par statut, catégorie, difficulté. ~1 jour. Déprioritisé car la page badges est déjà bien structurée (onglets En cours / À débloquer).
+**Statut** : [DONE] present dans le code au 23/03/2026
+
+Amelioration ergonomique de la page `/badges`, aujourd'hui reellement en place :
+- filtres par statut, categorie et difficulte
+- vue "proches" pour les badges presque debloques
+- tri par progression, date, points et categorie
+- reset des filtres depuis la page
+
+**Verite terrain** :
+- `frontend/app/badges/page.tsx`
+- `frontend/components/badges/BadgeGrid.tsx`
+
+La feature reste documentee ici pour garder visible le travail deja livre, meme si elle n'est plus un backlog actif.
 
 ---
 
@@ -811,15 +835,16 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 |---------|------------------------|-----------|
 | F01 - Rendu Markdown/KaTeX dans les explications | Present dans le code au 23/03/2026 | Composant `MathText.tsx` - integre dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F02 - Defis quotidiens (daily challenges) | 03/2026 | [F02_DEFIS_QUOTIDIENS](F02_DEFIS_QUOTIDIENS.md) |
-| F03 - Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES ?F03](ROADMAP_FONCTIONNALITES.md) |
+| F03 - Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES](ROADMAP_FONCTIONNALITES.md) - section F03 |
 | F05 - Adaptation dynamique de difficulte | 06/03/2026 | [F05_ADAPTATION_DYNAMIQUE](F05_ADAPTATION_DYNAMIQUE.md) |
 | F06 - Conditions d'obtention badges visibles | Present dans le code au 23/03/2026 | `frontend/components/badges/BadgeCard.tsx` |
 | F07 - Courbe d'evolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
 | F12 - Radar chart par discipline | Present dans le code au 23/03/2026 | `frontend/components/dashboard/CategoryAccuracyChart.tsx` |
 | F13 - Deblocage automatique badges temps reel | Present dans le code au 23/03/2026 | `exercise_attempt_service.py`, `challenge_attempt_service.py` |
 | F22 - Suppression utilisateur admin (RGPD) | Present dans le code au 23/03/2026 | `DELETE /api/admin/users/{id}` + suppression physique avec cascade |
+| F26 - Filtres et tri badges | Present dans le code au 23/03/2026 | `frontend/app/badges/page.tsx` + `frontend/components/badges/BadgeGrid.tsx` |
 | F32 - Session entrelacee (interleaving) | 07-08/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
-| F33 - Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES ?F33](ROADMAP_FONCTIONNALITES.md) |
+| F33 - Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES](ROADMAP_FONCTIONNALITES.md) - section F33 |
 | F35 - Redaction secrets logs DB (securite) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
 | Espace admin complet (role archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fev 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
@@ -836,7 +861,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | Recommandations personnalisees (marquer fait) | 16/02/2026 | SITUATION_FEATURES (archive) |
 | Ordre aleatoire + masquer reussis | 19/02/2026 | SITUATION_FEATURES (archive) |
 | Analytics EdTech (CTR Quick Start, 1er attempt) | 25/02/2026 | [EDTECH_ANALYTICS](EDTECH_ANALYTICS.md) |
-| Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP ?4.6](ROADMAP_FONCTIONNALITES.md) |
+| Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP_FONCTIONNALITES](ROADMAP_FONCTIONNALITES.md) - section 4.6 |
 | Mode maintenance + inscriptions (admin config) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Streak (basique) | Fev 2026 | Integre dans stats utilisateur |
 | 7 themes visuels | Fev 2026 | [THEMES](THEMES.md) |

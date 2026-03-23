@@ -9,12 +9,20 @@
 
 > **Note de lecture :** le titre du fichier reste `AUDIT_DOCUMENTATION_2026-03-22` pour l’historique. La version restaurée de ce rapport contenait des dates internes incohérentes ; ce document doit donc être lu comme une checklist d’écarts et de corrections, pas comme une chronologie fiable.
 
-## 0. Complément traité le 23/03/2026
+## 0. Compléments traités
+
+### 23/03/2026 — lot initial
 
 - `frontend/README.md` : références principales basculées sur `NEXT_PUBLIC_API_BASE_URL` (local, production, checklist).
 - `docs/01-GUIDES/QU_EST_CE_QUE_VENV.md` : exemples `fastapi` remplacés par `starlette`.
-- rationalisation structurelle 23/03/2026 : `docs/investor_deck/` sorti de `docs/`, docs widgets re-rangees sous `docs/04-FRONTEND/DASHBOARD_WIDGETS/`, `docs/06-WIDGETS/` converti en redirects legacy, `F34_SCIENCES_PROTOTYPE.html` deplace dans `docs/assets/prototypes/`.
+- Rationalisation structurelle : `docs/investor_deck/` sorti de `docs/`, docs widgets re-rangées sous `docs/04-FRONTEND/DASHBOARD_WIDGETS/`, `docs/06-WIDGETS/` converti en redirects legacy, `F34_SCIENCES_PROTOTYPE.html` déplacé dans `docs/assets/prototypes/`.
 - Le présent audit est requalifié en **checklist** documentaire ; les documents actifs dans `docs/INDEX.md` restent la source de vérité.
+
+### 23/03/2026 — lot complémentaire session P0/P1
+
+- **`docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`** : ajout statuts `[DONE]` / `[PARTIAL]` / `[BACKLOG]` dans la matrice + **Section 8 « Features implementees (historique) »** (8.1 livrées avec dates/références, 8.2 fondations partielles). F39 [LEGAL] ajouté (refonte rangs + suppression IP Star Wars). Nouveau document challenger **`ROADMAP_MVP_CHALLENGE_2026-03.md`** créé (3 horizons H1/H2/H3, focus solo founder).
+- **`tests/conftest.py`** : garde sécurité DB renforcée — détection host externe (`render.com`, `amazonaws.com`…) ajoutée dans les 3 checks (auto-dérivation, SECURITE 1 engine URL, SECURITE 3 TEST==DATABASE). Corrige le faux positif `mathakine_test_gii8` (nom contient "test" mais est une base Render de production).
+- **`docs/03-PROJECT/AUDIT_TECHNIQUE_2026-03-22.md`** : section 0 ajoutée avec suivi des corrections post-audit (T1, A4, P4, D5, D6 résolus ; D8, B1, B2, B4, B6 encore ouverts). Plan d'action mis à jour avec colonne statut.
 
 ---
 

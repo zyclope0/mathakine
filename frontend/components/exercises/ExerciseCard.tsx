@@ -11,6 +11,7 @@ import type { Exercise } from "@/types/api";
 import { Sparkles, Eye, Calendar, ArrowRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+import { MathText } from "@/components/ui/MathText";
 
 // Lazy load modal pour réduire le bundle initial
 const ExerciseModal = dynamic(
@@ -68,7 +69,7 @@ export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
                 id={`exercise-description-${exercise.id}`}
                 className="line-clamp-3 min-h-[3.6rem]"
               >
-                {exercise.question}
+                <MathText size="sm">{exercise.question}</MathText>
               </CardDescription>
             </div>
           </div>

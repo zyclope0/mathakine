@@ -9,6 +9,15 @@
 
 ---
 
+## Verite terrain - 23/03/2026
+
+- onboarding actif : `frontend/app/onboarding/page.tsx`
+- dashboard actif avec `QuickStartActions` et onglets : `frontend/app/dashboard/page.tsx`
+- F03 diagnostic initial : implemente
+- F05 adaptation dynamique : implemente
+- F02 defis quotidiens : implementes
+- ce document reste utile pour le contexte produit, mais les priorites actives doivent etre lues dans `ROADMAP_FONCTIONNALITES.md`
+
 ## 1. Vue d'ensemble du parcours actuel
 
 ### 1.1 Flux utilisateur (schéma)
@@ -66,18 +75,20 @@ Accueil (/)
 
 ### 2.2 Partie éducation
 
+> ⚠️ HISTORIQUE — Cette section décrit les manques identifiés au moment de l'audit initial. Une partie du tableau ci-dessous n'est plus un backlog actif : onboarding, diagnostic, défis quotidiens, feedback pédagogique de base et adaptation de difficulté ont déjà des fondations ou une implémentation réelle dans le code.
+
 **Manque de personnalisation initiale à l'inscription**
 
-Le formulaire d'inscription collecte seulement l'identité de compte (username, email, password, full_name) sans calibration pédagogique (classe, niveau, difficulté cible, rythme). Sans diagnostic ou préférences éducatives dès l'entrée, l'adaptation démarre tard et affaiblit la promesse « adaptive learning » au moment critique des premières 5 minutes. Impact : premières sessions moins pertinentes, engagement précoce plus fragile. (Complémentaire au test diagnostic initial et à l’adaptation difficulté ci-dessous.)
+Le constat ci-dessous était vrai avant l'onboarding pédagogique. Il sert encore de contexte produit, mais n'est plus la vérité active : l'onboarding collecte désormais classe, âge/groupe, objectif et rythme, puis redirige vers un diagnostic et un dashboard protégés par `requireOnboardingCompleted`.
 
 | Amélioration | Complexité | Impact | Priorité |
 |--------------|------------|--------|----------|
-| **Calibration pédagogique à l'inscription** (classe, niveau, difficulté, rythme) | Moyenne | Élevé | P1 |
+| **Calibration pédagogique à l'inscription** (classe, niveau, difficulté, rythme) | Moyenne | Élevé | ✅ Fait via onboarding |
 | **Révisions espacées** (spaced repetition) | Élevée | Élevé | P2 |
 | **Test diagnostic initial** | Élevée | Élevé | ✅ F03 implémenté 04/03/2026 |
-| **Défis quotidiens** (objectif du jour) | Moyenne | Élevé | P1 |
+| **Défis quotidiens** (objectif du jour) | Moyenne | Élevé | ✅ F02 implémenté |
 | **Objectifs personnalisés** (ex: "3 exercices/jour") | Moyenne | Moyen | P2 |
-| **Feedback pédagogique enrichi** (explication des erreurs) | Moyenne | Moyen | P1 |
+| **Feedback pédagogique enrichi** (explication des erreurs) | Moyenne | Moyen | ✅ F01 implémenté (base) ; suites possibles |
 | **Adaptation difficulté** (basée sur succès/échecs) | Élevée | Élevé | ✅ F05 implémenté 06/03/2026 |
 
 ### 2.3 Audit activation (EdTech 2026)

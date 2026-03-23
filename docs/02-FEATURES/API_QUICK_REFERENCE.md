@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 06/03/2026
+> Updated: 23/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -117,7 +117,7 @@ Contract note:
 - `GET /api/users/me` — champs persistants de compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank`, etc.
 - `GET /api/badges/stats` — stats agrégées gamification pour l’utilisateur courant (`get_user_gamification_stats`).
 
-**Référence longue** : voir `docs/02-FEATURES/BADGES_AMELIORATIONS.md` et backlog F38 dans `docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md` si une API de lecture du ledger devient nécessaire.
+**Référence longue** : voir `docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md` pour la vérité actuelle du compte gamification/ledger, et `ROADMAP_FONCTIONNALITES.md` (F38) pour les suites produit éventuelles.
 
 ## Admin
 

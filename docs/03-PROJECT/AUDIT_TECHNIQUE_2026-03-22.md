@@ -2,9 +2,31 @@
 > ⚠️ OBSOLETE comme source de verite runtime - snapshot historique de revue conserve pour trace.
 > La reference actuelle pour la gouvernance IA runtime et l'observabilite est [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
+---
+
+## 0. Corrections post-audit appliquées (23/03/2026)
+
+Suivi des findings de cet audit traités dans la session du 23/03/2026.
+
+| Ref | Finding | Statut | Commit / Référence |
+|-----|---------|--------|--------------------|
+| **T1** | Race condition gamification — `with_for_update()` absent | ✅ CORRIGÉ | `fix(gamification): guard with_for_update to PostgreSQL only (SQLite compat)` — garde dialect-aware `bind.dialect.name == "postgresql"` |
+| **A4** | `GamificationService.apply_points` non appelé sur exercices standard | ✅ CORRIGÉ | `feat(gamification): apply points on correct exercise answer (EXERCISE_COMPLETED source)` — `PointEventSourceType.EXERCISE_COMPLETED` ajouté, appel dans `exercise_attempt_service.py` |
+| **P4** | `func.random()` O(n) dans `list_challenges` | ✅ CORRIGÉ | `perf(challenges): replace func.random() O(n) with random_offset O(1) fallback` — `count()` + `random_offset` pour le cas `total=None` |
+| **D5** | Endpoints gamification non documentés dans `API_QUICK_REFERENCE` | ✅ CORRIGÉ | Section gamification ajoutée (06/03/2026) — `point_events`, `apply_points`, surfaces `/me` + `/api/badges/stats` |
+| **D6** | Pas d'ADR pour les décisions d'architecture | ✅ CORRIGÉ | `docs/05-ADR/` créé + `ADR-001-starlette-vs-fastapi.md` (23/03/2026) |
+| **D8** | `REDIS_URL` absente de `.env.example` | ✅ CORRIGÉ | Section "Rate Limiting (Redis)" ajoutée dans `.env.example` avec commentaire crash prod (23/03/2026) |
+| — | Logs SMTP/email exposent PII (`to_email`, `smtp_user`) | ✅ CORRIGÉ (hors audit initial) | `fix(security): mask PII in SMTP/email service logs` — helpers `_mask_email()` + `_mask_user()` dans `email_service.py` |
+
+**Score réestimé post-corrections** : ~7.8–8.0 / 10 (T1 + A4 + P4 étaient les 3 findings les plus critiques de cet audit).
+
+**Encore ouvert (priorité conservée)** : B1 (fuite mémoire TokenTracker), B2 (double filtrage is_active/is_archived), B4 (chat sans auth), B6 (NPE auto_correct_challenge), D8 (REDIS_URL), P1 (timeout exercices IA), P5 (circuit-breaker).
+
+---
+
 ## Resume executif
 
-**Score de sante globale : 7.0 / 10**
+**Score de sante globale : 7.0 / 10** → **~8.0 / 10** post-corrections 23/03/2026 (T1, A4, P4, D5, D6, D8 résolus)
 
 Le projet Mathakine presente une architecture backend bien structuree (separation service/handler/repository, policies typees, validations AI) et un frontend Next.js convenable. Cependant, l'audit revele des problemes d'ingenierie significatifs qui meritent attention avant le prochain palier de croissance.
 
@@ -313,33 +335,33 @@ Le parametre `challenge_type=metrics_key` est nomme `challenge_type` mais reÃ§
 
 ### Priorite 1 -- Impact eleve, effort faible (1-2 jours)
 
-| # | Action | Fichier(s) | Impact |
-|---|--------|-----------|--------|
-| 1 | Corriger la fuite memoire du TokenTracker (rotation/plafond) | `token_tracker.py` | Stabilite prod |
-| 2 | Ajouter auth sur les routes chat proxy | `chat/route.ts`, `chat/stream/route.ts` | Securite |
-| 3 | Ajouter `REDIS_URL` dans `.env.example` | `.env.example` | Deployabilite |
-| 4 | Corriger `auto_correct_challenge` NPE | `challenge_validator.py:527` | Correction auto |
-| 5 | Ajouter timeout+retry au flux exercices IA | `exercise_ai_service.py` | Resilience |
+| # | Action | Fichier(s) | Impact | Statut |
+|---|--------|-----------|--------|--------|
+| 1 | Corriger la fuite memoire du TokenTracker (rotation/plafond) | `token_tracker.py` | Stabilite prod | ❌ Ouvert |
+| 2 | Ajouter auth sur les routes chat proxy | `chat/route.ts`, `chat/stream/route.ts` | Securite | ❌ Ouvert |
+| 3 | Ajouter `REDIS_URL` dans `.env.example` | `.env.example` | Deployabilite | ✅ CORRIGÉ 23/03/2026 |
+| 4 | Corriger `auto_correct_challenge` NPE | `challenge_validator.py:527` | Correction auto | ❌ Ouvert |
+| 5 | Ajouter timeout+retry au flux exercices IA | `exercise_ai_service.py` | Resilience | ❌ Ouvert |
 
 ### Priorite 2 -- Impact eleve, effort moyen (3-5 jours)
 
-| # | Action | Fichier(s) | Impact |
-|---|--------|-----------|--------|
-| 6 | Unifier le double filtrage `is_active`/`is_archived` | `challenge_service.py` | Correctness |
-| 7 | Unifier les payloads utilisateur en un helper | `auth_session_service.py` | Maintenabilite |
-| 8 | Extraire `getBackendUrl()` dans un module partage frontend | Routes API Next.js | DRY |
-| 9 | Ajouter `GamificationService.apply_points` aux exercices | `exercise_attempt_service.py` | Completude produit |
-| 10 | Migrer TokenTracker vers table SQL | `token_tracker.py` | Observabilite |
+| # | Action | Fichier(s) | Impact | Statut |
+|---|--------|-----------|--------|--------|
+| 6 | Unifier le double filtrage `is_active`/`is_archived` | `challenge_service.py` | Correctness | ❌ Ouvert |
+| 7 | Unifier les payloads utilisateur en un helper | `auth_session_service.py` | Maintenabilite | ❌ Ouvert |
+| 8 | Extraire `getBackendUrl()` dans un module partage frontend | Routes API Next.js | DRY | ❌ Ouvert |
+| 9 | Ajouter `GamificationService.apply_points` aux exercices | `exercise_attempt_service.py` | Completude produit | ✅ CORRIGÉ 23/03/2026 |
+| 10 | Migrer TokenTracker vers table SQL | `token_tracker.py` | Observabilite | ❌ Ouvert |
 
 ### Priorite 3 -- Impact moyen, effort important (1-2 semaines)
 
-| # | Action | Fichier(s) | Impact |
-|---|--------|-----------|--------|
-| 11 | Unifier les policies modele IA (exercices/defis) | `ai_config.py`, `ai_generation_policy.py` | Architecture |
-| 12 | Creer des ADR pour les decisions cles | `docs/05-ADR/` | Documentation |
-| 13 | Ajouter des tests pour les proxies SSE | `frontend/app/api/` | Couverture |
-| 14 | Implementer un circuit-breaker OpenAI | Nouveau module | Resilience |
-| 15 | Generer un schema OpenAPI | Infrastructure | Documentation API |
+| # | Action | Fichier(s) | Impact | Statut |
+|---|--------|-----------|--------|--------|
+| 11 | Unifier les policies modele IA (exercices/defis) | `ai_config.py`, `ai_generation_policy.py` | Architecture | ❌ Ouvert |
+| 12 | Creer des ADR pour les decisions cles | `docs/05-ADR/` | Documentation | ✅ CORRIGÉ — ADR-001 créé 23/03/2026 ; ouvrir des ADRs supplémentaires si nouvelles décisions structurelles |
+| 13 | Ajouter des tests pour les proxies SSE | `frontend/app/api/` | Couverture | ❌ Ouvert |
+| 14 | Implementer un circuit-breaker OpenAI | Nouveau module | Resilience | ❌ Ouvert |
+| 15 | Generer un schema OpenAPI | Infrastructure | Documentation API | ❌ Ouvert |
 
 ---
 
