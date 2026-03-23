@@ -5,6 +5,7 @@ Exercent la vraie logique metier de exercise_attempt_service._check_answer_corre
 via submit_answer, en mockant uniquement le repository et les dependances (badges, streak, daily).
 """
 
+from contextlib import ExitStack
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -48,26 +49,42 @@ def _run_submit(exercise_type, correct_answer, selected_answer, expected_result)
     ]
     mock_attempt = _mock_attempt()
 
-    with (
-        patch(
-            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
-            return_value=ex_dict,
-        ),
-        patch(
-            "app.services.exercises.exercise_attempt_service.create_attempt",
-            return_value=mock_attempt,
-        ),
-        patch(
-            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
-        ),
-        patch(
-            "app.services.badges.badge_service.BadgeService",
-        ) as BadgeCls,
-        patch("app.services.progress.streak_service.update_user_streak"),
-        patch(
-            "app.services.progress.daily_challenge_service.record_exercise_completed"
-        ),
-    ):
+    with ExitStack() as stack:
+        stack.enter_context(
+            patch(
+                "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
+                return_value=ex_dict,
+            )
+        )
+        stack.enter_context(
+            patch(
+                "app.services.exercises.exercise_attempt_service.create_attempt",
+                return_value=mock_attempt,
+            )
+        )
+        stack.enter_context(
+            patch(
+                "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
+            )
+        )
+        stack.enter_context(
+            patch(
+                "app.services.exercises.exercise_attempt_service.GamificationService.apply_points",
+            )
+        )
+        BadgeCls = stack.enter_context(
+            patch(
+                "app.services.badges.badge_service.BadgeService",
+            )
+        )
+        stack.enter_context(
+            patch("app.services.progress.streak_service.update_user_streak")
+        )
+        stack.enter_context(
+            patch(
+                "app.services.progress.daily_challenge_service.record_exercise_completed"
+            )
+        )
         badge_inst = MagicMock()
         badge_inst.check_and_award_badges.return_value = []
         badge_inst.get_closest_progress_notification.return_value = None

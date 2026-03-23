@@ -108,6 +108,9 @@ def test_service_submit_correct_answer(db_session):
             "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
         ),
         patch(
+            "app.services.exercises.exercise_attempt_service.GamificationService.apply_points",
+        ),
+        patch(
             "app.services.badges.badge_service.BadgeService",
         ) as BadgeCls,
         patch("app.services.progress.streak_service.update_user_streak"),

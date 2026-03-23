@@ -20,11 +20,15 @@ from app.repositories.exercise_attempt_repository import (
     update_progress_after_attempt,
 )
 from app.schemas.exercise import SubmitAnswerResponse
+from app.services.gamification.gamification_service import GamificationService
+from app.services.gamification.point_source import PointEventSourceType
 from app.services.progress.streak_service import update_user_streak
 from app.utils.exercise_answer_compare import answers_equivalent_numeric_tolerant
 from app.utils.json_utils import make_json_serializable
 
 logger = get_logger(__name__)
+
+POINTS_PER_CORRECT_EXERCISE = 10
 
 
 def _check_answer_correct(exercise: Dict[str, Any], selected_answer: Any) -> bool:
@@ -115,6 +119,22 @@ def submit_answer(
         logger.error(
             f"Erreur de données lors de la mise à jour des statistiques: {stats_err}"
         )
+
+    if is_correct:
+        try:
+            # Pas de savepoint dédié : aligné sur daily_challenge / badges (apply_points direct).
+            # Un nested + with_for_update (PostgreSQL) sur la ligne users peut échouer en imbriqué.
+            GamificationService.apply_points(
+                db,
+                user_id,
+                POINTS_PER_CORRECT_EXERCISE,
+                PointEventSourceType.EXERCISE_COMPLETED,
+                source_id=exercise_id,
+            )
+        except Exception as gamif_err:
+            logger.error(
+                "Gamification error on exercise {}: {}", exercise_id, gamif_err
+            )
 
     new_badges = []
     try:

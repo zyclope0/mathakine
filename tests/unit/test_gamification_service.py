@@ -28,6 +28,30 @@ def _create_user(db_session) -> User:
     return user
 
 
+def test_apply_points_exercise_completed_source(db_session):
+    """Source EXERCISE_COMPLETED : ledger + colonnes utilisateur cohérents."""
+    user = _create_user(db_session)
+    out = GamificationService.apply_points(
+        db_session,
+        user.id,
+        10,
+        PointEventSourceType.EXERCISE_COMPLETED,
+        source_id=77,
+    )
+    db_session.commit()
+    db_session.refresh(user)
+    assert user.total_points == 10
+    assert out["total_points"] == 10
+    ev = (
+        db_session.query(PointEvent)
+        .filter(PointEvent.user_id == user.id)
+        .one()
+    )
+    assert ev.source_type == PointEventSourceType.EXERCISE_COMPLETED
+    assert ev.source_id == 77
+    assert ev.points_delta == 10
+
+
 def test_apply_points_dialect_aware_lock_smoke(db_session):
     """
     Non-régression : chemin sans FOR UPDATE sur SQLite (CI / dev) et avec verrou sur PostgreSQL.

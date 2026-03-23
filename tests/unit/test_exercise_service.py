@@ -14,9 +14,11 @@ from sqlalchemy.orm import Session
 from app.exceptions import ExerciseNotFoundError
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.point_event import PointEvent
 from app.models.logic_challenge import LogicChallenge
 from app.models.user import User, UserRole
 from app.services.exercises.exercise_service import ExerciseService
+from app.services.gamification.point_source import PointEventSourceType
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
@@ -865,6 +867,20 @@ def test_submit_answer_result_correct(db_session):
     assert attempt.is_correct is True
     assert attempt.user_answer == "4"
 
+    ex_events = (
+        db_session.query(PointEvent)
+        .filter(
+            PointEvent.user_id == user.id,
+            PointEvent.source_type == PointEventSourceType.EXERCISE_COMPLETED,
+            PointEvent.source_id == exercise.id,
+        )
+        .all()
+    )
+    assert len(ex_events) == 1
+    assert ex_events[0].points_delta == 10
+    db_session.refresh(user)
+    assert int(getattr(user, "total_points", 0) or 0) >= 10
+
 
 def test_submit_answer_result_incorrect(db_session):
     """Test submit_answer avec réponse incorrecte."""
@@ -919,6 +935,18 @@ def test_submit_answer_result_incorrect(db_session):
     )
     assert attempt is not None
     assert attempt.is_correct is False
+
+    db_session.refresh(user)
+    assert int(getattr(user, "total_points", 0) or 0) == 0
+    assert (
+        db_session.query(PointEvent)
+        .filter(
+            PointEvent.user_id == user.id,
+            PointEvent.source_type == PointEventSourceType.EXERCISE_COMPLETED,
+        )
+        .count()
+        == 0
+    )
 
 
 def test_submit_answer_result_exercise_not_found(db_session):
@@ -987,6 +1015,9 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "app.services.exercises.exercise_attempt_service.update_progress_after_attempt",
         ) as update_progress_mock,
         patch(
+            "app.services.exercises.exercise_attempt_service.GamificationService.apply_points"
+        ) as apply_points_mock,
+        patch(
             "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ) as badge_service_cls,
@@ -1016,6 +1047,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
         },
     )
     update_progress_mock.assert_called_once()
+    apply_points_mock.assert_called_once()
     assert badge_service_cls.call_count >= 1
     badge_service_cls.assert_any_call(mock_db, auto_commit=False)
     streak_mock.assert_called_once_with(mock_db, 7, auto_commit=False)
@@ -1071,6 +1103,9 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
             side_effect=SQLAlchemyError("DB error on progress"),
         ) as update_progress_mock,
         patch(
+            "app.services.exercises.exercise_attempt_service.GamificationService.apply_points"
+        ) as apply_points_mock,
+        patch(
             "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ),
@@ -1090,6 +1125,7 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
     update_progress_mock.assert_called_once()
     progress_savepoint.rollback.assert_called_once()
     progress_savepoint.commit.assert_not_called()
+    apply_points_mock.assert_called_once()
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once_with(mock_attempt)
     assert result.is_correct is True
