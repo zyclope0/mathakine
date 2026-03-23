@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useChallenges } from "@/hooks/useChallenges";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
@@ -47,6 +47,12 @@ const ChallengeModal = dynamic(
 
 const ITEMS_PER_PAGE = 15;
 
+const CHALLENGE_ORDER_STORAGE_KEY = "pref_challenge_order";
+
+function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
+  return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
+}
+
 function ChallengesPageContent() {
   const t = useTranslations("challenges");
   const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
@@ -62,6 +68,31 @@ function ChallengesPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
   const { isCompleted } = useCompletedChallenges();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(CHALLENGE_ORDER_STORAGE_KEY);
+      if (isValidStoredContentListOrder(raw)) {
+        // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
+        setOrderFilter(raw);
+      }
+    } catch {
+      /* ignore corrupted / disabled storage */
+    }
+  }, []);
+
+  const handleOrderChange = (value: ContentListOrder) => {
+    setOrderFilter(value);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(CHALLENGE_ORDER_STORAGE_KEY, value);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  };
 
   // Optimiser les filtres avec useMemo
   const filters: ChallengeFilters = useMemo(() => {
@@ -112,6 +143,13 @@ function ChallengesPageContent() {
     setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
     setHideCompleted(false);
     setCurrentPage(1);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(CHALLENGE_ORDER_STORAGE_KEY);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -167,7 +205,7 @@ function ChallengesPageContent() {
           onAgeFilterChange={setAgeGroupFilter}
           ageGroupValues={Object.values(AGE_GROUPS)}
           orderValue={orderFilter}
-          onOrderChange={setOrderFilter}
+          onOrderChange={handleOrderChange}
           hideCompleted={hideCompleted}
           onHideCompletedChange={setHideCompleted}
           hideCompletedFieldId="hide-completed-challenges"

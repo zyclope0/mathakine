@@ -42,6 +42,12 @@ import { debugLog } from "@/lib/utils/debug";
 
 const ITEMS_PER_PAGE = 15;
 
+const EXERCISE_ORDER_STORAGE_KEY = "pref_exercise_order";
+
+function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
+  return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
+}
+
 function ExercisesPageContent() {
   const t = useTranslations("exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
@@ -59,6 +65,31 @@ function ExercisesPageContent() {
   const [orderFilter, setOrderFilter] = useState<ContentListOrder>(CONTENT_LIST_ORDER.RANDOM);
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
   const { isCompleted } = useCompletedExercises();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(EXERCISE_ORDER_STORAGE_KEY);
+      if (isValidStoredContentListOrder(raw)) {
+        // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
+        setOrderFilter(raw);
+      }
+    } catch {
+      /* ignore corrupted / disabled storage */
+    }
+  }, []);
+
+  const handleOrderChange = (value: ContentListOrder) => {
+    setOrderFilter(value);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(EXERCISE_ORDER_STORAGE_KEY, value);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  };
 
   // Réinitialiser à la page 1 quand les filtres changent
   const filters: ExerciseFilters = useMemo(() => {
@@ -141,6 +172,13 @@ function ExercisesPageContent() {
     setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
     setHideCompleted(false);
     setCurrentPage(1);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(EXERCISE_ORDER_STORAGE_KEY);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -196,7 +234,7 @@ function ExercisesPageContent() {
           onAgeFilterChange={setAgeGroupFilter}
           ageGroupValues={Object.values(AGE_GROUPS)}
           orderValue={orderFilter}
-          onOrderChange={setOrderFilter}
+          onOrderChange={handleOrderChange}
           hideCompleted={hideCompleted}
           onHideCompletedChange={setHideCompleted}
           hideCompletedFieldId="hide-completed"

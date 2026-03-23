@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** - Derniere MAJ : 21/03/2026 (F38 ajoute : progression gamification compte + ledger, F37 conserve sa priorite UX, backlog aligne avec le moteur de gamification persistant)  
+> **Document vivant** - Derniere MAJ : 23/03/2026 (statuts realignes sur le code ; les features livrees restent visibles dans la roadmap au lieu de disparaitre)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -15,7 +15,7 @@
 5. [P2 — Priorité moyenne](#5-p2)
 6. [P3 — Investissement long terme](#6-p3)
 7. [P4 — Backlog distant](#7-p4)
-8. [Features implémentées (historique)](#8-features-implémentées)
+8. [Features implementees (historique)](#8-features-implementees)
 9. [Références scientifiques](#9-références-scientifiques)
 
 ---
@@ -67,52 +67,66 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 
 ---
 
-## 2. Matrice synthèse
+## 2. Matrice synthese
 
-*Toutes les features en backlog. Légende : D=Difficulté, G=Gain, E=EdTech, R=Risque, B=Business.*
+*Vue consolidee du backlog et du deja livre. Legende : D=Difficulte, G=Gain, E=EdTech, R=Risque, B=Business.*
 
-| # | Feature | D | G | E | R | B | Score | Priorité |
-|---|---------|---|---|---|---|---|-------|----------|
-| F01 | Rendu Markdown/KaTeX explications âœ… | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
-| F02 | Défis quotidiens (défi du jour) âœ… | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
-| F03 | Test de diagnostic initial âœ… | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
-| F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
-| F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
-| F31 | [PROP] Exemples résolus progressifs (Fading) | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
-| F32 | [PROP] Mode Pratique Entrelacée (Interleaving) âœ… | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
-| F05 | Adaptation dynamique de difficulté âœ… | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
-| F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
-| F07 | Courbe d'évolution temporelle âœ… | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
-| F08 | Objectifs personnalisés | 3 | 3 | 3 | 1 | 3 | **11.1** | P1 |
-| F09 | Dashboard parent | 4 | 4 | 3 | 2 | 5 | **11.4** | P1 |
-| F10 | [PROP] Mode focus / session ciblée | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
-| F11 | [PROP] Partage progression â†’ parents (lien) | 2 | 3 | 3 | 1 | 4 | **12.5** | P1 |
-| F12 | Radar chart par discipline | 2 | 3 | 3 | 1 | 2 | **10.9** | P1 |
-| F13 | Déblocage automatique badges temps réel | 2 | 3 | 3 | 1 | 3 | **11.5** | P1 |
-| F33 | Feedback Growth Mindset (copywriting) âœ… | 1 | 3 | 3 | 1 | 2 | **11.4** | P1 |
-| F14 | Monitoring IA — persistance DB | 2 | 2 | 1 | 1 | 3 | **6.9** | P2 |
-| F15 | Préférence page d'accueil (connexion) | 1 | 2 | 1 | 1 | 1 | **5.7** | P2 |
-| F16 | Heatmap d'activité | 3 | 3 | 2 | 1 | 3 | **9.1** | P2 |
-| F17 | Célébrations visuelles améliorées | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
-| F18 | Ligues hebdomadaires (upgrade leaderboard) | 4 | 4 | 1 | 2 | 4 | **8.9** | P2 |
-| F19 | Notifications push + email | 4 | 3 | 2 | 2 | 4 | **8.1** | P2 |
-| F20 | Normalisation niveaux de difficulté | 4 | 3 | 2 | 3 | 3 | **6.9** | P2 |
-| F21 | Badges secrets | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
-| F22 | Suppression utilisateur admin (RGPD) | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
-| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) âœ… | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
-| F36 | [UX][TECH] Flash auth au refresh | 2 | 2 | 1 | 1 | 3 | **7.2** | P2 |
-| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | 3 | 3 | 4 | 2 | 3 | **11.7** | P2 |
-| F38 | [UX][Gamification] Progression compte coherente & historique des gains | 3 | 4 | 2 | 2 | 4 | **10.2** | P2 |
-| F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
-| F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
-| F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
-| F26 | Filtres et tri badges | 2 | 2 | 1 | 1 | 2 | **6.4** | P3 |
-| F27 | Optimisation re-renders exercices/défis | 3 | 2 | 1 | 2 | 2 | **4.8** | P3 |
-| F28 | Mode aventure / histoire narrative | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
-| F29 | Personnalisation avatar / profil | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
-| F34 | Module Sciences — Curiosités (Vrai/Faux, format court) | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
+| # | Feature | Statut reel code | D | G | E | R | B | Score | Priorite |
+|---|---------|------------------|---|---|---|---|---|-------|----------|
+| F01 | Rendu Markdown/KaTeX explications | [DONE] | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
+| F02 | Defis quotidiens (defi du jour) | [DONE] | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
+| F03 | Test de diagnostic initial | [DONE] | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
+| F04 | Revisions espacees (SM-2) | [BACKLOG] | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
+| F30 | [PROP] Effet Protege (corriger erreur IA) | [BACKLOG] | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
+| F31 | [PROP] Exemples resolus progressifs (Fading) | [BACKLOG] | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
+| F32 | [PROP] Mode Pratique Entrelacee (Interleaving) | [DONE] | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
+| F05 | Adaptation dynamique de difficulte | [DONE] | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
+| F06 | Conditions d'obtention badges visibles | [DONE] | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
+| F07 | Courbe d'evolution temporelle | [DONE] | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
+| F08 | Objectifs personnalises | [BACKLOG] | 3 | 3 | 3 | 1 | 3 | **11.1** | P1 |
+| F09 | Dashboard parent | [BACKLOG] | 4 | 4 | 3 | 2 | 5 | **11.4** | P1 |
+| F10 | [PROP] Mode focus / session ciblee | [BACKLOG] | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
+| F11 | [PROP] Partage progression -> parents (lien) | [BACKLOG] | 2 | 3 | 3 | 1 | 4 | **12.5** | P1 |
+| F12 | Radar chart par discipline | [DONE] | 2 | 3 | 3 | 1 | 2 | **10.9** | P1 |
+| F13 | Deblocage automatique badges temps reel | [DONE] | 2 | 3 | 3 | 1 | 3 | **11.5** | P1 |
+| F33 | Feedback Growth Mindset (copywriting) | [DONE] | 1 | 3 | 3 | 1 | 2 | **11.4** | P1 |
+| F14 | Monitoring IA - persistance DB | [PARTIAL] | 2 | 2 | 1 | 1 | 3 | **6.9** | P2 |
+| F15 | Preference page d'accueil (connexion) | [BACKLOG] | 1 | 2 | 1 | 1 | 1 | **5.7** | P2 |
+| F16 | Heatmap d'activite | [BACKLOG] | 3 | 3 | 2 | 1 | 3 | **9.1** | P2 |
+| F17 | Celebrations visuelles ameliorees | [BACKLOG] | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
+| F18 | Ligues hebdomadaires (upgrade leaderboard) | [BACKLOG] (leaderboard deja present) | 4 | 4 | 1 | 2 | 4 | **8.9** | P2 |
+| F19 | Notifications push + email | [BACKLOG] | 4 | 3 | 2 | 2 | 4 | **8.1** | P2 |
+| F20 | Normalisation niveaux de difficulte | [BACKLOG] | 4 | 3 | 2 | 3 | 3 | **6.9** | P2 |
+| F21 | Badges secrets | [BACKLOG] | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
+| F22 | Suppression utilisateur admin (RGPD) | [DONE] | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
+| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) | [DONE] | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
+| F36 | [UX][TECH] Flash auth au refresh | [BACKLOG] | 2 | 2 | 1 | 1 | 3 | **7.2** | P2 |
+| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | [BACKLOG] actif | 3 | 3 | 4 | 2 | 3 | **11.7** | P2 |
+| F38 | [UX][Gamification] Progression compte coherente & historique des gains | [PARTIAL] | 3 | 4 | 2 | 2 | 4 | **10.2** | P2 |
+| F23 | [PROP] Exercices adaptatifs SR+IA | [BACKLOG] | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
+| F24 | Tuteur IA contextuel | [BACKLOG] | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
+| F25 | Mode classe / enseignant | [BACKLOG] | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
+| F26 | Filtres et tri badges | [BACKLOG] | 2 | 2 | 1 | 1 | 2 | **6.4** | P3 |
+| F27 | Optimisation re-renders exercices/defis | [BACKLOG] | 3 | 2 | 1 | 2 | 2 | **4.8** | P3 |
+| F28 | Mode aventure / histoire narrative | [BACKLOG] | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
+| F29 | Personnalisation avatar / profil | [BACKLOG] | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
+| F34 | Module Sciences - Curiosites (Vrai/Faux, format court) | [BACKLOG] prototype seulement | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
+| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [BACKLOG] critique | 4 | 3 | 1 | 3 | 5 | **6.2** | P2* |
 
-> *F23 a un score élevé mais dépend de F04 (révisions espacées) — débloqué après F04.*
+> *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
+> *F39 : score composite 6.2 mais risque juridique Disney/Lucasfilm = bloquant avant toute commercialisation a grande echelle. Traiter avant la premiere campagne d'acquisition.*
+
+### 2.1 Vue d'avancement - visible, sans effacer le travail livre
+
+**[DONE] Implemente dans le code**
+- F01, F02, F03, F05, F06, F07, F12, F13, F22, F32, F33, F35
+
+**[PARTIAL] Fondations deja posees**
+- F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
+- F38 : moteur gamification persistant + ledger `point_events` + calcul niveau/XP/rang, mais pas encore d'historique utilisateur dedie ni de lecture produit complete du ledger
+
+**[BACKLOG] Encore a livrer**
+- le reste de la matrice, avec priorite conservee
 
 ---
 
@@ -298,18 +312,27 @@ spaced_repetition_items (
 
 ---
 
-### F06 — Conditions d'obtention badges visibles
+### F06 - Conditions d'obtention badges visibles
 
-**Source** : [BADGES_AMELIORATIONS Â§4.2](BADGES_AMELIORATIONS.md)  
+**Source** : [BADGES_AMELIORATIONS ?4.2](BADGES_AMELIORATIONS.md)  
 **Score** : 13.5 | D=2, G=4, E=3, R=1, B=3
 
-**Valeur pédagogique (E=3)** :
-- Kivetz et al. (2006) — *Goal-gradient effect* : la motivation augmente à mesure que l'objectif est visible et proche. Effet mesuré +40-60% d'engagement.
-- Zimmerman (2002) — Transparence des critères améliore la régulation autonome de l'apprentissage (self-regulation).
+**Statut** : [DONE] present dans le code au 23/03/2026 via `frontend/components/badges/BadgeCard.tsx` (affichage des `criteria_text` + progression sur badges verrouilles)
 
-**Ce qu'il faut faire** : Afficher les critères (`criteria_description`) sur les badges verrouillés dans `BadgeCard.tsx`. Déjà partiellement préparé dans le backend (`PLAN_REFONTE_BADGES` archivé).
+**Valeur pedagogique (E=3)** :
+- Kivetz et al. (2006) - *Goal-gradient effect* : la motivation augmente a mesure que l'objectif est visible et proche. Effet mesure +40-60% d'engagement.
+- Zimmerman (2002) - Transparence des criteres ameliore la regulation autonome de l'apprentissage (self-regulation).
 
-**Effort estimé** : ½-1 jour
+**Ce qui est en place** :
+- criteres affiches sur les badges verrouilles
+- progression visible quand un objectif est quantifiable
+- formulation orientee objectif proche (`plusQue`, `tuApproches`) dans l'UI badges
+
+**Ce qui peut encore etre ameliore** :
+- enrichir le wording de certains criteres si produit le souhaite
+- ajouter plus de tri / filtrage sur la page badges (backlog F26 distinct)
+
+**Effort realise** : present dans le code au 23/03/2026
 
 ---
 
@@ -402,28 +425,43 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 ---
 
-### F12 — Radar chart par discipline
+### F12 - Radar chart par discipline
 
-**Source** : [ANALYTICS_PROGRESSION Â§1.3](ANALYTICS_PROGRESSION.md)  
+**Source** : [ANALYTICS_PROGRESSION ?1.3](ANALYTICS_PROGRESSION.md)  
 **Score** : 10.9 | D=2, G=3, E=3, R=1, B=2
 
-**Valeur pédagogique (E=3)** : Auto-évaluation et métacognition. Données déjà disponibles dans `/api/exercises/stats` (`by_discipline`). Implémentation rapide avec Recharts `RadarChart`.
+**Statut** : [DONE] present dans le code au 23/03/2026 via `frontend/components/dashboard/CategoryAccuracyChart.tsx` (`RadarChart` Recharts)
 
-**Effort estimé** : ½-1 jour
+**Valeur pedagogique (E=3)** : Auto-evaluation et metacognition. Donnees deja disponibles dans `/api/exercises/stats` (`by_discipline`).
+
+**Ce qui est en place** :
+- visualisation radar par categorie / discipline
+- integration dashboard
+- lecture de donnees reelles, pas mockees
+
+**Effort realise** : present dans le code au 23/03/2026
 
 ---
 
-### F13 — Déblocage automatique badges (temps réel)
+### F13 - Deblocage automatique badges (temps reel)
 
-**Source** : [BADGES_AMELIORATIONS Â§4.4](BADGES_AMELIORATIONS.md)  
+**Source** : [BADGES_AMELIORATIONS ?4.4](BADGES_AMELIORATIONS.md)  
 **Score** : 11.5 | D=2, G=3, E=3, R=1, B=3
 
-**Valeur pédagogique (E=3)** :
-- Kulik & Kulik (1988) — Feedback immédiat améliore l'apprentissage. S'applique aux récompenses : un badge débloqué 2 jours après l'effort perd son effet de renforcement.
+**Statut** : [DONE] verification et attribution automatiques deja branchees apres tentative cote exercices et defis
 
-**Ce qu'il faut faire** : Appeler `check_and_award_badges` après chaque tentative (déjà fait pour les défis — étendre aux exercices) et afficher un toast avec l'animation de badge.
+**Valeur pedagogique (E=3)** :
+- Kulik & Kulik (1988) - Feedback immediat ameliore l'apprentissage. S'applique aux recompenses : un badge debloque 2 jours apres l'effort perd son effet de renforcement.
 
-**Effort estimé** : ½-1 jour
+**Ce qui est en place** :
+- verification des badges apres tentatives d'exercices (`app/services/exercises/exercise_attempt_service.py`)
+- verification des badges apres tentatives de defis (`app/services/challenges/challenge_attempt_service.py`)
+- propagation des gains de points quand un badge attribue une recompense
+
+**Ce qui reste perfectible** :
+- enrichir le feedback UI (toast/animation) si produit souhaite une celebration plus visible
+
+**Effort realise** : present dans le code au 23/03/2026
 
 ---
 
@@ -567,19 +605,19 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 | Feature | Note |
 |---------|------|
-| **F14 — Monitoring IA persistance DB** | Voir [ROADMAP Â§4.6](ROADMAP_FONCTIONNALITES.md). Table `AiTokenUsage` + `AiGenerationMetric`. Pattern : `edtech_events`. ~1 jour. |
+| **F14 - Monitoring IA persistance DB** | [PARTIAL] Le runtime monitoring et l'admin read-only existent deja (`token_tracker`, `generation_metrics`, `/admin/ai-monitoring`) ainsi que la persistance DB des runs harness. Le backlog restant porte sur une persistance DB complete des metriques runtime live, aujourd'hui surtout en memoire process. |
 | **F15 — Préférence page d'accueil** | Champ `login_redirect_preference` sur `User`. Option dans Paramètres. ~½ jour. |
 | **F16 — Heatmap d'activité** | Calendrier GitHub-style sur Dashboard/Profil. `react-calendar-heatmap`. Endpoint : `GET /api/users/me/activity/heatmap`. |
 | **F17 — Célébrations visuelles améliorées** | Confettis au déblocage badge, modal avec partage. Désactivable (accessibilité). |
-| **F18 — Ligues hebdomadaires** | Upgrade du leaderboard : groupes de 30, promotion/relégation, reset chaque lundi. Voir [ROADMAP Â§3.4](ROADMAP_FONCTIONNALITES.md). Score EdTech=1 : engagement, pas d'apprentissage direct. |
+| **F18 - Ligues hebdomadaires** | Le leaderboard existe deja (top 50, filtres, surfaces de lecture), mais pas encore les ligues / saisons hebdomadaires. Le backlog porte sur les groupes, promotions/relegations et resets periodiques. Score EdTech=1 : engagement, pas d'apprentissage direct. |
 | **F19 — Notifications push + email** | Rappel inactivité, streak en danger, badge proche. Voir [ROADMAP Â§4.1](ROADMAP_FONCTIONNALITES.md). Infrastructure à définir (service push web + SMTP). |
 | **F20 — Normalisation niveaux de difficulté** | Remplacer nomenclature Star Wars par libellés universels. Voir [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md). Migration enum risquée — à planifier soigneusement. |
 | **F21 — Badges secrets** | Badges cachés débloqués pour comportements inattendus (ex: "Noctambule" après minuit). Variable reward (Skinner) — engagement élevé. |
-| **F22 — Suppression utilisateur admin (RGPD)** | `DELETE /api/admin/users/{id}` avec soft delete. Voir PLACEHOLDERS_ET_TODO. Compliance obligatoire avant scale. |
+| **F22 - Suppression utilisateur admin (RGPD)** | [DONE] `DELETE /api/admin/users/{id}` existe deja cote admin. Le code supprime physiquement l'utilisateur avec cascade (pas un simple soft delete) et bloque l'auto-suppression admin. |
 | **F35 — [TECH] Redaction secrets logs DB âœ…** | Implémenté le 07/03/2026. `app/db/base.py` loggue désormais une URL redigée via `redact_database_url_for_log()` (credentials et query params masqués). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests). |
 | **F36 — [UX][TECH] Flash auth au refresh** | Artefact visuel observé après refresh: pendant ~0.5s, le frontend semble repasser par un état "non connecté" avant rehydratation correcte de la session. Backend session validé: login OK, session conservée après refresh et après idle prolongé. Cible: supprimer le flash sans changer la chaîne de session/cookies. Piste probable: bootstrap auth frontend (`ProtectedRoute`, `current-user`, `validate-token`, `sync-cookie`). Ouvrir un lot dédié seulement si le symptôme devient gênant ou s'accompagne d'une redirection parasite/perte de session. |
 | **F37 - [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard** | Clarifier la portee des filtres temporels dans le dashboard. Conclusion de l'analyse UX : un controle = un perimetre visible. Les widgets temporels doivent avoir un selecteur local ou une periode partagee explicite ; les widgets cumules doivent afficher un badge de portee (`Cumule`, `Tous les temps`) plutot qu'un faux selecteur. Les vues journalieres redondantes dans `Progression` doivent etre rationalisees au profit d'un widget complementaire (ex : regularite de pratique). Si l'on veut une coherence temporelle complete de l'onglet `Progression`, ouvrir ensuite un lot dedie data/hooks/backend pour exposer une periode explicite sur les widgets aujourd'hui cumules. |
-| **F38 - [UX][Gamification] Progression compte coherente & historique des gains** | Exploiter le moteur unique de gamification persistant et le ledger pour afficher une progression compte lisible, sobre et utile : points totaux, XP dans le palier, points restants avant niveau suivant, historique recent des gains, repartition par source (badges, defis quotidiens, futurs evenements). Regle produit : ne jamais confondre gamification compte avec IRT ou maitrise pedagogique ; la gamification motive et rend visible l'effort, elle ne remplace pas l'evaluation d'apprentissage. Cote UX EdTech : feedback compact, sans bruit ni celebration envahissante pendant les phases de reflexion. Cette fondation peut servir ensuite a F19 (notifications motivees par evenements), F18 (ligues) et F29 (elements profil debloquables). |
+| **F38 - [UX][Gamification] Progression compte coherente & historique des gains** | [PARTIAL] Le moteur persistant, le ledger `point_events`, le calcul niveau/XP/rang et plusieurs surfaces de lecture existent deja. Le backlog F38 porte maintenant sur la surface produit coherente : historique des gains, lecture par source et presentation compte explicite. |
 | **F23 — [PROP] Exercices adaptatifs SR+IA** | Générer des exercices IA ciblés sur les concepts à réviser selon la courbe SR (F04). Score composite très élevé (17.1) mais **dépend de F04**. Débloqué après F04. |
 
 ---
@@ -609,13 +647,15 @@ Route: /parent/child/[id] â†’ progression détaillée
 
 **Effort estime** : 2-4 jours pour la rationalisation frontend ; lot separe si la coherence complete demande une evolution API/hook.
 
-**Statut** : ? Backlog actif ? a traiter avant toute refonte visuelle plus large du dashboard.
+**Statut** : [BACKLOG] actif - a traiter avant toute refonte visuelle plus large du dashboard.
 
 ---
 
 ### F38 - Progression gamification compte coherente & historique des gains
 
 **Score** : 10.2 | D=3, G=4, E=2, R=2, B=4
+
+**Statut** : [PARTIAL] Fondations implementees - moteur persistant, ledger `point_events`, calcul niveau/XP/rang et surfaces de lecture compte deja presents ; backlog restant sur l'historique utilisateur et la lecture produit coherente du ledger
 
 **Probleme** : Le moteur de gamification persistant existe desormais (points, niveau, XP dans le palier, rang, ledger des gains), mais il n'est pas encore exploite comme surface produit coherente. Le risque n'est pas technique : c'est de laisser cette fondation invisible, ou pire, de la sur-vendre comme une progression pedagogique alors qu'elle releve de la motivation et du feedback compte.
 
@@ -763,40 +803,53 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 
 ---
 
-## 8. Features implémentées (historique) {#8-features-implémentées}
+## 8. Features implementees (historique) {#8-features-implementees}
 
-| Feature | Date | Référence |
-|---------|------|-----------|
-| F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
+### 8.1 Features livrees et visibles
+
+| Feature | Date / borne de verite | Reference |
+|---------|------------------------|-----------|
+| F01 - Rendu Markdown/KaTeX dans les explications | Present dans le code au 23/03/2026 | Composant `MathText.tsx` - integre dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F02 - Defis quotidiens (daily challenges) | 03/2026 | [F02_DEFIS_QUOTIDIENS](F02_DEFIS_QUOTIDIENS.md) |
-| F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES Â§F03](ROADMAP_FONCTIONNALITES.md) |
+| F03 - Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES ?F03](ROADMAP_FONCTIONNALITES.md) |
 | F05 - Adaptation dynamique de difficulte | 06/03/2026 | [F05_ADAPTATION_DYNAMIQUE](F05_ADAPTATION_DYNAMIQUE.md) |
-| F35 — Redaction secrets logs DB (sécurité) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
-| F32 — Session entrelacée (interleaving) | 07-08/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
-| F33 — Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES Â§F33](ROADMAP_FONCTIONNALITES.md) |
-| F07 — Courbe d'évolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
-| Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
-| Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
-| Sessions actives + révocation | 16/02/2026 | SITUATION_FEATURES (archivé) |
-| Leaderboard (top 50, filtre âge) | 15/02/2026 | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md) |
-| Badges — refonte UX (onglets, cartes compactes) | 17/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
-| Badges — barres de progression (goal-gradient) | 16/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
-| Badges — B4 reformulation (17 badges) | 17/02/2026 | Archivé : AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES |
-| Badges — moteur générique Lot C (défis, mixte) | 17/02/2026 | Archivé : AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES |
-| Quick Win #1 — First Exercise < 90s | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
-| Quick Win #2 — Onboarding pédagogique | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
-| Calibration à l'inscription (classe, âge, objectif) | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
-| Parcours guidé (QuickStartActions dashboard) | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
-| Recommandations personnalisées (marquer fait) | 16/02/2026 | SITUATION_FEATURES (archivé) |
-| Ordre aléatoire + masquer réussis | 19/02/2026 | SITUATION_FEATURES (archivé) |
+| F06 - Conditions d'obtention badges visibles | Present dans le code au 23/03/2026 | `frontend/components/badges/BadgeCard.tsx` |
+| F07 - Courbe d'evolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
+| F12 - Radar chart par discipline | Present dans le code au 23/03/2026 | `frontend/components/dashboard/CategoryAccuracyChart.tsx` |
+| F13 - Deblocage automatique badges temps reel | Present dans le code au 23/03/2026 | `exercise_attempt_service.py`, `challenge_attempt_service.py` |
+| F22 - Suppression utilisateur admin (RGPD) | Present dans le code au 23/03/2026 | `DELETE /api/admin/users/{id}` + suppression physique avec cascade |
+| F32 - Session entrelacee (interleaving) | 07-08/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
+| F33 - Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES ?F33](ROADMAP_FONCTIONNALITES.md) |
+| F35 - Redaction secrets logs DB (securite) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
+| Espace admin complet (role archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
+| Auth complet (inscription, email, login, reset) | Jan-Fev 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
+| Sessions actives + revocation | 16/02/2026 | SITUATION_FEATURES (archive) |
+| Leaderboard (top 50, filtre age) | 15/02/2026 | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md) |
+| Badges - refonte UX (onglets, cartes compactes) | 17/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
+| Badges - barres de progression (goal-gradient) | 16/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
+| Badges - B4 reformulation (17 badges) | 17/02/2026 | Archive : AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES |
+| Badges - moteur generique Lot C (defis, mixte) | 17/02/2026 | Archive : AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES |
+| Quick Win #1 - First Exercise < 90s | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Quick Win #2 - Onboarding pedagogique | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Calibration a l'inscription (classe, age, objectif) | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Parcours guide (QuickStartActions dashboard) | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Recommandations personnalisees (marquer fait) | 16/02/2026 | SITUATION_FEATURES (archive) |
+| Ordre aleatoire + masquer reussis | 19/02/2026 | SITUATION_FEATURES (archive) |
 | Analytics EdTech (CTR Quick Start, 1er attempt) | 25/02/2026 | [EDTECH_ANALYTICS](EDTECH_ANALYTICS.md) |
-| Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP Â§4.6](ROADMAP_FONCTIONNALITES.md) |
+| Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP ?4.6](ROADMAP_FONCTIONNALITES.md) |
 | Mode maintenance + inscriptions (admin config) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
-| Streak (basique) | Fév 2026 | Intégré dans stats utilisateur |
-| 7 thèmes visuels | Fév 2026 | [THEMES](THEMES.md) |
-| PWA (mode hors-ligne partiel) | Fév 2026 | — |
+| Streak (basique) | Fev 2026 | Integre dans stats utilisateur |
+| 7 themes visuels | Fev 2026 | [THEMES](THEMES.md) |
+| PWA (mode hors-ligne partiel) | Fev 2026 | - |
 | Internationalisation FR/EN | Jan 2026 | [I18N](I18N.md) |
-| Accessibilité (5 modes WCAG AAA) | Fév-Mars 2026 | [ACCESSIBILITY](../04-FRONTEND/ACCESSIBILITY.md) |
+| Accessibilite (5 modes WCAG AAA) | Fev-Mars 2026 | [ACCESSIBILITY](../04-FRONTEND/ACCESSIBILITY.md) |
+
+### 8.2 Fondations techniques deja posees mais encore incompletes cote produit
+
+| Feature | Borne de verite | Ce qui existe deja | Ce qui reste a livrer |
+|---------|-----------------|--------------------|-----------------------|
+| F14 - Monitoring IA persistance DB | Code au 23/03/2026 | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness | persistance DB complete des metriques runtime live |
+| F38 - Progression gamification compte coherente & historique des gains | Code au 23/03/2026 | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard` | historique utilisateur dedie, agregats par source, UX compte lisible |
 
 ---
 
