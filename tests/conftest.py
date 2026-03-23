@@ -39,12 +39,18 @@ if not os.environ.get("TEST_DATABASE_URL"):
         _db_name_match = _re.search(r"/([^/?]+)(?:\?|$)", _db_url)
         if _db_name_match:
             _db_name = _db_name_match.group(1)
-            if "test" in _db_name.lower():
+            # SECURITE: Ne pas dériver TEST_DATABASE_URL d'une URL externe (Render, RDS, etc.)
+            # même si le nom de la base contient "test" (ex: mathakine_test_gii8 sur Render).
+            _is_external_host = any(
+                h in _db_url.lower()
+                for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+            )
+            if "test" in _db_name.lower() and not _is_external_host:
                 os.environ["TEST_DATABASE_URL"] = _db_url
                 print(f"  TEST_DATABASE_URL derive de DATABASE_URL (base: {_db_name})")
             else:
                 print(
-                    f"  ATTENTION: DATABASE_URL pointe vers '{_db_name}' (pas une base test)"
+                    f"  ATTENTION: DATABASE_URL pointe vers '{_db_name}' (pas une base test locale)"
                 )
                 print(
                     "  Les tests utiliseront postgresql://postgres:postgres@localhost/test_mathakine par defaut"
@@ -191,9 +197,15 @@ def setup_test_environment():
     engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)
     if engine_db_match:
         engine_db_name = engine_db_match.group(1)
-        if "test" not in engine_db_name.lower():
+        _engine_is_external = any(
+            h in engine_url.lower()
+            for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+        )
+        # Une DB externe est toujours considérée prod, même si son nom contient "test"
+        # (ex: mathakine_test_gii8 sur Render = prod).
+        if _engine_is_external or "test" not in engine_db_name.lower():
             environment = os.environ.get("ENVIRONMENT", "")
-            if environment == "production" or "render" in engine_url.lower():
+            if environment == "production" or _engine_is_external:
                 raise RuntimeError(
                     f"SECURITE: L'engine SQLAlchemy pointe vers la base de PRODUCTION ({engine_db_name})!\n"
                     f"   URL: {engine_url}\n"
@@ -227,7 +239,13 @@ def setup_test_environment():
         if test_db_match and prod_db_match:
             test_db_name = test_db_match.group(1)
             prod_db_name = prod_db_match.group(1)
-            if test_db_name == prod_db_name and "test" not in test_db_name.lower():
+            # Lever même si "test" est dans le nom : mathakine_test_gii8 sur Render = prod.
+            # La vérification host externe prend le dessus sur le nom.
+            _is_ext = any(
+                h in test_db_url.lower()
+                for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+            )
+            if test_db_name == prod_db_name and ("test" not in test_db_name.lower() or _is_ext):
                 raise RuntimeError(
                     f"SECURITE: TEST_DATABASE_URL pointe vers la meme base que DATABASE_URL ({test_db_name})!\n"
                     f"   Cela pourrait supprimer les donnees de production!\n"

@@ -42,11 +42,7 @@ def test_apply_points_exercise_completed_source(db_session):
     db_session.refresh(user)
     assert user.total_points == 10
     assert out["total_points"] == 10
-    ev = (
-        db_session.query(PointEvent)
-        .filter(PointEvent.user_id == user.id)
-        .one()
-    )
+    ev = db_session.query(PointEvent).filter(PointEvent.user_id == user.id).one()
     assert ev.source_type == PointEventSourceType.EXERCISE_COMPLETED
     assert ev.source_id == 77
     assert ev.points_delta == 10
