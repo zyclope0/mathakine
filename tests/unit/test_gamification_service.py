@@ -28,6 +28,24 @@ def _create_user(db_session) -> User:
     return user
 
 
+def test_apply_points_dialect_aware_lock_smoke(db_session):
+    """
+    Non-régression : chemin sans FOR UPDATE sur SQLite (CI / dev) et avec verrou sur PostgreSQL.
+    Doit rester exécutable quelle que soit la DB de test (pas d'AttributeError côté SQLite).
+    """
+    user = _create_user(db_session)
+    GamificationService.apply_points(
+        db_session,
+        user.id,
+        7,
+        PointEventSourceType.BADGE_AWARDED,
+        source_id=42,
+    )
+    db_session.commit()
+    db_session.refresh(user)
+    assert user.total_points == 7
+
+
 def test_apply_points_updates_user_columns_and_ledger(db_session):
     user = _create_user(db_session)
     out = GamificationService.apply_points(

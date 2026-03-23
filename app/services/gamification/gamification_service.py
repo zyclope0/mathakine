@@ -83,8 +83,15 @@ class GamificationService:
                 "Le delta de points doit être strictement positif."
             )
 
-        # Pas de with_for_update ici : SQLite (tests) ne le supporte pas ; charge faible sur ce flux.
-        user = db.query(User).filter(User.id == user_id).one_or_none()
+        # Verrou ligne (PostgreSQL) pour éviter double attribution en charge parallèle
+        # (ex. Gunicorn multi-worker). SQLite (tests CI) ne supporte pas FOR UPDATE :
+        # on n'appelle with_for_update que si dialect.name == "postgresql".
+        bind = db.get_bind()
+        is_postgres = bind.dialect.name == "postgresql"
+        query = db.query(User).filter(User.id == user_id)
+        if is_postgres:
+            query = query.with_for_update()
+        user = query.one_or_none()
         if user is None:
             raise GamificationUserNotFoundError(f"Utilisateur {user_id} introuvable.")
 
