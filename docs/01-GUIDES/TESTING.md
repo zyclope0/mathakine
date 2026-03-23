@@ -99,13 +99,17 @@ Correct handling:
 
 ## Current Verified State
 
-As of 19/03/2026 (post-iteration I closure):
-- exercise/auth/user, challenge/admin/badge, Runtime Truth, Contracts/Hardening, Production Hardening, Security/Boundaries, Typed Contracts, Academic Backend Rigor (F1–F6), Lots G (G1–G4), Architecture Clean and iteration I are closed
-- backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
-- `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
-- OpenAI live tests remain opt-in and are not part of the standard gate
-- measured local coverage on `app` + `server`: `67.30 %`
-- backend CI coverage gate is `63 %`
+**Baseline la plus récente (R7, 21/03/2026)** — citation figée ; relancer le gate après divergence du trunk :
+
+- backend gate standard : `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → **`991 passed, 2 skipped`**
+- même exclusions : `test_admin_auth_stability.py` (hors gate), tests OpenAI live opt-in
+
+**Baseline historique (iteration I, 19/03/2026)** — conservée pour comparaison :
+
+- même commande → `962 passed, 3 skipped`
+- couverture mesurée locale `app` + `server` : `67.30 %` ; gate CI couverture : `63 %`
+
+Contexte produit (inchangé) : exercise/auth/user, challenge/admin/badge, Runtime Truth, Contracts/Hardening, Production Hardening, Security/Boundaries, Typed Contracts, Academic Backend Rigor (F1–F6), Lots G (G1–G4), Architecture Clean, iteration I, puis closure reco R7 — voir aussi `docs/INDEX.md` § Current Documented State.
 
 ## Frontend Standard Gates
 

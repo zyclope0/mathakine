@@ -1,10 +1,14 @@
-﻿# Checklist .env & Render - Environnement de developpement
+# Checklist .env & Render - Environnement de developpement
 
-**Derniere mise a jour :** 22/03/2026  
+**Derniere mise a jour :** 06/03/2026  
 **Complement a :** [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) (variables prod Render)
 
-> ⚠️ OBSOLETE - la partie historique "Ton .env actuel" ci-dessous reste un snapshot local de travail et ne doit plus servir de reference generique.
-> La verite actuelle des variables IA et de leur hierarchie est dans `app/core/config.py`, [../../.env.example](../../.env.example) et [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+> ⚠️ **OBSOLÈTE (section historique)** — La partie « Ton .env actuel » plus bas est un **snapshot local** ; ne pas l’utiliser comme contrat d’équipe.
+>
+> **À lire en priorité :**
+> - [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) — prod Render
+> - [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md) — overrides modèles IA (`OPENAI_MODEL_*`)
+> - Racine [`../../.env.example`](../../.env.example) + `app/core/config.py` — liste et défauts réels
 
 ---
 
@@ -43,11 +47,11 @@ Ces variables sont des overrides ops. Elles ne remplacent pas les defauts produi
 
 ### Variables legacy a laisser vides en nominal
 
-- `OPENAI_MODEL`
+- `OPENAI_MODEL` — **legacy chat uniquement** (si renseigné + allowlist assistant, peut servir d’override ; sinon ignoré). Le pilotage explicite du chat = `OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE`. Voir `AI_MODEL_GOVERNANCE.md`.
 - `OPENAI_MODEL_EXERCISES`
 - `OPENAI_MODEL_REASONING`
 
-Ces variables existent pour compatibilite ou transition, mais ne doivent plus piloter le comportement nominal.
+Ces variables existent pour compatibilite ou transition ; les flux nominaux exercices / défis ne doivent pas en dépendre.
 
 ---
 

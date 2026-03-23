@@ -1,4 +1,4 @@
-# Workflow utilisateur & Education - Vue d'ensemble et refactoring
+﻿# Workflow utilisateur & Education - Vue d'ensemble et refactoring
 
 > **Objectif** : Contexte global du parcours utilisateur et de la partie education, pour guider les refactorings tout en gardant la coherence.
 > **Date** : Fevrier 2026  
@@ -189,4 +189,5 @@ Le modèle `User` expose : `grade_level`, `grade_system` (suisse/unifié), `pref
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) — Backlog & état des fonctionnalités
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) — Priorités produit
 - [AUDIT_DASHBOARD_2026-02.md](../03-PROJECT/AUDIT_DASHBOARD_2026-02.md) — Corrections restantes dashboard
-- [06-WIDGETS/](../06-WIDGETS/) — Design system widgets
+- [DASHBOARD_WIDGETS/](../04-FRONTEND/DASHBOARD_WIDGETS/) — Design system widgets
+

@@ -1,4 +1,4 @@
-# Backlog & Priorisation des Features — Mathakine
+﻿# Backlog & Priorisation des Features — Mathakine
 
 > **Document vivant** - Derniere MAJ : 21/03/2026 (F38 ajoute : progression gamification compte + ledger, F37 conserve sa priorite UX, backlog aligne avec le moteur de gamification persistant)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
@@ -757,7 +757,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 - Badge catégorie, compteur série, XP par fait
 - Design : glassmorphism, thème sombre cohérent Mathakine
 
-**Prototype** : [F34_SCIENCES_PROTOTYPE.html](F34_SCIENCES_PROTOTYPE.html) — HTML statique (Tailwind, Font Awesome, JS vanilla). À intégrer en Next.js + API.
+**Prototype** : [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) — HTML statique (Tailwind, Font Awesome, JS vanilla). À intégrer en Next.js + API.
 
 **Effort estimé** : 1–2 semaines (modèle + API + page `/sciences` + intégration design system)
 
@@ -844,5 +844,6 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | Thèmes visuels | [THEMES.md](THEMES.md) |
 | Internationalisation | [I18N.md](I18N.md) |
 | Badges implémentés (archive) | [AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md) |
+
 
 

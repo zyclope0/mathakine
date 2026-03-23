@@ -35,6 +35,7 @@
 | [CLOTURE_ITERATION_STABILISATION_POST_FEATURES_2026-03-08.md](./CLOTURE_ITERATION_STABILISATION_POST_FEATURES_2026-03-08.md) | 08/03/2026 | Cloture archivee de l'iteration Cursor post-features |
 | [GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md](./GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md) | 08/03/2026 | Guidage Cursor post-audit archive |
 | [PILOTAGE_CURSOR_STABILISATION_POST_FEATURES_2026-03-08.md](./PILOTAGE_CURSOR_STABILISATION_POST_FEATURES_2026-03-08.md) | 08/03/2026 | Document maitre archive de l'iteration precedente |
+| [REFACTOR_DASHBOARD_2026-03.md](./REFACTOR_DASHBOARD_2026-03.md) | 06/03/2026 | Refactor dashboard applique, conserve comme note historique UI |
 | [DEPLOIEMENT_2026-02-06.md](./DEPLOIEMENT_2026-02-06.md) | 06/02/2026 | Rapport deploiement Render |
 | [MISSION_COMPLETE_2026-02-06.md](./MISSION_COMPLETE_2026-02-06.md) | 06/02/2026 | Rapport final mission rationalisation + index DB |
 | [SUIVI_MIGRATION_ALEMBIC_22-02.md](./SUIVI_MIGRATION_ALEMBIC_22-02.md) | 22/02/2026 | Recap migration DDL -> Alembic |
@@ -45,3 +46,4 @@
 - [Retour README archives](../README.md)
 - [Index 03-PROJECT](../../README.md)
 - [Index documentation](../../../INDEX.md)
+

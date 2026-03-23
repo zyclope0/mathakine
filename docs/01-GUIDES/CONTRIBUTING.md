@@ -42,10 +42,14 @@ python scripts/check_local_db.py
 ### 1. Synchroniser et creer une branche
 
 ```bash
-git checkout main
-git pull
-git checkout -b feature/nom-court
+git switch master
+git pull --ff-only origin master
+git switch -c feat/nom-court
 ```
+
+Notes:
+- les branches automation/agent peuvent utiliser le prefixe `codex/`
+- pour une contribution humaine classique, preferer `feat/`, `fix/`, `docs/`, etc.
 
 ### 2. Developper
 

@@ -76,7 +76,7 @@ Projet Mathakine/
 ├── Scripts/            # Windows : exécutables (activate.bat, python.exe, pip.exe)
 │   └── bin/            # Linux/Mac : exécutables (activate, python, pip)
 ├── Lib/                # Bibliothèques Python installées
-│   └── site-packages/  # Vos packages (loguru, fastapi, etc.)
+│   └── site-packages/  # Vos packages (loguru, starlette, etc.)
 └── Include/            # Headers C (pour compilation)
 ```
 
@@ -123,7 +123,7 @@ source venv/bin/activate
 
 ```bash
 # Installer dans l'environnement virtuel
-pip install loguru fastapi
+pip install loguru starlette
 
 # Les packages vont dans .venv/Lib/site-packages/
 ```

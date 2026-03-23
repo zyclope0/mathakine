@@ -1,4 +1,4 @@
-# F02 — Défis quotidiens (Daily Challenges)
+﻿# F02 — Défis quotidiens (Daily Challenges)
 
 > **Référence technique** — Contexte complet pour développeurs et prompts IA  
 > **Date :** 06/03/2026  
@@ -118,5 +118,7 @@ Les défis des jours passés en `pending` peuvent être marqués `expired` via `
 
 ## 8. Références
 
-- **Widget frontend :** [F02_DAILY_CHALLENGES_WIDGET.md](../06-WIDGETS/F02_DAILY_CHALLENGES_WIDGET.md)
-- **Refactor dashboard :** [REFACTOR_DASHBOARD_2026-03.md](../03-PROJECT/REFACTOR_DASHBOARD_2026-03.md)
+- **Widget frontend :** [F02_DAILY_CHALLENGES_WIDGET.md](../04-FRONTEND/DASHBOARD_WIDGETS/F02_DAILY_CHALLENGES_WIDGET.md)
+- **Refactor dashboard :** [REFACTOR_DASHBOARD_2026-03.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTOR_DASHBOARD_2026-03.md)
+
+

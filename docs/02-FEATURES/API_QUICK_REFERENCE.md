@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 22/03/2026
+> Updated: 06/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -105,6 +105,19 @@ Contract note:
 | GET | `/api/badges/rarity` | rarity stats |
 | PATCH | `/api/badges/pin` | pin `badge_ids` |
 | GET | `/api/challenges/badges/progress` | challenge badge progress |
+
+## Gamification (points ledger)
+
+**Persistence (serveur uniquement)**
+
+- Table PostgreSQL `point_events` : ledger des attributions de points. Écriture **uniquement** côté backend via `GamificationService.apply_points` (`app/services/gamification/gamification_service.py`). **Aucun** endpoint public ne liste les lignes du ledger ni n’expose un `apply_points` générique pour les clients (choix produit / sécurité).
+
+**Exposé aux clients**
+
+- `GET /api/users/me` — champs persistants de compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank`, etc.
+- `GET /api/badges/stats` — stats agrégées gamification pour l’utilisateur courant (`get_user_gamification_stats`).
+
+**Référence longue** : voir `docs/02-FEATURES/BADGES_AMELIORATIONS.md` et backlog F38 dans `docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md` si une API de lecture du ledger devient nécessaire.
 
 ## Admin
 

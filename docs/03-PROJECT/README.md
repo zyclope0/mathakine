@@ -1,7 +1,7 @@
 ﻿# Project Governance - Mathakine
 
 > Project master index
-> Updated: 22/03/2026
+> Updated: 23/03/2026
 
 ## Read First
 
@@ -50,6 +50,7 @@
 |---|---|
 | [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | historical recap of `Runtime Truth` and `Contracts / Hardening` |
 | [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | historical recap of `Production Hardening` |
+| [AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTOR_DASHBOARD_2026-03.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTOR_DASHBOARD_2026-03.md) | historical dashboard refactor note (legacy archive namespace) |
 | [AUDIT_IA_LAYER_2026-03-22.md](./AUDIT_IA_LAYER_2026-03-22.md) | historical AI review snapshot - not runtime truth |
 | [CODE_REVIEW_2026-03-22.md](./CODE_REVIEW_2026-03-22.md) | historical working-tree review snapshot |
 | [AUDIT_TECHNIQUE_2026-03-22.md](./AUDIT_TECHNIQUE_2026-03-22.md) | historical technical review snapshot |
@@ -62,12 +63,11 @@
 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) | interleaved session note |
 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) | DB log redaction traceability |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md) | PII / log policy |
-| [REFACTOR_DASHBOARD_2026-03.md](./REFACTOR_DASHBOARD_2026-03.md) | dashboard refactor note |
 
 ## Maintenance Rule
 
 `POINTS_RESTANTS_2026-03-15.md` is the only active follow-up tracker in this folder.
-Closed bilans, temporary delta files, and superseded lot notes belong in archives or must be explicitly marked as historical snapshots.
+Closed bilans, temporary delta files, and superseded lot notes belong in `archives/`. `AUDITS_ET_RAPPORTS_ARCHIVES/` is now a legacy compatibility collection only.
 
 ## Archives
 
@@ -81,4 +81,7 @@ Closed bilans, temporary delta files, and superseded lot notes belong in archive
 - [archives/ITERATION_I_2026-03-19/README.md](./archives/ITERATION_I_2026-03-19/README.md)
 - [archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md](./archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md)
 - [archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md](./archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md)
-- [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)
+- [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md) (legacy compatibility collection)
+
+
+

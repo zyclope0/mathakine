@@ -1,43 +1,21 @@
-﻿# Audits et rapports archives
+﻿# Audits et rapports archives - legacy compatibility collection
 
-> Documents dont les recommandations sont implementees ou rapports situationnels conserves pour historique.
+> Collection legacy conservee pour compatibilite historique.
+> Aucun nouveau document ne doit etre cree ici.
 
----
+## Statut
 
-## Structure
+Ce dossier reste consultable pour les anciens audits et rapports qui utilisaient deja cette taxonomie.
+La racine canonique pour les nouvelles archives projet est maintenant :
+- [../archives/README.md](../archives/README.md)
 
-### `AUDITS_IMPLEMENTES/`
-Audits et rapports dont les recommandations ont ete appliquees.
+## Sous-dossiers existants
 
-- Voir l'index detaille : [AUDITS_IMPLEMENTES/INDEX.md](./AUDITS_IMPLEMENTES/INDEX.md)
+- [AUDITS_IMPLEMENTES/INDEX.md](./AUDITS_IMPLEMENTES/INDEX.md)
+- [RAPPORTS_TEMPORAIRES/INDEX.md](./RAPPORTS_TEMPORAIRES/INDEX.md)
 
-### `RAPPORTS_TEMPORAIRES/`
-Rapports situationnels, plans contextuels, pilotages archives et diagnostics de cloture.
+## Regle
 
-- Voir l'index detaille : [RAPPORTS_TEMPORAIRES/INDEX.md](./RAPPORTS_TEMPORAIRES/INDEX.md)
-
-## Focus - archivages recents
-
-### 09/03/2026
-Iteration backend `exercise/auth/user` archivee dans `RAPPORTS_TEMPORAIRES/` :
-- pilotage maitre
-- versioning interne
-- lots 1 a 6
-- cloture et guidage Cursor
-
-### 11/03/2026
-Iteration backend `challenge/admin/badge` archivee dans `RAPPORTS_TEMPORAIRES/` :
-- pilotage maitre
-- versioning interne
-- lots 1 a 7
-- diagnostics de stabilisation auth/admin
-
-Les documents actifs a lire restent a la racine de `03-PROJECT/` :
-- bilans finaux d'iteration
-- deltas restants
-- audits de reference encore utiles pour la suite
-
-## Navigation
-
-- [Retour 03-PROJECT](../README.md)
-- [Index documentation](../../INDEX.md)
+- conserver pour traçabilité
+- ne pas y ajouter de nouveaux documents
+- preferer `docs/03-PROJECT/archives/` pour tout nouvel archivage

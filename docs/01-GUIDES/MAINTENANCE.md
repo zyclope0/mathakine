@@ -1,12 +1,14 @@
-# 🔧 GUIDE DE MAINTENANCE - MATHAKINE
+# Guide de maintenance — Mathakine
 
-**Version** : 1.0.0  
-**Date** : 6 Décembre 2025  
-**Audience** : DevOps, Développeurs, Mainteneurs
+**Version** : 1.1.0  
+**Date** : 6 mars 2026 (revue alignée audit documentation 2026-03-22)  
+**Audience** : DevOps, développeurs, mainteneurs
+
+> Pour les incidents de production, les migrations Alembic, le rollback et la rotation `SECRET_KEY`, utiliser d'abord [PRODUCTION_RUNBOOK.md](PRODUCTION_RUNBOOK.md). Ce guide reste centré sur la maintenance périodique.
 
 ---
 
-## 📋 TABLE DES MATIÈRES
+## Table des matières
 
 1. [Vue d'ensemble](#vue-ensemble)
 2. [Tests de charge réguliers](#load-tests)
@@ -17,7 +19,7 @@
 
 ---
 
-## 🎯 VUE D'ENSEMBLE {#vue-ensemble}
+## Vue d'ensemble {#vue-ensemble}
 
 Ce guide décrit les procédures de maintenance régulières pour assurer la stabilité, la sécurité et les performances de Mathakine.
 
@@ -35,7 +37,7 @@ Ce guide décrit les procédures de maintenance régulières pour assurer la sta
 
 ---
 
-## 📈 TESTS DE CHARGE RÉGULIERS {#load-tests}
+## Tests de charge réguliers {#load-tests}
 
 ### Objectif
 
@@ -99,11 +101,11 @@ BACKEND_URL=https://mathakine-backend.onrender.com \
 python scripts/load/run_load_tests.py --level quick
 ```
 
-**⚠️ Important** : Utiliser des comptes de test dédiés, pas des comptes utilisateurs réels.
+**Important** : Utiliser des comptes de test dédiés, pas des comptes utilisateurs réels.
 
 ---
 
-## 🔒 VÉRIFICATIONS DE SÉCURITÉ {#security-checks}
+## Vérifications de sécurité {#security-checks}
 
 ### Scripts de vérification
 
@@ -143,7 +145,7 @@ done
 
 ---
 
-## ⚡ MONITORING DES PERFORMANCES {#performance-monitoring}
+## Monitoring des performances {#performance-monitoring}
 
 ### Métriques à surveiller
 
@@ -182,7 +184,7 @@ Configurer des alertes pour :
 
 ---
 
-## 🛡️ MAINTENANCE PRÉVENTIVE {#preventive-maintenance}
+## Maintenance préventive {#preventive-maintenance}
 
 ### Hebdomadaire
 
@@ -232,7 +234,7 @@ Si échec :
 
 ---
 
-## 🔍 PROCÉDURES DE DÉPANNAGE {#troubleshooting}
+## Procédures de dépannage {#troubleshooting}
 
 ### Problème : Tests de charge échouent
 
@@ -300,7 +302,7 @@ python scripts/performance/benchmark_challenges_list.py
 
 ---
 
-## 📚 RESSOURCES
+## Ressources complémentaires
 
 ### Documentation
 
@@ -323,7 +325,7 @@ python scripts/performance/benchmark_challenges_list.py
 
 ---
 
-## 📝 CHECKLIST DE MAINTENANCE
+## Checklist de maintenance
 
 ### Hebdomadaire
 

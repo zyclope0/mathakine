@@ -1,4 +1,4 @@
-# Guidage Cursor - Alignement Post-Implementations
+﻿# Guidage Cursor - Alignement Post-Implementations
 
 > Date : 08/03/2026
 > Usage : guide d'execution pour Cursor / Composer apres plusieurs features recentes
@@ -327,7 +327,7 @@ Implementation cible :
 
 Important :
 
-- le `.pptx` dans `docs/investor_deck/` peut etre un livrable voulu : ne pas le
+- le `.pptx` dans `presentations/investor_deck/` peut etre un livrable voulu : ne pas le
   supprimer par automatisme
 
 ---
@@ -413,3 +413,4 @@ Le lot est termine si :
 - `black --check` passe
 - `pytest`, `tsc`, `lint`, `i18n`, `vitest` passent
 - la doc critique touchee est alignee avec le code final
+

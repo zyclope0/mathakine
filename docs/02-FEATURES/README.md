@@ -1,7 +1,7 @@
-# Features Docs - Scope and Truth
+﻿# Features Docs - Scope and Truth
 
 > Folder status index for `docs/02-FEATURES`
-> Updated: 2026-03-22
+> Updated: 2026-03-23
 
 ## Purpose
 
@@ -28,6 +28,7 @@ This file defines which document should be trusted for what.
 |---|---|---|---|
 | [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Backlog source of truth | Active | Priorities, implemented history, open follow-ups |
 | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) | Active runtime/API reference | Active | Mirrors current routes at a high level |
+| [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md) | Gamification account + ledger reference | Active | Account-level points, level computation, ledger writes and read surfaces |
 | [CHALLENGE_CONTRACT_IA9.md](CHALLENGE_CONTRACT_IA9.md) | Contrat défis : `response_mode`, `choices`, symétrie | Active | Lot IA9 ; code source `challenge_contract_policy.py` |
 | [AUTH_FLOW.md](AUTH_FLOW.md) | Auth reference | Active | Runtime auth flow reference |
 | [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md) | Implemented feature note | Active reference | Daily challenges are implemented |
@@ -43,7 +44,7 @@ This file defines which document should be trusted for what.
 | [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md) | Product/refactoring context | Historical design reference | Useful for rationale, not for runtime truth |
 | [THEMES.md](THEMES.md) | Frontend/theme reference | Reference | Keep as supporting design/system note |
 | [I18N.md](I18N.md) | Internationalization reference | Reference | System-level reference, not feature backlog |
-| [F34_SCIENCES_PROTOTYPE.html](F34_SCIENCES_PROTOTYPE.html) | Prototype only | Prototype | Not implemented; roadmap remains the product truth |
+| [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) | Prototype asset | Prototype | Not implemented; kept outside the feature corpus because it is a static HTML prototype only |
 
 ## Rationalized Usage
 
@@ -51,6 +52,7 @@ This file defines which document should be trusted for what.
 
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
 - [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+- [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
 - [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md)
 - [AUTH_FLOW.md](AUTH_FLOW.md)
 - feature notes already marked implemented when working on the same area
@@ -70,3 +72,4 @@ These are useful for rationale and design intent, but they are not the primary t
 2. Historical ideation is not deleted, but must be explicitly marked as historical or partially superseded.
 3. New backlog items must land in [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md), not in scattered standalone notes only.
 4. If a future refactor needs a dedicated spec, that spec must link back to the roadmap item that owns the priority.
+

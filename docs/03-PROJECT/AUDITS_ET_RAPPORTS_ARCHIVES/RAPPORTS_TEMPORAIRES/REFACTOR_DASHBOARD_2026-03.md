@@ -1,9 +1,11 @@
-# Refactor Dashboard — Réorganisation des onglets
+﻿# Refactor Dashboard — Réorganisation des onglets
 
 > **Date :** 06/03/2026  
 > **Type :** Implémentation  
-> **Statut :** Appliqué  
+> **Statut :** Historique - applique, archive le 23/03/2026
 > **Objectif :** Réduire la charge cognitive (Syndrome du Mille-feuille)
+
+> Snapshot de refactor UI applique. Ce document reste utile pour comprendre la structure du dashboard au 06/03/2026, mais n'est plus un tracker actif.
 
 ---
 
@@ -74,3 +76,4 @@
 - **F02 :** [F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
 - **Widget :** [F02_DAILY_CHALLENGES_WIDGET.md](../06-WIDGETS/F02_DAILY_CHALLENGES_WIDGET.md)
 - **Intégration widgets :** [INTEGRATION_PROGRESSION_WIDGETS.md](../06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md)
+
