@@ -36,6 +36,25 @@ describe("ChatMessagesView", () => {
       />
     );
 
-    expect(screen.getByAltText("Illustration générée par l'assistant")).toBeInTheDocument();
+    expect(screen.getByRole("img")).toBeInTheDocument();
+  });
+
+  it("renders assistant inline LaTeX with KaTeX", () => {
+    const { container } = render(
+      <ChatMessagesView
+        messages={[
+          {
+            id: "a1",
+            role: "assistant",
+            content: "Droïde A : $12\\ \\text{u/s}$",
+          },
+        ]}
+        variant="embedded"
+        isAwaitingAssistant={false}
+      />
+    );
+
+    expect(container.querySelector(".katex")).not.toBeNull();
+    expect(container.textContent).toContain("Droïde A");
   });
 });

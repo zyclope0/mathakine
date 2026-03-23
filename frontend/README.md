@@ -1,7 +1,7 @@
 # 🚀 Frontend Mathakine - Next.js
 
-**Version produit visible** : 3.2.0-alpha.1  
-**Status** : ✅ **Production Ready** (~95% complété)  
+**Version produit visible** : 3.3.0-alpha.1 (alignée sur `frontend/package.json`)  
+**Statut** : **alpha** — fonctionnel en démo / préprod ; l’appellation « production ready » n’est pas utilisée tant que la release n’est pas sortie d’alpha.  
 **Framework** : Next.js 16.1.6 avec App Router  
 **Language** : TypeScript (strict mode)
 
@@ -47,7 +47,7 @@ npm install
 Créer un fichier `.env.local` à la racine du dossier `frontend` :
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:10000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
 
 ---
@@ -230,11 +230,11 @@ npm run i18n:all         # Toutes les vérifications i18n
 Créer `.env.local` :
 
 ```env
-# URL du backend API
-NEXT_PUBLIC_API_URL=http://localhost:10000
+# URL du backend API (variable principale utilisée par le client)
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 
-# Pour production Render
-# NEXT_PUBLIC_API_URL=https://mathakine.onrender.com
+# Ancien nom encore accepté en secours dans le code : NEXT_PUBLIC_API_URL
+# Pour production Render, pointer vers l’URL publique du backend.
 ```
 
 ### **TypeScript**
@@ -473,7 +473,7 @@ Le build génère un dossier `.next/` optimisé.
 ### **Variables d'Environnement Production**
 
 ```env
-NEXT_PUBLIC_API_URL=https://mathakine.onrender.com
+NEXT_PUBLIC_API_BASE_URL=https://mathakine.onrender.com
 ```
 
 ### **Render.com**
@@ -541,7 +541,7 @@ La documentation frontend est centralisée dans `docs/04-FRONTEND/` :
 
 **Erreur : API non accessible**
 
-- Vérifier `NEXT_PUBLIC_API_URL` dans `.env.local`
+- Vérifier `NEXT_PUBLIC_API_BASE_URL` dans `.env.local`
 - Vérifier que le backend est démarré
 
 ---
@@ -566,4 +566,4 @@ Propriétaire - Mathakine
 
 ---
 
-**Dernière mise à jour** : 22/02/2026
+**Dernière mise à jour** : 06/03/2026

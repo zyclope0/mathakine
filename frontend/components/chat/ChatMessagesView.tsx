@@ -2,9 +2,8 @@
 
 import { MessageCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/lib/chat/types";
+import { MathText } from "@/components/ui/MathText";
 
 export type ChatMessagesLayoutVariant = "embedded" | "drawer";
 
@@ -50,7 +49,7 @@ export function ChatMessagesView({
             ))}
           <div
             className={cn(
-              "prose prose-sm dark:prose-invert max-w-[85%]",
+              "max-w-[85%]",
               isDrawer
                 ? cn(
                     "rounded-2xl px-4 py-3",
@@ -78,7 +77,7 @@ export function ChatMessagesView({
               </div>
             ) : null}
             {message.content.trim().length > 0 || message.error ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+              <MathText className="text-sm">{message.content}</MathText>
             ) : null}
           </div>
           {!isDrawer && message.role === "user" && <div className="h-6 w-6 shrink-0" aria-hidden />}

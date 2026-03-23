@@ -1,4 +1,7 @@
-# 🔧 DÉPANNAGE ERREUR "Failed to fetch"
+# Dépannage — erreur « Failed to fetch »
+
+**Dernière mise à jour :** 06/03/2026  
+**Statut :** Référence `NEXT_PUBLIC_API_BASE_URL` + CORS `BACKEND_CORS_ORIGINS` — voir aussi [../docs/01-GUIDES/TROUBLESHOOTING.md](../docs/01-GUIDES/TROUBLESHOOTING.md) (backend).
 
 ## 🚨 **PROBLÈME**
 
