@@ -20,12 +20,13 @@ vi.mock("framer-motion", () => ({
   motion: {
     div: (
       props: HTMLAttributes<HTMLDivElement> & {
-      whileHover?: unknown;
-      variants?: unknown;
-      initial?: unknown;
-      animate?: unknown;
-      transition?: unknown;
-    }) => {
+        whileHover?: unknown;
+        variants?: unknown;
+        initial?: unknown;
+        animate?: unknown;
+        transition?: unknown;
+      }
+    ) => {
       const sanitizedProps = { ...props };
       delete sanitizedProps.whileHover;
       delete sanitizedProps.variants;
@@ -55,7 +56,9 @@ vi.mock("recharts", () => {
       children?: ReactNode;
     }) => (
       <div>
-        {data?.map((entry) => <span key={entry.category}>{entry.category}</span>)}
+        {data?.map((entry) => (
+          <span key={entry.category}>{entry.category}</span>
+        ))}
         {children}
       </div>
     ),
