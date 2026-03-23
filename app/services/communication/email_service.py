@@ -21,6 +21,22 @@ from app.utils.email_templates import (
     verification_email_text,
 )
 
+
+def _mask_email(email: str) -> str:
+    """Masque un email pour les logs : user@domain.com → u***@domain.com"""
+    if not email or "@" not in email:
+        return "***"
+    local, domain = email.split("@", 1)
+    return f"{local[:1]}***@{domain}"
+
+
+def _mask_user(user: Optional[str]) -> str:
+    """Masque un identifiant SMTP pour les logs."""
+    if not user:
+        return "***"
+    return f"{user[:2]}***"
+
+
 # Optionnel : Support SendGrid si API key disponible
 try:
     import sendgrid
@@ -74,7 +90,7 @@ class EmailService:
             )
         else:
             logger.info(
-                f"[Email] Envoi via SMTP vers {to_email} (SendGrid: key={'✓' if sendgrid_api_key else '✗'}, pkg={SENDGRID_AVAILABLE})"
+                f"[Email] Envoi via SMTP vers {_mask_email(to_email)} (SendGrid: key={'✓' if sendgrid_api_key else '✗'}, pkg={SENDGRID_AVAILABLE})"
             )
             return EmailService._send_via_smtp(
                 to_email, subject, html_content, text_content
@@ -125,7 +141,7 @@ class EmailService:
             response = sg.send(message)
 
             if response.status_code in [200, 201, 202]:
-                logger.info(f"Email envoyé via SendGrid à {to_email}")
+                logger.info(f"Email envoyé via SendGrid à {_mask_email(to_email)}")
                 return True
             else:
                 logger.error(
@@ -162,7 +178,9 @@ class EmailService:
                 logger.warning(
                     f"SMTP_USER={'configuré' if smtp_user else 'MANQUANT'}, SMTP_PASSWORD={'configuré' if smtp_password else 'MANQUANT'}"
                 )
-                logger.info(f"Email qui aurait été envoyé à {to_email}: {subject}")
+                logger.info(
+                    f"Email qui aurait été envoyé à {_mask_email(to_email)}: {subject}"
+                )
                 # En développement, on peut simuler l'envoi
                 if os.getenv("ENVIRONMENT", "").lower() != "production":
                     logger.info("Mode développement: Email simulé")
@@ -170,7 +188,7 @@ class EmailService:
                 return False
 
             logger.info(
-                f"Tentative d'envoi email SMTP à {to_email} via {smtp_host}:{smtp_port}"
+                f"Tentative d'envoi email SMTP à {_mask_email(to_email)} via {smtp_host}:{smtp_port}"
             )
 
             # Créer le message
@@ -194,19 +212,21 @@ class EmailService:
                 logger.debug(f"Connexion établie, démarrage TLS: {smtp_use_tls}")
                 if smtp_use_tls:
                     server.starttls()
-                logger.debug(f"Authentification avec {smtp_user}")
+                logger.debug(f"Authentification avec {_mask_user(smtp_user)}")
                 server.login(smtp_user, smtp_password)
-                logger.debug(f"Envoi du message à {to_email}")
+                logger.debug(f"Envoi du message à {_mask_email(to_email)}")
                 server.send_message(msg)
 
             logger.info(
-                f"✅ Email envoyé via SMTP à {to_email} depuis {smtp_from_email}"
+                f"✅ Email envoyé via SMTP à {_mask_email(to_email)} depuis {_mask_email(smtp_from_email)}"
             )
             return True
 
         except smtplib.SMTPAuthenticationError as smtp_auth_error:
             logger.error(f"❌ Erreur d'authentification SMTP: {smtp_auth_error}")
-            logger.error(f"Vérifiez SMTP_USER ({smtp_user}) et SMTP_PASSWORD")
+            logger.error(
+                f"Vérifiez SMTP_USER ({_mask_user(smtp_user)}) et SMTP_PASSWORD"
+            )
             return False
         except smtplib.SMTPException as smtp_error:
             logger.error(f"❌ Erreur SMTP: {smtp_error}")
