@@ -1795,6 +1795,17 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_3_0_alpha_2": {
+      "version": "v3.3.0-alpha.2",
+      "date": "24 mars 2026",
+      "items": [
+        "Le tri Aleatoire ou Plus recents sur les pages Exercices et Defis reste le meme apres un rafraichissement du navigateur.",
+        "Tu gagnes des points sur ton compte quand tu reussis un exercice classique, comme pour les autres recompenses.",
+        "Les listes de defis en ordre aleatoire restent legeres meme quand il y a beaucoup de contenu.",
+        "La confidentialite cote emails est renforcee : les journaux techniques ne montrent plus les adresses completes.",
+        "Stabilite du compte points en charge parallele sur le serveur de production (sans impact visible pour toi au quotidien)."
+      ]
+    },
     "release_3_3_0_alpha_1": {
       "version": "v3.3.0-alpha.1",
       "date": "22 mars 2026",

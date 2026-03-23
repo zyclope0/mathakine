@@ -1,7 +1,7 @@
-﻿# Documentation Mathakine
+# Documentation Mathakine
 
 > Documentation entry point
-> Updated: 23/03/2026
+> Updated: 24/03/2026
 
 ## Read First
 
@@ -16,7 +16,7 @@
 
 ## Current Product State
 
-- visible product release: `3.3.0-alpha.1`
+- visible product release: `3.3.0-alpha.2`
 - current cross-workload AI governance truth: [00-REFERENCE/AI_MODEL_GOVERNANCE.md](00-REFERENCE/AI_MODEL_GOVERNANCE.md)
 - active API reference: [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)
 - active project governance and follow-ups: [03-PROJECT/README.md](03-PROJECT/README.md)

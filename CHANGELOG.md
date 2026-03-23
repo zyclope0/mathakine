@@ -37,6 +37,26 @@ Active references:
 
 ## [Unreleased]
 
+## [3.3.0-alpha.2] - 2026-03-24
+
+### Added
+- Gamification: awarding account points on successful **standard exercise** submissions via ledger source `exercise_completed` (aligned with daily challenges and badges).
+
+### Changed
+- Challenges listing (`random` order): replace `ORDER BY RANDOM()` fallback with a count + deterministic `id` offset strategy to avoid full-table random sorts under load.
+- Frontend: **Exercises** and **Challenges** list sort preference (`random` / `recent`) persisted in the browser across refresh (SSR-safe restore).
+
+### Fixed
+- Gamification: PostgreSQL uses a row-level lock when granting points to reduce parallel double-award risk; SQLite test sessions remain compatible (no `FOR UPDATE`).
+
+### Security
+- Email service logs redact recipient addresses and SMTP usernames (masked identifiers).
+- Test harness: hosted database URLs (e.g. Render, AWS, Supabase, Neon, Railway) are never auto-adopted as `TEST_DATABASE_URL` solely because the database name contains `test`; stricter parity checks between test and production DB configuration.
+
+### Notes
+- Documentation: roadmap updates including MVP challenge track note (`docs/02-FEATURES/`).
+- Formatting: `black` alignment on touched Python modules in this train.
+
 ## [3.3.0-alpha.1] - 2026-03-22
 
 ### Changed

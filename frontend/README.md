@@ -1,6 +1,6 @@
 # 🚀 Frontend Mathakine - Next.js
 
-**Version produit visible** : 3.3.0-alpha.1 (alignée sur `frontend/package.json`)  
+**Version produit visible** : 3.3.0-alpha.2 (alignée sur `frontend/package.json`)  
 **Statut** : **alpha** — fonctionnel en démo / préprod ; l’appellation « production ready » n’est pas utilisée tant que la release n’est pas sortie d’alpha.  
 **Framework** : Next.js 16.1.6 avec App Router  
 **Language** : TypeScript (strict mode)

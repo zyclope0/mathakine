@@ -1795,6 +1795,17 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_3_0_alpha_2": {
+      "version": "v3.3.0-alpha.2",
+      "date": "March 24, 2026",
+      "items": [
+        "Sort order on the Exercises and Challenges pages (random or most recent) is kept after you refresh the browser.",
+        "You now earn account points when you succeed on a standard exercise, consistent with other rewards.",
+        "Random challenge lists stay fast even when there is a lot of content.",
+        "Email-related logs are safer for privacy: full addresses are no longer printed in technical logs.",
+        "More reliable point grants on the server under parallel load (no everyday change to how you play)."
+      ]
+    },
     "release_3_3_0_alpha_1": {
       "version": "v3.3.0-alpha.1",
       "date": "March 22, 2026",
