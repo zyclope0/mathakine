@@ -93,18 +93,6 @@ export function useAIExerciseGenerator({
         abortController.signal
       );
 
-      if (!response.ok) {
-        let description = t("aiGenerator.errorDescription");
-        try {
-          const errBody = (await response.json()) as { error?: string; detail?: unknown };
-          if (typeof errBody.error === "string") description = errBody.error;
-        } catch {
-          /* ignore */
-        }
-        toast.error(t("aiGenerator.error"), { description });
-        return;
-      }
-
       const contentType = response.headers.get("content-type") ?? "";
       if (!contentType.includes("text/event-stream")) {
         toast.error(t("aiGenerator.connectionError"), {

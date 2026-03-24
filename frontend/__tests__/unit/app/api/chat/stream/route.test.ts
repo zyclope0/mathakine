@@ -74,6 +74,27 @@ describe("POST /api/chat/stream", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it("when backend fetch returns !ok, returns SSE error event at status 200", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue({
+      ok: false,
+      status: 502,
+      statusText: "Bad Gateway",
+    } as Response);
+
+    const req = new NextRequest("http://localhost/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "hi", conversation_history: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("text/event-stream");
+    const text = await res.text();
+    expect(text).toContain("error");
+    expect(globalThis.fetch).toHaveBeenCalledOnce();
+  });
+
   it("returns 400 when message is missing", async () => {
     const req = new NextRequest("http://localhost/api/chat/stream", {
       method: "POST",

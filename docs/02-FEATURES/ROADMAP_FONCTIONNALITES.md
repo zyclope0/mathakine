@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** - Derniere MAJ : 23/03/2026 (statuts realignes sur le code ; les features livrees restent visibles dans la roadmap au lieu de disparaitre)  
+> **Document vivant** - Derniere MAJ : 24/03/2026 (statuts realignes sur le code ; les features livrees restent visibles dans la roadmap au lieu de disparaitre)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -858,7 +858,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | Quick Win #2 - Onboarding pedagogique | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
 | Calibration a l'inscription (classe, age, objectif) | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
 | Parcours guide (QuickStartActions dashboard) | Fev 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
-| Recommandations personnalisees (marquer fait) | 16/02/2026 | SITUATION_FEATURES (archive) |
+| Recommandations personnalisees (marquer fait) | 16/02/2026, MAJ 24/03/2026 | SITUATION_FEATURES (archive) + dashboard `Recommendations.tsx` borne maintenant l'affichage initial a 6 cartes avec toggle local |
 | Ordre aleatoire + masquer reussis | 19/02/2026 | SITUATION_FEATURES (archive) |
 | Analytics EdTech (CTR Quick Start, 1er attempt) | 25/02/2026 | [EDTECH_ANALYTICS](EDTECH_ANALYTICS.md) |
 | Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP_FONCTIONNALITES](ROADMAP_FONCTIONNALITES.md) - section 4.6 |

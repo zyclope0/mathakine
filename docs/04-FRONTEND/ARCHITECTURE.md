@@ -183,6 +183,12 @@ La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/ba
 - fallback `http://localhost:10000` en developpement uniquement
 - en production : erreur explicite si l'URL est absente, mal formee ou locale (`localhost`, `127.0.0.1`, `::1`)
 
+Les handlers de routes Next.js sont maintenant couverts par des tests dedies (`frontend/__tests__/unit/app/api/...`) :
+- succes et erreur JSON sur `/api/chat`
+- succes SSE et garde config invalide sur `/api/chat/stream`
+- succes SSE, refus auth/cookie, et propagation `!ok` sur `/api/exercises/generate-ai-stream`
+- idem pour `/api/challenges/generate-ai-stream`
+
 ### Convention SSE IA
 
 - `exercises_ai` : `status`, `exercise`, `error`, `done`
@@ -195,6 +201,16 @@ Pour les exercices, `done` est maintenant emis sur les fins de flux controlees :
 - echec persistance deja transforme en `error`
 
 Les exceptions top-level non recuperees restent une fin `error` sans `done`, comme pour les defis.
+
+### Echecs auth / CSRF generation IA
+
+Le client partage `frontend/lib/ai/generation/postAiGenerationSse.ts` execute maintenant un preflight et un mapping d'erreurs stables avant le dispatch SSE :
+- `csrf_token_missing`
+- `http_401`
+- `http_403`
+- `http_backend`
+
+Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ces erreurs en toasts i18n explicites sans exposer de details techniques bruts.
 
 ---
 

@@ -19,12 +19,29 @@ Suivi des findings de cet audit traités dans les sessions du 23 et du 24/03/202
 | **B5** | Condition tautologique `!backendResponse.ok && status !== 200` | ✅ CORRIGÉ | DRY-1 — simplifié en `if (!backendResponse.ok)` |
 | **B8 / B10** | Résolution backend divergente + `chat/stream` sans guard prod | ✅ CORRIGÉ | DRY-1 — helper partagé `frontend/lib/api/backendUrl.ts`, fallback localhost réservé au dev, validation URL prod explicite |
 | **PR4** | Pas de `done` dans le flux SSE exercices | ✅ CORRIGÉ | DRY-2 — `done` émis sur succès et fins gérées (validation/persistance) |
+| **B6 / B7 / B2** | Edge cases backend challenges | ✅ CORRIGÉ | `AT-1` — garde `expected_answer`, retrait de `generation_success`, sémantique `active_only` unifiée |
+| **B11 / B9 / F2** | Perf frontend locale et recommandations | ✅ CORRIGÉ | `AT-2` — `Set.has()`, calcul `hasMore` côté client, recommandations bornées avec toggle |
+| **B3** | `get_challenge_stats` en 3 requêtes | ✅ CORRIGÉ | `AT-3/B3` — requête agrégée atomique unique |
+| **P5** | Pas de circuit-breaker OpenAI | ✅ CORRIGÉ | `AT-3/P5` — breaker process-local partagé exercices/défis |
+| **T2** | Pas de vrais tests des routes proxy Next | ✅ CORRIGÉ | `AT-4/T2` — tests dédiés des handlers `/api/chat*` et `/api/*/generate-ai-stream` |
+| **F3** | Gestion CSRF/auth peu explicite pour la génération IA | ✅ CORRIGÉ | `AT-4/F3` — erreurs de requête typées + toasts i18n stables |
 | — | Logs SMTP/email exposent PII (`to_email`, `smtp_user`) | ✅ CORRIGÉ (hors audit initial) | `fix(security): mask PII in SMTP/email service logs` — helpers `_mask_email()` + `_mask_user()` dans `email_service.py` |
 | **B4** | Routes chat proxy sans auth | ✅ REQUALIFIÉ | Décision produit assumée : chat public rate-limité ; non traité comme bug correctif |
 
-**Score réestimé post-corrections** : ~7.8–8.0 / 10 (T1 + A4 + P4 étaient les 3 findings les plus critiques de cet audit).
+**Score réestimé post-corrections** : ~8.4 / 10.
 
-**Encore ouvert (priorité conservée)** : B1 (fuite mémoire TokenTracker), B2 (double filtrage is_active/is_archived), B6 (NPE auto_correct_challenge), P1 (timeout exercices IA), P5 (circuit-breaker).
+**Backlog vivant (24/03/2026, apres AT-1 -> AT-4)** : A1, A2, A3, P3, D2, D3, D4, D9, PR1, PR2, PR5.
+
+### 0.1 Backlog vivant au 24/03/2026
+
+| Ref | Statut actuel | Pourquoi encore pertinent | Prochaine action rationnelle |
+|-----|---------------|---------------------------|------------------------------|
+| **A1** | OUVERT | Construction payload utilisateur encore dupliquee et heterogene | Extraire un helper unique |
+| **A2** | OUVERT | `challenge_service.py` reste un module tres charge | Extraire stats/tentatives/creation |
+| **A3** | PARTIEL | Index commun present, mais gouvernance exercices/defis encore asymetrique | Converger vers une abstraction workload commune |
+| **P3** | OUVERT | Metrics runtime toujours in-memory, non persistantes, non distribuees | Persister SQL/Redis ou documenter le compromis explicitement |
+| **D2 / D3 / D4 / D9** | OUVERT | Dette documentaire encore reelle | ADR supplementaire, doc scripts, spec API, doc env Sentry |
+| **PR1 / PR2 / PR5** | OUVERT | Patterns transverses encore visibles | Traiter en lots de normalisation dedies |
 
 ---
 
@@ -36,11 +53,11 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 
 ### 3 risques prioritaires
 
-1. **Fuite memoire en production (CRITIQUE)** -- Le `TokenTracker` et `generation_metrics` stockent tout en memoire sans aucune rotation ni limite. En production sous charge IA, la memoire du processus croit indefiniment.
+1. **Observabilite runtime IA encore locale au processus (MAJEUR)** -- La retention memoire est maintenant bornee, mais `TokenTracker`, `generation_metrics` et le circuit breaker restent process-locaux. En multi-instance, les chiffres et l'etat de resilience restent fragmentes et perdus au restart.
 
-2. **Double filtrage contradictoire sur `list_challenges` (MAJEUR)** -- La fonction filtre sur `is_active == True` en dur puis re-filtre via `_apply_challenge_filters` sur `is_archived == False` avec un parametre `active_only`. Les deux filtres coexistent sans coherence, ce qui peut exclure des resultats de facon inattendue.
+2. **Dette de structuration encore concentree dans `challenge_service.py` (MAJEUR)** -- Plusieurs hotspots ont ete fermes (`B2`, `B3`), mais le module reste dense et centralise encore creation, listing, stats et tentatives.
 
-3. **Resilience OpenAI cote exercices (MAJEUR)** -- Les exercices IA gardent des points de fragilite historiques hors micro-lot DRY (timeouts/retry etaient un des enjeux initiaux de cet audit). Le point "chat public sans auth" a ete requalifie depuis comme **decision produit assumee**, pas comme bug correctif.
+3. **Dette documentaire et de conventions transverses (MAJEUR)** -- Les invariants de gamification, les scripts operatoires, la spec API formelle et certaines conventions de nommage/filtrage restent encore insuffisamment figes.
 
 ---
 
@@ -49,18 +66,25 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 ### Critiques
 
 #### B1. Fuite memoire -- TokenTracker sans limite de taille
+> ⚠️ OBSOLETE sous cette forme — la retention/prune runtime a ete ajoutee les 23-24/03/2026.
+> Le sujet encore vivant n'est plus une fuite lineaire infinie, mais une observabilite **in-memory / non distribuee** (cf. `P3`).
+
 - **Fichier** : `app/utils/token_tracker.py:20-21`
 - **Description** : `_usage_history` et `_daily_totals` sont des `defaultdict` qui grandissent indefiniment. Aucune rotation, aucun TTL, aucun plafond. En production avec generation IA reguliere, ceci constitue une fuite memoire lineaire.
 - **Impact** : OOM apres des jours/semaines de fonctionnement continu, crash du serveur.
 - **Recommandation** : Implementer une rotation par fenetre glissante (garder max N jours ou max N records) ou migrer les metriques vers une table SQL / Redis avec TTL.
 
 #### B2. Double filtrage contradictoire dans `list_challenges` et `count_challenges`
+> ⚠️ OBSOLETE — corrige par `AT-1`.
+
 - **Fichier** : `app/services/challenges/challenge_service.py:353` et `challenge_service.py:231`
 - **Description** : `list_challenges` applique `.filter(LogicChallenge.is_active == True)` en dur (ligne 353), puis `_apply_challenge_filters` applique `.filter(LogicChallenge.is_archived == False)` si `active_only=True` (ligne 231). Ce sont deux colonnes differentes (`is_active` vs `is_archived`). La semantique est confuse : un challenge avec `is_active=True` et `is_archived=True` passe le premier filtre mais est exclu par le second.
 - **Impact** : Comportement de filtrage imprevisible, resultats potentiellement incorrects dans la liste frontend.
 - **Recommandation** : Unifier la logique de filtrage. Supprimer le filtre en dur et deleguer entierement a `_apply_challenge_filters`.
 
 #### B3. `get_challenge_stats` effectue 3 requetes separees au lieu d'une
+> ⚠️ OBSOLETE — corrige par `AT-3/B3`.
+
 - **Fichier** : `app/services/challenges/challenge_service.py:554-601`
 - **Description** : `get_challenge_stats` effectue 3 requetes SQL distinctes (total_attempts, correct_attempts, unique_users) alors que `record_attempt` (ligne 528-537) montre deja le pattern correct avec une seule requete agregee. Ce n'est pas seulement un probleme de performance, c'est aussi un bug de coherence : entre les 3 requetes, des tentatives peuvent etre ajoutees, donnant des stats incoherentes (ex: correct_attempts > total_attempts si un insert concurrent survient).
 - **Impact** : Stats incoherentes sous charge, gaspillage de connexions DB.
@@ -69,30 +93,40 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 ### Majeurs
 
 #### B4. Endpoints chat sans authentification
+> ⚠️ OBSOLETE comme bug correctif — requalifie en decision produit assumee : chat public rate-limite.
+
 - **Fichier** : `frontend/app/api/chat/route.ts:38` et `frontend/app/api/chat/stream/route.ts:27`
 - **Description** : Contrairement aux routes `generate-ai-stream` (exercices et defis) qui verifient `request.cookies.get("access_token")`, les routes chat transmettent les requetes au backend sans aucune verification d'identite cote proxy Next.js. La requete backend elle-meme n'a aucun header Cookie transmis.
 - **Impact** : Tout utilisateur non authentifie peut generer du trafic OpenAI, avec un cout financier direct et un risque d'abus.
 - **Recommandation** : Ajouter la verification d'authentification dans les deux routes chat, alignee sur le pattern des routes SSE.
 
 #### B5. Condition tautologique dans le proxy SSE
+> ⚠️ OBSOLETE — corrige par `DRY-1`.
+
 - **Fichier** : `frontend/app/api/exercises/generate-ai-stream/route.ts:86`
 - **Description** : `if (!backendResponse.ok && backendResponse.status !== 200)` -- la condition `!backendResponse.ok` est deja vraie quand status n'est pas dans 200-299. La deuxieme condition `status !== 200` est donc toujours vraie quand `!ok` l'est (sauf pour les status 201-299, qui sont ok). La condition revient a `!backendResponse.ok`, la deuxieme clause est inutile.
 - **Impact** : Code mort / confusion de lecture. Aucun impact fonctionnel immediat, mais indique une incomprehension de l'API `Response.ok`.
 - **Recommandation** : Simplifier en `if (!backendResponse.ok)`.
 
 #### B6. `auto_correct_challenge` peut lever une exception non catchee
+> ⚠️ OBSOLETE — corrige par `AT-1`.
+
 - **Fichier** : `app/services/challenges/challenge_validator.py:527`
 - **Description** : Quand `expected_answer` est `None` (ligne 518, `expected_answer = analyze_pattern(...)` retourne `None`) et qu'on passe au bloc ligne 527 `if expected_answer.upper() not in ...`, cela leve `AttributeError: 'NoneType' object has no attribute 'upper'`. Le guard `if expected_answer:` (ligne 519) est seulement dans le bloc d'assignation `corrected["correct_answer"]`, mais la ligne 527 est hors du guard.
 - **Impact** : Crash silencieux de la correction automatique des challenges PATTERN, l'erreur est catchee par le handler SSE mais le challenge est rejete.
 - **Recommandation** : Deplacer la mise a jour de l'explication (lignes 526-532) dans le bloc `if expected_answer:`.
 
 #### B7. Variable `generation_success` inutilisee
+> ⚠️ OBSOLETE — corrige par `AT-1`.
+
 - **Fichier** : `app/services/challenges/challenge_ai_service.py:229`
 - **Description** : La variable `generation_success` est declaree a `False`, mise a `True` (ligne 471) mais jamais lue par la suite. Code mort.
 - **Impact** : Aucun impact fonctionnel, mais indique un mecanisme de suivi incomplet.
 - **Recommandation** : Retirer la variable ou l'utiliser (ex: compteur de metriques).
 
 #### B8. `BACKEND_URL` evalue au top-level du module
+> ⚠️ OBSOLETE — corrige par `DRY-1` avec `frontend/lib/api/backendUrl.ts`.
+
 - **Fichier** : `frontend/app/api/challenges/generate-ai-stream/route.ts:6-9` et `exercises/generate-ai-stream/route.ts:6-9`
 - **Description** : `BACKEND_URL` est calcule au moment de l'import du module (top-level const). En Next.js avec le runtime edge/node, cette valeur est figee au moment du build/premier chargement. Si `NEXT_PUBLIC_API_BASE_URL` est modifie par la suite (ex: container restart), la valeur ne change pas. La fonction `getBackendUrl()` recalcule partiellement, mais `BACKEND_URL` reste la valeur initiale.
 - **Impact** : Potentiel mauvais routage si l'env var change en cours de vie du processus.
@@ -101,18 +135,24 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 ### Mineurs
 
 #### B9. `hasMore` jamais calcule cote backend
+> ⚠️ OBSOLETE sous cette forme — corrige par `AT-2` cote frontend (`usePaginatedContent` calcule maintenant `hasMore` localement).
+
 - **Fichier** : `frontend/hooks/usePaginatedContent.ts:111`
 - **Description** : `hasMore: data?.hasMore ?? false` -- le backend retourne `items` et `total` mais jamais `hasMore`. Ce champ sera toujours `false`, ce qui desactive la pagination infinie cote frontend.
 - **Impact** : Pagination infinie non fonctionnelle si implementee cote composant.
 - **Recommandation** : Calculer `hasMore` cote frontend (`skip + limit < total`) ou l'ajouter a la reponse backend.
 
 #### B10. Le `chat/stream` proxy ne verifie pas la prod en dur
+> ⚠️ OBSOLETE — corrige par `DRY-1` (guard prod + validation URL dans `backendUrl.ts`).
+
 - **Fichier** : `frontend/app/api/chat/stream/route.ts:22`
 - **Description** : Contrairement aux autres proxies SSE, la route chat stream utilise `"http://localhost:10000"` comme fallback sans aucune garde production. Le fallback est inconditionnel (pas de check `process.env.NODE_ENV === "production"`).
 - **Impact** : En production sans `NEXT_PUBLIC_API_BASE_URL` defini, les requetes chat sont routees vers localhost (connection refused).
 - **Recommandation** : Ajouter la meme validation production que les routes SSE.
 
 #### B11. `isCompleted` via `.includes()` -- O(n) par carte
+> ⚠️ OBSOLETE — corrige par `AT-2`.
+
 - **Fichier** : `frontend/hooks/useCompletedItems.ts:43`
 - **Description** : `isCompleted: (exerciseId: number) => (data || []).includes(exerciseId)` effectue une recherche lineaire. Avec 500+ exercises completes et 50 cartes affichees, c'est 25000 comparaisons par render.
 - **Impact** : Performance degradee sur grands jeux de donnees.
@@ -142,6 +182,8 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Unifier sous une seule abstraction `WorkloadModelPolicy` parametree par workload (exercises/challenges).
 
 #### A4. GamificationService n'est pas appele depuis `submit_answer`
+> ⚠️ OBSOLETE — corrige le 23/03/2026 avec `PointEventSourceType.EXERCISE_COMPLETED`.
+
 - **Fichier** : `app/services/exercises/exercise_attempt_service.py`
 - **Description** : `submit_answer` appelle `update_user_streak`, `check_and_award_badges`, `record_exercise_completed` (daily challenge), mais jamais `GamificationService.apply_points` pour les exercices standard. Les points ne sont attribues que via badges et daily challenges. Un exercice reussi sans badge debloque ne rapporte zero point.
 - **Impact** : Le systeme de points est incomplet -- l'apprenant ne voit pas de progression immediate.
@@ -150,12 +192,16 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 ### Performance & Resilience
 
 #### P1. Appels OpenAI sans timeout explicite cote exercices
+> ⚠️ OBSOLETE — corrige. Le flux exercices utilise maintenant un timeout explicite.
+
 - **Fichier** : `app/services/exercises/exercise_ai_service.py:215`
 - **Description** : `AsyncOpenAI(api_key=settings.OPENAI_API_KEY)` est instancie sans `timeout`. Le client utilise le timeout par defaut (600s). Cote defis, le timeout est configure via `ai_params["timeout"]` (90-180s).
 - **Impact** : Un appel exercice IA bloque peut tenir 10 minutes avant de timeout.
 - **Recommandation** : Configurer un timeout explicite aligne sur la policy exercices (90s par defaut).
 
 #### P2. Pas de retry cote exercices IA
+> ⚠️ OBSOLETE — corrige. Le flux exercices utilise maintenant `tenacity` sur les erreurs transitoires OpenAI.
+
 - **Fichier** : `app/services/exercises/exercise_ai_service.py:255`
 - **Description** : `stream = await client.chat.completions.create(**api_kwargs)` -- aucun retry autour de cet appel. Cote defis, `create_stream_with_retry` utilise tenacity avec 3 tentatives et backoff exponentiel.
 - **Impact** : Tout rate-limit transitoire ou erreur reseau rejette la generation sans seconde chance.
@@ -168,12 +214,17 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Persister dans une table SQL (une ligne par appel, similaire a `point_events`) ou dans Redis.
 
 #### P4. `func.random()` O(n) dans `list_challenges`
+> ⚠️ OBSOLETE comme finding principal — optimisation `random_offset` deja appliquee.
+> Le vrai sujet restant est de garantir le passage de `total` partout si on veut eliminer tout fallback.
+
 - **Fichier** : `app/services/challenges/challenge_service.py:319`
 - **Description** : `query.order_by(func.random())` est un full table scan suivi d'un tri aleatoire. Avec un corpus de challenges croissant, cette requete deviendra lente (O(n log n)).
 - **Impact** : Degradation progressive des temps de reponse de la page defis.
 - **Recommandation** : L'optimisation `random_offset` (lignes 306-317) est deja implementee mais necessite que `total` soit passe. S'assurer que le handler passe toujours `total` pour eviter le fallback `func.random()`.
 
 #### P5. Aucun circuit-breaker sur les appels OpenAI
+> ⚠️ OBSOLETE — corrige par `AT-3/P5` avec un breaker process-local partage pour les workloads pedagogiques SSE.
+
 - **Description** : Si l'API OpenAI est down, chaque tentative de generation attend le timeout complet (90-600s) avant d'echouer. Il n'y a pas de mecanisme pour detecter une panne globale et repondre immediatement "service indisponible".
 - **Impact** : Sous panne OpenAI, les requetes s'accumulent, les threads sont bloques, le serveur peut devenir irresponsif.
 - **Recommandation** : Implementer un circuit-breaker simple (compteur d'echecs recents, ouverture si > N echecs en M minutes).
@@ -187,6 +238,8 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Ajouter un test d'integration PostgreSQL avec `SELECT ... FOR UPDATE` et le documenter dans `conftest.py`.
 
 #### T2. Pas de tests pour les proxies SSE Next.js
+> ⚠️ OBSOLETE — corrige par `AT-4/T2`.
+
 - **Fichiers** : `frontend/app/api/*/route.ts`
 - **Description** : Aucun test unitaire pour les 4 routes proxy (exercises, challenges, chat, chat/stream). La logique d'authentification, de routage et de gestion d'erreurs n'est pas couverte.
 - **Impact** : Les bugs de proxy (B4, B5, B8) ne sont detectes qu'en production.
@@ -206,12 +259,16 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Extraire la logique fetch/SSE dans un service pur (`exerciseAiService.ts`), garder le hook comme glue etat + service.
 
 #### F2. Le composant `Recommendations.tsx` ne pagine pas
+> ⚠️ OBSOLETE sous cette forme — corrige par `AT-2` avec un affichage initial borne a 6 items et un toggle local `Voir plus / Voir moins`.
+
 - **Fichier** : `frontend/components/dashboard/Recommendations.tsx:70`
 - **Description** : Toutes les recommandations sont rendues dans un `recommendations.map(...)` sans virtualisation ni pagination. Avec un moteur de recommandations actif, le nombre peut croitre.
 - **Impact** : Render lent si > 20 recommandations.
 - **Recommandation** : Limiter l'affichage a 5-6 items avec un "Voir plus" ou paginer.
 
 #### F3. `getCsrfTokenFromCookie` appele sans verification
+> ⚠️ OBSOLETE sous cette forme — corrige par `AT-4/F3` au niveau du client `postAiGenerationSse.ts` avec erreurs de requete typees et toasts i18n explicites.
+
 - **Fichier** : `frontend/hooks/useAIExerciseGenerator.ts:82` et `frontend/components/challenges/AIGenerator.tsx:73`
 - **Description** : Si la fonction retourne `undefined`, le header `X-CSRF-Token` est simplement omis (spread conditionnel). Le backend pourrait rejeter la requete sans explication claire pour l'utilisateur.
 - **Impact** : Erreur silencieuse si le cookie CSRF est absent.
@@ -245,12 +302,17 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Generer un schema OpenAPI depuis les schemas Pydantic existants ou migrer les routes critiques vers FastAPI APIRouter.
 
 #### D5. Endpoints gamification non documentes
+> ⚠️ OBSOLETE — documente dans `API_QUICK_REFERENCE.md`.
+
 - **Description** : Les endpoints `point_events` et le flux gamification (`apply_points`) ne sont pas documentes dans `API_QUICK_REFERENCE.md`.
 - **Recommandation** : Ajouter les endpoints gamification dans la reference API.
 
 ### Documentation projet
 
 #### D6. Pas d'ADR (Architecture Decision Records)
+> ⚠️ OBSOLETE sous cette forme — `docs/05-ADR/` existe et `ADR-001-starlette-vs-fastapi.md` a ete cree.
+> Le besoin restant est d'ajouter d'autres ADRs specifiques si de nouvelles decisions structurelles le justifient.
+
 - **Description** : Plusieurs decisions d'architecture sont prises mais non documentees :
   - Pourquoi Starlette au lieu de FastAPI ?
   - Pourquoi un TokenTracker en memoire plutot qu'en DB ?
@@ -260,12 +322,16 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 - **Recommandation** : Creer un repertoire `docs/05-ADR/` avec un ADR par decision.
 
 #### D7. CHANGELOG absent ou implicite
+> ⚠️ OBSOLETE — `CHANGELOG.md` racine existe et est maintenu.
+
 - **Description** : Le `frontend/app/changelog/page.tsx` existe mais aucun fichier `CHANGELOG.md` racine n'est visible. Les notes de version sont dispersees dans les commits git.
 - **Recommandation** : Maintenir un `CHANGELOG.md` a la racine au format Keep a Changelog.
 
 ### Variables d'environnement
 
 #### D8. `REDIS_URL` absente de `.env.example`
+> ⚠️ OBSOLETE — `REDIS_URL` a ete ajoutee dans `.env.example`.
+
 - **Fichier** : `.env.example`
 - **Description** : `REDIS_URL` est requise en production (`config.py:246-251`) pour le rate limit distribue, mais n'est pas documentee dans `.env.example`. Un deployeur ne sait pas qu'il doit la configurer.
 - **Impact** : Crash au demarrage en production si `REDIS_URL` est absente.
@@ -312,12 +378,14 @@ total = user.total_points
 **Recommandation** : Remplacer par `.is_(True)` / `.is_(False)` pour eviter les warnings.
 
 ### PR3. Duplication du pattern `getBackendUrl()` (4 occurrences)
+> ⚠️ OBSOLETE — traite par `DRY-1` avec `frontend/lib/api/backendUrl.ts`.
 
 Chaque route API Next.js (`chat/route.ts`, `chat/stream/route.ts`, `exercises/generate-ai-stream/route.ts`, `challenges/generate-ai-stream/route.ts`) reimplemente la meme logique de resolution de l'URL backend avec des variations (certaines valident la production, d'autres non -- cf. B10).
 
 **Recommandation** : Extraire dans un `lib/api/backendUrl.ts` partage.
 
 ### PR4. Absence systematique de `done` event dans le flux SSE exercices
+> ⚠️ OBSOLETE — traite par `DRY-2`.
 
 Le flux defis emet un `data: {"type": "done"}` final (challenge_ai_service.py:495), mais le flux exercices (`exercise_ai_service.py`) n'emet jamais de `done`. Le frontend se fie a la fermeture du stream pour detecter la fin.
 
@@ -341,31 +409,31 @@ Le parametre `challenge_type=metrics_key` est nomme `challenge_type` mais reÃ§
 
 | # | Action | Fichier(s) | Impact | Statut |
 |---|--------|-----------|--------|--------|
-| 1 | Corriger la fuite memoire du TokenTracker (rotation/plafond) | `token_tracker.py` | Stabilite prod | ❌ Ouvert |
-| 2 | Ajouter auth sur les routes chat proxy | `chat/route.ts`, `chat/stream/route.ts` | Securite | ❌ Ouvert |
-| 3 | Ajouter `REDIS_URL` dans `.env.example` | `.env.example` | Deployabilite | ✅ CORRIGÉ 23/03/2026 |
-| 4 | Corriger `auto_correct_challenge` NPE | `challenge_validator.py:527` | Correction auto | ❌ Ouvert |
-| 5 | Ajouter timeout+retry au flux exercices IA | `exercise_ai_service.py` | Resilience | ❌ Ouvert |
+| 1 | Requalifier `TokenTracker` vers une metrique persistante / distribuee | `token_tracker.py` | Observabilite runtime | ❌ Ouvert |
+| 2 | Extraire/consolider les payloads utilisateur | `auth_session_service.py` | Maintenabilite | ❌ Ouvert |
+| 3 | Clarifier la doc/invariants gamification concurrence | `gamification_service.py`, ADR | Operabilite | ❌ Ouvert |
+| 4 | Documenter scripts operatoires et variables backend/Sentry | `scripts/`, docs env/ops | Documentation | ❌ Ouvert |
+| 5 | Stabiliser les conventions transverses (`user attrs`, bool SQLAlchemy, workload key`) | multi-fichiers | Lisibilite | ❌ Ouvert |
 
 ### Priorite 2 -- Impact eleve, effort moyen (3-5 jours)
 
 | # | Action | Fichier(s) | Impact | Statut |
 |---|--------|-----------|--------|--------|
-| 6 | Unifier le double filtrage `is_active`/`is_archived` | `challenge_service.py` | Correctness | ❌ Ouvert |
+| 6 | Extraire stats/tentatives hors de `challenge_service.py` | `challenge_service.py` + services dedies | Maintenabilite | ❌ Ouvert |
 | 7 | Unifier les payloads utilisateur en un helper | `auth_session_service.py` | Maintenabilite | ❌ Ouvert |
-| 8 | Extraire `getBackendUrl()` dans un module partage frontend | Routes API Next.js | DRY | ❌ Ouvert |
-| 9 | Ajouter `GamificationService.apply_points` aux exercices | `exercise_attempt_service.py` | Completude produit | ✅ CORRIGÉ 23/03/2026 |
-| 10 | Migrer TokenTracker vers table SQL | `token_tracker.py` | Observabilite | ❌ Ouvert |
+| 8 | Ajouter un ADR pour les invariants du ledger / concurrence | `docs/05-ADR/` | Documentation architecture | ❌ Ouvert |
+| 9 | Documenter formellement l'absence de schema OpenAPI auto-genere | docs API / ops | Documentation API | ❌ Ouvert |
+| 10 | Etendre la persistance / distribution des metriques runtime IA | `token_tracker.py`, `generation_metrics.py` | Observabilite | ❌ Ouvert |
 
 ### Priorite 3 -- Impact moyen, effort important (1-2 semaines)
 
 | # | Action | Fichier(s) | Impact | Statut |
 |---|--------|-----------|--------|--------|
 | 11 | Unifier les policies modele IA (exercices/defis) | `ai_config.py`, `ai_generation_policy.py` | Architecture | ❌ Ouvert |
-| 12 | Creer des ADR pour les decisions cles | `docs/05-ADR/` | Documentation | ✅ CORRIGÉ — ADR-001 créé 23/03/2026 ; ouvrir des ADRs supplémentaires si nouvelles décisions structurelles |
-| 13 | Ajouter des tests pour les proxies SSE | `frontend/app/api/` | Couverture | ❌ Ouvert |
-| 14 | Implementer un circuit-breaker OpenAI | Nouveau module | Resilience | ❌ Ouvert |
-| 15 | Generer un schema OpenAPI | Infrastructure | Documentation API | ❌ Ouvert |
+| 12 | Ajouter les ADRs structurels encore manquants (policies IA, sessions DB, metrics runtime) | `docs/05-ADR/` | Documentation | ❌ Ouvert |
+| 13 | Rendre le circuit breaker et les metriques IA distribuables / persistants si necessaire | resilience/ops | Scalabilite | ❌ Ouvert |
+| 14 | Generer un schema OpenAPI ou documenter formellement l'absence de schema auto-genere | Infrastructure | Documentation API | ❌ Ouvert |
+| 15 | Documenter les scripts de maintenance et les variables Sentry backend | `scripts/`, docs env/ops | Documentation operatoire | ❌ Ouvert |
 
 ---
 

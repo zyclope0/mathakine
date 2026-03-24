@@ -132,10 +132,13 @@ En EdTech 2026, la métrique clé d'activation est l'accès à la valeur pédago
 
 | Amélioration | Complexité | Impact |
 |--------------|------------|--------|
-| **DRY exercices/challenges** (ContentCardBase, usePaginatedContent) | Partiel déjà fait | Bonne base |
-| **Centraliser la logique "completed"** (useCompletedItems) | Faible | Déjà en place |
+| **DRY exercices/challenges** (ContentCardBase, usePaginatedContent) | ✅ Renforce | `usePaginatedContent` calcule maintenant `hasMore` cote client ; la base DRY est active et exploitee |
+| **Centraliser la logique "completed"** (useCompletedItems) | ✅ Renforce | Hook commun conserve, lookup optimise via `Set.has()` |
 | **Unifier les filtres** (exercises/challenges) en composant réutilisable | Faible | Lisibilité |
 | **handleRefresh dashboard** (invalidation complète) | Faible | Corrigé |
+
+**Note 24/03/2026 - dashboard recommandations**
+- `Recommendations.tsx` n'affiche plus toute la liste sans borne : affichage initial limite a 6 items avec toggle local `Voir plus / Voir moins`.
 
 ---
 

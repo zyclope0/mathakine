@@ -27,8 +27,8 @@ Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenge
 
 **Retirés de la Vue d'ensemble :** LeaderboardWidget (déjà dans navbar), LevelEstablishedWidget, bloc Stats
 
-**Composants liés (16/02)** :
-- **Recommendations** (onglet Recommandations) — bouton ✓ « Marquer comme fait » via `POST /api/recommendations/complete`, hook `useRecommendations` (mutation `complete`)
+**Composants liés (16/02, MAJ 24/03/2026)** :
+- **Recommendations** (onglet Recommandations) — bouton ✓ « Marquer comme fait » via `POST /api/recommendations/complete`, hook `useRecommendations` (mutation `complete`), affichage initial borne a 6 cartes avec toggle local `Voir plus / Voir moins`
 
 ---
 
@@ -333,6 +333,7 @@ Les endpoints sont **déjà opérationnels** (implémentés lors de l'unificatio
 - ✅ Badge "Excellent" pour accuracy >= 90%
 - ✅ Légende explicative avec points colorés
 - ✅ Traduction des noms de catégories via `next-intl`
+- ✅ Recalcul des libelles au changement de langue apres le premier rendu (non-regression testee)
 - ✅ **Multi-thème** : Classes CSS variables qui s'adaptent automatiquement
 
 ---

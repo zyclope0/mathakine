@@ -1,8 +1,8 @@
 ﻿# Features Docs - Scope and Truth
 
 > Folder status index for `docs/02-FEATURES`
-> Updated: 2026-03-23
-> Truth review: roadmap + badges + workflow + API quick reference realigned with code on 2026-03-23
+> Updated: 2026-03-24
+> Truth review: roadmap + workflow + API quick reference + i18n + dashboard widget notes + AI generation client notes realigned with code on 2026-03-24
 
 ## Purpose
 
@@ -44,7 +44,7 @@ This file defines which document should be trusted for what.
 | [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) | Progress analytics ideation | Historical / partially superseded | F07 exists; F12/F16/F37 now carry active backlog relevance |
 | [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md) | Product/refactoring context | Historical design reference | Truth-reviewed 2026-03-23; use for rationale, not as runtime or priority truth |
 | [THEMES.md](THEMES.md) | Frontend/theme reference | Reference | Keep as supporting design/system note |
-| [I18N.md](I18N.md) | Internationalization reference | Reference | System-level reference, not feature backlog |
+| [I18N.md](I18N.md) | Internationalization reference | Reference | System-level reference; includes `LocaleInitializer` runtime/lang sync note and test coverage |
 | [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) | Prototype asset | Prototype | Not implemented; kept outside the feature corpus because it is a static HTML prototype only |
 
 ## Rationalized Usage

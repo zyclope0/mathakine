@@ -31,6 +31,7 @@
 - `Recommendation remediation`: closed (`R1`-`R7`)
 - AI lots consolidated on 22/03/2026: `IA10/IA10b`, `IA11a/IA11b`, `IA12`, `IA13a/IA13b` closed; `IA14` remains in cleanup mode. Source project ledger: [PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md](./PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md)
 - `DRY frontend/proxy cleanup`: lots `DRY-1`, `DRY-2`, `DRY-3` closed (shared `backendUrl`, contrat SSE exercices, revue ciblee `exhaustive-deps`)
+- `AT technical cleanup`: lots `AT-1`, `AT-2`, `AT-3`, `AT-4` closed on the treated scope (challenge edge cases, pagination/completion perf, aggregate stats, OpenAI circuit breaker, real Next proxy route tests, explicit auth/CSRF request failures)
 
 ## Active References
 
@@ -44,6 +45,7 @@
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 | [PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md](./PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md) | AI lot ledger and historical sequence |
 | [AUDIT_DRY_2026-03-23.md](./AUDIT_DRY_2026-03-23.md) | DRY audit and closure tracker (`DRY-1` -> `DRY-3`) |
+| [AUDIT_TECHNIQUE_2026-03-22.md](./AUDIT_TECHNIQUE_2026-03-22.md) | historical technical review snapshot, now reduced to the remaining live backlog after `AT-1` -> `AT-4` |
 | [evaluation/AI_GENERATION_HARNESS.md](./evaluation/AI_GENERATION_HARNESS.md) | harness usage and persistence |
 
 ## Historical Recaps

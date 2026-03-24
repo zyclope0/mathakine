@@ -40,6 +40,18 @@ Moteur reco après **R** : règles heuristiques bornées et chemins testés ; **
 - Gate standard backend (même commande que la section post-I) -> **`991 passed, 2 skipped`**
 - Frontend (depuis `frontend/`) : Vitest `useRecommendationsReason` -> **`3 passed`** ; `npm run lint`, `npm run format:check`, `npm run build` -> **green**
 
+## Post-AT Hardening Closure (2026-03-24)
+
+Les micro-lots `AT-1` a `AT-4` ont ferme la plupart des findings encore vivants du snapshot `AUDIT_TECHNIQUE_2026-03-22.md` sur le scope traite.
+
+- `AT-1` : correction des edge cases backend challenges (`auto_correct_challenge`, variable morte, semantique `active_only` unifiee entre liste et comptage).
+- `AT-2` : optimisations frontend locales (`useCompletedItems` via `Set.has()`, `usePaginatedContent` calcule `hasMore`, recommandations dashboard bornees a 6 items avec toggle local).
+- `AT-3` : `get_challenge_stats` passe en requete agregee atomique ; un circuit breaker OpenAI process-local protege des indisponibilites amont sur les workloads pedagogiques SSE.
+- `AT-4` : vraies suites de tests pour les routes proxy Next.js et clarification des erreurs auth/CSRF/backend de generation IA cote frontend.
+
+Limite assumee :
+- le circuit breaker OpenAI reste local au process. Il ameliore la resilience par worker, mais ne constitue pas une coordination distribuee multi-instance.
+
 ## Active Architecture Notes
 
 ### Diagnostic
@@ -64,6 +76,16 @@ Moteur reco après **R** : règles heuristiques bornées et chemins testés ; **
 - frontend Sentry sends errors, traces, and Replay through `/monitoring`
 - frontend Replay defaults are `0.1` baseline sessions and `1.0` on error
 - Sentry release correlation should use the deployed commit via `SENTRY_RELEASE` / `NEXT_PUBLIC_SENTRY_RELEASE`
+
+### AI runtime hardening
+
+- frontend proxy routes (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont maintenant couverts par des tests de handlers Next.js au niveau route, pas seulement par des tests de helper
+- les flux pedagogiques SSE utilisent un circuit breaker process-local partage pour eviter de relancer indefiniment des appels OpenAI manifestement indisponibles
+- les erreurs de generation IA cote frontend distinguent maintenant explicitement :
+  - CSRF absent
+  - session expiree / non authentifiee (`401`)
+  - acces refuse (`403`)
+  - erreur backend generique
 
 ### Rate limiting
 

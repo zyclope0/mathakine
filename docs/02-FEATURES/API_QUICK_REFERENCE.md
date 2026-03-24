@@ -76,7 +76,7 @@ Contract note:
 | GET | `/api/exercises/interleaved-plan` | interleaved plan |
 | GET | `/api/exercises/{exercise_id}` | exercise detail |
 | POST | `/api/exercises/generate` | active generation route |
-| POST | `/api/exercises/generate-ai-stream` | AI generation SSE (JSON body: `exercise_type`, `age_group`, `prompt`; optional legacy `difficulty` → `age_group`) ; evenements `status`, `exercise`, `error`, `done` — `done` est emis sur succes nominal et fins gerees (`error` validation / persistance) |
+| POST | `/api/exercises/generate-ai-stream` | AI generation SSE (JSON body: `exercise_type`, `age_group`, `prompt`; optional legacy `difficulty` → `age_group`) ; evenements `status`, `exercise`, `error`, `done` — `done` est emis sur succes nominal et fins gerees (`error` validation / persistance). Cote frontend, le client explicite maintenant les echecs `401`, `403`, CSRF manquant et backend generique avant affichage toast. |
 | GET | `/api/exercises/completed-ids` | completed ids |
 | POST | `/api/exercises/{exercise_id}/attempt` | submit answer (see note below) |
 
@@ -91,7 +91,7 @@ Contract note:
 | POST | `/api/challenges/{challenge_id}/attempt` | submit answer |
 | GET | `/api/challenges/{challenge_id}/hint` | hint |
 | GET | `/api/challenges/completed-ids` | completed ids |
-| POST | `/api/challenges/generate-ai-stream` | AI generation SSE (JSON body: `challenge_type`, `age_group`, `prompt`) ; événements `status`, `warning`, `challenge`, `error`, `done` — si la validation finale échoue après auto-correction : `error` puis `done`, **pas** d’événement `challenge` ni persistance |
+| POST | `/api/challenges/generate-ai-stream` | AI generation SSE (JSON body: `challenge_type`, `age_group`, `prompt`) ; événements `status`, `warning`, `challenge`, `error`, `done` — si la validation finale échoue après auto-correction : `error` puis `done`, **pas** d’événement `challenge` ni persistance. Cote frontend, le client explicite maintenant les echecs `401`, `403`, CSRF manquant et backend generique avant affichage toast. |
 | GET | `/api/challenges/badges/progress` | challenge badge progress |
 
 ## Badges
@@ -169,7 +169,7 @@ Contract note:
 | POST | `/api/recommendations/generate` | generate recommendations |
 | POST | `/api/recommendations/complete` | mark recommendation complete |
 | POST | `/api/chat` | public chat, rate limited |
-| POST | `/api/chat/stream` | public chat SSE, rate limited; runtime model policy and cost observability are described in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md` |
+| POST | `/api/chat/stream` | public chat SSE, rate limited; runtime model policy and cost observability are described in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`. Le proxy Next est maintenant teste directement, y compris la garde de configuration backend invalide. |
 | GET | `/health` | backend health |
 | GET | `/robots.txt` | robots |
 | GET | `/metrics` | Prometheus metrics |

@@ -36,11 +36,13 @@ export function useCompletedExercises() {
     retry: 1,
   });
 
+  const completedSet = useMemo(() => new Set<number>(data ?? []), [data]);
+
   return {
     completedIds: data || [],
     isLoading,
     error,
-    isCompleted: (exerciseId: number) => (data || []).includes(exerciseId),
+    isCompleted: (exerciseId: number) => completedSet.has(exerciseId),
   };
 }
 

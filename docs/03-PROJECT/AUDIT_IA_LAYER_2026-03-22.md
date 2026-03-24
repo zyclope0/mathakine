@@ -6,8 +6,13 @@
 
 - `M-5` ferme : le flux SSE exercices emet maintenant `done` sur les fins controlees (succes, echec validation gere, echec persistance gere).
 - `m-1` ferme : les 4 routes proxy Next.js utilisent maintenant le helper partage `frontend/lib/api/backendUrl.ts`.
+- `P4-3` ferme : un circuit breaker OpenAI process-local protege maintenant les workloads pedagogiques SSE contre les pannes amont repetitives.
+- `AT-4/T2` ferme : les routes proxy Next.js (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont maintenant couvertes par des tests de handlers.
+- `AT-4/F3` ferme : le client frontend de generation IA distingue maintenant explicitement CSRF manquant, `401`, `403` et erreur backend generique.
 - Le point "chat public sans auth" reste **assume comme decision produit** ; il ne doit plus etre relu comme bug correctif.
 - Des tests frontend ont ete ajoutes pour verrouiller les deux corrections DRY-3 associees a cette passe (`LocaleInitializer`, `CategoryAccuracyChart`) et le timeout de `AdminAiMonitoringPage.test.tsx` a ete stabilise.
+
+> ⚠️ Le corps historique ci-dessous surestime encore plusieurs ecarts deja fermes entre workloads. Pour la verite runtime actuelle sur retry, timeout, breaker, contrats SSE et observabilite, lire en priorite [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 ## Verdict global
 
