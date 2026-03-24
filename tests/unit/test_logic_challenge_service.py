@@ -1302,6 +1302,9 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
         patch(
             "app.services.progress.daily_challenge_service.record_logic_challenge_completed"
         ) as daily_mock,
+        patch(
+            "app.services.challenges.challenge_attempt_service.GamificationService.apply_points"
+        ) as apply_points_mock,
     ):
         result = LogicChallengeService.submit_answer_result(
             mock_db,
@@ -1330,6 +1333,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
         assert call_args.kwargs == {"auto_commit": False}
     streak_mock.assert_called_once_with(mock_db, 9, auto_commit=False)
     daily_mock.assert_called_once_with(mock_db, 9, True)
+    apply_points_mock.assert_called_once()
     streak_savepoint.commit.assert_called_once()
     daily_savepoint.commit.assert_called_once()
     mock_db.commit.assert_called_once()

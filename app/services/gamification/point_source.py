@@ -8,4 +8,5 @@ class PointEventSourceType(StrEnum):
 
     BADGE_AWARDED = "badge_awarded"
     EXERCISE_COMPLETED = "exercise_completed"
+    LOGIC_CHALLENGE_COMPLETED = "logic_challenge_completed"
     DAILY_CHALLENGE_COMPLETED = "daily_challenge_completed"

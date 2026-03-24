@@ -21,6 +21,9 @@ from app.schemas.logic_challenge import (
 )
 from app.services.challenges.challenge_answer_service import check_answer
 from app.services.challenges.logic_challenge_service import LogicChallengeService
+from app.services.exercises.exercise_attempt_service import POINTS_PER_CORRECT_EXERCISE
+from app.services.gamification.gamification_service import GamificationService
+from app.services.gamification.point_source import PointEventSourceType
 from app.services.progress.streak_service import update_user_streak
 
 logger = get_logger(__name__)
@@ -82,6 +85,22 @@ def _execute_attempt(
 
     new_badges: list[ChallengeBadgeEarned] = []
     if is_correct:
+        try:
+            # Pas de savepoint dédié : aligné sur exercise_attempt_service (apply_points direct).
+            GamificationService.apply_points(
+                db,
+                cmd.user_id,
+                POINTS_PER_CORRECT_EXERCISE,
+                PointEventSourceType.LOGIC_CHALLENGE_COMPLETED,
+                source_id=cmd.challenge_id,
+            )
+        except Exception as gamif_err:
+            logger.error(
+                "Gamification error on challenge %s: %s",
+                cmd.challenge_id,
+                gamif_err,
+            )
+
         try:
             from app.services.badges.badge_service import BadgeService
 
