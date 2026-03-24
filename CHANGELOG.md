@@ -37,6 +37,18 @@ Active references:
 
 ## [Unreleased]
 
+### Changed
+- Frontend proxy routes now resolve the Python backend through a shared `frontend/lib/api/backendUrl.ts` helper instead of four divergent local implementations.
+- Exercise AI SSE now emits an explicit terminal `done` event on controlled success, validation failure and persistence failure paths, aligning the contract more closely with challenges.
+- A targeted `react-hooks/exhaustive-deps` review was completed on the treated frontend scope: real latent bugs were fixed (`LocaleInitializer`, `CategoryAccuracyChart`) and intentional disables were documented instead of removed blindly.
+
+### Added
+- Frontend tests now cover `LocaleInitializer` (`html[lang]` synchronization) and `CategoryAccuracyChart` (i18n rerender of radar labels).
+
+### Fixed
+- Production proxy configuration now fails fast on malformed or loopback backend URLs instead of silently drifting to unusable values.
+- The flaky unit test for `AdminAiMonitoringPage` was stabilized by removing unnecessary heavy runtime imports and mocking non-essential UI/layout wrappers.
+
 ## [3.3.0-alpha.2] - 2026-03-24
 
 ### Added

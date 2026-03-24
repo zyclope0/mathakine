@@ -1,7 +1,7 @@
 ﻿# Project Governance - Mathakine
 
 > Project master index
-> Updated: 23/03/2026
+> Updated: 24/03/2026
 
 ## Read First
 
@@ -30,6 +30,7 @@
 - `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: closed (`I1`-`I8`)
 - `Recommendation remediation`: closed (`R1`-`R7`)
 - AI lots consolidated on 22/03/2026: `IA10/IA10b`, `IA11a/IA11b`, `IA12`, `IA13a/IA13b` closed; `IA14` remains in cleanup mode. Source project ledger: [PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md](./PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md)
+- `DRY frontend/proxy cleanup`: lots `DRY-1`, `DRY-2`, `DRY-3` closed (shared `backendUrl`, contrat SSE exercices, revue ciblee `exhaustive-deps`)
 
 ## Active References
 
@@ -42,6 +43,7 @@
 | [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | architecture clean recap |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 | [PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md](./PILOTAGE_IA_GENERATION_EXERCICES_DEFIS_2026-03-21.md) | AI lot ledger and historical sequence |
+| [AUDIT_DRY_2026-03-23.md](./AUDIT_DRY_2026-03-23.md) | DRY audit and closure tracker (`DRY-1` -> `DRY-3`) |
 | [evaluation/AI_GENERATION_HARNESS.md](./evaluation/AI_GENERATION_HARNESS.md) | harness usage and persistence |
 
 ## Historical Recaps

@@ -4,9 +4,9 @@
 
 ---
 
-## 0. Corrections post-audit appliquées (23/03/2026)
+## 0. Corrections post-audit appliquées (23-24/03/2026)
 
-Suivi des findings de cet audit traités dans la session du 23/03/2026.
+Suivi des findings de cet audit traités dans les sessions du 23 et du 24/03/2026.
 
 | Ref | Finding | Statut | Commit / Référence |
 |-----|---------|--------|--------------------|
@@ -16,17 +16,21 @@ Suivi des findings de cet audit traités dans la session du 23/03/2026.
 | **D5** | Endpoints gamification non documentés dans `API_QUICK_REFERENCE` | ✅ CORRIGÉ | Section gamification ajoutée (06/03/2026) — `point_events`, `apply_points`, surfaces `/me` + `/api/badges/stats` |
 | **D6** | Pas d'ADR pour les décisions d'architecture | ✅ CORRIGÉ | `docs/05-ADR/` créé + `ADR-001-starlette-vs-fastapi.md` (23/03/2026) |
 | **D8** | `REDIS_URL` absente de `.env.example` | ✅ CORRIGÉ | Section "Rate Limiting (Redis)" ajoutée dans `.env.example` avec commentaire crash prod (23/03/2026) |
+| **B5** | Condition tautologique `!backendResponse.ok && status !== 200` | ✅ CORRIGÉ | DRY-1 — simplifié en `if (!backendResponse.ok)` |
+| **B8 / B10** | Résolution backend divergente + `chat/stream` sans guard prod | ✅ CORRIGÉ | DRY-1 — helper partagé `frontend/lib/api/backendUrl.ts`, fallback localhost réservé au dev, validation URL prod explicite |
+| **PR4** | Pas de `done` dans le flux SSE exercices | ✅ CORRIGÉ | DRY-2 — `done` émis sur succès et fins gérées (validation/persistance) |
 | — | Logs SMTP/email exposent PII (`to_email`, `smtp_user`) | ✅ CORRIGÉ (hors audit initial) | `fix(security): mask PII in SMTP/email service logs` — helpers `_mask_email()` + `_mask_user()` dans `email_service.py` |
+| **B4** | Routes chat proxy sans auth | ✅ REQUALIFIÉ | Décision produit assumée : chat public rate-limité ; non traité comme bug correctif |
 
 **Score réestimé post-corrections** : ~7.8–8.0 / 10 (T1 + A4 + P4 étaient les 3 findings les plus critiques de cet audit).
 
-**Encore ouvert (priorité conservée)** : B1 (fuite mémoire TokenTracker), B2 (double filtrage is_active/is_archived), B4 (chat sans auth), B6 (NPE auto_correct_challenge), D8 (REDIS_URL), P1 (timeout exercices IA), P5 (circuit-breaker).
+**Encore ouvert (priorité conservée)** : B1 (fuite mémoire TokenTracker), B2 (double filtrage is_active/is_archived), B6 (NPE auto_correct_challenge), P1 (timeout exercices IA), P5 (circuit-breaker).
 
 ---
 
 ## Resume executif
 
-**Score de sante globale : 7.0 / 10** → **~8.0 / 10** post-corrections 23/03/2026 (T1, A4, P4, D5, D6, D8 résolus)
+**Score de sante globale : 7.0 / 10** → **~8.0 / 10** post-corrections 23-24/03/2026 (T1, A4, P4, D5, D6, D8, B5, B8/B10, PR4 résolus)
 
 Le projet Mathakine presente une architecture backend bien structuree (separation service/handler/repository, policies typees, validations AI) et un frontend Next.js convenable. Cependant, l'audit revele des problemes d'ingenierie significatifs qui meritent attention avant le prochain palier de croissance.
 
@@ -36,7 +40,7 @@ Le projet Mathakine presente une architecture backend bien structuree (separatio
 
 2. **Double filtrage contradictoire sur `list_challenges` (MAJEUR)** -- La fonction filtre sur `is_active == True` en dur puis re-filtre via `_apply_challenge_filters` sur `is_archived == False` avec un parametre `active_only`. Les deux filtres coexistent sans coherence, ce qui peut exclure des resultats de facon inattendue.
 
-3. **Endpoints chat sans authentification (MAJEUR)** -- Les routes `/api/chat` et `/api/chat/stream` du proxy Next.js ne verifient aucun cookie d'authentification, contrairement aux routes exercices et defis. Toute personne peut generer du trafic OpenAI sans identification.
+3. **Resilience OpenAI cote exercices (MAJEUR)** -- Les exercices IA gardent des points de fragilite historiques hors micro-lot DRY (timeouts/retry etaient un des enjeux initiaux de cet audit). Le point "chat public sans auth" a ete requalifie depuis comme **decision produit assumee**, pas comme bug correctif.
 
 ---
 

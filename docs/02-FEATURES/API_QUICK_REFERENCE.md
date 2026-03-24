@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 23/03/2026
+> Updated: 24/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -76,7 +76,7 @@ Contract note:
 | GET | `/api/exercises/interleaved-plan` | interleaved plan |
 | GET | `/api/exercises/{exercise_id}` | exercise detail |
 | POST | `/api/exercises/generate` | active generation route |
-| POST | `/api/exercises/generate-ai-stream` | AI generation SSE (JSON body: `exercise_type`, `age_group`, `prompt`; optional legacy `difficulty` → `age_group`) |
+| POST | `/api/exercises/generate-ai-stream` | AI generation SSE (JSON body: `exercise_type`, `age_group`, `prompt`; optional legacy `difficulty` → `age_group`) ; evenements `status`, `exercise`, `error`, `done` — `done` est emis sur succes nominal et fins gerees (`error` validation / persistance) |
 | GET | `/api/exercises/completed-ids` | completed ids |
 | POST | `/api/exercises/{exercise_id}/attempt` | submit answer (see note below) |
 

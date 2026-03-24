@@ -2,6 +2,13 @@
 > ⚠️ OBSOLETE comme source de verite runtime - snapshot historique de revue conserve pour trace.
 > La reference actuelle pour la gouvernance IA runtime et l'observabilite est [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
+## Corrections post-audit appliquees (24/03/2026)
+
+- `M-5` ferme : le flux SSE exercices emet maintenant `done` sur les fins controlees (succes, echec validation gere, echec persistance gere).
+- `m-1` ferme : les 4 routes proxy Next.js utilisent maintenant le helper partage `frontend/lib/api/backendUrl.ts`.
+- Le point "chat public sans auth" reste **assume comme decision produit** ; il ne doit plus etre relu comme bug correctif.
+- Des tests frontend ont ete ajoutes pour verrouiller les deux corrections DRY-3 associees a cette passe (`LocaleInitializer`, `CategoryAccuracyChart`) et le timeout de `AdminAiMonitoringPage.test.tsx` a ete stabilise.
+
 ## Verdict global
 
 | Workload | Score | Justification |

@@ -177,6 +177,25 @@ Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
 
 Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (même origine), comme les flux génération IA — sans réutiliser leurs dispatchers d’événements (schéma différent). Détail : `lib/chat/README.md`.
 
+La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/backendUrl.ts` :
+- priorite `NEXT_PUBLIC_API_BASE_URL`
+- fallback legacy `NEXT_PUBLIC_API_URL`
+- fallback `http://localhost:10000` en developpement uniquement
+- en production : erreur explicite si l'URL est absente, mal formee ou locale (`localhost`, `127.0.0.1`, `::1`)
+
+### Convention SSE IA
+
+- `exercises_ai` : `status`, `exercise`, `error`, `done`
+- `challenges_ai` : `status`, `warning`, `challenge`, `error`, `done`
+- `assistant_chat` : `status`, `chunk`, `image`, `error`, `done`
+
+Pour les exercices, `done` est maintenant emis sur les fins de flux controlees :
+- succes nominal
+- echec validation metier deja transforme en `error`
+- echec persistance deja transforme en `error`
+
+Les exceptions top-level non recuperees restent une fin `error` sans `done`, comme pour les defis.
+
 ---
 
 ## Configuration TypeScript (strict)
@@ -244,3 +263,4 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:10000   # Dev (API Starlette)
 - [PWA](PWA.md) — configuration Progressive Web App
 - [i18n](../02-FEATURES/I18N.md) — internationalisation next-intl
 - [Thèmes](../02-FEATURES/THEMES.md) — 7 thèmes, themeStore
+

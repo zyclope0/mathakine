@@ -2,6 +2,12 @@
 > ⚠️ OBSOLETE comme source de verite runtime - snapshot historique de revue conserve pour trace.
 > La reference actuelle pour la gouvernance IA runtime et l'observabilite est [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
+## Corrections post-review appliquees (24/03/2026)
+
+- Le finding `P1-3` ("pas de done event dans le flux SSE exercices IA") est ferme : `generate_exercise_stream` emet maintenant `done` sur les fins controlees.
+- Le pattern `getBackendUrl()` a ete mutualise dans `frontend/lib/api/backendUrl.ts` pour les 4 routes proxy Next.js, avec garde production explicite.
+- La revue ciblee `react-hooks/exhaustive-deps` est terminee sur le perimetre traite : `LocaleInitializer` et `CategoryAccuracyChart` corriges, autres disables laisses avec justification.
+
 **Auteur** : Revue automatisee (Claude Opus 4.6)
 **Perimetre** : 89 fichiers modifies + ~50 fichiers non-trackes (working tree vs HEAD)
 **Lignes changees** : +2433 / -1985
