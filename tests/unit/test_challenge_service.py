@@ -9,7 +9,12 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
+from app.models.logic_challenge import (
+    AgeGroup,
+    LogicChallenge,
+    LogicChallengeAttempt,
+    LogicChallengeType,
+)
 from app.models.user import User
 
 
@@ -363,3 +368,159 @@ def test_create_challenge_persists_choices_column(db_session):
     )
     db_session.refresh(ch)
     assert ch.choices == choice_list
+
+
+# --- B3 : get_challenge_stats agrégat atomique ---
+
+
+def test_get_challenge_stats_no_attempts_zeros_and_rate(db_session):
+    """Sans tentative : totaux à 0 et success_rate 0.0 (contrat stable)."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import get_challenge_stats
+
+    uid = uuid.uuid4().hex[:8]
+    user = User(
+        username=f"st_{uid}",
+        email=f"st_{uid}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    ch = LogicChallenge(
+        title=f"Stats vides {uid}",
+        description="D",
+        challenge_type=LogicChallengeType.SEQUENCE,
+        age_group=AgeGroup.GROUP_10_12,
+        correct_answer="1",
+        solution_explanation="E",
+        creator_id=user.id,
+        is_active=True,
+        difficulty_rating=4.0,
+    )
+    db_session.add(ch)
+    db_session.commit()
+    db_session.refresh(ch)
+
+    stats = get_challenge_stats(db_session, ch.id)
+    assert stats is not None
+    assert stats["challenge_id"] == ch.id
+    assert stats["title"] == ch.title
+    assert stats["total_attempts"] == 0
+    assert stats["correct_attempts"] == 0
+    assert stats["unique_users"] == 0
+    assert stats["success_rate"] == 0.0
+    assert stats["difficulty_rating"] == 4.0
+
+
+def test_get_challenge_stats_single_aggregate_matches_attempts(db_session):
+    """Tentatives correctes / incorrectes, utilisateurs distincts, success_rate cohérent."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import get_challenge_stats
+
+    uid = uuid.uuid4().hex[:8]
+    u1 = User(
+        username=f"s1_{uid}",
+        email=f"s1_{uid}@test.com",
+        hashed_password="pw",
+    )
+    u2 = User(
+        username=f"s2_{uid}",
+        email=f"s2_{uid}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add_all([u1, u2])
+    db_session.commit()
+    db_session.refresh(u1)
+    db_session.refresh(u2)
+
+    ch = LogicChallenge(
+        title=f"Stats mix {uid}",
+        description="D",
+        challenge_type=LogicChallengeType.PATTERN,
+        age_group=AgeGroup.GROUP_10_12,
+        correct_answer="x",
+        solution_explanation="E",
+        creator_id=u1.id,
+        is_active=True,
+        difficulty_rating=3.5,
+    )
+    db_session.add(ch)
+    db_session.commit()
+    db_session.refresh(ch)
+
+    db_session.add_all(
+        [
+            LogicChallengeAttempt(
+                user_id=u1.id,
+                challenge_id=ch.id,
+                user_solution="bad",
+                is_correct=False,
+            ),
+            LogicChallengeAttempt(
+                user_id=u1.id,
+                challenge_id=ch.id,
+                user_solution="bad2",
+                is_correct=False,
+            ),
+            LogicChallengeAttempt(
+                user_id=u2.id,
+                challenge_id=ch.id,
+                user_solution="bad3",
+                is_correct=False,
+            ),
+            LogicChallengeAttempt(
+                user_id=u2.id,
+                challenge_id=ch.id,
+                user_solution="x",
+                is_correct=True,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    stats = get_challenge_stats(db_session, ch.id)
+    assert stats is not None
+    assert stats["total_attempts"] == 4
+    assert stats["correct_attempts"] == 1
+    assert stats["unique_users"] == 2
+    assert stats["success_rate"] == 25.0
+
+
+def test_get_challenge_stats_inactive_challenge_returns_none(db_session):
+    """get_challenge_stats délègue la résolution du défi à get_challenge (actif seulement)."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import get_challenge_stats
+
+    uid = uuid.uuid4().hex[:8]
+    user = User(
+        username=f"ina_st_{uid}",
+        email=f"ina_st_{uid}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    ch = LogicChallenge(
+        title=f"Inactif stats {uid}",
+        description="D",
+        challenge_type=LogicChallengeType.SEQUENCE,
+        age_group=AgeGroup.GROUP_10_12,
+        correct_answer="1",
+        solution_explanation="E",
+        creator_id=user.id,
+        is_active=False,
+    )
+    db_session.add(ch)
+    db_session.commit()
+    db_session.refresh(ch)
+
+    assert get_challenge_stats(db_session, ch.id) is None

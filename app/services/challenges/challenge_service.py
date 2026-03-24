@@ -12,7 +12,7 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import case, func, or_
+from sqlalchemy import case, distinct, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
@@ -194,7 +194,7 @@ def get_challenge(db: Session, challenge_id: int) -> Optional[LogicChallenge]:
     """
     return (
         db.query(LogicChallenge)
-        .filter(LogicChallenge.id == challenge_id, LogicChallenge.is_active == True)
+        .filter(LogicChallenge.id == challenge_id, LogicChallenge.is_active.is_(True))
         .first()
     )
 
@@ -583,27 +583,22 @@ def get_challenge_stats(db: Session, challenge_id: int) -> Optional[ChallengeSta
     if not challenge:
         return None
 
-    total_attempts = (
-        db.query(LogicChallengeAttempt)
-        .filter(LogicChallengeAttempt.challenge_id == challenge_id)
-        .count()
-    )
-
-    correct_attempts = (
-        db.query(LogicChallengeAttempt)
-        .filter(
-            LogicChallengeAttempt.challenge_id == challenge_id,
-            LogicChallengeAttempt.is_correct == True,
+    # B3 : une seule lecture agrégée (cohérence snapshot vs 3 requêtes séquentielles).
+    stats_row = (
+        db.query(
+            func.count(LogicChallengeAttempt.id).label("total_attempts"),
+            func.count(case((LogicChallengeAttempt.is_correct.is_(True), 1))).label(
+                "correct_attempts"
+            ),
+            func.count(distinct(LogicChallengeAttempt.user_id)).label("unique_users"),
         )
-        .count()
+        .filter(LogicChallengeAttempt.challenge_id == challenge_id)
+        .first()
     )
 
-    unique_users = (
-        db.query(LogicChallengeAttempt.user_id)
-        .filter(LogicChallengeAttempt.challenge_id == challenge_id)
-        .distinct()
-        .count()
-    )
+    total_attempts = int(stats_row.total_attempts or 0) if stats_row else 0
+    correct_attempts = int(stats_row.correct_attempts or 0) if stats_row else 0
+    unique_users = int(stats_row.unique_users or 0) if stats_row else 0
 
     return {
         "challenge_id": challenge_id,
