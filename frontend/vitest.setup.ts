@@ -3,9 +3,11 @@ import { cleanup } from "@testing-library/react";
 import * as React from "react";
 import { afterEach, vi } from "vitest";
 
-// Nettoyer après chaque test
+// Nettoyer après chaque test (jsdom uniquement ; les suites @vitest-environment node n’ont pas `window`)
 afterEach(() => {
-  cleanup();
+  if (typeof window !== "undefined") {
+    cleanup();
+  }
 });
 
 // Mock Next.js router
@@ -28,20 +30,22 @@ vi.mock("next/image", () => ({
   default: (props: React.ComponentProps<"img">) => React.createElement("img", props),
 }));
 
-// Mock window.matchMedia pour les media queries
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+// Mock window.matchMedia pour les media queries (jsdom uniquement)
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
 
 // Mock localStorage
 const localStorageMock = {
