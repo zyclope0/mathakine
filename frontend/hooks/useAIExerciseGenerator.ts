@@ -10,7 +10,9 @@ import { consumeSseJsonEvents } from "@/lib/utils/ssePostStream";
 import { toast } from "sonner";
 import type { Exercise } from "@/types/api";
 import { dispatchExerciseAiSseEvent } from "@/lib/ai/generation/dispatchExerciseAiSseEvent";
+import { getAiGenerationRequestErrorToast } from "@/lib/ai/generation/getAiGenerationRequestErrorToast";
 import {
+  AiGenerationRequestError,
   postAiGenerationSse,
   AI_GENERATION_SSE_PATH,
 } from "@/lib/ai/generation/postAiGenerationSse";
@@ -130,6 +132,22 @@ export function useAIExerciseGenerator({
       );
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
+        return;
+      }
+      if (e instanceof AiGenerationRequestError) {
+        setStreamedText("");
+        const { title, description } = getAiGenerationRequestErrorToast(e, t);
+        toast.error(title, {
+          description,
+          ...(e.code === "http_401" || e.code === "csrf_token_missing"
+            ? {
+                action: {
+                  label: t("aiGenerator.login"),
+                  onClick: () => router.push("/login"),
+                },
+              }
+            : {}),
+        });
         return;
       }
       setStreamedText("");

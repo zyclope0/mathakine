@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import type { Challenge } from "@/types/api";
 import { dispatchChallengeAiSseEvent } from "@/lib/ai/generation/dispatchChallengeAiSseEvent";
 import { consumeSseJsonEvents } from "@/lib/utils/ssePostStream";
+import { getAiGenerationRequestErrorToast } from "@/lib/ai/generation/getAiGenerationRequestErrorToast";
 import {
+  AiGenerationRequestError,
   postAiGenerationSse,
   AI_GENERATION_SSE_PATH,
 } from "@/lib/ai/generation/postAiGenerationSse";
@@ -73,18 +75,6 @@ export function useAIChallengeGenerator({
         abortController.signal
       );
 
-      if (!response.ok) {
-        let description = t("aiGenerator.errorDescription");
-        try {
-          const errBody = (await response.json()) as { error?: string };
-          if (typeof errBody.error === "string") description = errBody.error;
-        } catch {
-          /* ignore */
-        }
-        toast.error(t("aiGenerator.error"), { description });
-        return;
-      }
-
       const contentType = response.headers.get("content-type") ?? "";
       if (!contentType.includes("text/event-stream")) {
         toast.error(t("aiGenerator.connectionError"), {
@@ -116,6 +106,22 @@ export function useAIChallengeGenerator({
         (error instanceof DOMException && error.name === "AbortError");
       if (isAbort) {
         debugLog("[useAIChallengeGenerator] Annulé par l'utilisateur");
+        return;
+      }
+      if (error instanceof AiGenerationRequestError) {
+        setStreamedText("");
+        const { title, description } = getAiGenerationRequestErrorToast(error, t);
+        toast.error(title, {
+          description,
+          ...(error.code === "http_401" || error.code === "csrf_token_missing"
+            ? {
+                action: {
+                  label: t("aiGenerator.login"),
+                  onClick: () => router.push("/login"),
+                },
+              }
+            : {}),
+        });
         return;
       }
       debugError("[useAIChallengeGenerator] Erreur génération:", error);

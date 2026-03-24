@@ -369,7 +369,15 @@
       "login": "Log in",
       "warningTitle": "Warning",
       "warningFallback": "The server reported a warning.",
-      "exerciseNotPersisted": "The exercise could not be saved (missing id). Please try again later."
+      "exerciseNotPersisted": "The exercise could not be saved (missing id). Please try again later.",
+      "errorCsrfTitle": "Session protection missing",
+      "errorCsrfDescription": "Refresh the page or sign in again to renew security.",
+      "errorSessionTitle": "Session expired",
+      "errorSessionDescription": "Sign in again to generate content with AI.",
+      "errorAccessTitle": "Access denied",
+      "errorAccessDescription": "This action was not allowed. Refresh the page or check your account.",
+      "errorBackendTitle": "Service temporarily unavailable",
+      "errorBackendDescription": "Please try again in a few moments."
     },
     "types": {
       "addition": "Addition",
@@ -512,7 +520,15 @@
       "login": "Log in",
       "warningTitle": "Warning",
       "warningFallback": "The server reported a warning.",
-      "challengeNotPersisted": "The challenge could not be saved (missing id). Please try again later."
+      "challengeNotPersisted": "The challenge could not be saved (missing id). Please try again later.",
+      "errorCsrfTitle": "Session protection missing",
+      "errorCsrfDescription": "Refresh the page or sign in again to renew security.",
+      "errorSessionTitle": "Session expired",
+      "errorSessionDescription": "Sign in again to generate content with AI.",
+      "errorAccessTitle": "Access denied",
+      "errorAccessDescription": "This action was not allowed. Refresh the page or check your account.",
+      "errorBackendTitle": "Service temporarily unavailable",
+      "errorBackendDescription": "Please try again in a few moments."
     },
     "list": {
       "loading": "Loading...",

@@ -369,7 +369,15 @@
       "login": "Se connecter",
       "warningTitle": "Avertissement",
       "warningFallback": "Le serveur a signalé un avertissement.",
-      "exerciseNotPersisted": "L'exercice n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard."
+      "exerciseNotPersisted": "L'exercice n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard.",
+      "errorCsrfTitle": "Protection de session absente",
+      "errorCsrfDescription": "Rechargez la page ou reconnectez-vous pour renouveler la sécurité.",
+      "errorSessionTitle": "Session expirée",
+      "errorSessionDescription": "Reconnectez-vous pour générer du contenu avec l’IA.",
+      "errorAccessTitle": "Accès refusé",
+      "errorAccessDescription": "Cette action n’a pas été autorisée. Rechargez la page ou vérifiez votre compte.",
+      "errorBackendTitle": "Service temporairement indisponible",
+      "errorBackendDescription": "Réessayez dans quelques instants."
     },
     "types": {
       "addition": "Addition",
@@ -512,7 +520,15 @@
       "login": "Se connecter",
       "warningTitle": "Avertissement",
       "warningFallback": "Le serveur a signalé un avertissement.",
-      "challengeNotPersisted": "Le défi n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard."
+      "challengeNotPersisted": "Le défi n'a pas pu être enregistré (identifiant manquant). Réessayez plus tard.",
+      "errorCsrfTitle": "Protection de session absente",
+      "errorCsrfDescription": "Rechargez la page ou reconnectez-vous pour renouveler la sécurité.",
+      "errorSessionTitle": "Session expirée",
+      "errorSessionDescription": "Reconnectez-vous pour générer du contenu avec l’IA.",
+      "errorAccessTitle": "Accès refusé",
+      "errorAccessDescription": "Cette action n’a pas été autorisée. Rechargez la page ou vérifiez votre compte.",
+      "errorBackendTitle": "Service temporairement indisponible",
+      "errorBackendDescription": "Réessayez dans quelques instants."
     },
     "list": {
       "loading": "Chargement...",
