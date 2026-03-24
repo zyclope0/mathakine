@@ -773,6 +773,8 @@
       "challenge": "Logic challenge",
       "startChallenge": "Take the challenge",
       "markDone": "Mark as done",
+      "showMore": "Show more",
+      "showLess": "Show less",
       "reasons": {
         "codes": {
           "reco_challenge_onboarding": "Start with a {challengeType} challenge to ease into logic puzzles.",

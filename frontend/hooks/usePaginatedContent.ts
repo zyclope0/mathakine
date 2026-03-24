@@ -63,6 +63,8 @@ export function usePaginatedContent<T>(
 
   const skip = filters?.skip ?? 0;
   const limit = filters?.limit ?? defaultLimit;
+  const skipForPagination =
+    typeof skip === "number" ? skip : Number.parseInt(String(skip), 10) || 0;
 
   const { data, isLoading, isFetching, error } = useQuery<PaginatedResponse<T>>({
     queryKey: [
@@ -105,10 +107,14 @@ export function usePaginatedContent<T>(
     retry: 2,
   });
 
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const hasMore = skipForPagination + items.length < total;
+
   return {
-    items: data?.items ?? [],
-    total: data?.total ?? 0,
-    hasMore: data?.hasMore ?? false,
+    items,
+    total,
+    hasMore,
     isLoading,
     isFetching,
     error,

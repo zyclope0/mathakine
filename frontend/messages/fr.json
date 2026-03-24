@@ -760,6 +760,8 @@
       "challenge": "Défi logique",
       "startChallenge": "Relever le défi",
       "markDone": "Marquer comme fait",
+      "showMore": "Voir plus",
+      "showLess": "Voir moins",
       "reasons": {
         "codes": {
           "reco_challenge_onboarding": "Démarrez avec un défi {challengeType} pour prendre en main la logique.",

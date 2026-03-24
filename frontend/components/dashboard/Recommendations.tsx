@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +15,12 @@ import { cn } from "@/lib/utils";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
 
+const INITIAL_RECOMMENDATIONS_VISIBLE = 6;
+
 export function Recommendations() {
   const { recommendations, isLoading, generate, isGenerating, complete, isCompleting, recordOpen } =
     useRecommendations();
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const t = useTranslations("dashboard.recommendations");
   const tReason = useTranslations("dashboard.recommendations.reasons");
   const tCommon = useTranslations("common");
@@ -25,6 +29,12 @@ export function Recommendations() {
   const handleRefresh = async () => {
     await generate();
   };
+
+  const hasRecommendationOverflow = recommendations.length > INITIAL_RECOMMENDATIONS_VISIBLE;
+  const visibleRecommendations =
+    showAllRecommendations || !hasRecommendationOverflow
+      ? recommendations
+      : recommendations.slice(0, INITIAL_RECOMMENDATIONS_VISIBLE);
 
   return (
     <Card className="border-primary/20 bg-card/40 backdrop-blur-md">
@@ -67,7 +77,7 @@ export function Recommendations() {
           </div>
         ) : recommendations && recommendations.length > 0 ? (
           <div className="space-y-3">
-            {recommendations.map((recommendation: Recommendation, index) => {
+            {visibleRecommendations.map((recommendation: Recommendation, index) => {
               const isChallenge =
                 recommendation.recommendation_type === "challenge" || !!recommendation.challenge_id;
               const exerciseTypeDisplay = isChallenge
@@ -186,6 +196,31 @@ export function Recommendations() {
                 </div>
               );
             })}
+            {hasRecommendationOverflow && (
+              <div className="flex justify-center pt-1">
+                {!showAllRecommendations ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground min-h-11 px-4"
+                    onClick={() => setShowAllRecommendations(true)}
+                  >
+                    {t("showMore", { default: "Voir plus" })}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground min-h-11 px-4"
+                    onClick={() => setShowAllRecommendations(false)}
+                  >
+                    {t("showLess", { default: "Voir moins" })}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-10 text-muted-foreground">

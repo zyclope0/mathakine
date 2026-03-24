@@ -86,4 +86,77 @@ describe("usePaginatedContent", () => {
 
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2));
   });
+
+  it("déduit hasMore à true quand skip + items.length < total même sans champ hasMore API", async () => {
+    const { api } = await import("@/lib/api/client");
+    vi.mocked(api.get).mockResolvedValue({
+      items: Array.from({ length: 15 }, (_, i) => ({ id: i })),
+      total: 40,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePaginatedContent<{ id: number }>(
+          { skip: 0, limit: 15 },
+          {
+            endpoint: "/api/paginated-has-more",
+            queryKey: "paginated-has-more",
+            staleTime: 60_000,
+          }
+        ),
+      { wrapper: createWrapper() }
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(15));
+    expect(result.current.total).toBe(40);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it("déduit hasMore à false quand skip + items.length >= total", async () => {
+    const { api } = await import("@/lib/api/client");
+    vi.mocked(api.get).mockResolvedValue({
+      items: [{ id: 1 }],
+      total: 1,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePaginatedContent<{ id: number }>(
+          { skip: 0, limit: 15 },
+          {
+            endpoint: "/api/paginated-end",
+            queryKey: "paginated-end",
+            staleTime: 60_000,
+          }
+        ),
+      { wrapper: createWrapper() }
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it("déduit hasMore à false sur la dernière page partielle", async () => {
+    const { api } = await import("@/lib/api/client");
+    vi.mocked(api.get).mockResolvedValue({
+      items: [{ id: 3 }],
+      total: 3,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePaginatedContent<{ id: number }>(
+          { skip: 2, limit: 15 },
+          {
+            endpoint: "/api/paginated-last-page",
+            queryKey: "paginated-last-page",
+            staleTime: 60_000,
+          }
+        ),
+      { wrapper: createWrapper() }
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.hasMore).toBe(false);
+  });
 });

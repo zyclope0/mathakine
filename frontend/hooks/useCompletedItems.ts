@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
@@ -71,10 +72,12 @@ export function useCompletedChallenges() {
     retry: 1,
   });
 
+  const completedSet = useMemo(() => new Set<number>(data ?? []), [data]);
+
   return {
     completedIds: data || [],
     isLoading,
     error,
-    isCompleted: (challengeId: number) => (data || []).includes(challengeId),
+    isCompleted: (challengeId: number) => completedSet.has(challengeId),
   };
 }
