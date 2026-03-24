@@ -226,9 +226,14 @@ def _apply_challenge_filters(
     exclude_ids: Optional[List[int]] = None,
     active_only: bool = True,
 ):
-    """Applique les filtres communs à list_challenges et count_challenges."""
+    """Applique les filtres communs à list_challenges et count_challenges.
+
+    Si active_only est True : uniquement défis actifs (is_active) et non archivés.
+    Si False : aucun filtre sur is_active / is_archived (listing complet / admin).
+    """
     if active_only:
-        query = query.filter(LogicChallenge.is_archived == False)
+        query = query.filter(LogicChallenge.is_active.is_(True))
+        query = query.filter(LogicChallenge.is_archived.is_(False))
 
     challenge_type_db = (
         adapt_enum_for_db("LogicChallengeType", challenge_type)
@@ -361,7 +366,7 @@ def list_challenges(
     Returns:
         Liste de LogicChallenge
     """
-    query = db.query(LogicChallenge).filter(LogicChallenge.is_active == True)
+    query = db.query(LogicChallenge)
     query = _apply_challenge_filters(
         query,
         challenge_type=challenge_type,
@@ -406,7 +411,7 @@ def count_challenges(
     Returns:
         Nombre de challenges correspondant aux filtres
     """
-    query = db.query(LogicChallenge).filter(LogicChallenge.is_active == True)
+    query = db.query(LogicChallenge)
     query = _apply_challenge_filters(
         query,
         challenge_type=challenge_type,

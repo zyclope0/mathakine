@@ -1,4 +1,4 @@
-﻿"""
+"""
 Service de gÃ©nÃ©ration de challenges par IA.
 Extrait la logique de gÃ©nÃ©ration streaming depuis challenge_handlers.
 """
@@ -233,7 +233,6 @@ async def generate_challenge_stream(
     GÃ©nÃ©rateur async qui produit des Ã©vÃ©nements SSE (f"data: {json.dumps(...)}\n\n").
     """
     start_time = datetime.now()
-    generation_success = False
     validation_passed = True
     auto_corrected = False
     usage_events_tracked = False
@@ -538,7 +537,6 @@ async def generate_challenge_stream(
                 ai_params.get("model", "unknown"),
             )
             if challenge_dict:
-                generation_success = True
                 duration = (datetime.now() - start_time).total_seconds()
                 generation_metrics.record_generation(
                     challenge_type=challenge_type,

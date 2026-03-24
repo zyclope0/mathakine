@@ -522,14 +522,14 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                         )
                         corrected["correct_answer"] = expected_answer
 
-                    # Mettre à jour l'explication si elle est contradictoire
-                    explanation = corrected.get("solution_explanation", "")
-                    if expected_answer.upper() not in explanation.upper():
-                        corrected["solution_explanation"] = (
-                            f"En analysant le pattern dans la grille, on observe que le motif se répète. "
-                            f"Le pattern suggère que la réponse est '{expected_answer}'. "
-                            f"{explanation}"
-                        )
+                        # Mettre à jour l'explication si elle est contradictoire (expected_answer non None)
+                        explanation = corrected.get("solution_explanation", "")
+                        if expected_answer.upper() not in explanation.upper():
+                            corrected["solution_explanation"] = (
+                                f"En analysant le pattern dans la grille, on observe que le motif se répète. "
+                                f"Le pattern suggère que la réponse est '{expected_answer}'. "
+                                f"{explanation}"
+                            )
 
     # Correction pour VISUAL avec grille
     if challenge_type == "VISUAL" and visual_data:

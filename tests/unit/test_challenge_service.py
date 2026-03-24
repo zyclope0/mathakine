@@ -5,6 +5,7 @@ E3b : validation du flux create_challenge (préparation, validation, persistance
 """
 
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 
@@ -90,6 +91,137 @@ def test_list_challenges_order_random_without_total(db_session, sample_challenge
         total=None,
     )
     assert len(result) <= 2
+
+
+def test_list_challenges_active_only_excludes_archived_active_challenge(db_session):
+    """B2: actif + archivé = exclu de la liste publique (active_only=True)."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import (
+        count_challenges,
+        list_challenges,
+    )
+
+    unique_id = uuid.uuid4().hex[:8]
+    user = User(
+        username=f"arch_{unique_id}",
+        email=f"arch_{unique_id}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    arch_tag = f"at1_archived_{unique_id}"
+    # Horodatage récent explicite : évite created_at NULL / nullslast hors fenêtre limit.
+    recent_ts = datetime(2099, 1, 1, tzinfo=timezone.utc)
+    ch = LogicChallenge(
+        title=f"Archivé E3b {unique_id}",
+        description="D",
+        challenge_type=LogicChallengeType.SEQUENCE,
+        age_group=AgeGroup.GROUP_10_12,
+        correct_answer="1",
+        solution_explanation="E",
+        creator_id=user.id,
+        is_active=True,
+        is_archived=True,
+        tags=arch_tag,
+        created_at=recent_ts,
+    )
+    db_session.add(ch)
+    db_session.commit()
+    db_session.refresh(ch)
+
+    public_list = list_challenges(
+        db_session,
+        tags=arch_tag,
+        limit=20,
+        offset=0,
+        order="recent",
+        active_only=True,
+    )
+    public_ids = {c.id for c in public_list}
+    assert ch.id not in public_ids
+
+    public_total = count_challenges(
+        db_session,
+        tags=arch_tag,
+        active_only=True,
+    )
+    full_count = count_challenges(
+        db_session,
+        tags=arch_tag,
+        active_only=False,
+    )
+    assert full_count >= public_total
+    assert public_total == 0
+    admin_list = list_challenges(
+        db_session,
+        tags=arch_tag,
+        limit=20,
+        offset=0,
+        order="recent",
+        active_only=False,
+    )
+    admin_ids = {c.id for c in admin_list}
+    assert ch.id in admin_ids
+
+
+def test_list_challenges_active_only_false_includes_inactive(db_session):
+    """active_only=False inclut les défis is_active=False (contrat admin / listing complet)."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import list_challenges
+
+    unique_id = uuid.uuid4().hex[:8]
+    user = User(
+        username=f"ina_{unique_id}",
+        email=f"ina_{unique_id}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    tag_marker = f"at1_inactive_{unique_id}"
+    recent_ts = datetime(2099, 1, 2, tzinfo=timezone.utc)
+    inactive = LogicChallenge(
+        title=f"Inactif E3b {unique_id}",
+        description="D",
+        challenge_type=LogicChallengeType.SEQUENCE,
+        age_group=AgeGroup.GROUP_10_12,
+        correct_answer="1",
+        solution_explanation="E",
+        creator_id=user.id,
+        is_active=False,
+        is_archived=False,
+        tags=tag_marker,
+        created_at=recent_ts,
+    )
+    db_session.add(inactive)
+    db_session.commit()
+    db_session.refresh(inactive)
+
+    public = list_challenges(
+        db_session,
+        tags=tag_marker,
+        limit=20,
+        order="recent",
+        active_only=True,
+    )
+    assert inactive.id not in {c.id for c in public}
+
+    full = list_challenges(
+        db_session,
+        tags=tag_marker,
+        limit=20,
+        order="recent",
+        active_only=False,
+    )
+    assert len(full) >= 1
+    assert inactive.id in {c.id for c in full}
 
 
 def test_execute_list_ordering_random_without_total_uses_id_order_not_func_random():
