@@ -43,6 +43,11 @@ from app.services.challenges.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
 )
+from app.utils.circuit_breaker import (
+    OPENAI_CIRCUIT_OPEN_USER_MESSAGE,
+    is_countable_openai_failure,
+    openai_workload_circuit_breaker,
+)
 from app.utils.error_handler import get_safe_error_message
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
@@ -277,6 +282,11 @@ async def generate_challenge_stream(
         if AIConfig.is_o1_model(ai_params["model"]):
             system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/aprÃ¨s. Aucune explication hors du JSON."
 
+        if not openai_workload_circuit_breaker.check_allow():
+            _record_generation_failure(error_type="openai_circuit_open")
+            yield sse_error_message(OPENAI_CIRCUIT_OPEN_USER_MESSAGE)
+            return
+
         yield sse_status_message("GÃ©nÃ©ration en cours...")
 
         @retry(
@@ -333,6 +343,10 @@ async def generate_challenge_stream(
         try:
             stream = await create_stream_with_retry()
         except (RateLimitError, APIError, APITimeoutError) as api_error:
+            if is_countable_openai_failure(api_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
                 f"Erreur API OpenAI aprÃ¨s {AIConfig.MAX_RETRIES} tentatives: {api_error}"
             )
@@ -344,6 +358,10 @@ async def generate_challenge_stream(
             )
             return
         except Exception as unexpected_error:
+            if is_countable_openai_failure(unexpected_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
                 f"Erreur inattendue lors de la gÃ©nÃ©ration: {unexpected_error}"
             )
@@ -390,18 +408,48 @@ async def generate_challenge_stream(
                 logger.debug(f"Token usage tracked: {usage_stats}")
             usage_events_tracked = True
 
-        async for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                full_response += content
-                completion_tokens_estimate = len(full_response) // 4
-            if hasattr(chunk, "usage") and chunk.usage:
-                prompt_tokens_estimate = (
-                    chunk.usage.prompt_tokens or prompt_tokens_estimate
+        try:
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    completion_tokens_estimate = len(full_response) // 4
+                if hasattr(chunk, "usage") and chunk.usage:
+                    prompt_tokens_estimate = (
+                        chunk.usage.prompt_tokens or prompt_tokens_estimate
+                    )
+                    completion_tokens_estimate = (
+                        chunk.usage.completion_tokens or completion_tokens_estimate
+                    )
+        except (RateLimitError, APIError, APITimeoutError) as stream_api_error:
+            if is_countable_openai_failure(stream_api_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
+            logger.error(
+                f"Erreur API OpenAI pendant le stream dÃ©fis: {stream_api_error}"
+            )
+            yield sse_error_message(
+                get_safe_error_message(
+                    stream_api_error,
+                    default=CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
                 )
-                completion_tokens_estimate = (
-                    chunk.usage.completion_tokens or completion_tokens_estimate
+            )
+            return
+        except Exception as stream_other:
+            if is_countable_openai_failure(stream_other):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
+            logger.error(f"Erreur inattendue pendant le stream dÃ©fis: {stream_other}")
+            yield sse_error_message(
+                get_safe_error_message(
+                    stream_other,
+                    default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
                 )
+            )
+            return
+
         _queue_usage(
             model=ai_params["model"],
             prompt_tokens=prompt_tokens_estimate,
@@ -454,7 +502,20 @@ async def generate_challenge_stream(
                     completion_tokens=fallback_completion_tokens_estimate,
                 )
             except Exception as fb_err:
+                if is_countable_openai_failure(fb_err):
+                    openai_workload_circuit_breaker.record_countable_failure()
+                    logger.error(f"Fallback Ã©chouÃ©: {fb_err}")
+                    yield sse_error_message(
+                        get_safe_error_message(
+                            fb_err,
+                            default=CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
+                        )
+                    )
+                    return
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
                 logger.error(f"Fallback Ã©chouÃ©: {fb_err}")
+
+        openai_workload_circuit_breaker.record_success()
 
         logger.info(
             f"RÃ©ponse reÃ§ue: {len(full_response)} caractÃ¨res, ~{len(full_response)//4} tokens estimÃ©s"

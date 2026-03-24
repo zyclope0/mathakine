@@ -29,6 +29,11 @@ from app.services.exercises.exercise_ai_validation import (
     format_validation_error_message,
     validate_exercise_ai_output,
 )
+from app.utils.circuit_breaker import (
+    OPENAI_CIRCUIT_OPEN_USER_MESSAGE,
+    is_countable_openai_failure,
+    openai_workload_circuit_breaker,
+)
 from app.utils.error_handler import get_safe_error_message
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
@@ -283,6 +288,17 @@ async def generate_exercise_stream(
             yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
             return
 
+        if not openai_workload_circuit_breaker.check_allow():
+            generation_metrics.record_generation(
+                challenge_type=metrics_key,
+                success=False,
+                validation_passed=False,
+                duration_seconds=_duration_s(),
+                error_type="openai_circuit_open",
+            )
+            yield f"data: {json.dumps({'type': 'error', 'message': OPENAI_CIRCUIT_OPEN_USER_MESSAGE})}\n\n"
+            return
+
         yield f"data: {json.dumps({'type': 'status', 'message': 'GÃ©nÃ©ration en cours...'})}\n\n"
 
         @retry(
@@ -301,6 +317,10 @@ async def generate_exercise_stream(
         try:
             stream = await create_stream_with_retry()
         except (RateLimitError, APIError, APITimeoutError) as api_error:
+            if is_countable_openai_failure(api_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
                 f"Erreur OpenAI exercices apr\u00e8s {AIConfig.MAX_RETRIES} tentatives: {api_error}"
             )
@@ -318,6 +338,10 @@ async def generate_exercise_stream(
             yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
             return
         except Exception as stream_error:
+            if is_countable_openai_failure(stream_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
                 f"Erreur inattendue lors de l'initialisation du stream exercices IA: {stream_error}"
             )
@@ -339,17 +363,62 @@ async def generate_exercise_stream(
         prompt_tokens_estimate = (len(system_prompt) + len(user_prompt)) // 4
         completion_tokens_estimate = 0
 
-        async for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                full_response += content
-                completion_tokens_estimate = len(full_response) // 4
-            usage = getattr(chunk, "usage", None)
-            if usage is not None:
-                if getattr(usage, "prompt_tokens", None) is not None:
-                    prompt_tokens_estimate = int(usage.prompt_tokens)
-                if getattr(usage, "completion_tokens", None) is not None:
-                    completion_tokens_estimate = int(usage.completion_tokens)
+        try:
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    completion_tokens_estimate = len(full_response) // 4
+                usage = getattr(chunk, "usage", None)
+                if usage is not None:
+                    if getattr(usage, "prompt_tokens", None) is not None:
+                        prompt_tokens_estimate = int(usage.prompt_tokens)
+                    if getattr(usage, "completion_tokens", None) is not None:
+                        completion_tokens_estimate = int(usage.completion_tokens)
+        except (RateLimitError, APIError, APITimeoutError) as stream_api_error:
+            if is_countable_openai_failure(stream_api_error):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
+            logger.error(
+                f"Erreur OpenAI exercices pendant le stream: {stream_api_error}"
+            )
+            generation_metrics.record_generation(
+                challenge_type=metrics_key,
+                success=False,
+                validation_passed=False,
+                duration_seconds=_duration_s(),
+                error_type=type(stream_api_error).__name__,
+            )
+            safe_message = get_safe_error_message(
+                stream_api_error,
+                default=EXERCISE_AI_TRANSIENT_ERROR_MESSAGE,
+            )
+            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            return
+        except Exception as stream_other:
+            if is_countable_openai_failure(stream_other):
+                openai_workload_circuit_breaker.record_countable_failure()
+            else:
+                openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
+            logger.error(
+                f"Erreur inattendue pendant le stream exercices IA: {stream_other}"
+            )
+            generation_metrics.record_generation(
+                challenge_type=metrics_key,
+                success=False,
+                validation_passed=False,
+                duration_seconds=_duration_s(),
+                error_type=type(stream_other).__name__,
+            )
+            safe_message = get_safe_error_message(
+                stream_other,
+                default=EXERCISE_AI_GENERIC_ERROR_MESSAGE,
+            )
+            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            return
+
+        openai_workload_circuit_breaker.record_success()
 
         def _track_openai_cost() -> None:
             token_tracker.track_usage(
