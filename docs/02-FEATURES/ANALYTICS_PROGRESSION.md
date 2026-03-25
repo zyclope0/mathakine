@@ -1,9 +1,14 @@
 # Analytics et Suivi de Progression
 
 > **Statut** : Reference d'ideation historique - partiellement supersedee  
-> **Date** : 06/02/2026  
+> **Date** : 06/02/2026 — **Pilote 25/03/2026** (défis dans les stats)  
 > **Realite terrain** : la timeline F07 est implementee ; le backlog actif progression/temporalite est maintenant porte par `ROADMAP_FONCTIONNALITES.md` (F07, F12, F16, F37)  
 > **Endpoint existant** : `/api/exercises/stats`
+
+> **À jour pour la refonte défis / stats (25/03/2026)** — ne pas se limiter à `/api/exercises/stats` pour le radar « par discipline » côté produit :
+> - **Timeline** : `GET /api/users/me/progress/timeline` agrège exercices **et** défis logiques (`logic_*` dans `by_type`) — voir `docs/03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md`.
+> - **Radar dashboard** : `CategoryAccuracyChart` combine précision **exercices** (`useProgressStats`) et **défis par type** (`GET /api/users/me/challenges/detailed-progress`).
+> - **Catalogue défis (agrégats globaux)** : `GET /api/challenges/stats` — voir `docs/02-FEATURES/API_QUICK_REFERENCE.md` et `docs/04-FRONTEND/DASHBOARD_WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md`.
 
 > **Lire ce document comme** : une source d'idees et de rationale produit, pas comme la source de verite du dashboard progression actuel.
 
@@ -134,8 +139,8 @@ Proposer des visualisations qui démontrent l'efficacité pédagogique du site e
 ## 7. Priorisation suggérée
 
 ### Phase 1 - Quick wins (données déjà disponibles)
-1. Radar chart par discipline (données dans `/api/exercises/stats`)
-2. Distribution par niveau de difficulté (données dans `/api/exercises/stats`)
+1. Radar chart par discipline — **réalisé** côté dashboard en combinant `/api/users/me/progress` (`by_category`) et `/api/users/me/challenges/detailed-progress` (voir F12 / `CategoryAccuracyChart`)
+2. Distribution par niveau de difficulté — exercices : `/api/exercises/stats` ; **défis catalogue** : `/api/challenges/stats` (`by_difficulty`)
 
 ### Phase 2 - Endpoints à créer
 3. Courbe d'évolution temporelle (nécessite agrégation par date)

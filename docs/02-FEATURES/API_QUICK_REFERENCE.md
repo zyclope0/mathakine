@@ -42,7 +42,8 @@
 | DELETE | `/api/users/me/sessions/{session_id}` | revoke session |
 | GET | `/api/users/me/progress/timeline` | progression timeline (exercices **+** défis logiques ; `by_type` inclut des clés `logic_*`). Prérequis DB : migrations `20260325_challenge_progress` puis `20260325_fix_lca_created_at` (head) — voir `docs/03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md` §3.1 bis |
 | GET | `/api/users/me/progress` | global progression |
-| GET | `/api/users/me/challenges/progress` | challenge progression |
+| GET | `/api/users/me/challenges/progress` | progression défis (agrégat + liste par défi) |
+| GET | `/api/users/me/challenges/detailed-progress` | maîtrise **par type** de défi (`challenge_progress`) : `items[]` avec `challenge_type`, `total_attempts`, `correct_attempts`, `completion_rate`, `mastery_level`, etc. — alimente le radar défis et le breakdown du widget dashboard |
 | GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |
 | GET | `/api/users/leaderboard` | leaderboard |
 | DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
@@ -87,8 +88,9 @@ Contract note:
 | Method | Endpoint | Notes |
 |---|---|---|
 | GET | `/api/challenges` | list / filters / hide_completed |
+| GET | `/api/challenges/stats` | agrégats **catalogue** défis actifs (`is_active` + non archivés) : `total`, `total_archived`, `by_type`, `by_difficulty`, `by_age_group` — chaque bucket `{ count, percentage }` (pourcentages relatifs à `total`). Auth + accès complet requis (`require_full_access`). Impl. : `ChallengeStatsService.get_challenges_stats_for_api` |
 | GET | `/api/challenges/{challenge_id}` | challenge detail (incl. `response_mode` IA9, `choices` filtrés selon politique type) |
-| POST | `/api/challenges/{challenge_id}/attempt` | submit answer |
+| POST | `/api/challenges/{challenge_id}/attempt` | soumission réponse ; corps JSON selon `ChallengeAttemptRequest`. Réponse typée `SubmitChallengeAttemptResult` : `is_correct`, `explanation` (si correct), `new_badges`, `progress_notification`, `hints_remaining` (si incorrect), **`points_earned`** (entier si tentative correcte **et** crédit ledger `apply_points` réussi ; sinon omis/`null`) |
 | GET | `/api/challenges/{challenge_id}/hint` | hint |
 | GET | `/api/challenges/completed-ids` | completed ids |
 | POST | `/api/challenges/generate-ai-stream` | AI generation SSE (JSON body: `challenge_type`, `age_group`, `prompt`) ; événements `status`, `warning`, `challenge`, `error`, `done` — si la validation finale échoue après auto-correction : `error` puis `done`, **pas** d’événement `challenge` ni persistance. Cote frontend, le client explicite maintenant les echecs `401`, `403`, CSRF manquant et backend generique avant affichage toast. |
@@ -116,6 +118,7 @@ Contract note:
 
 - `GET /api/users/me` — champs persistants de compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank`, etc.
 - `GET /api/badges/stats` — stats agrégées gamification pour l’utilisateur courant (`get_user_gamification_stats`).
+- `POST /api/challenges/{id}/attempt` — champ **`points_earned`** sur la réponse lorsque les points du défi sont attribués avec succès (voir section Challenges).
 
 **Référence longue** : voir `docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md` pour la vérité actuelle du compte gamification/ledger, et `ROADMAP_FONCTIONNALITES.md` (F38) pour les suites produit éventuelles.
 

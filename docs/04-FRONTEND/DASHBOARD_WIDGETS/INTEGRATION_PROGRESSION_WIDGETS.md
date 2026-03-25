@@ -1,6 +1,6 @@
-﻿# Intégration des widgets de progression dans le dashboard
+# Intégration des widgets de progression dans le dashboard
 
-> Complété le 06/02/2026 — **MAJ 06/03/2026** (refactor onglets + F02)
+> Complété le 06/02/2026 — **MAJ 06/03/2026** (refactor onglets + F02) — **MAJ 25/03/2026** (défis dans les stats dashboard : radar mixte, détail par type, hook stats catalogue, contrats API — voir `docs/02-FEATURES/API_QUICK_REFERENCE.md`)
 
 ## 📋 Résumé
 
@@ -14,8 +14,8 @@ Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenge
 3. **StreakWidget** — Série en cours — col-span-4 (à côté des défis)
 
 **Onglet Progression :**
-- **ChallengesProgressWidget** — Progression des défis logiques
-- **CategoryAccuracyChart** — Précision par catégorie
+- **ChallengesProgressWidget** — Progression des défis logiques (agrégats passés en props + **détail par type** via `useChallengesDetailedProgress` : taux de complétion, tentatives, libellé de maîtrise quand disponible)
+- **CategoryAccuracyChart** — **Une carte, deux radars** : précision par catégorie d’**exercices** (données toujours fournies par le parent depuis `useProgressStats`) **et** précision par **type de défi logique** (données internes via `useChallengesDetailedProgress`, sous-graphique `DashboardCategoryRadarPlot` dans `DashboardCategoryRadarChart.tsx`)
 - **ProgressChartLazy**, **DailyExercisesChartLazy** — Graphiques
 
 **Onglet Mon Profil** (ex-Détails) :
@@ -27,7 +27,7 @@ Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenge
 
 **Retirés de la Vue d'ensemble :** LeaderboardWidget (déjà dans navbar), LevelEstablishedWidget, bloc Stats
 
-**Composants liés (16/02, MAJ 24/03/2026)** :
+**Composants liés (16/02, MAJ 24/03/2026, MAJ 25/03/2026 radar mixte + `detailed-progress`)** :
 - **Recommendations** (onglet Recommandations) — bouton ✓ « Marquer comme fait » via `POST /api/recommendations/complete`, hook `useRecommendations` (mutation `complete`), affichage initial borne a 6 cartes avec toggle local `Voir plus / Voir moins`
 
 ---
@@ -85,6 +85,24 @@ interface ChallengesProgress {
 **Configuration :**
 - Cache (staleTime): 2 minutes
 - Refetch on window focus: activé
+
+---
+
+#### `useChallengesDetailedProgress` (même fichier `useChallengesProgress.ts`)
+Hook complémentaire : `GET /api/users/me/challenges/detailed-progress` — une ligne agrégée par **type** de défi (`challenge_progress` côté backend).
+
+**Usage dashboard (25/03/2026) :**
+- `CategoryAccuracyChart` : construit les lignes du **radar défis** (filtre `total_attempts > 0`, tri par type).
+- `ChallengesProgressWidget` : tableau synthétique par type (taux, tentatives, libellé `mastery_level` via clés i18n `dashboard.challengesProgress.mastery.*`).
+
+**Configuration :** même politique de cache que `useChallengesProgress` (2 min, refetch au focus).
+
+---
+
+#### `frontend/hooks/useChallengesStats.ts`
+Hook optionnel : `GET /api/challenges/stats` — répartition du **catalogue** de défis actifs (`total`, `by_type`, `by_difficulty`, `by_age_group`, `total_archived`). Types : `ChallengesStats` dans `frontend/types/api.ts`.
+
+**Usage :** cache 5 min, pas de refetch au focus. **Non requis** par `ChallengesProgressWidget` / `CategoryAccuracyChart` (évite un fetch redondant sur l’onglet Progression) ; à brancher sur d’autres surfaces (admin-lite, aide contextuelle, etc.) si besoin.
 
 ---
 
@@ -162,32 +180,39 @@ interface ChallengesProgressWidgetProps {
 - Taux de réussite avec icône cible
 - Temps moyen avec icône horloge
 - Message d'encouragement si aucun défi complété
+- **Sous-section par type** (si `detailed-progress` disponible) : lignes triées par `challenge_type`, affichage taux / tentatives / maîtrise ; masquée si erreur API ou liste vide (`showByType`)
+
+---
+
+#### `frontend/components/dashboard/DashboardCategoryRadarChart.tsx`
+Sous-composants réutilisables pour les graphiques radar (titre, squelette, tracé Recharts). Exporte notamment `DashboardCategoryRadarPlot` et le type `DashboardRadarCategoryRow` (`category`, `accuracy` %, `completed`, `attempts?`).
+
+**Usage :** instancié **deux fois** dans `CategoryAccuracyChart` (bloc exercices + bloc défis), avec libellés i18n distincts (`exercises.types.*` vs `dashboard.challengesProgress.types.*`).
 
 ---
 
 #### `frontend/components/dashboard/CategoryAccuracyChart.tsx`
-Widget affichant la précision par catégorie d'exercices.
+Carte unique « Précision par catégorie » : **deux radars** dans la même `Card` (charge cognitive maîtrisée — un seul cadre visuel).
 
-**Props :**
+**Props (inchangées côté parent) :**
 ```typescript
 interface CategoryAccuracyChartProps {
   categoryData: Record<string, {
     completed: number;
-    accuracy: number;
+    accuracy: number; // fraction 0–1 côté API progression exercices
   }>;
   isLoading?: boolean;
 }
 ```
 
+**Données :**
+- **Exercices :** `categoryData` fourni par le parent (`useProgressStats` → `by_category`).
+- **Défis :** chargement interne via `useChallengesDetailedProgress` ; en cas d’erreur réseau, le radar défis est vide sans casser la carte (état dégradé).
+
 **Fonctionnalités :**
-- Barres de progression colorées par précision :
-  - 90%+ : Vert (Excellent)
-  - 70-89% : Bleu (Bien)
-  - 50-69% : Jaune (Moyen)
-  - < 50% : Rouge
-- Tri par nombre d'exercices complétés (décroissant)
-- Affichage du nombre d'exercices par catégorie
-- Légende des couleurs
+- Deux radars Recharts (`DashboardCategoryRadarPlot`) : précision par type d’exercice et par type de défi logique
+- Badges de périmètre temporel (`DashboardDataScopeBadge`) cohérents avec le reste du dashboard
+- Tests : `CategoryAccuracyChart.test.tsx` (i18n / rerender des libellés radar)
 
 ---
 
