@@ -28,6 +28,13 @@ class RecommendationCreate(RecommendationBase):
     exercise_id: Optional[int] = Field(
         None, description="ID de l'exercice recommandé (optionnel)"
     )
+    challenge_id: Optional[int] = Field(
+        None, description="ID du défi logique recommandé (optionnel)"
+    )
+    recommendation_type: Optional[str] = Field(
+        None,
+        description='Type de recommandation : "exercise" ou "challenge" (optionnel)',
+    )
 
 
 class RecommendationUpdate(BaseModel):
@@ -46,6 +53,8 @@ class RecommendationInDB(RecommendationBase):
     id: int
     user_id: int
     exercise_id: Optional[int] = None
+    challenge_id: Optional[int] = None
+    recommendation_type: Optional[str] = None
     is_completed: bool
     shown_count: int
     clicked_count: int
@@ -64,3 +73,4 @@ class RecommendationResponse(RecommendationBase):
     exercise_question: Optional[str] = None
     challenge_id: Optional[int] = None
     challenge_title: Optional[str] = None
+    recommendation_type: Optional[str] = None

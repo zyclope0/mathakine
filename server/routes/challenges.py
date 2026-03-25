@@ -7,6 +7,7 @@ from server.handlers.challenge_handlers import (
     get_challenge,
     get_challenge_hint,
     get_challenges_list,
+    get_challenges_stats,
     get_completed_challenges_ids,
     submit_challenge_answer,
 )
@@ -17,6 +18,11 @@ def get_challenges_routes():
         Route(
             "/api/challenges",
             endpoint=get_challenges_list,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/challenges/stats",
+            endpoint=get_challenges_stats,
             methods=["GET"],
         ),
         Route(

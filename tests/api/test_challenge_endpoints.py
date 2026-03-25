@@ -18,6 +18,20 @@ def _get_challenges_list(data):
     return data.get("items", [])
 
 
+async def test_get_challenges_stats_ok(logic_challenge_db, padawan_client):
+    """GET /api/challenges/stats — 200 et structure total / by_type / by_difficulty."""
+    client = padawan_client["client"]
+    response = await client.get("/api/challenges/stats")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total" in data
+    assert "by_type" in data
+    assert "by_difficulty" in data
+    assert "by_age_group" in data
+    assert isinstance(data["by_type"], dict)
+    assert data["total"] >= 1
+
+
 async def test_get_logic_challenge_by_id(logic_challenge_db, padawan_client):
     """Test de l'endpoint pour récupérer un défi logique par ID."""
     client = padawan_client["client"]

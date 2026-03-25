@@ -20,6 +20,7 @@ from app.services.challenges.challenge_attempt_service import submit_challenge_a
 from app.services.challenges.challenge_query_service import (
     get_challenge_detail_for_api,
     get_challenge_hint_for_api,
+    get_challenges_stats_for_api_sync,
 )
 from app.services.challenges.challenge_query_service import (
     get_completed_challenges_ids as query_completed_challenges_ids,
@@ -250,6 +251,35 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
             status_code=500,
             user_message="Erreur lors de la recuperation des challenges completes.",
             handler_log_context="Erreur lors de la recuperation des challenges completes",
+        )
+
+
+@require_auth
+@require_full_access
+async def get_challenges_stats(request: Request) -> JSONResponse:
+    """
+    Statistiques globales des défis logiques (catalogue actif).
+
+    Route: GET /api/challenges/stats
+
+    Retourne total, répartition par type de défi, par difficulté (libellé),
+    par groupe d'âge (enum), plus total archivés.
+    """
+    logger.info("=== DEBUT get_challenges_stats ===")
+    try:
+        response_data = await run_db_bound(get_challenges_stats_for_api_sync)
+        total = response_data.get("total", 0)
+        logger.info("Statistiques défis récupérées: %s défis actifs", total)
+        return JSONResponse(response_data)
+    except Exception as e:
+        logger.error(
+            "Erreur lors de la récupération des statistiques des défis: %s",
+            e,
+            exc_info=True,
+        )
+        return api_error_response(
+            500,
+            "Une perturbation empêche l'accès aux archives des défis. Réessayez plus tard.",
         )
 
 

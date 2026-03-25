@@ -4,7 +4,7 @@ LOT B1 : retours typés (ChallengeListResponse, ChallengeHintResponse).
 """
 
 import json
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
@@ -15,6 +15,7 @@ from app.schemas.logic_challenge import (
     ChallengeListResponse,
 )
 from app.services.challenges import challenge_service
+from app.services.challenges.challenge_stats_service import ChallengeStatsService
 from app.services.challenges.logic_challenge_service import LogicChallengeService
 from app.utils.response_formatters import format_paginated_response
 
@@ -119,3 +120,12 @@ def get_completed_challenges_ids(user_id: int) -> List[int]:
     """
     with sync_db_session() as db:
         return challenge_service.get_user_completed_challenges(db, user_id)
+
+
+def get_challenges_stats_for_api_sync() -> Dict[str, Any]:
+    """
+    Statistiques globales des défis logiques pour l'API.
+    Sync, exécuté via run_db_bound().
+    """
+    with sync_db_session() as db:
+        return ChallengeStatsService.get_challenges_stats_for_api(db)
