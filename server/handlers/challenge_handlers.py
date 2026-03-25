@@ -21,7 +21,11 @@ from app.services.challenges.challenge_query_service import (
     get_challenge_detail_for_api,
     get_challenge_hint_for_api,
     get_challenges_stats_for_api_sync,
+)
+from app.services.challenges.challenge_query_service import (
     get_completed_challenges_ids as query_completed_challenges_ids,
+)
+from app.services.challenges.challenge_query_service import (
     list_challenges_for_api,
 )
 from app.services.challenges.challenge_stream_service import prepare_stream_context
