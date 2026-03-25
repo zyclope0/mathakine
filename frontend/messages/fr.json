@@ -1221,6 +1221,12 @@
     "badgesStat": "Badges obtenus",
     "yourRank": {
       "separator": "Votre position"
+    },
+    "period": {
+      "label": "Période",
+      "all": "Tout temps",
+      "week": "7 derniers jours",
+      "month": "30 derniers jours"
     }
   },
   "accessibility": {

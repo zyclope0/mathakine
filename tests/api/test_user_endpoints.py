@@ -215,6 +215,18 @@ async def test_get_leaderboard(padawan_client):
         assert isinstance(entry["badges_count"], int)
 
 
+async def test_get_leaderboard_invalid_period_returns_400(padawan_client):
+    client = padawan_client["client"]
+    response = await client.get("/api/users/leaderboard?period=yesterday")
+    assert response.status_code == 400
+
+
+async def test_get_me_rank_invalid_period_returns_400(padawan_client):
+    client = padawan_client["client"]
+    response = await client.get("/api/users/me/rank?period=invalid")
+    assert response.status_code == 400
+
+
 async def test_get_me_rank_increments_when_users_have_more_points(
     padawan_client, db_session
 ):

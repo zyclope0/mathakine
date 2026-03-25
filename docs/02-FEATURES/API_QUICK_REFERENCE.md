@@ -39,14 +39,14 @@
 | DELETE | `/api/users/me` | delete current account |
 | GET | `/api/users/me/export` | GDPR export |
 | GET | `/api/users/me/sessions` | active sessions |
-| GET | `/api/users/me/rank` | rang global par `total_points` : `1 +` nombre d’utilisateurs **actifs** avec strictement plus de points ; JSON `{ "rank", "total_points" }` (auth + accès complet) |
+| GET | `/api/users/me/rank` | rang par points : `1 +` nombre d’utilisateurs **actifs** avec strictement plus de points ; JSON `{ "rank", "total_points" }`. Query `period` = `all` \| `week` \| `month` : `all` = cumul `users.total_points` ; `week` / `month` = somme des `point_events.points_delta` sur fenêtre glissante 7j / 30j (UTC). Valeur invalide → 400. (auth + accès complet) |
 | DELETE | `/api/users/me/sessions/{session_id}` | revoke session |
 | GET | `/api/users/me/progress/timeline` | progression timeline (exercices **+** défis logiques ; `by_type` inclut des clés `logic_*`). Prérequis DB : migrations `20260325_challenge_progress` puis `20260325_fix_lca_created_at` (head) — voir `docs/03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md` §3.1 bis |
 | GET | `/api/users/me/progress` | global progression |
 | GET | `/api/users/me/challenges/progress` | progression défis (agrégat + liste par défi) |
 | GET | `/api/users/me/challenges/detailed-progress` | maîtrise **par type** de défi (`challenge_progress`) : `items[]` avec `challenge_type`, `total_attempts`, `correct_attempts`, `completion_rate`, `mastery_level`, etc. — alimente le radar défis et le breakdown du widget dashboard |
 | GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |
-| GET | `/api/users/leaderboard` | classement par `total_points` (param `limit`, défaut 50, max 100). Chaque entrée : `rank`, `username`, `total_points`, `current_level`, `jedi_rank`, `is_current_user`, `avatar_url` (nullable), `current_streak`, `badges_count`. Filtre confidentialité `show_in_leaderboards`. **Le query param historique `age_group` est ignoré** (ancien bug : filtrait sur `preferred_difficulty`) — filtre par vrai groupe d'âge utilisateur reporté (voir ROADMAP). |
+| GET | `/api/users/leaderboard` | classement : param `limit` (défaut 50, max 100), `period` = `all` \| `week` \| `month` (défaut `all`). `total_points` dans chaque entrée = cumul historique (`users.total_points`) si `all`, sinon somme des gains sur la fenêtre (`point_events`, 7j / 30j glissant UTC). Champs entrée : `rank`, `username`, `total_points`, `current_level`, `jedi_rank`, `is_current_user`, `avatar_url` (nullable), `current_streak`, `badges_count`. Filtre confidentialité `show_in_leaderboards`. `period` invalide → 400. |
 | DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
 
 ## Daily Challenge

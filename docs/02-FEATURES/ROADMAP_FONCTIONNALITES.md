@@ -125,7 +125,7 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F34 | Module Sciences - Curiosites (Vrai/Faux, format court) | [BACKLOG] prototype seulement | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
 | F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [BACKLOG] critique | 4 | 3 | 1 | 3 | 5 | **6.2** | P2* |
 | F40 | Leaderboard — position de l'utilisateur hors top 50 | [BACKLOG] | 2 | 4 | 2 | 1 | 3 | **10.7** | P2 |
-| F41 | Leaderboard — filtre temporel (semaine / mois / tout) | [BACKLOG] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
+| F41 | Leaderboard — filtre temporel (semaine / mois / tout) | [DONE] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
 | F42 | Architecture difficulté — séparation âge et niveau sur 2 axes | [BACKLOG] | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
 
 > *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
@@ -135,7 +135,7 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
 **[DONE] Implemente dans le code**
-- F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35
+- F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35, F41
 
 **[PARTIAL] Fondations deja posees**
 - F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
@@ -878,7 +878,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | Feature | Borne de verite | Ce qui existe deja | Ce qui reste a livrer |
 |---------|-----------------|--------------------|-----------------------|
 | **F40 — Leaderboard position utilisateur hors top 50** | Planifié 25/03/2026 | Classement top 50 + `is_current_user` flag sur chaque entrée. | Nouvel endpoint `GET /api/users/me/rank` (COUNT query) + injection rang courant en bas de liste avec séparateur visuel. Effort S. **Aucun prérequis — livrable après L2 sans F42.** F42 est prérequis de F40-v2 (rang filtré par groupe d'âge) uniquement. |
-| **F41 — Leaderboard filtre temporel** | Planifié 25/03/2026 | Table `point_events` opérationnelle + index `ix_point_events_user_created (user_id, created_at)` déjà en place (migration 20260321). `apply_points` déjà branché sur exercices standard (`exercise_attempt_service.py` l.127). | Query agrégée sur `point_events` par fenêtre (`period=week\|month\|all`) + sélecteur frontend. Effort M. **Pas de blocage technique.** Condition de déploiement : vérifier volume `point_events` en prod avant activation (classement vide = mauvaise UX). |
+| **F41 — Leaderboard filtre temporel** | Livré 24/03/2026 (lot L3-B) | `GET /api/users/leaderboard?period=all\|week\|month` + `GET /api/users/me/rank?period=…` ; agrégation `SUM(points_delta)` sur `point_events` (fenêtres glissantes 7j / 30j UTC) ; sélecteur période sur la page classement. | **Déploiement produit** : si `point_events` est très peu peuplé, privilégier le défaut « Tout temps » en communication ; surveiller taux de liste vide en « 7 jours ». |
 | **F42 — Architecture difficulté/âge — séparation des deux axes** | Planifié 25/03/2026 (voir section 8.3 ci-dessous) | `preferred_difficulty` sur `User` ; `age_group` sur `Exercise` et `LogicChallenge`. | Phase 1 : colonne `age_group` sur `User` + backfill conditionnel batché (voir §8.3). Phase 2 : `difficulty_tier` 1-12 + double-lecture dans recommandations. Libellés pédagogiques réservés au dashboard parent (RGPD mineurs). |
 | **Leaderboard — filtre par groupe d'âge (utilisateur)** | Report 25/03/2026 (lot L1) | Le classement expose `limit` et des champs enrichis ; le paramètre `age_group` a été **retiré** car il filtrait à tort sur `preferred_difficulty` (difficulté easy/medium/hard ≠ tranche d'âge). | Dépend de F42 Phase 1 (colonne `age_group` sur `User`) puis F40. |
 | F14 - Monitoring IA persistance DB | Code au 23/03/2026 | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness | persistance DB complete des metriques runtime live |

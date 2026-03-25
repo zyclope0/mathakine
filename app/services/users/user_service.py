@@ -3,8 +3,12 @@ Service pour la gestion des utilisateurs.
 Implémente les opérations métier liées aux utilisateurs et utilise le transaction manager.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from app.core.leaderboard_period import (
+    LeaderboardPeriod,
+    leaderboard_period_cutoff_utc,
+)
 from app.core.logging_config import get_logger
 from app.core.types import (
     ChallengesProgressDict,
@@ -26,6 +30,7 @@ from app.models.achievement import UserAchievement
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.models.point_event import PointEvent
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
@@ -590,26 +595,14 @@ class UserService:
             return 0
 
     @staticmethod
-    def get_leaderboard_for_api(
-        db: Session,
+    def _iter_leaderboard_rows_from_users(
+        users: List[User],
         current_user_id: int,
-        limit: int = 50,
+        score_fn: Callable[[User], int],
+        limit: int,
     ) -> List[Dict[str, Any]]:
-        """
-        Récupère le classement des utilisateurs pour l'API.
-        Applique le filtre de confidentialité (show_in_leaderboards).
-        """
-        q = db.query(User).filter(User.is_active.is_(True))
-        # Over-fetch to account for privacy-filtered users (show_in_leaderboards=False).
-        # The filter is applied in Python because accessibility_settings is a TEXT-JSON column.
-        users = (
-            q.options(selectinload(User.user_achievements))
-            .order_by(User.total_points.desc())
-            .limit(limit + 50)
-            .all()
-        )
-
-        leaderboard = []
+        """Construit la liste classement à partir d'utilisateurs déjà triés (privacy en Python)."""
+        leaderboard: List[Dict[str, Any]] = []
         for user in users:
             if len(leaderboard) >= limit:
                 break
@@ -621,10 +614,11 @@ class UserService:
             )
             if privacy.get("show_in_leaderboards") is False:
                 continue
+            score = int(score_fn(user))
             leaderboard.append(
                 {
                     "username": user.username,
-                    "total_points": user.total_points or 0,
+                    "total_points": score,
                     "current_level": user.current_level or 1,
                     "jedi_rank": user.jedi_rank or "youngling",
                     "is_current_user": user.id == current_user_id,
@@ -638,23 +632,128 @@ class UserService:
         return leaderboard
 
     @staticmethod
-    def get_user_rank_by_points_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+    def get_leaderboard_for_api(
+        db: Session,
+        current_user_id: int,
+        limit: int = 50,
+        period: LeaderboardPeriod = LeaderboardPeriod.ALL,
+    ) -> List[Dict[str, Any]]:
         """
-        Rang global par points (utilisateurs actifs uniquement) : 1 + nombre d'utilisateurs
-        avec strictement plus de points. Même logique de tie que le tri du leaderboard
-        (égalité de points → même rang affiché pour tous les ex aequo).
+        Récupère le classement des utilisateurs pour l'API.
+        Applique le filtre de confidentialité (show_in_leaderboards).
+
+        ``period`` :
+            - ``all`` : colonne ``users.total_points`` (cumul historique).
+            - ``week`` / ``month`` : somme des ``point_events.points_delta`` depuis la fenêtre
+              glissante (7j / 30j, UTC).
+        """
+        cutoff = leaderboard_period_cutoff_utc(period)
+
+        if cutoff is None:
+            q = db.query(User).filter(User.is_active.is_(True))
+            users = (
+                q.options(selectinload(User.user_achievements))
+                .order_by(User.total_points.desc(), User.id.asc())
+                .limit(limit + 50)
+                .all()
+            )
+            return UserService._iter_leaderboard_rows_from_users(
+                users,
+                current_user_id,
+                lambda u: u.total_points or 0,
+                limit,
+            )
+
+        period_subq = (
+            db.query(
+                PointEvent.user_id.label("uid"),
+                func.sum(PointEvent.points_delta).label("period_pts"),
+            )
+            .filter(PointEvent.created_at >= cutoff)
+            .group_by(PointEvent.user_id)
+            .subquery()
+        )
+
+        rows = (
+            db.query(
+                User, func.coalesce(period_subq.c.period_pts, 0).label("lb_points")
+            )
+            .outerjoin(period_subq, User.id == period_subq.c.uid)
+            .filter(User.is_active.is_(True))
+            .options(selectinload(User.user_achievements))
+            .order_by(
+                func.coalesce(period_subq.c.period_pts, 0).desc(),
+                User.id.asc(),
+            )
+            .limit(limit + 50)
+            .all()
+        )
+        users_ordered = [r[0] for r in rows]
+        scores_by_id = {r[0].id: int(r[1] or 0) for r in rows}
+        return UserService._iter_leaderboard_rows_from_users(
+            users_ordered,
+            current_user_id,
+            lambda u: scores_by_id.get(u.id, 0),
+            limit,
+        )
+
+    @staticmethod
+    def get_user_rank_by_points_for_api(
+        db: Session,
+        user_id: int,
+        period: LeaderboardPeriod = LeaderboardPeriod.ALL,
+    ) -> Dict[str, Any]:
+        """
+        Rang par points (utilisateurs actifs uniquement) : 1 + nombre d'utilisateurs
+        avec strictement plus de points. Même logique de tie que le tri du leaderboard.
+
+        ``period`` : voir ``get_leaderboard_for_api`` (``all`` = ``total_points`` cumulé).
         """
         user = UserService.get_user(db, user_id)
         if user is None:
             raise UserNotFoundError(f"Utilisateur avec ID {user_id} non trouvé")
-        my_points = int(user.total_points or 0)
-        pts = func.coalesce(User.total_points, 0)
-        ahead = (
-            db.query(func.count())
-            .select_from(User)
-            .filter(User.is_active.is_(True), pts > my_points)
-            .scalar()
-        )
+        cutoff = leaderboard_period_cutoff_utc(period)
+
+        if cutoff is None:
+            my_points = int(user.total_points or 0)
+            pts = func.coalesce(User.total_points, 0)
+            ahead = (
+                db.query(func.count())
+                .select_from(User)
+                .filter(User.is_active.is_(True), pts > my_points)
+                .scalar()
+            )
+        else:
+            my_row = (
+                db.query(func.coalesce(func.sum(PointEvent.points_delta), 0))
+                .filter(
+                    PointEvent.user_id == user_id,
+                    PointEvent.created_at >= cutoff,
+                )
+                .scalar()
+            )
+            my_points = int(my_row or 0)
+
+            pte_agg = (
+                db.query(
+                    PointEvent.user_id.label("agg_uid"),
+                    func.sum(PointEvent.points_delta).label("agg_pts"),
+                )
+                .filter(PointEvent.created_at >= cutoff)
+                .group_by(PointEvent.user_id)
+                .subquery()
+            )
+            ahead = (
+                db.query(func.count())
+                .select_from(User)
+                .outerjoin(pte_agg, User.id == pte_agg.c.agg_uid)
+                .filter(
+                    User.is_active.is_(True),
+                    func.coalesce(pte_agg.c.agg_pts, 0) > my_points,
+                )
+                .scalar()
+            )
+
         ahead_int = int(ahead or 0)
         return {"rank": ahead_int + 1, "total_points": my_points}
 

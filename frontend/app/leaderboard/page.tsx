@@ -1,11 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
-import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useLeaderboard, type LeaderboardPeriod } from "@/hooks/useLeaderboard";
 import { useMyLeaderboardRank } from "@/hooks/useMyLeaderboardRank";
 import { Trophy, Medal, Flame, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -149,7 +156,8 @@ function LeaderboardRow({
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
   const { user } = useAuth();
-  const { leaderboard, isLoading, error } = useLeaderboard(50);
+  const [period, setPeriod] = useState<LeaderboardPeriod>("all");
+  const { leaderboard, isLoading, error } = useLeaderboard(50, period);
   const { shouldReduceMotion } = useAccessibleAnimation();
 
   const inTop = useMemo(
@@ -162,7 +170,7 @@ export default function LeaderboardPage() {
     data: myRank,
     isLoading: myRankLoading,
     isError: myRankError,
-  } = useMyLeaderboardRank(fetchMyRankEnabled);
+  } = useMyLeaderboardRank(fetchMyRankEnabled, period);
 
   const showMyRankFooter =
     fetchMyRankEnabled &&
@@ -200,11 +208,33 @@ export default function LeaderboardPage() {
 
         <PageSection>
           <Card className="card-spatial-depth overflow-hidden">
-            <CardHeader>
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 space-y-0">
               <CardTitle className="flex items-center gap-2">
                 <Medal className="h-5 w-5 text-amber-400" aria-hidden />
                 {t("ranking")}
               </CardTitle>
+              <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:min-w-[220px]">
+                <span className="text-xs text-muted-foreground" id="leaderboard-period-label">
+                  {t("period.label")}
+                </span>
+                <Select
+                  value={period}
+                  onValueChange={(value) => setPeriod(value as LeaderboardPeriod)}
+                >
+                  <SelectTrigger
+                    aria-labelledby="leaderboard-period-label"
+                    className="w-full"
+                    size="sm"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("period.all")}</SelectItem>
+                    <SelectItem value="week">{t("period.week")}</SelectItem>
+                    <SelectItem value="month">{t("period.month")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="p-0 min-h-[120px]">
               {error ? (

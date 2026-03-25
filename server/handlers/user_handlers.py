@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.core.leaderboard_period import parse_leaderboard_period
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
@@ -23,9 +24,9 @@ from app.services.users.user_application_service import (
     get_challenges_progress_data,
     get_dashboard_stats,
     get_leaderboard,
-    get_user_rank_by_points_data,
     get_progress_timeline_data,
     get_user_progress_data,
+    get_user_rank_by_points_data,
     get_user_sessions_list,
     register_user,
     revoke_session,
@@ -180,9 +181,9 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
     """
     Handler pour récupérer le classement des utilisateurs par points.
     Route: GET /api/users/leaderboard
-    Paramètres: limit (pagination). Le paramètre historique ``age_group`` a été retiré :
-    il filtrait par erreur sur ``preferred_difficulty``. Un vrai filtre par groupe d'âge
-    utilisateur est reporté (migration + profil) — voir ROADMAP.
+    Paramètres: ``limit`` (pagination), ``period`` = ``all`` | ``week`` | ``month``
+    (fenêtre glissante sur ``point_events`` pour ``week`` / ``month`` ; ``all`` = cumul
+    ``users.total_points``). Le paramètre historique ``age_group`` a été retiré.
     """
     try:
         current_user = request.state.user
@@ -191,11 +192,19 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
         _, limit = parse_pagination_params(
             query_params, default_limit=50, max_limit=100
         )
+        try:
+            period = parse_leaderboard_period(query_params.get("period"))
+        except ValueError:
+            return api_error_response(
+                400,
+                "Période invalide. Valeurs acceptées : all, week, month.",
+            )
 
         leaderboard = await run_db_bound(
             get_leaderboard,
             user_id,
             limit=limit,
+            period=period,
         )
         logger.info(
             f"Classement récupéré par {current_user.get('username')}: {len(leaderboard)} utilisateurs"
@@ -213,13 +222,23 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
 @require_full_access
 async def get_user_me_rank(request: Request) -> JSONResponse:
     """
-    Rang global par points (1 + nombre d'utilisateurs actifs avec plus de points).
+    Rang par points (1 + nombre d'utilisateurs actifs avec plus de points).
     Route: GET /api/users/me/rank
+    Query: ``period`` = ``all`` | ``week`` | ``month`` (aligné sur le classement).
     """
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-        payload = await run_db_bound(get_user_rank_by_points_data, user_id)
+        try:
+            period = parse_leaderboard_period(request.query_params.get("period"))
+        except ValueError:
+            return api_error_response(
+                400,
+                "Période invalide. Valeurs acceptées : all, week, month.",
+            )
+        payload = await run_db_bound(
+            get_user_rank_by_points_data, user_id, period=period
+        )
         return JSONResponse(payload, status_code=200)
     except UserNotFoundError:
         return api_error_response(404, "Utilisateur introuvable.")

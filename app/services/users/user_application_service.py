@@ -1,7 +1,7 @@
 """
 Service applicatif pour la boundary users (LOT 6).
 
-Responsabilité : registration, dashboard stats, leaderboard, timeline,
+Responsabilité : registration, dashboard stats, leaderboard (période optionnelle), timeline,
 profile update, password update, delete, export, sessions.
 Pas d'accès DB direct dans les handlers — tout passe par ce service via run_db_bound.
 
@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.config import settings
 from app.core.db_boundary import sync_db_session
+from app.core.leaderboard_period import LeaderboardPeriod
 from app.core.logging_config import get_logger
 from app.schemas.user import UserCreate
 from app.services.auth.auth_service import create_registered_user_with_verification
@@ -93,16 +94,22 @@ def get_dashboard_stats(
 def get_leaderboard(
     current_user_id: int,
     limit: int = 50,
+    period: LeaderboardPeriod = LeaderboardPeriod.ALL,
 ) -> List[Dict[str, Any]]:
-    """Récupère le classement des utilisateurs."""
+    """Récupère le classement des utilisateurs (voir ``LeaderboardPeriod``)."""
     with sync_db_session() as db:
-        return UserService.get_leaderboard_for_api(db, current_user_id, limit=limit)
+        return UserService.get_leaderboard_for_api(
+            db, current_user_id, limit=limit, period=period
+        )
 
 
-def get_user_rank_by_points_data(user_id: int) -> Dict[str, Any]:
-    """Rang global de l'utilisateur par total_points (utilisateurs actifs)."""
+def get_user_rank_by_points_data(
+    user_id: int,
+    period: LeaderboardPeriod = LeaderboardPeriod.ALL,
+) -> Dict[str, Any]:
+    """Rang de l'utilisateur par points (même sémantique de période que le classement)."""
     with sync_db_session() as db:
-        return UserService.get_user_rank_by_points_for_api(db, user_id)
+        return UserService.get_user_rank_by_points_for_api(db, user_id, period=period)
 
 
 def get_progress_timeline_data(
