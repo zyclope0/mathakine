@@ -138,6 +138,9 @@ class User(Base):
     logic_challenge_attempts = relationship(
         "LogicChallengeAttempt", back_populates="user", cascade="all, delete-orphan"
     )
+    challenge_progress_rows = relationship(
+        "ChallengeProgress", back_populates="user", cascade="all, delete-orphan"
+    )
 
     # Relations avec le système de badges
     user_achievements = relationship(

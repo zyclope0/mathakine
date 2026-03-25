@@ -43,7 +43,13 @@ if not os.environ.get("TEST_DATABASE_URL"):
             # même si le nom de la base contient "test" (ex: mathakine_test_gii8 sur Render).
             _is_external_host = any(
                 h in _db_url.lower()
-                for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+                for h in (
+                    "render.com",
+                    "amazonaws.com",
+                    "supabase",
+                    "neon.tech",
+                    "railway.app",
+                )
             )
             if "test" in _db_name.lower() and not _is_external_host:
                 os.environ["TEST_DATABASE_URL"] = _db_url
@@ -86,6 +92,7 @@ from app.core.security import create_access_token, get_password_hash
 from app.db.base import Base, engine
 from app.models.ai_eval_harness_run import AiEvalHarnessCaseResult, AiEvalHarnessRun
 from app.models.attempt import Attempt
+from app.models.challenge_progress import ChallengeProgress
 from app.models.daily_challenge import DailyChallenge
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import (
@@ -190,6 +197,7 @@ def setup_test_environment():
     # On la crée à la volée en test pour éviter les erreurs de cascade User -> DailyChallenge.
     DailyChallenge.__table__.create(bind=imported_engine, checkfirst=True)
     PointEvent.__table__.create(bind=imported_engine, checkfirst=True)
+    ChallengeProgress.__table__.create(bind=imported_engine, checkfirst=True)
     # IA8 : tables harness eval (même principe que daily_challenges — base de test sans alembic à jour).
     AiEvalHarnessRun.__table__.create(bind=imported_engine, checkfirst=True)
     AiEvalHarnessCaseResult.__table__.create(bind=imported_engine, checkfirst=True)
@@ -199,7 +207,13 @@ def setup_test_environment():
         engine_db_name = engine_db_match.group(1)
         _engine_is_external = any(
             h in engine_url.lower()
-            for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+            for h in (
+                "render.com",
+                "amazonaws.com",
+                "supabase",
+                "neon.tech",
+                "railway.app",
+            )
         )
         # Une DB externe est toujours considérée prod, même si son nom contient "test"
         # (ex: mathakine_test_gii8 sur Render = prod).
@@ -243,9 +257,17 @@ def setup_test_environment():
             # La vérification host externe prend le dessus sur le nom.
             _is_ext = any(
                 h in test_db_url.lower()
-                for h in ("render.com", "amazonaws.com", "supabase", "neon.tech", "railway.app")
+                for h in (
+                    "render.com",
+                    "amazonaws.com",
+                    "supabase",
+                    "neon.tech",
+                    "railway.app",
+                )
             )
-            if test_db_name == prod_db_name and ("test" not in test_db_name.lower() or _is_ext):
+            if test_db_name == prod_db_name and (
+                "test" not in test_db_name.lower() or _is_ext
+            ):
                 raise RuntimeError(
                     f"SECURITE: TEST_DATABASE_URL pointe vers la meme base que DATABASE_URL ({test_db_name})!\n"
                     f"   Cela pourrait supprimer les donnees de production!\n"

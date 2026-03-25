@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
+from app.models.challenge_progress import ChallengeProgress
 from app.models.diagnostic_result import DiagnosticResult
 from app.models.edtech_event import EdTechEvent
 from app.models.exercise import Exercise

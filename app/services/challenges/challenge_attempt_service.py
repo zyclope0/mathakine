@@ -20,6 +20,10 @@ from app.schemas.logic_challenge import (
     SubmitChallengeAttemptResult,
 )
 from app.services.challenges.challenge_answer_service import check_answer
+from app.services.challenges.challenge_progress_service import (
+    normalize_challenge_type_key,
+    upsert_challenge_progress,
+)
 from app.services.challenges.logic_challenge_service import LogicChallengeService
 from app.services.exercises.exercise_attempt_service import POINTS_PER_CORRECT_EXERCISE
 from app.services.gamification.gamification_service import GamificationService
@@ -82,6 +86,20 @@ def _execute_attempt(
     attempt = LogicChallengeService.record_attempt(db, attempt_data, auto_commit=False)
     if not attempt:
         raise ChallengeAttemptRecordError("Impossible d'enregistrer la tentative.")
+
+    try:
+        upsert_challenge_progress(
+            db,
+            cmd.user_id,
+            normalize_challenge_type_key(challenge),
+            is_correct,
+        )
+    except Exception as progress_err:
+        logger.warning(
+            "challenge_progress upsert (best effort): %s",
+            progress_err,
+            exc_info=True,
+        )
 
     new_badges: list[ChallengeBadgeEarned] = []
     if is_correct:

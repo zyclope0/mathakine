@@ -471,6 +471,10 @@ class TestDataManager:
                         f"DELETE FROM logic_challenge_attempts WHERE user_id IN ({ids_str})"
                     )
                 )
+                # 7.5b Agrégats défis par type (challenge_progress) — enfant de users
+                self.db.execute(
+                    text(f"DELETE FROM challenge_progress WHERE user_id IN ({ids_str})")
+                )
                 # 7a2. Recommendations pointant vers challenges des test users (enfant de logic_challenges)
                 self.db.execute(
                     text(
