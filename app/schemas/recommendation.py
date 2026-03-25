@@ -5,10 +5,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RecommendationBase(BaseModel):
-    """Schéma de base pour les recommandations d'exercices"""
+    """Schéma de base pour les recommandations (exercices et défis logiques)."""
 
-    exercise_type: str = Field(..., description="Type d'exercice recommandé")
-    difficulty: str = Field(..., description="Niveau de difficulté recommandé")
+    exercise_type: str = Field(
+        ...,
+        description="Type disciplinaire / catalogue (exercice ou piste pour reco défi)",
+    )
+    difficulty: str = Field(
+        ...,
+        description="Niveau de difficulté cible (exercice ou défi)",
+    )
     priority: int = Field(
         5, ge=1, le=10, description="Priorité de la recommandation (1-10)"
     )
