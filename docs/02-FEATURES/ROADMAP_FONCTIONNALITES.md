@@ -124,9 +124,13 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F29 | Personnalisation avatar / profil | [BACKLOG] | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
 | F34 | Module Sciences - Curiosites (Vrai/Faux, format court) | [BACKLOG] prototype seulement | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
 | F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [BACKLOG] critique | 4 | 3 | 1 | 3 | 5 | **6.2** | P2* |
+| F40 | Leaderboard — position de l'utilisateur hors top 50 | [BACKLOG] | 2 | 4 | 2 | 1 | 3 | **10.7** | P2 |
+| F41 | Leaderboard — filtre temporel (semaine / mois / tout) | [BACKLOG] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
+| F42 | Architecture difficulté — séparation âge et niveau sur 2 axes | [BACKLOG] | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
 
 > *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
 > *F39 : score composite 6.2 mais risque juridique Disney/Lucasfilm = bloquant avant toute commercialisation a grande echelle. Traiter avant la premiere campagne d'acquisition.*
+> *F42 : prérequis architectural pour F40 (filtre âge leaderboard), les recommandations adaptatives et l'équité des comparaisons. Traiter avant toute refonte du système de recommandation.*
 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
@@ -873,9 +877,109 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 
 | Feature | Borne de verite | Ce qui existe deja | Ce qui reste a livrer |
 |---------|-----------------|--------------------|-----------------------|
-| **Leaderboard — filtre par groupe d'âge (utilisateur)** | Report 25/03/2026 (lot L1) | Le classement expose `limit` et des champs enrichis ; le paramètre `age_group` a été **retiré** car il filtrait à tort sur `preferred_difficulty` (difficulté easy/medium/hard, pas l'âge). | Migration (ex. colonne `age_group` ou profil calibré) + filtre API + UX liste — voir aussi session-plan Leaderboard v2 § hors périmètre. |
+| **F40 — Leaderboard position utilisateur hors top 50** | Planifié 25/03/2026 | Classement top 50 + `is_current_user` flag sur chaque entrée. | Nouvel endpoint `GET /api/users/me/rank` (COUNT query) + injection rang courant en bas de liste avec séparateur visuel. Effort S. **Aucun prérequis — livrable après L2 sans F42.** F42 est prérequis de F40-v2 (rang filtré par groupe d'âge) uniquement. |
+| **F41 — Leaderboard filtre temporel** | Planifié 25/03/2026 | Table `point_events` opérationnelle + index `ix_point_events_user_created (user_id, created_at)` déjà en place (migration 20260321). `apply_points` déjà branché sur exercices standard (`exercise_attempt_service.py` l.127). | Query agrégée sur `point_events` par fenêtre (`period=week\|month\|all`) + sélecteur frontend. Effort M. **Pas de blocage technique.** Condition de déploiement : vérifier volume `point_events` en prod avant activation (classement vide = mauvaise UX). |
+| **F42 — Architecture difficulté/âge — séparation des deux axes** | Planifié 25/03/2026 (voir section 8.3 ci-dessous) | `preferred_difficulty` sur `User` ; `age_group` sur `Exercise` et `LogicChallenge`. | Phase 1 : colonne `age_group` sur `User` + backfill conditionnel batché (voir §8.3). Phase 2 : `difficulty_tier` 1-12 + double-lecture dans recommandations. Libellés pédagogiques réservés au dashboard parent (RGPD mineurs). |
+| **Leaderboard — filtre par groupe d'âge (utilisateur)** | Report 25/03/2026 (lot L1) | Le classement expose `limit` et des champs enrichis ; le paramètre `age_group` a été **retiré** car il filtrait à tort sur `preferred_difficulty` (difficulté easy/medium/hard ≠ tranche d'âge). | Dépend de F42 Phase 1 (colonne `age_group` sur `User`) puis F40. |
 | F14 - Monitoring IA persistance DB | Code au 23/03/2026 | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness | persistance DB complete des metriques runtime live |
 | F38 - Progression gamification compte coherente & historique des gains | Code au 23/03/2026 | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard` | historique utilisateur dedie, agregats par source, UX compte lisible |
+
+### 8.3 Décision d'architecture — Séparation des axes difficulté et groupe d'âge (F42)
+
+**Origine** : découverte lors du lot Leaderboard L1 (25/03/2026). Le filtre `age_group`
+du classement filtrait sur `User.preferred_difficulty` — deux concepts distincts traités
+comme un seul, provoquant des résultats incohérents.
+
+#### Problème actuel
+
+Le profil utilisateur possède :
+- `grade_level : Integer` — niveau scolaire (ex : CM1 = 4)
+- `preferred_difficulty : String` — préférence de difficulté (`easy` / `medium` / `hard`)
+
+Le contenu (exercices, défis) possède :
+- `age_group : String` — tranche d'âge cible (`6-8` / `9-11` / `12-14` / `15+`)
+- `difficulty : String` — dérivé de `age_group` par correspondance implicite
+
+Ces deux axes sont **orthogonaux** : un exercice difficile pour 6-8 ans reste probablement
+plus simple qu'un exercice facile pour 12-14 ans. Les mélanger biaise les recommandations,
+fausse les comparaisons de classement et rend les progrès peu lisibles.
+
+#### Matrice cible
+
+```
+                  | Découverte | Apprentissage | Consolidation
+------------------|------------|---------------|---------------
+Explorateurs 6-8  |     1      |       2       |       3
+Navigateurs 9-11  |     4      |       5       |       6
+Pilotes 12-14     |     7      |       8       |       9
+Commandants 15+   |    10      |      11       |      12
+```
+
+Les libellés de groupe (`Explorateurs`, `Navigateurs`, `Pilotes`, `Commandants`) sont des
+repères de communication — neutres, évolutifs, sans référence à une franchise particulière.
+Les libellés de difficulté (`Découverte`, `Apprentissage`, `Consolidation`) remplacent
+`easy/medium/hard` dans les surfaces utilisateur sans casser les valeurs DB existantes.
+
+#### Plan de migration (deux phases indépendantes)
+
+> **Note séquençage (débat 25/03/2026)** : F42 Phase 1 n'est PAS un prérequis de F40 (rang global).
+> F42 Phase 1 est prérequis de F40-v2 (rang filtré par groupe d'âge). F40 livrable avant F42.
+
+**Phase 1 — Colonne `age_group` sur `User`** (effort S)
+
+```sql
+ALTER TABLE users ADD COLUMN age_group VARCHAR(10);
+-- Backfill conditionnel (batché par tranches de 500 pour éviter lock en prod multi-worker) :
+UPDATE users SET age_group = CASE
+  WHEN grade_system = 'suisse' THEN NULL   -- numérotation différente, traitement manuel
+  WHEN grade_level BETWEEN 1 AND 3 THEN '6-8'
+  WHEN grade_level BETWEEN 4 AND 6 THEN '9-11'
+  WHEN grade_level BETWEEN 7 AND 9 THEN '12-14'
+  WHEN grade_level >= 10 THEN '15+'        -- pas de borne haute
+  ELSE NULL
+END WHERE age_group IS NULL;
+-- NULL → NULL acceptable ; à compléter via formulaire de profil
+```
+
+Audit obligatoire lors de Phase 1 : schémas Pydantic `UserResponse`/`UserPublic`
+→ ajouter `age_group: Optional[str]` pour éviter validation error si `extra="forbid"`.
+
+Débloque : filtre classement par groupe (F40-v2), recommandations précises, comparaisons équitables.
+
+**Phase 2 — Champ `difficulty_tier` sur le contenu** (effort M, dépend de Phase 1)
+
+```python
+# Sur Exercise et LogicChallenge
+difficulty_tier = Column(Integer)  # 1 à 12 (voir matrice ci-dessus)
+# Calculé et stocké à la création/mise à jour :
+# tier = (age_group_index * 3) + difficulty_index
+```
+
+Pattern double-lecture **imposé** dans `build_recommendation_user_context` lors de Phase 2 :
+```python
+# Zéro régression pour les utilisateurs avec age_group = NULL
+age_group = user.age_group or _grade_to_age_group(user.grade_level)
+```
+
+Débloque : algorithmes de progression lisibles, adaptation fine du tuteur IA (F24),
+révisions espacées calibrées (F04).
+
+#### Libellés — périmètre d'exposition
+
+Les libellés pédagogiques (Explorateurs 6-8, Navigateurs 9-11, Pilotes 12-14, Étoiles 15+)
+**révèlent indirectement l'âge de l'enfant**. Sur une plateforme B2C mineurs :
+
+- ✅ **Dashboard parent/enseignant** (couche payante) — contexte sécurisé, approprié
+- ❌ **Classement public** — exposition de l'âge à d'autres joueurs, non conforme RGPD mineurs
+
+Dans le classement public : conserver uniquement les rangs de progression (F39 à traiter).
+"Commandants" écarté (connotation militaire) → remplacé par "Étoiles" pour 15+.
+
+#### Ce qui ne change pas
+
+- Les valeurs DB `age_group` sur le contenu (`"6-8"`, `"9-11"`, …) — inchangées
+- Les valeurs DB `preferred_difficulty` sur `User` (`"easy"`, `"medium"`, `"hard"`) — conservées
+- Le contrat API existant — backward-compatible (ajout de champs, pas de suppression)
 
 ---
 
