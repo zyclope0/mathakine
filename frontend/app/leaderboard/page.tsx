@@ -249,9 +249,9 @@ export default function LeaderboardPage() {
                         isLast={idx === leaderboard.length - 1 && !showMyRankFooter}
                         tLevel={t("level")}
                         tYou={t("you")}
-                        tRank={t("rank", { default: "Rang" })}
-                        tStreak={t("streakStat", { default: "Série en jours" })}
-                        tBadges={t("badgesStat", { default: "Badges obtenus" })}
+                        tRank={t("rank")}
+                        tStreak={t("streakStat")}
+                        tBadges={t("badgesStat")}
                         rowVariants={rowVariants}
                         shouldReduceMotion={Boolean(shouldReduceMotion)}
                       />
