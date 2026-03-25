@@ -20,7 +20,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function LeaderboardWidget() {
   const t = useTranslations("dashboard.leaderboardWidget");
-  const { leaderboard, isLoading } = useLeaderboard(5);
+  const { leaderboard, isLoading, error } = useLeaderboard(5);
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
   if (isLoading) {
@@ -70,7 +70,11 @@ export function LeaderboardWidget() {
         </CardHeader>
 
         <CardContent className="flex-grow pt-0 px-0 pb-0">
-          {leaderboard.length === 0 ? (
+          {error ? (
+            <div className="px-4 pb-4">
+              <p className="text-sm text-muted-foreground">{t("errorState")}</p>
+            </div>
+          ) : leaderboard.length === 0 ? (
             <div className="px-4 pb-4 space-y-2">
               <p className="text-sm text-muted-foreground">{t("empty")}</p>
               <Link
