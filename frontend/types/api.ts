@@ -30,6 +30,8 @@ export interface User {
   updated_at?: string | null;
   grade_level?: number | null;
   grade_system?: "suisse" | "unifie" | null;
+  /** Tranche d'âge pédagogique (système unifié) ; absent / null si Harmos */
+  age_group?: "6-8" | "9-11" | "12-14" | "15+" | null;
   learning_style?: string | null;
   preferred_difficulty?: string | null;
   onboarding_completed_at?: string | null;

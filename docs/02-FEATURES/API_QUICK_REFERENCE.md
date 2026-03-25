@@ -33,8 +33,8 @@
 |---|---|---|
 | POST | `/api/users/` | registration, rate limited |
 | GET | `/api/users/` | placeholder / in development |
-| GET | `/api/users/me` | current user (+ `gamification_level`, `total_points`, `current_level`, `jedi_rank`) |
-| PUT | `/api/users/me` | profile update |
+| GET | `/api/users/me` | current user (+ `gamification_level`, `total_points`, `current_level`, `jedi_rank`, `age_group` nullable : tranche pédagogique `6-8` \| `9-11` \| `12-14` \| `15+` si système unifié ; NULL si Harmos / non renseigné) |
+| PUT | `/api/users/me` | profile update (incl. `age_group` ; invalide → 400 ; `grade_system` = `suisse` → `age_group` forcé à NULL) |
 | PUT | `/api/users/me/password` | password change + revocation |
 | DELETE | `/api/users/me` | delete current account |
 | GET | `/api/users/me/export` | GDPR export |

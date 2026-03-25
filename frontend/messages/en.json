@@ -1366,7 +1366,16 @@
       "learningStyle": "Learning style",
       "learningStylePlaceholder": "Select your style",
       "preferredAgeGroup": "Preferred age group",
-      "preferredAgeGroupPlaceholder": "Select your age group"
+      "preferredAgeGroupPlaceholder": "Select your age group",
+      "ageGroupBand": "Age band (content)",
+      "ageGroupBandHint": "Unified school system only. Helps align exercises and challenges with your profile.",
+      "ageGroupBandPlaceholder": "Not set",
+      "ageGroupBands": {
+        "6-8": "Ages 6–8",
+        "9-11": "Ages 9–11",
+        "12-14": "Ages 12–14",
+        "15+": "Ages 15+"
+      }
     },
     "security": {
       "title": "Security",

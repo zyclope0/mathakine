@@ -89,6 +89,8 @@ class User(Base):
     grade_system = Column(
         String(20), nullable=True
     )  # "suisse" | "unifie" pour l'affichage classe
+    # Tranche d'âge pédagogique (F42) : 6-8 | 9-11 | 12-14 | 15+ ; NULL si Harmos ou non renseigné
+    age_group = Column(String(10), nullable=True)
     learning_style = Column(String(50))
     preferred_difficulty = Column(String(50))
     # Onboarding pédagogique (Quick Win #2)

@@ -1465,7 +1465,16 @@
       "learningStyle": "Style d'apprentissage",
       "learningStylePlaceholder": "Sélectionnez votre style",
       "preferredAgeGroup": "Groupe d'âge préféré",
-      "preferredAgeGroupPlaceholder": "Sélectionnez votre groupe d'âge"
+      "preferredAgeGroupPlaceholder": "Sélectionnez votre groupe d'âge",
+      "ageGroupBand": "Tranche d'âge (contenus)",
+      "ageGroupBandHint": "Système unifié uniquement. Aide à aligner exercices et défis sur le profil.",
+      "ageGroupBandPlaceholder": "Non renseigné",
+      "ageGroupBands": {
+        "6-8": "6 à 8 ans",
+        "9-11": "9 à 11 ans",
+        "12-14": "12 à 14 ans",
+        "15+": "15 ans et plus"
+      }
     },
     "security": {
       "title": "Sécurité",

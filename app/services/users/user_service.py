@@ -17,6 +17,7 @@ from app.core.types import (
     PerformanceByType,
     UserProgressDict,
 )
+from app.core.user_age_group import USER_AGE_GROUP_VALUES
 
 logger = get_logger(__name__)
 from sqlalchemy import func, text
@@ -951,6 +952,18 @@ class UserService:
         if not user:
             return None, "not_found"
 
+        if "age_group" in update_data:
+            ag_val = update_data["age_group"]
+            if ag_val is not None:
+                effective_gs = update_data.get(
+                    "grade_system", getattr(user, "grade_system", None)
+                )
+                if effective_gs == "suisse":
+                    return (
+                        None,
+                        "La tranche d'âge ne s'applique pas au système scolaire suisse (Harmos).",
+                    )
+
         if "email" in update_data and update_data["email"] != user.email:
             existing = (
                 db.query(User)
@@ -966,6 +979,7 @@ class UserService:
         onboarding_fields = {
             "grade_level",
             "grade_system",
+            "age_group",
             "preferred_difficulty",
             "learning_goal",
             "practice_rhythm",
@@ -1009,6 +1023,7 @@ class UserService:
             "full_name",
             "grade_level",
             "grade_system",
+            "age_group",
             "learning_style",
             "preferred_difficulty",
             "preferred_theme",
@@ -1079,6 +1094,17 @@ class UserService:
             grade_system = update_data["grade_system"]
             if grade_system is not None and grade_system not in valid_grade_systems:
                 return None, "Système scolaire invalide. Valeurs : suisse ou unifie."
+            if grade_system == "suisse":
+                update_data["age_group"] = None
+
+        if "age_group" in update_data:
+            ag = update_data["age_group"]
+            if ag is not None and ag not in USER_AGE_GROUP_VALUES:
+                return (
+                    None,
+                    "Tranche d'âge invalide. Valeurs : "
+                    + ", ".join(sorted(USER_AGE_GROUP_VALUES)),
+                )
 
         if "grade_level" in update_data:
             grade_level = update_data["grade_level"]
@@ -1129,6 +1155,7 @@ class UserService:
             "is_email_verified": getattr(user, "is_email_verified", True),
             "grade_level": user.grade_level,
             "grade_system": getattr(user, "grade_system", None),
+            "age_group": getattr(user, "age_group", None),
             "learning_style": user.learning_style,
             "preferred_difficulty": user.preferred_difficulty,
             "onboarding_completed_at": (
@@ -1291,6 +1318,7 @@ class UserService:
             "is_active": user.is_active,
             "grade_level": user.grade_level,
             "grade_system": getattr(user, "grade_system", None),
+            "age_group": getattr(user, "age_group", None),
             "learning_style": user.learning_style,
             "preferred_difficulty": user.preferred_difficulty,
             "preferred_theme": user.preferred_theme,

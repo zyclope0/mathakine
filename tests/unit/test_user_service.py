@@ -154,6 +154,24 @@ def test_normalize_profile_update_data_rejects_invalid_email():
     assert error_message == "Adresse email invalide."
 
 
+def test_normalize_profile_update_data_rejects_invalid_age_group():
+    normalized_data, error_message = UserService.normalize_profile_update_data(
+        {"grade_system": "unifie", "age_group": "0-1"}
+    )
+    assert normalized_data is None
+    assert error_message is not None
+    assert "Tranche" in error_message
+
+
+def test_normalize_profile_update_data_clears_age_group_when_grade_system_suisse():
+    normalized_data, error_message = UserService.normalize_profile_update_data(
+        {"grade_system": "suisse", "age_group": "6-8"}
+    )
+    assert error_message is None
+    assert normalized_data["grade_system"] == "suisse"
+    assert normalized_data["age_group"] is None
+
+
 def test_serialize_user_profile_for_api():
     user = MagicMock(spec=User)
     user.id = 1
@@ -164,6 +182,7 @@ def test_serialize_user_profile_for_api():
     user.is_email_verified = True
     user.grade_level = 6
     user.grade_system = "suisse"
+    user.age_group = None
     user.learning_style = "visuel"
     user.preferred_difficulty = "initie"
     user.onboarding_completed_at = datetime(2026, 3, 6, 12, 0, 0)
@@ -184,6 +203,7 @@ def test_serialize_user_profile_for_api():
     assert response_data["username"] == "serialize_user"
     assert response_data["role"] == UserRole.PADAWAN.value
     assert response_data["grade_system"] == "suisse"
+    assert response_data["age_group"] is None
     assert response_data["accessibility_settings"] == {"high_contrast": True}
     assert response_data["onboarding_completed_at"] == "2026-03-06T12:00:00"
     gl = response_data["gamification_level"]

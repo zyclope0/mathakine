@@ -11,6 +11,7 @@ export interface ProfileUpdateData {
   full_name?: string;
   grade_level?: number;
   grade_system?: "suisse" | "unifie";
+  age_group?: "6-8" | "9-11" | "12-14" | "15+" | null;
   learning_style?: string;
   preferred_difficulty?: string;
   learning_goal?: string;

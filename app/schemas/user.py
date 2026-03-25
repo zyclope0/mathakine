@@ -12,6 +12,7 @@ from pydantic import (
     model_validator,
 )
 
+from app.core.user_age_group import USER_AGE_GROUP_VALUES
 from app.models.user import UserRole
 
 # Schémas pour la manipulation des utilisateurs
@@ -110,6 +111,11 @@ class UserUpdate(BaseModel):
     grade_system: Optional[str] = Field(
         None, max_length=20, description="Système scolaire: suisse (Harmos) ou unifie"
     )
+    age_group: Optional[str] = Field(
+        None,
+        max_length=10,
+        description="Tranche d'âge pédagogique (6-8, 9-11, 12-14, 15+) ; inapplicable si Harmos",
+    )
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
     learning_goal: Optional[str] = Field(
@@ -151,6 +157,16 @@ class UserUpdate(BaseModel):
     marketing_consent: Optional[bool] = Field(
         None, description="Consentement marketing"
     )
+
+    @field_validator("age_group")
+    @classmethod
+    def validate_age_group(cls, v):
+        if v is not None and v not in USER_AGE_GROUP_VALUES:
+            raise ValueError(
+                "Tranche d'âge invalide. Valeurs : "
+                + ", ".join(sorted(USER_AGE_GROUP_VALUES))
+            )
+        return v
 
     @field_validator("preferred_theme")
     @classmethod

@@ -169,6 +169,46 @@ async def test_update_user_onboarding_fields(padawan_client):
     assert data["practice_rhythm"] == "10min_jour"
 
 
+async def test_update_user_age_group_unifie(padawan_client):
+    client = padawan_client["client"]
+    response = await client.put(
+        "/api/users/me",
+        json={
+            "grade_system": "unifie",
+            "grade_level": 5,
+            "age_group": "9-11",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["grade_system"] == "unifie"
+    assert data["age_group"] == "9-11"
+
+
+async def test_update_user_age_group_invalid_returns_400(padawan_client):
+    client = padawan_client["client"]
+    response = await client.put(
+        "/api/users/me",
+        json={"grade_system": "unifie", "age_group": "invalid-band"},
+    )
+    assert response.status_code == 400
+
+
+async def test_update_user_age_group_cleared_when_suisse(padawan_client):
+    client = padawan_client["client"]
+    r1 = await client.put(
+        "/api/users/me",
+        json={"grade_system": "unifie", "grade_level": 4, "age_group": "9-11"},
+    )
+    assert r1.status_code == 200
+    r2 = await client.put(
+        "/api/users/me",
+        json={"grade_system": "suisse", "grade_level": 4},
+    )
+    assert r2.status_code == 200
+    assert r2.json().get("age_group") in (None, "")
+
+
 async def test_update_user_password(padawan_client, db_session):
     """Test pour mettre a jour le mot de passe d'un utilisateur."""
     client = padawan_client["client"]

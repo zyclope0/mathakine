@@ -50,6 +50,7 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
         ),
         "grade_level": getattr(user, "grade_level", None),
         "grade_system": getattr(user, "grade_system", None),
+        "age_group": getattr(user, "age_group", None),
         "preferred_difficulty": getattr(user, "preferred_difficulty", None),
         "learning_goal": getattr(user, "learning_goal", None),
         "practice_rhythm": getattr(user, "practice_rhythm", None),
@@ -162,6 +163,7 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
             "full_name": user.full_name if hasattr(user, "full_name") else None,
             "grade_level": user.grade_level if hasattr(user, "grade_level") else None,
             "grade_system": getattr(user, "grade_system", None),
+            "age_group": getattr(user, "age_group", None),
             "learning_style": (
                 user.learning_style if hasattr(user, "learning_style") else None
             ),

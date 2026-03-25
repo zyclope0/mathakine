@@ -44,6 +44,7 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AGE_GROUPS, type AgeGroup } from "@/lib/constants/exercises";
+import { USER_PROFILE_AGE_GROUPS, type UserProfileAgeGroup } from "@/lib/constants/userProfileAgeGroup";
 import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
 import { fr } from "date-fns/locale";
 import { useThemeStore } from "@/lib/stores/themeStore";
@@ -85,6 +86,16 @@ function ProfilePageContent() {
     full_name: user?.full_name || "",
   });
 
+  type LearningPrefsState = {
+    grade_system: "suisse" | "unifie";
+    grade_level: string;
+    age_group: string;
+    learning_style: string;
+    preferred_difficulty: string;
+    learning_goal: string;
+    practice_rhythm: string;
+  };
+
   const GRADE_SYSTEMS = ["suisse", "unifie"] as const;
   const LEARNING_GOALS = ["reviser", "preparer_exam", "progresser", "samuser", "autre"] as const;
   const PRACTICE_RHYTHMS = [
@@ -96,9 +107,10 @@ function ProfilePageContent() {
   ] as const;
 
   // Données du formulaire préférences d'apprentissage
-  const [learningPrefs, setLearningPrefs] = useState({
+  const [learningPrefs, setLearningPrefs] = useState<LearningPrefsState>({
     grade_system: (user?.grade_system as "suisse" | "unifie") || "unifie",
     grade_level: user?.grade_level?.toString() || "",
+    age_group: (user?.age_group as UserProfileAgeGroup | undefined) || "",
     learning_style: user?.learning_style || "",
     preferred_difficulty: user?.preferred_difficulty || "",
     learning_goal: user?.learning_goal || "",
@@ -135,6 +147,7 @@ function ProfilePageContent() {
     const nextLearningPrefs = {
       grade_system: (user.grade_system as "suisse" | "unifie") || "unifie",
       grade_level: user.grade_level?.toString() || "",
+      age_group: (user.age_group as UserProfileAgeGroup | undefined) || "",
       learning_style: user.learning_style || "",
       preferred_difficulty: user.preferred_difficulty || "",
       learning_goal: user.learning_goal || "",
@@ -239,6 +252,15 @@ function ProfilePageContent() {
     await updateProfile({
       grade_system: learningPrefs.grade_system,
       ...(learningPrefs.grade_level ? { grade_level: parseInt(learningPrefs.grade_level) } : {}),
+      ...(learningPrefs.grade_system === "unifie"
+        ? {
+            age_group:
+              learningPrefs.age_group &&
+              USER_PROFILE_AGE_GROUPS.includes(learningPrefs.age_group as UserProfileAgeGroup)
+                ? (learningPrefs.age_group as UserProfileAgeGroup)
+                : null,
+          }
+        : {}),
       ...(learningPrefs.learning_style ? { learning_style: learningPrefs.learning_style } : {}),
       ...(learningPrefs.preferred_difficulty
         ? { preferred_difficulty: learningPrefs.preferred_difficulty }
@@ -652,6 +674,7 @@ function ProfilePageContent() {
                               setLearningPrefs((prev) => ({
                                 ...prev,
                                 grade_system: next,
+                                age_group: next === "suisse" ? "" : prev.age_group,
                                 grade_level:
                                   prev.grade_level && parseInt(prev.grade_level, 10) > max
                                     ? ""
@@ -710,6 +733,49 @@ function ProfilePageContent() {
                             </SelectContent>
                           </Select>
                         </div>
+                        {learningPrefs.grade_system === "unifie" ? (
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between py-4 border-b border-border/50 last:border-0 gap-2">
+                            <div className="flex flex-col gap-1 pr-4">
+                              <Label
+                                htmlFor="age_group_band"
+                                className="text-sm font-medium text-foreground"
+                              >
+                                {tLearning("ageGroupBand")}
+                              </Label>
+                              <p className="text-xs text-muted-foreground max-w-md">
+                                {tLearning("ageGroupBandHint")}
+                              </p>
+                            </div>
+                            <Select
+                              value={learningPrefs.age_group || "none"}
+                              onValueChange={(value) =>
+                                setLearningPrefs((prev) => ({
+                                  ...prev,
+                                  age_group: value === "none" ? "" : value,
+                                }))
+                              }
+                              disabled={isUpdatingProfile}
+                            >
+                              <SelectTrigger
+                                id="age_group_band"
+                                aria-label={tLearning("ageGroupBand")}
+                                className="w-full sm:w-[250px] mt-1 sm:mt-0 shrink-0"
+                              >
+                                <SelectValue placeholder={tLearning("ageGroupBandPlaceholder")} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  {tLearning("ageGroupBandPlaceholder")}
+                                </SelectItem>
+                                {USER_PROFILE_AGE_GROUPS.map((band) => (
+                                  <SelectItem key={band} value={band}>
+                                    {tLearning(`ageGroupBands.${band}`)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : null}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
                           <div className="flex flex-col gap-1 pr-4">
                             <Label
@@ -858,6 +924,7 @@ function ProfilePageContent() {
                                 grade_system:
                                   (user.grade_system as "suisse" | "unifie") || "unifie",
                                 grade_level: user.grade_level?.toString() || "",
+                                age_group: (user.age_group as UserProfileAgeGroup | undefined) || "",
                                 learning_style: user.learning_style || "",
                                 preferred_difficulty: user.preferred_difficulty || "",
                                 learning_goal: user.learning_goal || "",
@@ -918,6 +985,21 @@ function ProfilePageContent() {
                               : "-"}
                           </p>
                         </div>
+                        {user.grade_system === "unifie" ? (
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                            <div className="flex flex-col gap-1 pr-4">
+                              <p className="text-sm font-medium text-foreground">
+                                {tLearning("ageGroupBand")}
+                              </p>
+                            </div>
+                            <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
+                              {user.age_group &&
+                              USER_PROFILE_AGE_GROUPS.includes(user.age_group as UserProfileAgeGroup)
+                                ? tLearning(`ageGroupBands.${user.age_group}`)
+                                : "—"}
+                            </p>
+                          </div>
+                        ) : null}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
                           <div className="flex flex-col gap-1 pr-4">
                             <p className="text-sm font-medium text-foreground">
