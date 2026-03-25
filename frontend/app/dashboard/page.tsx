@@ -122,6 +122,7 @@ export default function DashboardPage() {
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
+        queryClient.invalidateQueries({ queryKey: ["user", "challenges", "detailed-progress"] }),
         queryClient.invalidateQueries({ queryKey: ["leaderboard"] }),
         queryClient.invalidateQueries({ queryKey: ["daily-challenges"] }),
       ]);
@@ -357,6 +358,13 @@ export default function DashboardPage() {
                     icon={Trophy}
                     value={stats.total_challenges || 0}
                     label={t("stats.challengesCompleted")}
+                    {...(challengesProgress && challengesProgress.average_time > 0
+                      ? {
+                          footnote: t("stats.challengesAvgFootnote", {
+                            seconds: Math.round(challengesProgress.average_time),
+                          }),
+                        }
+                      : {})}
                   />
                 </div>
               </PageSection>

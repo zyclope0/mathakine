@@ -191,7 +191,7 @@ export interface ChallengeFiltersWithSearch {
  */
 export interface ChallengeAttemptResponse {
   is_correct: boolean;
-  message: string;
+  message?: string;
   correct_answer?: string;
   explanation?: string;
   new_badges?: Array<{
@@ -201,6 +201,23 @@ export interface ChallengeAttemptResponse {
   }>;
   points_earned?: number;
   progress_notification?: { name: string; remaining: number };
+}
+
+/** Segment de répartition (GET /api/challenges/stats). */
+export interface ChallengeCatalogStatBucket {
+  count: number;
+  percentage: number;
+}
+
+/**
+ * Réponse GET /api/challenges/stats — répartition du catalogue de défis actifs.
+ */
+export interface ChallengesStats {
+  total: number;
+  total_archived: number;
+  by_type: Record<string, ChallengeCatalogStatBucket>;
+  by_difficulty: Record<string, ChallengeCatalogStatBucket>;
+  by_age_group: Record<string, ChallengeCatalogStatBucket>;
 }
 
 /**

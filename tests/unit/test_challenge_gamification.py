@@ -54,7 +54,7 @@ def test_logic_challenge_correct_creates_point_event_and_increments_total(
     user = _create_padawan(db_session)
     challenge = _create_sequence_challenge(db_session, user.id)
 
-    submit_challenge_attempt_sync(
+    result = submit_challenge_attempt_sync(
         db_session,
         challenge.id,
         user.id,
@@ -62,6 +62,7 @@ def test_logic_challenge_correct_creates_point_event_and_increments_total(
         time_spent=5.0,
         hints_used_count=0,
     )
+    assert result.points_earned == POINTS_PER_CORRECT_EXERCISE
 
     db_session.refresh(user)
     assert user.total_points == POINTS_PER_CORRECT_EXERCISE
@@ -82,7 +83,7 @@ def test_logic_challenge_incorrect_does_not_award_points(db_session):
     user = _create_padawan(db_session)
     challenge = _create_sequence_challenge(db_session, user.id)
 
-    submit_challenge_attempt_sync(
+    result = submit_challenge_attempt_sync(
         db_session,
         challenge.id,
         user.id,
@@ -90,6 +91,7 @@ def test_logic_challenge_incorrect_does_not_award_points(db_session):
         time_spent=1.0,
         hints_used_count=0,
     )
+    assert result.points_earned is None
 
     db_session.refresh(user)
     assert user.total_points == 0

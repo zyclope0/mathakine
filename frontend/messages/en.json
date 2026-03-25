@@ -633,6 +633,7 @@
       "hintButtonGeneric": "Hint",
       "correctTitle": "Well done! Correct answer!",
       "incorrectTitle": "Not yet, keep going.",
+      "pointsEarned": "+{count} pts",
       "explanationLabel": "Explanation:",
       "tryAgain": "Not yet. You're learning as you go.",
       "tryAgainStrategy": "Try a different strategy or use a hint, then attempt again.",
@@ -762,7 +763,8 @@
       "jediRank": "Jedi Rank",
       "exercisesSolved": "Exercises solved",
       "experiencePointsLabel": "Experience points",
-      "challengesCompleted": "Challenges completed"
+      "challengesCompleted": "Challenges completed",
+      "challengesAvgFootnote": "Average time: {seconds}s"
     },
     "progress": {
       "title": "Progress",
@@ -850,7 +852,27 @@
       "completed": "completed",
       "successRate": "Success rate",
       "avgTime": "Avg. time",
-      "noChallengesYet": "Take on your first challenge!"
+      "noChallengesYet": "Take on your first challenge!",
+      "byTypeTitle": "By challenge type",
+      "byTypeAttempts": "{correct}/{total} correct",
+      "mastery": {
+        "novice": "Novice",
+        "apprentice": "Apprentice",
+        "adept": "Skilled",
+        "expert": "Expert"
+      },
+      "types": {
+        "sequence": "Sequence",
+        "pattern": "Pattern",
+        "visual": "Visual & spatial",
+        "puzzle": "Puzzle",
+        "riddle": "Riddle",
+        "deduction": "Deduction",
+        "probability": "Probability",
+        "graph": "Graph",
+        "coding": "Coding",
+        "chess": "Chess"
+      }
     },
     "averageTime": {
       "title": "Avg. tempo",
@@ -865,7 +887,10 @@
     },
     "categoryAccuracy": {
       "title": "Accuracy by Category",
+      "exercisesSubtitle": "Exercises",
+      "challengesSubtitle": "Logic challenges",
       "noData": "No data available. Start solving exercises!",
+      "noChallengesRadar": "No challenge attempts yet. Complete a logic challenge to see this radar.",
       "exercises": "ex.",
       "excellent": "Excellent",
       "good": "Good",

@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 24/03/2026
+> Updated: 25/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -40,7 +40,7 @@
 | GET | `/api/users/me/export` | GDPR export |
 | GET | `/api/users/me/sessions` | active sessions |
 | DELETE | `/api/users/me/sessions/{session_id}` | revoke session |
-| GET | `/api/users/me/progress/timeline` | progression timeline |
+| GET | `/api/users/me/progress/timeline` | progression timeline (exercices **+** défis logiques ; `by_type` inclut des clés `logic_*`). Prérequis DB : migrations `20260325_challenge_progress` puis `20260325_fix_lca_created_at` (head) — voir `docs/03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md` §3.1 bis |
 | GET | `/api/users/me/progress` | global progression |
 | GET | `/api/users/me/challenges/progress` | challenge progression |
 | GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |

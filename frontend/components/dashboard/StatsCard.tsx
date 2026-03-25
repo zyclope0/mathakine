@@ -14,6 +14,8 @@ interface StatsCardProps {
   trend?: number; // Variation en pourcentage (ex: +5 pour +5%)
   trendDirection?: "up" | "down" | "neutral";
   lastUpdate?: string; // Date de dernière mise à jour (ISO string)
+  /** Ligne secondaire sous le label (ex. temps moyen). */
+  footnote?: string;
 }
 
 export function StatsCard({
@@ -24,6 +26,7 @@ export function StatsCard({
   trend,
   trendDirection,
   lastUpdate,
+  footnote,
 }: StatsCardProps) {
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
@@ -88,6 +91,9 @@ export function StatsCard({
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-0.5 truncate">{label}</p>
+          {footnote ? (
+            <p className="text-xs text-muted-foreground/80 mt-1 tabular-nums">{footnote}</p>
+          ) : null}
           {lastUpdate && (
             <p className="text-xs text-muted-foreground/60 mt-1">
               {new Date(lastUpdate).toLocaleTimeString("fr-FR", {

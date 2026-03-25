@@ -493,6 +493,17 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 >
                   {isCorrect ? t("correctTitle") : t("incorrectTitle")}
                 </h3>
+                {isCorrect &&
+                  submitResult &&
+                  typeof submitResult.points_earned === "number" &&
+                  submitResult.points_earned > 0 && (
+                    <p
+                      className="text-sm font-medium text-emerald-500/95"
+                      data-testid="challenge-points-earned"
+                    >
+                      {t("pointsEarned", { count: submitResult.points_earned })}
+                    </p>
+                  )}
                 {isCorrect && challenge.solution_explanation && (
                   <div className="mt-4">
                     <p className="font-medium text-foreground mb-2">{t("explanationLabel")}</p>

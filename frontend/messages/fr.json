@@ -633,6 +633,7 @@
       "hintButtonGeneric": "Indice",
       "correctTitle": "Bravo ! Réponse correcte !",
       "incorrectTitle": "Pas encore, continue comme ça.",
+      "pointsEarned": "+{count} pts",
       "explanationLabel": "Explication :",
       "tryAgain": "Pas encore. Tu es en train d'apprendre.",
       "tryAgainStrategy": "Teste une autre stratégie ou prends un indice, puis retente.",
@@ -749,7 +750,8 @@
       "jediRank": "Rang Jedi",
       "exercisesSolved": "Exercices résolus",
       "experiencePointsLabel": "Points d'expérience",
-      "challengesCompleted": "Défis réussis"
+      "challengesCompleted": "Défis réussis",
+      "challengesAvgFootnote": "Temps moyen : {seconds}s"
     },
     "progress": {
       "title": "Progression",
@@ -837,7 +839,27 @@
       "completed": "complétés",
       "successRate": "Taux de réussite",
       "avgTime": "Temps moyen",
-      "noChallengesYet": "Commence par relever ton premier défi !"
+      "noChallengesYet": "Commence par relever ton premier défi !",
+      "byTypeTitle": "Par type de défi",
+      "byTypeAttempts": "{correct}/{total} bonnes réponses",
+      "mastery": {
+        "novice": "Novice",
+        "apprentice": "Apprenti",
+        "adept": "Confirmé",
+        "expert": "Expert"
+      },
+      "types": {
+        "sequence": "Séquence",
+        "pattern": "Motif",
+        "visual": "Visuel et spatial",
+        "puzzle": "Puzzle",
+        "riddle": "Énigme",
+        "deduction": "Déduction",
+        "probability": "Probabilité",
+        "graph": "Graphe",
+        "coding": "Codage",
+        "chess": "Échecs"
+      }
     },
     "averageTime": {
       "title": "Tempo moyen",
@@ -852,7 +874,10 @@
     },
     "categoryAccuracy": {
       "title": "Précision par catégorie",
+      "exercisesSubtitle": "Exercices",
+      "challengesSubtitle": "Défis logiques",
       "noData": "Aucune donnée disponible. Commence à résoudre des exercices !",
+      "noChallengesRadar": "Aucune tentative de défi encore. Lance un défi pour voir ce radar.",
       "exercises": "exerc.",
       "excellent": "Excellent",
       "good": "Bien",

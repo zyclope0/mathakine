@@ -7,6 +7,7 @@ import pytest
 
 from app.models.logic_challenge import AgeGroup, LogicChallengeType
 from app.models.user import User, UserRole
+from app.services.exercises.exercise_attempt_service import POINTS_PER_CORRECT_EXERCISE
 from app.utils.db_helpers import get_enum_value
 from tests.fixtures.model_fixtures import test_logic_challenge, test_logic_challenges
 
@@ -90,6 +91,7 @@ async def test_challenge_attempt_correct(
     result = response.json()
     assert result["is_correct"] is True
     assert "explanation" in result
+    assert result.get("points_earned") == POINTS_PER_CORRECT_EXERCISE
     assert (
         result.get("hints") is None or result.get("hints_remaining") is None
     )  # Pas d'indice nécessaire

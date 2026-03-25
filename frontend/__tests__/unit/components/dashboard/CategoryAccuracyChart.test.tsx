@@ -2,9 +2,13 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
+
+vi.mock("@/hooks/useChallengesProgress", () => ({
+  useChallengesDetailedProgress: vi.fn(),
+}));
 import en from "@/messages/en.json";
 import fr from "@/messages/fr.json";
 
@@ -74,6 +78,15 @@ function renderWithLocale(locale: "fr" | "en") {
 }
 
 describe("CategoryAccuracyChart", () => {
+  beforeEach(async () => {
+    const { useChallengesDetailedProgress } = await import("@/hooks/useChallengesProgress");
+    vi.mocked(useChallengesDetailedProgress).mockReturnValue({
+      data: { items: [] },
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useChallengesDetailedProgress>);
+  });
+
   it("retraduit les libelles radar quand la locale change", () => {
     const view = renderWithLocale("fr");
 

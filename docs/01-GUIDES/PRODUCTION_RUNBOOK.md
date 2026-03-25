@@ -123,6 +123,9 @@ alembic downgrade <revision_id>
 Production schema changes currently include, among others:
 - `20260321_add_point_events_ledger.py`
 - `20260322_ai_eval_harness_persistence.py`
+- `20260324_fix_users_created_at_default.py`
+- `20260325_add_challenge_progress.py` (table `challenge_progress`)
+- `20260325_fix_lca_created_at.py` (timeline F07 + défis logiques : `logic_challenge_attempts.created_at` fiable ; **head** courant)
 
 Check `migrations/versions/` before assuming the target rollback point.
 

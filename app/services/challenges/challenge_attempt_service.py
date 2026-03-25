@@ -106,6 +106,7 @@ def _execute_attempt(
         )
 
     new_badges: list[ChallengeBadgeEarned] = []
+    points_earned: int | None = None
     if is_correct:
         try:
             # Pas de savepoint dédié : aligné sur exercise_attempt_service (apply_points direct).
@@ -116,6 +117,7 @@ def _execute_attempt(
                 PointEventSourceType.LOGIC_CHALLENGE_COMPLETED,
                 source_id=cmd.challenge_id,
             )
+            points_earned = POINTS_PER_CORRECT_EXERCISE
         except Exception as gamif_err:
             logger.error(
                 "Gamification error on challenge %s: %s",
@@ -188,6 +190,7 @@ def _execute_attempt(
         new_badges=new_badges,
         progress_notification=progress_notification,
         hints_remaining=hints_remaining,
+        points_earned=points_earned,
     )
 
 

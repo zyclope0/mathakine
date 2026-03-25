@@ -1,7 +1,7 @@
 # F07 — Implémentation Guidée: Courbe d'Évolution Temporelle
 
-**Date**: 07/03/2026  
-**Statut**: Prêt à implémenter  
+**Date**: 07/03/2026 (mise à jour migrations / défis logiques : 25/03/2026)  
+**Statut**: Implémenté (endpoint + service) ; voir migrations Alembic ci-dessous pour cohérence DB  
 **Niveau**: Moyen  
 **Objectif**: Livrer un suivi temporel robuste de la progression utilisateur (backend + frontend + tests + docs) avec risque faible.
 
@@ -53,7 +53,21 @@ Réponse attendue:
   - `overall_success_rate_pct`
 
 Amélioration incluse (plus-value):
-- `by_type` par point journalier (map `exercise_type -> {attempts, correct, success_rate_pct}`), même si non affiché dans l'UI initiale.
+- `by_type` par point journalier : types d’exercice (`exercise_type`) **et** défis logiques sous des clés `logic_<challenge_type>` (ex. `logic_sequence`).
+- Les totaux journaliers (`attempts`, `correct`, `avg_time_spent_s`, `summary`) **incluent** les tentatives `logic_challenge_attempts` (UNION ALL côté service).
+
+### 3.1 bis — Migrations Alembic (contrôles / audits)
+
+Pour éviter une incohérence entre **code** et **base déjà en prod** (schéma legacy) :
+
+| Revision | Fichier | Rôle |
+|---|---|---|
+| `20260325_challenge_progress` | `migrations/versions/20260325_add_challenge_progress.py` | Crée `challenge_progress` (maîtrise agrégée par type de défi — lot C3a, distinct de la requête timeline mais même vague fonctionnelle). |
+| `20260325_fix_lca_created_at` | `migrations/versions/20260325_fix_lca_created_at.py` | Backfill des `created_at` NULL sur `logic_challenge_attempts`, `DEFAULT NOW()`, colonne `NOT NULL`. Sans cela, la timeline F07 **exclut** silencieusement les lignes sans date. |
+
+Enchaînement : `…` → `20260324_created_at_default` → `20260325_challenge_progress` → **`20260325_fix_lca_created_at` (head)**.
+
+Vérification opérationnelle : `alembic heads` doit afficher `20260325_fix_lca_created_at` ; déploiement : `alembic upgrade head` (déjà le flux documenté dans `docs/03-PROJECT/CICD_DEPLOY.md`).
 
 ### 3.2 Frontend
 
@@ -87,7 +101,7 @@ Ne pas inclure dans ce lot:
 - segmentation hebdomadaire avancée,
 - comparaisons utilisateurs,
 - recalibrage adaptatif automatique depuis la courbe,
-- migrations lourdes de schéma.
+- migrations de schéma **hors** périmètre F07/C3 (les révisions du 25/03/2026 ci-dessus sont la référence pour timeline + défis logiques).
 
 ---
 

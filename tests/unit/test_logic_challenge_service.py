@@ -1260,11 +1260,18 @@ def test_record_attempt_with_mock(mock_get_challenge):
 
 def test_submit_answer_result_uses_orchestrator_owned_transaction():
     mock_db = MagicMock()
+    progress_savepoint = MagicMock()
+    progress_savepoint.is_active = True
     streak_savepoint = MagicMock()
     streak_savepoint.is_active = True
     daily_savepoint = MagicMock()
     daily_savepoint.is_active = True
-    mock_db.begin_nested.side_effect = [streak_savepoint, daily_savepoint]
+    # Ordre réel challenge_attempt_service._execute_attempt : challenge_progress → streak → daily
+    mock_db.begin_nested.side_effect = [
+        progress_savepoint,
+        streak_savepoint,
+        daily_savepoint,
+    ]
 
     mock_challenge = MagicMock(
         challenge_type=LogicChallengeType.SEQUENCE.value,
@@ -1334,6 +1341,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     streak_mock.assert_called_once_with(mock_db, 9, auto_commit=False)
     daily_mock.assert_called_once_with(mock_db, 9, True)
     apply_points_mock.assert_called_once()
+    progress_savepoint.commit.assert_called_once()
     streak_savepoint.commit.assert_called_once()
     daily_savepoint.commit.assert_called_once()
     mock_db.commit.assert_called_once()

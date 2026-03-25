@@ -404,6 +404,10 @@ class SubmitChallengeAttemptResult(BaseModel):
     hints_remaining: Optional[int] = Field(
         None, description="Indices restants (si incorrect)"
     )
+    points_earned: Optional[int] = Field(
+        None,
+        description="Points crédités sur cette tentative (défi correct, attribution réussie)",
+    )
 
 
 # --- DTO use case Stream (LOT B1) ---
