@@ -23,6 +23,7 @@ from app.services.users.user_application_service import (
     get_challenges_progress_data,
     get_dashboard_stats,
     get_leaderboard,
+    get_user_rank_by_points_data,
     get_progress_timeline_data,
     get_user_progress_data,
     get_user_sessions_list,
@@ -204,6 +205,29 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
     except Exception as e:
         logger.error(
             f"Erreur lors de la récupération du classement: {e}", exc_info=True
+        )
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_full_access
+async def get_user_me_rank(request: Request) -> JSONResponse:
+    """
+    Rang global par points (1 + nombre d'utilisateurs actifs avec plus de points).
+    Route: GET /api/users/me/rank
+    """
+    try:
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        payload = await run_db_bound(get_user_rank_by_points_data, user_id)
+        return JSONResponse(payload, status_code=200)
+    except UserNotFoundError:
+        return api_error_response(404, "Utilisateur introuvable.")
+    except Exception as e:
+        logger.error(
+            "Erreur lors de la récupération du rang utilisateur: %s",
+            e,
+            exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
 

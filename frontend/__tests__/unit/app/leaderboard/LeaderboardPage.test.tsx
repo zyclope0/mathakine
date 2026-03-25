@@ -17,7 +17,13 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock("@/hooks/useMyLeaderboardRank", () => ({
+  useMyLeaderboardRank: vi.fn(),
+}));
+
+import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useMyLeaderboardRank } from "@/hooks/useMyLeaderboardRank";
 
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -40,9 +46,40 @@ const baseEntry = (overrides: Partial<LeaderboardEntry>): LeaderboardEntry => ({
   ...overrides,
 });
 
+const defaultAuthReturn = {
+  user: null,
+  isLoading: false,
+  isAuthenticated: false,
+  error: null,
+  login: vi.fn(),
+  loginAsync: vi.fn(),
+  isLoggingIn: false,
+  register: vi.fn(),
+  registerAsync: vi.fn(),
+  isRegistering: false,
+  logout: vi.fn(),
+  isLoggingOut: false,
+  forgotPassword: vi.fn(),
+  forgotPasswordAsync: vi.fn(),
+  isForgotPasswordPending: false,
+} as const;
+
+const defaultMyRankReturn = {
+  data: undefined,
+  isLoading: false,
+  isError: false,
+  error: null,
+  isFetching: false,
+  refetch: vi.fn(),
+} as const;
+
 describe("LeaderboardPage (L2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({ ...defaultAuthReturn });
+    vi.mocked(useMyLeaderboardRank).mockReturnValue({
+      ...defaultMyRankReturn,
+    } as unknown as ReturnType<typeof useMyLeaderboardRank>);
   });
 
   it("affiche un CTA vers /challenges quand le classement est vide", () => {
@@ -101,5 +138,48 @@ describe("LeaderboardPage (L2)", () => {
 
     expect(screen.getByText("solo")).toBeInTheDocument();
     expect(screen.queryByTitle("Série en jours")).not.toBeInTheDocument();
+  });
+
+  it("affiche le séparateur et le rang hors top quand l’API me/rank renvoie des données", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      ...defaultAuthReturn,
+      user: {
+        id: 99,
+        username: "hors_top",
+        email: "hors_top@test.com",
+        role: "padawan",
+        is_active: true,
+        current_level: 5,
+        jedi_rank: "padawan",
+      },
+      isAuthenticated: true,
+    });
+    vi.mocked(useLeaderboard).mockReturnValue({
+      leaderboard: [
+        baseEntry({ rank: 1, username: "top1", total_points: 900 }),
+        baseEntry({ rank: 2, username: "top2", total_points: 800 }),
+      ],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    vi.mocked(useMyLeaderboardRank).mockReturnValue({
+      data: { rank: 120, total_points: 3 },
+      isLoading: false,
+      isError: false,
+      error: null,
+      isFetching: false,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useMyLeaderboardRank>);
+
+    render(<LeaderboardPage />, { wrapper: TestWrapper });
+
+    expect(screen.getByText(/votre position/i)).toBeInTheDocument();
+    expect(screen.getByText("hors_top")).toBeInTheDocument();
+    expect(screen.getByText("120")).toBeInTheDocument();
+    const footerBlock = screen.getByText(/votre position/i).closest(".border-t");
+    expect(footerBlock).toBeTruthy();
+    expect(within(footerBlock as HTMLElement).getByText("3")).toBeInTheDocument();
+    expect(within(footerBlock as HTMLElement).getByText("pts")).toBeInTheDocument();
   });
 });

@@ -846,7 +846,8 @@
       "viewAll": "View all",
       "empty": "No leaderboard yet.",
       "emptyCta": "Browse challenges",
-      "you": "You"
+      "you": "You",
+      "errorState": "Unable to load the leaderboard."
     },
     "challengesProgress": {
       "title": "Challenges Progress",
@@ -1217,7 +1218,10 @@
     "level": "Level",
     "you": "You",
     "streakStat": "Day streak",
-    "badgesStat": "Badges earned"
+    "badgesStat": "Badges earned",
+    "yourRank": {
+      "separator": "Your position"
+    }
   },
   "accessibility": {
     "toolbar": {

@@ -833,7 +833,8 @@
       "viewAll": "Voir tout",
       "empty": "Aucun classement pour le moment.",
       "emptyCta": "Voir les défis",
-      "you": "Vous"
+      "you": "Vous",
+      "errorState": "Impossible de charger le classement."
     },
     "challengesProgress": {
       "title": "Progression des défis",
@@ -1217,7 +1218,10 @@
     "level": "Niveau",
     "you": "Vous",
     "streakStat": "Série en jours",
-    "badgesStat": "Badges obtenus"
+    "badgesStat": "Badges obtenus",
+    "yourRank": {
+      "separator": "Votre position"
+    }
   },
   "accessibility": {
     "toolbar": {
@@ -2003,7 +2007,6 @@
       "items": [
         "Nouvelles pages : A propos, Contact et Politique de confidentialite.",
         "Bouton de signalement pour remonter un exercice incorrect, un defi incoherent ou un bug.",
-        "Classement filtrable par tranche d age.",
         "Tableau de bord avec temps moyen par session et recommandations plus pertinentes.",
         "Affichage du chatbot et du pied de page plus coherent."
       ]

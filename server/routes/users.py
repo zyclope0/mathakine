@@ -16,6 +16,7 @@ from server.handlers.user_handlers import (
     get_progress_timeline_handler,
     get_user_sessions,
     get_user_stats,
+    get_user_me_rank,
     get_users_leaderboard,
     revoke_user_session,
     update_user_me,
@@ -66,6 +67,11 @@ def get_users_routes():
         Route(
             "/api/users/me/challenges/detailed-progress",
             endpoint=get_challenges_detailed_progress,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/users/me/rank",
+            endpoint=get_user_me_rank,
             methods=["GET"],
         ),
         Route(

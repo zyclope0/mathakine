@@ -39,6 +39,7 @@
 | DELETE | `/api/users/me` | delete current account |
 | GET | `/api/users/me/export` | GDPR export |
 | GET | `/api/users/me/sessions` | active sessions |
+| GET | `/api/users/me/rank` | rang global par `total_points` : `1 +` nombre d’utilisateurs **actifs** avec strictement plus de points ; JSON `{ "rank", "total_points" }` (auth + accès complet) |
 | DELETE | `/api/users/me/sessions/{session_id}` | revoke session |
 | GET | `/api/users/me/progress/timeline` | progression timeline (exercices **+** défis logiques ; `by_type` inclut des clés `logic_*`). Prérequis DB : migrations `20260325_challenge_progress` puis `20260325_fix_lca_created_at` (head) — voir `docs/03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md` §3.1 bis |
 | GET | `/api/users/me/progress` | global progression |

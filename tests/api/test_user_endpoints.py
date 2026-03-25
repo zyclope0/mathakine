@@ -215,6 +215,51 @@ async def test_get_leaderboard(padawan_client):
         assert isinstance(entry["badges_count"], int)
 
 
+async def test_get_me_rank_increments_when_users_have_more_points(
+    padawan_client, db_session
+):
+    """GET /api/users/me/rank : rang = 1 + nombre d'utilisateurs actifs avec strictement plus de points."""
+    client = padawan_client["client"]
+    user_id = padawan_client["user_id"]
+    me = db_session.query(User).filter(User.id == user_id).first()
+    assert me is not None
+    me.total_points = 100
+    db_session.commit()
+
+    r1 = await client.get("/api/users/me/rank")
+    assert r1.status_code == 200
+    body1 = r1.json()
+    assert body1["total_points"] == 100
+    rank_before = body1["rank"]
+
+    suffix = uuid.uuid4().hex[:6]
+    db_session.add_all(
+        [
+            User(
+                username=f"me_rank_hi_a_{suffix}",
+                email=f"me_rank_hi_a_{suffix}@test.com",
+                hashed_password=get_password_hash("Test123!"),
+                role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+                total_points=500,
+            ),
+            User(
+                username=f"me_rank_hi_b_{suffix}",
+                email=f"me_rank_hi_b_{suffix}@test.com",
+                hashed_password=get_password_hash("Test123!"),
+                role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+                total_points=400,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    r2 = await client.get("/api/users/me/rank")
+    assert r2.status_code == 200
+    body2 = r2.json()
+    assert body2["total_points"] == 100
+    assert body2["rank"] == rank_before + 2
+
+
 async def test_get_leaderboard_age_group_query_param_ignored(
     padawan_client, db_session
 ):

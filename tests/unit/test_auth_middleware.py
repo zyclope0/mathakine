@@ -58,3 +58,6 @@ class TestIsAuthPublic:
 
     def test_leaderboard_get_requires_auth(self):
         assert _is_auth_public("/api/users/leaderboard", "GET") is False
+
+    def test_users_me_rank_get_requires_auth(self):
+        assert _is_auth_public("/api/users/me/rank", "GET") is False

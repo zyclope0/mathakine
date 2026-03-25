@@ -600,15 +600,19 @@ class UserService:
         Applique le filtre de confidentialité (show_in_leaderboards).
         """
         q = db.query(User).filter(User.is_active.is_(True))
+        # Over-fetch to account for privacy-filtered users (show_in_leaderboards=False).
+        # The filter is applied in Python because accessibility_settings is a TEXT-JSON column.
         users = (
             q.options(selectinload(User.user_achievements))
             .order_by(User.total_points.desc())
-            .limit(limit)
+            .limit(limit + 50)
             .all()
         )
 
         leaderboard = []
         for user in users:
+            if len(leaderboard) >= limit:
+                break
             settings = user.accessibility_settings or {}
             privacy = (
                 (settings.get("privacy_settings") or {})
@@ -632,6 +636,27 @@ class UserService:
         for i, entry in enumerate(leaderboard, start=1):
             entry["rank"] = i
         return leaderboard
+
+    @staticmethod
+    def get_user_rank_by_points_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+        """
+        Rang global par points (utilisateurs actifs uniquement) : 1 + nombre d'utilisateurs
+        avec strictement plus de points. Même logique de tie que le tri du leaderboard
+        (égalité de points → même rang affiché pour tous les ex aequo).
+        """
+        user = UserService.get_user(db, user_id)
+        if user is None:
+            raise UserNotFoundError(f"Utilisateur avec ID {user_id} non trouvé")
+        my_points = int(user.total_points or 0)
+        pts = func.coalesce(User.total_points, 0)
+        ahead = (
+            db.query(func.count())
+            .select_from(User)
+            .filter(User.is_active.is_(True), pts > my_points)
+            .scalar()
+        )
+        ahead_int = int(ahead or 0)
+        return {"rank": ahead_int + 1, "total_points": my_points}
 
     @staticmethod
     def get_user_progress_for_api(db: Session, user_id: int) -> UserProgressDict:

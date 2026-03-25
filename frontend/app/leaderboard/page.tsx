@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useMyLeaderboardRank } from "@/hooks/useMyLeaderboardRank";
 import { Trophy, Medal, Flame, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
@@ -146,9 +148,28 @@ function LeaderboardRow({
 
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
-  useAuth();
+  const { user } = useAuth();
   const { leaderboard, isLoading, error } = useLeaderboard(50);
   const { shouldReduceMotion } = useAccessibleAnimation();
+
+  const inTop = useMemo(
+    () => leaderboard.some((e) => e.is_current_user),
+    [leaderboard]
+  );
+  const fetchMyRankEnabled =
+    !isLoading && !error && leaderboard.length > 0 && !inTop;
+  const {
+    data: myRank,
+    isLoading: myRankLoading,
+    isError: myRankError,
+  } = useMyLeaderboardRank(fetchMyRankEnabled);
+
+  const showMyRankFooter =
+    fetchMyRankEnabled &&
+    Boolean(user) &&
+    Boolean(myRank) &&
+    !myRankLoading &&
+    !myRankError;
 
   const listVariants: Variants = shouldReduceMotion
     ? { hidden: {}, show: {} }
@@ -212,29 +233,83 @@ export default function LeaderboardPage() {
                   />
                 </div>
               ) : (
-                <motion.ul
-                  role="list"
-                  aria-label={t("ranking")}
-                  variants={listVariants}
-                  initial="hidden"
-                  animate="show"
-                  className="list-none m-0 p-0"
-                >
-                  {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
-                    <LeaderboardRow
-                      key={`${entry.rank}-${entry.username}`}
-                      entry={entry}
-                      isLast={idx === leaderboard.length - 1}
-                      tLevel={t("level")}
-                      tYou={t("you")}
-                      tRank={t("rank", { default: "Rang" })}
-                      tStreak={t("streakStat", { default: "Série en jours" })}
-                      tBadges={t("badgesStat", { default: "Badges obtenus" })}
-                      rowVariants={rowVariants}
-                      shouldReduceMotion={Boolean(shouldReduceMotion)}
-                    />
-                  ))}
-                </motion.ul>
+                <>
+                  <motion.ul
+                    role="list"
+                    aria-label={t("ranking")}
+                    variants={listVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="list-none m-0 p-0"
+                  >
+                    {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
+                      <LeaderboardRow
+                        key={`${entry.rank}-${entry.username}`}
+                        entry={entry}
+                        isLast={idx === leaderboard.length - 1 && !showMyRankFooter}
+                        tLevel={t("level")}
+                        tYou={t("you")}
+                        tRank={t("rank", { default: "Rang" })}
+                        tStreak={t("streakStat", { default: "Série en jours" })}
+                        tBadges={t("badgesStat", { default: "Badges obtenus" })}
+                        rowVariants={rowVariants}
+                        shouldReduceMotion={Boolean(shouldReduceMotion)}
+                      />
+                    ))}
+                  </motion.ul>
+                  {showMyRankFooter && user && myRank ? (
+                    <div className="border-t border-border/50 bg-muted/20">
+                      <div
+                        className="px-3 sm:px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                        role="separator"
+                      >
+                        {t("yourRank.separator")}
+                      </div>
+                      <div
+                        className={cn(
+                          "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3",
+                          "bg-primary/10 border-l-4 border-l-primary"
+                        )}
+                      >
+                        <RankBadge
+                          rank={myRank.rank}
+                          label={`${t("rank", { default: "Rang" })} ${myRank.rank}`}
+                        />
+                        <UserAvatar username={user.username} size="md" />
+                        <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold truncate max-w-[40vw] sm:max-w-none text-foreground">
+                            {user.username}
+                          </span>
+                          {user.jedi_rank ? (
+                            <span
+                              className={cn(
+                                "flex-shrink-0 text-base leading-none",
+                                JEDI_RANK_TEXT_CLASS[user.jedi_rank] ?? "text-muted-foreground"
+                              )}
+                              title={user.jedi_rank}
+                              aria-label={user.jedi_rank}
+                            >
+                              {JEDI_RANK_ICONS[user.jedi_rank] ?? "🌟"}
+                            </span>
+                          ) : null}
+                          <span
+                            className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
+                            aria-label={t("you")}
+                          >
+                            {t("you")}
+                          </span>
+                        </div>
+                        <span className="hidden sm:block flex-shrink-0 text-sm text-muted-foreground">
+                          {t("level")} {user.current_level ?? "—"}
+                        </span>
+                        <span className="flex-shrink-0 text-sm sm:text-base font-bold text-amber-400 tabular-nums">
+                          {myRank.total_points.toLocaleString()}
+                          <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
               )}
             </CardContent>
           </Card>

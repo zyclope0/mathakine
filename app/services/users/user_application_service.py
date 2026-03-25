@@ -99,6 +99,12 @@ def get_leaderboard(
         return UserService.get_leaderboard_for_api(db, current_user_id, limit=limit)
 
 
+def get_user_rank_by_points_data(user_id: int) -> Dict[str, Any]:
+    """Rang global de l'utilisateur par total_points (utilisateurs actifs)."""
+    with sync_db_session() as db:
+        return UserService.get_user_rank_by_points_for_api(db, user_id)
+
+
 def get_progress_timeline_data(
     user_id: int,
     period: str = "7d",
