@@ -45,7 +45,7 @@
 | GET | `/api/users/me/challenges/progress` | progression défis (agrégat + liste par défi) |
 | GET | `/api/users/me/challenges/detailed-progress` | maîtrise **par type** de défi (`challenge_progress`) : `items[]` avec `challenge_type`, `total_attempts`, `correct_attempts`, `completion_rate`, `mastery_level`, etc. — alimente le radar défis et le breakdown du widget dashboard |
 | GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |
-| GET | `/api/users/leaderboard` | leaderboard |
+| GET | `/api/users/leaderboard` | classement par `total_points` (param `limit`, défaut 50, max 100). Chaque entrée : `rank`, `username`, `total_points`, `current_level`, `jedi_rank`, `is_current_user`, `avatar_url` (nullable), `current_streak`, `badges_count`. Filtre confidentialité `show_in_leaderboards`. **Le query param historique `age_group` est ignoré** (ancien bug : filtrait sur `preferred_difficulty`) — filtre par vrai groupe d'âge utilisateur reporté (voir ROADMAP). |
 | DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
 
 ## Daily Challenge

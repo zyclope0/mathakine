@@ -10,18 +10,20 @@ export interface LeaderboardEntry {
   current_level: number;
   jedi_rank: string;
   is_current_user: boolean;
+  avatar_url: string | null;
+  current_streak: number;
+  badges_count: number;
 }
 
 export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
 }
 
-export function useLeaderboard(limit = 50, ageGroup?: string | null) {
+export function useLeaderboard(limit = 50) {
   const params = new URLSearchParams({ limit: String(limit) });
-  if (ageGroup) params.set("age_group", ageGroup);
 
   const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse, ApiClientError>({
-    queryKey: ["leaderboard", limit, ageGroup ?? "all"],
+    queryKey: ["leaderboard", limit],
     queryFn: async () => {
       return await api.get<LeaderboardResponse>(`/api/users/leaderboard?${params}`);
     },

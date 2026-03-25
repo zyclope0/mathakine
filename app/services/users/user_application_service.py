@@ -93,13 +93,10 @@ def get_dashboard_stats(
 def get_leaderboard(
     current_user_id: int,
     limit: int = 50,
-    age_group: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Récupère le classement des utilisateurs."""
     with sync_db_session() as db:
-        return UserService.get_leaderboard_for_api(
-            db, current_user_id, limit=limit, age_group=age_group
-        )
+        return UserService.get_leaderboard_for_api(db, current_user_id, limit=limit)
 
 
 def get_progress_timeline_data(

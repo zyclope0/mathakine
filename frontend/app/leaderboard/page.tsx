@@ -1,24 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
-import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
-import { Trophy, Medal } from "lucide-react";
+import { Trophy, Medal, Flame, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
-import { AGE_GROUPS } from "@/lib/constants/exercises";
 import { RANK_MEDALS, JEDI_RANK_ICONS } from "@/lib/constants/leaderboard";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -47,9 +37,19 @@ interface LeaderboardRowProps {
   tLevel: string;
   tYou: string;
   tRank: string;
+  tStreak: string;
+  tBadges: string;
 }
 
-function LeaderboardRow({ entry, isLast, tLevel, tYou, tRank }: LeaderboardRowProps) {
+function LeaderboardRow({
+  entry,
+  isLast,
+  tLevel,
+  tYou,
+  tRank,
+  tStreak,
+  tBadges,
+}: LeaderboardRowProps) {
   return (
     <li
       className={cn(
@@ -63,9 +63,9 @@ function LeaderboardRow({ entry, isLast, tLevel, tYou, tRank }: LeaderboardRowPr
     >
       <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
 
-      <UserAvatar username={entry.username} size="md" />
+      <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
 
-      <div className="flex-1 min-w-0 flex items-center gap-2">
+      <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
         <span
           className={cn(
             "font-semibold truncate",
@@ -89,6 +89,26 @@ function LeaderboardRow({ entry, isLast, tLevel, tYou, tRank }: LeaderboardRowPr
             {tYou}
           </span>
         )}
+        {entry.current_streak > 0 && (
+          <span
+            className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
+            title={tStreak}
+            aria-label={tStreak}
+          >
+            <Flame className="h-3.5 w-3.5 text-orange-400 shrink-0" aria-hidden />
+            {entry.current_streak}
+          </span>
+        )}
+        {entry.badges_count > 0 && (
+          <span
+            className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
+            title={tBadges}
+            aria-label={tBadges}
+          >
+            <Award className="h-3.5 w-3.5 text-amber-500/90 shrink-0" aria-hidden />
+            {entry.badges_count}
+          </span>
+        )}
       </div>
 
       <span className="hidden sm:block flex-shrink-0 text-sm text-muted-foreground">
@@ -108,10 +128,7 @@ function LeaderboardRow({ entry, isLast, tLevel, tYou, tRank }: LeaderboardRowPr
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
   useAuth();
-  const getAgeDisplay = useAgeGroupDisplay();
-  const [ageFilter, setAgeFilter] = useState<string>("all");
-  const effectiveAgeGroup = ageFilter === "all" ? undefined : ageFilter;
-  const { leaderboard, isLoading, error } = useLeaderboard(50, effectiveAgeGroup);
+  const { leaderboard, isLoading, error } = useLeaderboard(50);
 
   return (
     <ProtectedRoute requireFullAccess>
@@ -119,45 +136,27 @@ export default function LeaderboardPage() {
         <PageHeader title={t("title")} description={t("description")} icon={Trophy} />
 
         <PageSection>
-          {error ? (
-            <EmptyState title={t("error") ?? "Erreur de chargement"} description="" icon={Trophy} />
-          ) : isLoading ? (
-            <LoadingState message={t("loading")} />
-          ) : leaderboard.length === 0 ? (
-            <EmptyState title={t("empty")} description="" icon={Medal} />
-          ) : (
-            <Card className="card-spatial-depth overflow-hidden">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <CardTitle className="flex items-center gap-2">
-                    <Medal className="h-5 w-5 text-amber-400" aria-hidden />
-                    {t("ranking")}
-                  </CardTitle>
-                  <Select
-                    value={ageFilter}
-                    onValueChange={setAgeFilter}
-                    aria-label={t("filterByAge", { default: "Filtrer par groupe d'âge" })}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("allAges", { default: "Tous les âges" })}
-                      </SelectItem>
-                      {Object.values(AGE_GROUPS)
-                        .filter((g) => g !== AGE_GROUPS.ALL_AGES)
-                        .map((group) => (
-                          <SelectItem key={group} value={group}>
-                            {getAgeDisplay(group as keyof typeof AGE_GROUPS)}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+          <Card className="card-spatial-depth overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Medal className="h-5 w-5 text-amber-400" aria-hidden />
+                {t("ranking")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 min-h-[120px]">
+              {error ? (
+                <div className="p-6">
+                  <EmptyState title={t("error") ?? "Erreur de chargement"} description="" icon={Trophy} />
                 </div>
-              </CardHeader>
-
-              <CardContent className="p-0">
+              ) : isLoading ? (
+                <div className="p-6">
+                  <LoadingState message={t("loading")} />
+                </div>
+              ) : leaderboard.length === 0 ? (
+                <div className="p-6">
+                  <EmptyState title={t("empty")} description="" icon={Medal} />
+                </div>
+              ) : (
                 <ul role="list" aria-label={t("ranking")}>
                   {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
                     <LeaderboardRow
@@ -167,12 +166,14 @@ export default function LeaderboardPage() {
                       tLevel={t("level")}
                       tYou={t("you")}
                       tRank={t("rank", { default: "Rang" })}
+                      tStreak={t("streakStat", { default: "Série en jours" })}
+                      tBadges={t("badgesStat", { default: "Badges obtenus" })}
                     />
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </PageSection>
       </PageLayout>
     </ProtectedRoute>

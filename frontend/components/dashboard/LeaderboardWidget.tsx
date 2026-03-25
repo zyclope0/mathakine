@@ -87,7 +87,7 @@ export function LeaderboardWidget() {
                     )}
                   </span>
 
-                  <UserAvatar username={entry.username} size="sm" />
+                  <UserAvatar username={entry.username} size="sm" avatarUrl={entry.avatar_url} />
 
                   <span
                     className={cn(

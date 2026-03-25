@@ -1,4 +1,4 @@
-﻿# Backlog & Priorisation des Features — Mathakine
+# Backlog & Priorisation des Features — Mathakine
 
 > **Document vivant** - Derniere MAJ : 24/03/2026 (statuts realignes sur le code ; les features livrees restent visibles dans la roadmap au lieu de disparaitre)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
@@ -849,7 +849,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | Espace admin complet (role archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fev 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
 | Sessions actives + revocation | 16/02/2026 | SITUATION_FEATURES (archive) |
-| Leaderboard (top 50, filtre age) | 15/02/2026 | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md) |
+| Leaderboard (top 50, enrichissement avatar / série / badges) | 25/03/2026 | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md) |
 | Badges - refonte UX (onglets, cartes compactes) | 17/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
 | Badges - barres de progression (goal-gradient) | 16/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
 | Badges - B4 reformulation (17 badges) | 17/02/2026 | Archive : AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES |
@@ -873,6 +873,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 
 | Feature | Borne de verite | Ce qui existe deja | Ce qui reste a livrer |
 |---------|-----------------|--------------------|-----------------------|
+| **Leaderboard — filtre par groupe d'âge (utilisateur)** | Report 25/03/2026 (lot L1) | Le classement expose `limit` et des champs enrichis ; le paramètre `age_group` a été **retiré** car il filtrait à tort sur `preferred_difficulty` (difficulté easy/medium/hard, pas l'âge). | Migration (ex. colonne `age_group` ou profil calibré) + filtre API + UX liste — voir aussi session-plan Leaderboard v2 § hors périmètre. |
 | F14 - Monitoring IA persistance DB | Code au 23/03/2026 | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness | persistance DB complete des metriques runtime live |
 | F38 - Progression gamification compte coherente & historique des gains | Code au 23/03/2026 | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard` | historique utilisateur dedie, agregats par source, UX compte lisible |
 

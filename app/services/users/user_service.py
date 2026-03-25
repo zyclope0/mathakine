@@ -17,7 +17,7 @@ from app.core.types import (
 logger = get_logger(__name__)
 from sqlalchemy import func, text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
@@ -594,16 +594,18 @@ class UserService:
         db: Session,
         current_user_id: int,
         limit: int = 50,
-        age_group: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Récupère le classement des utilisateurs pour l'API.
         Applique le filtre de confidentialité (show_in_leaderboards).
         """
-        q = db.query(User).filter(User.is_active == True)
-        if age_group:
-            q = q.filter(User.preferred_difficulty == age_group)
-        users = q.order_by(User.total_points.desc()).limit(limit).all()
+        q = db.query(User).filter(User.is_active.is_(True))
+        users = (
+            q.options(selectinload(User.user_achievements))
+            .order_by(User.total_points.desc())
+            .limit(limit)
+            .all()
+        )
 
         leaderboard = []
         for user in users:
@@ -622,6 +624,9 @@ class UserService:
                     "current_level": user.current_level or 1,
                     "jedi_rank": user.jedi_rank or "youngling",
                     "is_current_user": user.id == current_user_id,
+                    "avatar_url": user.avatar_url,
+                    "current_streak": user.current_streak or 0,
+                    "badges_count": len(user.user_achievements),
                 }
             )
         for i, entry in enumerate(leaderboard, start=1):

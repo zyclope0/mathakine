@@ -1211,8 +1211,8 @@
     "rank": "Rang",
     "level": "Niveau",
     "you": "Vous",
-    "allAges": "Tous les âges",
-    "filterByAge": "Filtrer par groupe d'âge"
+    "streakStat": "Série en jours",
+    "badgesStat": "Badges obtenus"
   },
   "accessibility": {
     "toolbar": {

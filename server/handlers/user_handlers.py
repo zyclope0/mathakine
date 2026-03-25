@@ -179,7 +179,9 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
     """
     Handler pour récupérer le classement des utilisateurs par points.
     Route: GET /api/users/leaderboard
-    Paramètres: limit, orderBy, age_group
+    Paramètres: limit (pagination). Le paramètre historique ``age_group`` a été retiré :
+    il filtrait par erreur sur ``preferred_difficulty``. Un vrai filtre par groupe d'âge
+    utilisateur est reporté (migration + profil) — voir ROADMAP.
     """
     try:
         current_user = request.state.user
@@ -188,13 +190,11 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
         _, limit = parse_pagination_params(
             query_params, default_limit=50, max_limit=100
         )
-        age_group = query_params.get("age_group", "").strip() or None
 
         leaderboard = await run_db_bound(
             get_leaderboard,
             user_id,
             limit=limit,
-            age_group=age_group,
         )
         logger.info(
             f"Classement récupéré par {current_user.get('username')}: {len(leaderboard)} utilisateurs"
