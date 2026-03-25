@@ -15,6 +15,9 @@ from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.schemas.user import UserCreate
 from app.services.auth.auth_service import create_registered_user_with_verification
+from app.services.challenges.challenge_progress_service import (
+    list_challenge_progress_for_user,
+)
 from app.services.communication.email_service import EmailService
 from app.services.progress.progress_timeline_service import get_progress_timeline
 from app.services.users.user_service import UserService
@@ -118,6 +121,12 @@ def get_challenges_progress_data(user_id: int) -> Dict[str, Any]:
     """Récupère la progression des défis logiques."""
     with sync_db_session() as db:
         return UserService.get_challenges_progress_for_api(db, user_id)
+
+
+def get_challenges_detailed_progress_data(user_id: int) -> Dict[str, Any]:
+    """Liste challenge_progress par type pour l'utilisateur (GET detailed-progress)."""
+    with sync_db_session() as db:
+        return {"items": list_challenge_progress_for_user(db, user_id)}
 
 
 def update_profile(

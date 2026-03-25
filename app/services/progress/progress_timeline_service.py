@@ -1,7 +1,7 @@
 """
 Service F07 — Courbe d'évolution temporelle (timeline progression).
 
-Agrège les tentatives d'exercices par jour (UTC date-only) pour un utilisateur.
+Agrège les tentatives d'exercices et de défis logiques par jour (UTC date-only).
 Remplit les jours vides avec attempts=0, success_rate_pct=0, avg_time_spent_s=null.
 """
 
@@ -42,31 +42,72 @@ def get_progress_timeline(
     to_date = now.date()
     from_date = to_date - timedelta(days=days - 1)
 
-    # Récupérer les agrégats par jour (date UTC, date-only)
+    _range_params = {
+        "user_id": user_id,
+        "from_ts": datetime.combine(
+            from_date, datetime.min.time(), tzinfo=timezone.utc
+        ),
+        "to_ts_plus_one": datetime.combine(
+            to_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
+        ),
+    }
+
+    # Agrégats par jour : exercices UNION ALL défis logiques, puis somme par jour
     result = db.execute(
         text("""
-            SELECT
-                (a.created_at AT TIME ZONE 'UTC')::date as day_date,
-                COUNT(*) as attempts,
-                SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) as correct,
-                AVG(a.time_spent) FILTER (WHERE a.time_spent IS NOT NULL AND a.time_spent >= 0) as avg_time
-            FROM attempts a
-            JOIN exercises e ON e.id = a.exercise_id
-            WHERE a.user_id = :user_id
-              AND a.created_at >= :from_ts
-              AND a.created_at < :to_ts_plus_one
-            GROUP BY (a.created_at AT TIME ZONE 'UTC')::date
-            ORDER BY day_date
+            SELECT u.day_date,
+                   SUM(u.attempts) AS attempts,
+                   SUM(u.correct) AS correct,
+                   CASE
+                       WHEN SUM(u.attempts_with_time) > 0
+                       THEN SUM(u.time_sum) / SUM(u.attempts_with_time)::float
+                       ELSE NULL
+                   END AS avg_time
+            FROM (
+                SELECT
+                    (a.created_at AT TIME ZONE 'UTC')::date AS day_date,
+                    COUNT(*)::bigint AS attempts,
+                    SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END)::bigint AS correct,
+                    COALESCE(
+                        SUM(a.time_spent) FILTER (
+                            WHERE a.time_spent IS NOT NULL AND a.time_spent >= 0
+                        ),
+                        0.0
+                    ) AS time_sum,
+                    COUNT(*) FILTER (
+                        WHERE a.time_spent IS NOT NULL AND a.time_spent >= 0
+                    )::bigint AS attempts_with_time
+                FROM attempts a
+                JOIN exercises e ON e.id = a.exercise_id
+                WHERE a.user_id = :user_id
+                  AND a.created_at >= :from_ts
+                  AND a.created_at < :to_ts_plus_one
+                GROUP BY (a.created_at AT TIME ZONE 'UTC')::date
+                UNION ALL
+                SELECT
+                    (lca.created_at AT TIME ZONE 'UTC')::date AS day_date,
+                    COUNT(*)::bigint,
+                    SUM(CASE WHEN lca.is_correct THEN 1 ELSE 0 END)::bigint,
+                    COALESCE(
+                        SUM(lca.time_spent) FILTER (
+                            WHERE lca.time_spent IS NOT NULL
+                              AND lca.time_spent >= 0
+                        ),
+                        0.0
+                    ),
+                    COUNT(*) FILTER (
+                        WHERE lca.time_spent IS NOT NULL AND lca.time_spent >= 0
+                    )::bigint
+                FROM logic_challenge_attempts lca
+                WHERE lca.user_id = :user_id
+                  AND lca.created_at >= :from_ts
+                  AND lca.created_at < :to_ts_plus_one
+                GROUP BY (lca.created_at AT TIME ZONE 'UTC')::date
+            ) u
+            GROUP BY u.day_date
+            ORDER BY u.day_date
         """),
-        {
-            "user_id": user_id,
-            "from_ts": datetime.combine(
-                from_date, datetime.min.time(), tzinfo=timezone.utc
-            ),
-            "to_ts_plus_one": datetime.combine(
-                to_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
-            ),
-        },
+        _range_params,
     )
     rows_by_day: Dict[date, Dict[str, Any]] = {}
     for row in result.fetchall():
@@ -94,15 +135,7 @@ def get_progress_timeline(
               AND a.created_at < :to_ts_plus_one
             GROUP BY (a.created_at AT TIME ZONE 'UTC')::date, LOWER(e.exercise_type::text)
         """),
-        {
-            "user_id": user_id,
-            "from_ts": datetime.combine(
-                from_date, datetime.min.time(), tzinfo=timezone.utc
-            ),
-            "to_ts_plus_one": datetime.combine(
-                to_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
-            ),
-        },
+        _range_params,
     )
     by_type_by_day: Dict[date, Dict[str, Dict[str, Any]]] = defaultdict(
         lambda: defaultdict(lambda: {"attempts": 0, "correct": 0})
@@ -115,6 +148,35 @@ def get_progress_timeline(
         by_type_by_day[day_date][ex_type] = {
             "attempts": row[2] or 0,
             "correct": row[3] or 0,
+        }
+
+    ch_by_type_result = db.execute(
+        text("""
+            SELECT
+                (lca.created_at AT TIME ZONE 'UTC')::date as day_date,
+                LOWER(lc.challenge_type::text) as ch_type,
+                COUNT(*) as attempts,
+                SUM(CASE WHEN lca.is_correct THEN 1 ELSE 0 END) as correct
+            FROM logic_challenge_attempts lca
+            JOIN logic_challenges lc ON lc.id = lca.challenge_id
+            WHERE lca.user_id = :user_id
+              AND lca.created_at >= :from_ts
+              AND lca.created_at < :to_ts_plus_one
+            GROUP BY (lca.created_at AT TIME ZONE 'UTC')::date,
+                     LOWER(lc.challenge_type::text)
+        """),
+        _range_params,
+    )
+    for row in ch_by_type_result.fetchall():
+        day_date = row[0]
+        if isinstance(day_date, datetime):
+            day_date = day_date.date()
+        raw_type = (row[1] or "unknown").strip().lower()
+        logic_key = f"logic_{raw_type}"
+        prev = by_type_by_day[day_date].get(logic_key, {"attempts": 0, "correct": 0})
+        by_type_by_day[day_date][logic_key] = {
+            "attempts": prev["attempts"] + (row[2] or 0),
+            "correct": prev["correct"] + (row[3] or 0),
         }
 
     # Construire la série continue (sans trou)

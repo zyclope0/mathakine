@@ -5,6 +5,7 @@ Domaine Users — services utilisateurs (Lot B2).
 from app.services.users.user_application_service import (
     delete_user_account,
     export_user_data,
+    get_challenges_detailed_progress_data,
     get_challenges_progress_data,
     get_dashboard_stats,
     get_leaderboard,
@@ -22,6 +23,7 @@ __all__ = [
     "UserService",
     "delete_user_account",
     "export_user_data",
+    "get_challenges_detailed_progress_data",
     "get_challenges_progress_data",
     "get_dashboard_stats",
     "get_leaderboard",

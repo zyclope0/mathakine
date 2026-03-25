@@ -50,5 +50,11 @@ class TestIsAuthPublic:
     def test_challenges_stats_get_not_public(self):
         assert _is_auth_public("/api/challenges/stats", "GET") is False
 
+    def test_users_me_challenges_detailed_progress_not_public(self):
+        assert (
+            _is_auth_public("/api/users/me/challenges/detailed-progress", "GET")
+            is False
+        )
+
     def test_leaderboard_get_requires_auth(self):
         assert _is_auth_public("/api/users/leaderboard", "GET") is False

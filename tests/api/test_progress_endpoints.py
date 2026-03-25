@@ -218,6 +218,27 @@ async def test_get_progress_timeline_invalid_period_fallback(padawan_client):
     assert data["period"] == "7d"
 
 
+async def test_get_challenges_detailed_progress_ok(padawan_client, db_session):
+    """GET /api/users/me/challenges/detailed-progress — liste challenge_progress."""
+    from app.services.challenges.challenge_progress_service import (
+        upsert_challenge_progress,
+    )
+
+    user_id = padawan_client["user_id"]
+    upsert_challenge_progress(db_session, user_id, "sequence", True)
+    db_session.commit()
+
+    client = padawan_client["client"]
+    response = await client.get("/api/users/me/challenges/detailed-progress")
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert len(data["items"]) >= 1
+    row = next(i for i in data["items"] if i["challenge_type"] == "sequence")
+    assert row["total_attempts"] == 1
+    assert row["correct_attempts"] == 1
+
+
 async def test_get_user_progress_nonexistent_type(padawan_client):
     """Test pour récupérer les progrès d'un type d'exercice inexistant."""
     client = padawan_client["client"]

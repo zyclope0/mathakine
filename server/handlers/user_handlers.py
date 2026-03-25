@@ -19,6 +19,7 @@ from app.schemas.user import UserCreate, UserPasswordUpdate
 from app.services.users.user_application_service import (
     delete_user_account,
     export_user_data,
+    get_challenges_detailed_progress_data,
     get_challenges_progress_data,
     get_dashboard_stats,
     get_leaderboard,
@@ -277,6 +278,33 @@ async def get_challenges_progress(request: Request) -> JSONResponse:
     except Exception as e:
         logger.error(
             f"Erreur lors de la récupération de la progression des défis: {e}",
+            exc_info=True,
+        )
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_full_access
+async def get_challenges_detailed_progress(request: Request) -> JSONResponse:
+    """
+    Progression agrégée par type de défi (table challenge_progress).
+    Route: GET /api/users/me/challenges/detailed-progress
+    """
+    try:
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        logger.info(
+            "Récupération challenge_progress détaillé pour l'utilisateur %s",
+            user_id,
+        )
+        response_data = await run_db_bound(
+            get_challenges_detailed_progress_data, user_id
+        )
+        return JSONResponse(response_data, status_code=200)
+    except Exception as e:
+        logger.error(
+            "Erreur lors de la récupération du challenge_progress détaillé: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))

@@ -5,16 +5,24 @@ Tests unitaires pour le service F07 — Courbe d'évolution temporelle.
 import uuid
 from datetime import datetime, timezone
 
-import pytest
+from sqlalchemy import text
 
+from app.core.security import get_password_hash
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.logic_challenge import (
+    AgeGroup,
+    LogicChallenge,
+    LogicChallengeAttempt,
+    LogicChallengeType,
+)
 from app.models.user import User, UserRole
 from app.services.progress.progress_timeline_service import (
     DEFAULT_PERIOD,
     VALID_PERIODS,
     get_progress_timeline,
 )
+from app.utils.db_helpers import get_enum_value
 
 
 def _create_exercise(db, exercise_type: str = "addition"):
@@ -109,9 +117,6 @@ def test_get_progress_timeline_with_attempts(db_session):
     db_session.commit()
 
     # Patcher created_at via raw SQL ou en mettant à jour après commit
-    # SQLAlchemy : on peut utiliser session.execute pour UPDATE
-    from sqlalchemy import text
-
     db_session.execute(
         text("UPDATE attempts SET created_at = :ts WHERE user_id = :uid"),
         {"ts": target_date, "uid": user.id},
@@ -174,8 +179,6 @@ def test_get_progress_timeline_avg_time_null_when_no_valid_time(db_session):
     db_session.add(a)
     db_session.commit()
 
-    from sqlalchemy import text
-
     fake_date = datetime(2026, 3, 5, 12, 0, 0, tzinfo=timezone.utc)
     db_session.execute(
         text("UPDATE attempts SET created_at = :ts WHERE user_id = :uid"),
@@ -191,3 +194,66 @@ def test_get_progress_timeline_avg_time_null_when_no_valid_time(db_session):
     pt = next(p for p in result["points"] if p["date"] == "2026-03-05")
     assert pt["attempts"] == 1
     assert pt["avg_time_spent_s"] is None
+
+
+def test_get_progress_timeline_includes_logic_challenge_attempts(db_session):
+    """Les tentatives de défis logiques sont fusionnées dans la timeline (UNION ALL)."""
+    uid = uuid.uuid4().hex[:8]
+    user = User(
+        username=f"tl_lc_{uid}",
+        email=f"tl_lc_{uid}@test.com",
+        hashed_password=get_password_hash("Test123!Ab"),
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    ch = LogicChallenge(
+        title="Timeline LC",
+        description="d",
+        challenge_type=get_enum_value(
+            LogicChallengeType, LogicChallengeType.SEQUENCE, db_session
+        ),
+        age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12, db_session),
+        correct_answer="1",
+        solution_explanation="e",
+        creator_id=user.id,
+        difficulty_rating=2.0,
+        estimated_time_minutes=5,
+    )
+    db_session.add(ch)
+    db_session.commit()
+    db_session.refresh(ch)
+
+    lca = LogicChallengeAttempt(
+        user_id=user.id,
+        challenge_id=ch.id,
+        user_solution="1",
+        is_correct=True,
+        time_spent=12.0,
+    )
+    db_session.add(lca)
+    db_session.commit()
+
+    target_date = datetime(2026, 3, 5, 16, 0, 0, tzinfo=timezone.utc)
+    db_session.execute(
+        text("UPDATE logic_challenge_attempts SET created_at = :ts WHERE id = :id"),
+        {"ts": target_date, "id": lca.id},
+    )
+    db_session.commit()
+
+    fake_now = datetime(2026, 3, 7, 12, 0, 0, tzinfo=timezone.utc)
+    result = get_progress_timeline(
+        db_session, user.id, period="7d", now_fn=lambda: fake_now
+    )
+
+    pt = next(p for p in result["points"] if p["date"] == "2026-03-05")
+    assert pt["attempts"] == 1
+    assert pt["correct"] == 1
+    assert pt["avg_time_spent_s"] == 12.0
+    assert "logic_sequence" in pt["by_type"]
+    assert pt["by_type"]["logic_sequence"]["attempts"] == 1
+
+    assert result["summary"]["total_attempts"] == 1
+    assert result["summary"]["total_correct"] == 1

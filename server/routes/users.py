@@ -11,6 +11,7 @@ from server.handlers.user_handlers import (
     export_user_data_handler,
     get_all_user_progress,
     get_all_users,
+    get_challenges_detailed_progress,
     get_challenges_progress,
     get_progress_timeline_handler,
     get_user_sessions,
@@ -60,6 +61,11 @@ def get_users_routes():
         Route(
             "/api/users/me/challenges/progress",
             endpoint=get_challenges_progress,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/users/me/challenges/detailed-progress",
+            endpoint=get_challenges_detailed_progress,
             methods=["GET"],
         ),
         Route(
