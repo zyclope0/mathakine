@@ -1838,6 +1838,16 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_3_0_alpha_3": {
+      "version": "v3.3.0-alpha.3",
+      "date": "March 25, 2026",
+      "items": [
+        "You earn points when you complete a logic challenge, with clearer feedback in the interface.",
+        "The dashboard brings exercises and challenges together: one theme chart and a clearer challenges section.",
+        "Your progress timeline can include challenges alongside exercises.",
+        "Challenge stats and active lists now follow the same rules everywhere for more consistent results."
+      ]
+    },
     "release_3_3_0_alpha_2": {
       "version": "v3.3.0-alpha.2",
       "date": "March 24, 2026",

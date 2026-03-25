@@ -1,11 +1,11 @@
 # Technical README - Mathakine
 
-> Updated: 24/03/2026
+> Updated: 25/03/2026
 
 Visible product train:
-- `3.3.0-alpha.2`
+- `3.3.0-alpha.3`
 - source of truth: `CHANGELOG.md` + `frontend/package.json`
-- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.3.0a2`
+- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.3.0a3`
 
 ## Runtime Truth
 

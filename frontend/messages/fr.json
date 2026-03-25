@@ -1838,6 +1838,16 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_3_0_alpha_3": {
+      "version": "v3.3.0-alpha.3",
+      "date": "25 mars 2026",
+      "items": [
+        "Tu gagnes des points quand tu reussis un defi logique, avec un retour plus clair dans l interface.",
+        "Le tableau de bord regroupe exercices et defis : un meme graphique par theme et un encart defis plus lisible.",
+        "Ta ligne du temps de progression peut inclure tes defis en plus des exercices.",
+        "Les statistiques et listes de defis actifs suivent les memes regles partout, pour des resultats plus coherents."
+      ]
+    },
     "release_3_3_0_alpha_2": {
       "version": "v3.3.0-alpha.2",
       "date": "24 mars 2026",

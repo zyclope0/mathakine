@@ -2,16 +2,16 @@
 
 Gamified mathematics learning platform with a Next.js frontend and a Starlette/SQLAlchemy backend.
 
-[![Version](https://img.shields.io/badge/version-3.3.0--alpha.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.3.0--alpha.3-blue.svg)](CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](CHANGELOG.md)
 [![Tests](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml/badge.svg)](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 
 ## Product Status
 
-- visible release: `3.3.0-alpha.2`
+- visible release: `3.3.0-alpha.3`
 - release source of truth: `CHANGELOG.md` and `frontend/package.json`
-- note: `pyproject.toml` now carries the aligned Python package metadata version `3.3.0a2`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
+- note: `pyproject.toml` now carries the aligned Python package metadata version `3.3.0a3`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
 
 ## Key Capabilities
 
@@ -68,7 +68,7 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 ## Versioning Rule
 
 - visible product releases follow SemVer prerelease stages
-- current visible train: `3.3.0-alpha.2` (same `3.3.0` prerelease train as `3.3.0-alpha.1`; `alpha.N` bumps cover stabilization, gamification, and UX follow-ups)
+- current visible train: `3.3.0-alpha.3` (same `3.3.0` prerelease train as `3.3.0-alpha.1`; `alpha.N` bumps cover stabilization, gamification, and UX follow-ups)
 - moving from the last coherent `3.2.0-alpha.1` train to `3.3.0-alpha.1` opened the current minor prerelease train because the AI refactor changed visible behavior, reliability, and runtime governance materially
 - moving directly to `3.2.0` stable would be misleading in the current context
 - while still in `alpha`, incrementing `alpha.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists

@@ -41,7 +41,6 @@ Active references:
 - Frontend proxy routes now resolve the Python backend through a shared `frontend/lib/api/backendUrl.ts` helper instead of four divergent local implementations.
 - Exercise AI SSE now emits an explicit terminal `done` event on controlled success, validation failure and persistence failure paths, aligning the contract more closely with challenges.
 - A targeted `react-hooks/exhaustive-deps` review was completed on the treated frontend scope: real latent bugs were fixed (`LocaleInitializer`, `CategoryAccuracyChart`) and intentional disables were documented instead of removed blindly.
-- Challenge filtering and stats are now more coherent: `active_only` applies the same `is_active`/`is_archived` semantics across list/count paths, and `get_challenge_stats` now uses a single aggregate query.
 - Frontend list completion lookup and pagination semantics are now bounded and deterministic: `useCompletedItems` uses memoized `Set.has()` and `usePaginatedContent` computes `hasMore` client-side from `skip + items.length < total`.
 - Dashboard recommendations now render an initial capped slice with local `show more / show less` toggles instead of rendering the whole list unbounded.
 - OpenAI workloads now share a process-local circuit breaker for recurrent upstream failures on exercises and challenges, reducing useless timeout pressure during provider incidents.
@@ -53,8 +52,6 @@ Active references:
 - Frontend tests now cover AI generation request preflight and HTTP failure mapping (`csrf_token_missing`, `http_401`, `http_403`, `http_backend`).
 - Backend tests now cover:
   - `auto_correct_challenge` when pattern analysis returns `None`
-  - public/admin challenge visibility under unified active/archive filters
-  - aggregate challenge stats semantics
   - the OpenAI circuit breaker state machine and SSE refusal when it is open
 
 ### Fixed
@@ -63,6 +60,22 @@ Active references:
 - `auto_correct_challenge` no longer risks calling `.upper()` on `None` when pattern auto-correction cannot infer an answer.
 - The dead `generation_success` branch in challenge AI generation has been removed.
 - Exercise AI request hooks no longer keep a dead `!response.ok` branch after `postAiGenerationSse()` started throwing typed request errors on non-OK HTTP responses.
+
+## [3.3.0-alpha.3] - 2026-03-25
+
+### Added
+- Logic challenges: `SubmitChallengeAttemptResult` exposes `points_earned` when the gamification ledger successfully records the award.
+- `GET /api/challenges/stats`: catalog breakdown (totals, by type, difficulty, age group) with semantics aligned to active challenges.
+- Dashboard: combined category accuracy view mixing exercises and challenges, challenges progress widget refinements, dedicated radar chart component, `useChallengesStats` hook and widget/chart unit tests.
+- User progression timeline can include challenge activity alongside exercises (union/backfill where applicable).
+- Backend tests now cover public/admin challenge visibility under unified active/archive filters and aggregate challenge stats semantics.
+- Frontend API types: `ChallengesStats` / `ChallengeCatalogStatBucket`; `ChallengeAttemptResponse.message` optional to match runtime payloads.
+
+### Changed
+- Challenge filtering and stats: `active_only` uses consistent `is_active` / `is_archived` rules across list, count, and aggregate stats; stats use a single aggregate query where relevant.
+
+### Fixed
+- Challenge attempt unit test: mock three nested savepoints (progress, streak, daily) to match `challenge_attempt_service` orchestration.
 
 ## [3.3.0-alpha.2] - 2026-03-24
 

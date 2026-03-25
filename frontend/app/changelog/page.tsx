@@ -17,6 +17,7 @@ type VersionBlock = {
 };
 
 type ReleaseKey =
+  | "release_3_3_0_alpha_3"
   | "release_3_3_0_alpha_2"
   | "release_3_3_0_alpha_1"
   | "release_3_2_0_alpha_1"
@@ -42,6 +43,7 @@ export default function ChangelogPage() {
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const releaseKeys: readonly ReleaseKey[] = [
+    "release_3_3_0_alpha_3",
     "release_3_3_0_alpha_2",
     "release_3_3_0_alpha_1",
     "release_3_2_0_alpha_1",
