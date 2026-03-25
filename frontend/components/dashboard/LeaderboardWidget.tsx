@@ -10,7 +10,12 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useLeaderboard, type LeaderboardEntry } from "@/hooks/useLeaderboard";
-import { RANK_MEDALS } from "@/lib/constants/leaderboard";
+import {
+  RANK_MEDALS,
+  JEDI_RANK_ICONS,
+  JEDI_RANK_TEXT_CLASS,
+  leaderboardPodiumSurfaceClass,
+} from "@/lib/constants/leaderboard";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function LeaderboardWidget() {
@@ -66,49 +71,75 @@ export function LeaderboardWidget() {
 
         <CardContent className="flex-grow pt-0 px-0 pb-0">
           {leaderboard.length === 0 ? (
-            <p className="text-sm text-muted-foreground px-4 pb-4">{t("empty")}</p>
+            <div className="px-4 pb-4 space-y-2">
+              <p className="text-sm text-muted-foreground">{t("empty")}</p>
+              <Link
+                href="/challenges"
+                className="inline-flex text-sm font-medium text-primary hover:underline"
+              >
+                {t("emptyCta")}
+              </Link>
+            </div>
           ) : (
-            <ul role="list">
-              {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
-                <li
-                  key={`${entry.rank}-${entry.username}`}
-                  className={cn(
-                    "flex items-center gap-2.5 px-4 py-2",
-                    "transition-colors duration-150 hover:bg-muted/35",
-                    idx < leaderboard.length - 1 && "border-b border-border/50",
-                    entry.is_current_user
-                      ? "bg-primary/5 border-l-[3px] border-l-primary"
-                      : "border-l-[3px] border-l-transparent"
-                  )}
-                >
-                  <span className="flex-shrink-0 w-6 text-center text-base leading-none">
-                    {RANK_MEDALS[entry.rank] ?? (
-                      <span className="text-xs font-mono text-muted-foreground">{entry.rank}</span>
-                    )}
-                  </span>
-
-                  <UserAvatar username={entry.username} size="sm" avatarUrl={entry.avatar_url} />
-
-                  <span
+            <ul role="list" className="list-none m-0 p-0">
+              {leaderboard.map((entry: LeaderboardEntry, idx: number) => {
+                const jediClass = JEDI_RANK_TEXT_CLASS[entry.jedi_rank] ?? "text-muted-foreground";
+                return (
+                  <motion.li
+                    key={`${entry.rank}-${entry.username}`}
+                    {...(!shouldReduceMotion ? { whileHover: { y: -1 } } : {})}
                     className={cn(
-                      "flex-1 min-w-0 truncate text-sm font-medium",
-                      entry.is_current_user ? "text-foreground" : "text-foreground/90"
+                      "flex items-center gap-2.5 px-4 py-2",
+                      "transition-shadow duration-200 hover:shadow-sm hover:shadow-primary/5",
+                      idx < leaderboard.length - 1 && "border-b border-border/50",
+                      entry.is_current_user
+                        ? "bg-primary/5 border-l-[3px] border-l-primary"
+                        : cn(
+                            leaderboardPodiumSurfaceClass(entry.rank),
+                            "border-l-[3px] border-l-transparent"
+                          )
                     )}
                   >
-                    {entry.username}
-                  </span>
-
-                  {entry.is_current_user && (
-                    <span className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-1.5 py-0.5 rounded-full">
-                      {t("you")}
+                    <span className="flex-shrink-0 w-6 text-center text-base leading-none">
+                      {RANK_MEDALS[entry.rank] ?? (
+                        <span className="text-xs font-mono text-muted-foreground">
+                          {entry.rank}
+                        </span>
+                      )}
                     </span>
-                  )}
 
-                  <span className="flex-shrink-0 text-sm font-bold text-warning tabular-nums">
-                    {entry.total_points.toLocaleString()}
-                  </span>
-                </li>
-              ))}
+                    <UserAvatar username={entry.username} size="sm" avatarUrl={entry.avatar_url} />
+
+                    <span className="flex-1 min-w-0 flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "truncate text-sm font-medium",
+                          entry.is_current_user ? "text-foreground" : "text-foreground/90"
+                        )}
+                      >
+                        {entry.username}
+                      </span>
+                      <span
+                        className={cn("flex-shrink-0 text-sm leading-none", jediClass)}
+                        title={entry.jedi_rank}
+                        aria-hidden
+                      >
+                        {JEDI_RANK_ICONS[entry.jedi_rank] ?? "🌟"}
+                      </span>
+                    </span>
+
+                    {entry.is_current_user && (
+                      <span className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-1.5 py-0.5 rounded-full">
+                        {t("you")}
+                      </span>
+                    )}
+
+                    <span className="flex-shrink-0 text-sm font-bold text-warning tabular-nums">
+                      {entry.total_points.toLocaleString()}
+                    </span>
+                  </motion.li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

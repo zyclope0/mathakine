@@ -845,6 +845,7 @@
       "title": "Leaderboard",
       "viewAll": "View all",
       "empty": "No leaderboard yet.",
+      "emptyCta": "Browse challenges",
       "you": "You"
     },
     "challengesProgress": {
@@ -1206,7 +1207,11 @@
     "title": "Leaderboard",
     "description": "See where you rank among apprentices",
     "loading": "Loading leaderboard...",
-    "empty": "No users in the leaderboard yet.",
+    "emptyState": {
+      "title": "The leaderboard is empty for now.",
+      "description": "Complete challenges or exercises to earn points and show up here.",
+      "cta": "Browse challenges"
+    },
     "ranking": "Ranking by points",
     "rank": "Rank",
     "level": "Level",

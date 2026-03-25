@@ -832,6 +832,7 @@
       "title": "Classement",
       "viewAll": "Voir tout",
       "empty": "Aucun classement pour le moment.",
+      "emptyCta": "Voir les défis",
       "you": "Vous"
     },
     "challengesProgress": {
@@ -1205,7 +1206,11 @@
     "title": "Classement",
     "description": "Voyez où vous vous situez parmi les apprentis",
     "loading": "Chargement du classement...",
-    "empty": "Aucun utilisateur dans le classement pour le moment.",
+    "emptyState": {
+      "title": "Le classement est vide pour le moment.",
+      "description": "Réalise des défis ou des exercices pour gagner des points et apparaître ici.",
+      "cta": "Voir les défis"
+    },
     "error": "Impossible de charger le classement.",
     "ranking": "Classement par points",
     "rank": "Rang",

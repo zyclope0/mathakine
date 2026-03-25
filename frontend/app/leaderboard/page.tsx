@@ -2,6 +2,7 @@
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { Trophy, Medal, Flame, Award } from "lucide-react";
@@ -9,8 +10,16 @@ import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
-import { RANK_MEDALS, JEDI_RANK_ICONS } from "@/lib/constants/leaderboard";
+import {
+  RANK_MEDALS,
+  JEDI_RANK_ICONS,
+  JEDI_RANK_TEXT_CLASS,
+  leaderboardPodiumSurfaceClass,
+} from "@/lib/constants/leaderboard";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import Link from "next/link";
+import { motion, type Variants } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
@@ -39,6 +48,8 @@ interface LeaderboardRowProps {
   tRank: string;
   tStreak: string;
   tBadges: string;
+  rowVariants: Variants;
+  shouldReduceMotion: boolean;
 }
 
 function LeaderboardRow({
@@ -49,16 +60,24 @@ function LeaderboardRow({
   tRank,
   tStreak,
   tBadges,
+  rowVariants,
+  shouldReduceMotion,
 }: LeaderboardRowProps) {
+  const jediClass = JEDI_RANK_TEXT_CLASS[entry.jedi_rank] ?? "text-muted-foreground";
+
   return (
-    <li
+    <motion.li
+      variants={rowVariants}
+      custom={entry.rank}
+      {...(!shouldReduceMotion ? { whileHover: { y: -2 } } : {})}
       className={cn(
-        "flex items-center gap-4 px-4 py-3",
-        "hover:bg-white/5 transition-colors duration-150 cursor-pointer",
-        !isLast && "border-b border-white/5",
+        "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3",
+        "cursor-default transition-shadow duration-300",
+        "hover:shadow-md hover:shadow-primary/5",
+        !isLast && "border-b border-border/40",
         entry.is_current_user
           ? "bg-primary/10 border-l-4 border-l-primary"
-          : "border-l-4 border-l-transparent"
+          : cn(leaderboardPodiumSurfaceClass(entry.rank), "border-l-4 border-l-transparent")
       )}
     >
       <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
@@ -68,14 +87,14 @@ function LeaderboardRow({
       <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
         <span
           className={cn(
-            "font-semibold truncate",
+            "font-semibold truncate max-w-[40vw] sm:max-w-none",
             entry.is_current_user ? "text-foreground" : "text-foreground/90"
           )}
         >
           {entry.username}
         </span>
         <span
-          className="flex-shrink-0 text-base leading-none"
+          className={cn("flex-shrink-0 text-base leading-none", jediClass)}
           title={entry.jedi_rank}
           aria-label={entry.jedi_rank}
         >
@@ -115,11 +134,11 @@ function LeaderboardRow({
         {tLevel} {entry.current_level}
       </span>
 
-      <span className="flex-shrink-0 text-base font-bold text-amber-400 tabular-nums">
+      <span className="flex-shrink-0 text-sm sm:text-base font-bold text-amber-400 tabular-nums">
         {entry.total_points.toLocaleString()}
         <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>
       </span>
-    </li>
+    </motion.li>
   );
 }
 
@@ -129,6 +148,29 @@ export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
   useAuth();
   const { leaderboard, isLoading, error } = useLeaderboard(50);
+  const { shouldReduceMotion } = useAccessibleAnimation();
+
+  const listVariants: Variants = shouldReduceMotion
+    ? { hidden: {}, show: {} }
+    : {
+        hidden: { opacity: 0 },
+        show: {
+          opacity: 1,
+          transition: { staggerChildren: 0.055, delayChildren: 0.03 },
+        },
+      };
+
+  const rowVariants: Variants = shouldReduceMotion
+    ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 10, scale: 0.98 },
+        show: (rank: number) => ({
+          opacity: 1,
+          y: 0,
+          scale: typeof rank === "number" && rank >= 1 && rank <= 3 ? 1.02 : 1,
+          transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
+        }),
+      };
 
   return (
     <ProtectedRoute requireFullAccess>
@@ -146,7 +188,11 @@ export default function LeaderboardPage() {
             <CardContent className="p-0 min-h-[120px]">
               {error ? (
                 <div className="p-6">
-                  <EmptyState title={t("error") ?? "Erreur de chargement"} description="" icon={Trophy} />
+                  <EmptyState
+                    title={t("error") ?? "Erreur de chargement"}
+                    description=""
+                    icon={Trophy}
+                  />
                 </div>
               ) : isLoading ? (
                 <div className="p-6">
@@ -154,10 +200,26 @@ export default function LeaderboardPage() {
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="p-6">
-                  <EmptyState title={t("empty")} description="" icon={Medal} />
+                  <EmptyState
+                    title={t("emptyState.title")}
+                    description={t("emptyState.description")}
+                    icon={Medal}
+                    action={
+                      <Button asChild variant="default">
+                        <Link href="/challenges">{t("emptyState.cta")}</Link>
+                      </Button>
+                    }
+                  />
                 </div>
               ) : (
-                <ul role="list" aria-label={t("ranking")}>
+                <motion.ul
+                  role="list"
+                  aria-label={t("ranking")}
+                  variants={listVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="list-none m-0 p-0"
+                >
                   {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
                     <LeaderboardRow
                       key={`${entry.rank}-${entry.username}`}
@@ -168,9 +230,11 @@ export default function LeaderboardPage() {
                       tRank={t("rank", { default: "Rang" })}
                       tStreak={t("streakStat", { default: "Série en jours" })}
                       tBadges={t("badgesStat", { default: "Badges obtenus" })}
+                      rowVariants={rowVariants}
+                      shouldReduceMotion={Boolean(shouldReduceMotion)}
                     />
                   ))}
-                </ul>
+                </motion.ul>
               )}
             </CardContent>
           </Card>
