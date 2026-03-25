@@ -7,6 +7,7 @@ Remplit les jours vides avec attempts=0, success_rate_pct=0, avg_time_spent_s=nu
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional
 
 from sqlalchemy import text
@@ -14,6 +15,23 @@ from sqlalchemy.orm import Session
 
 VALID_PERIODS = frozenset({"7d", "30d"})
 DEFAULT_PERIOD = "7d"
+
+
+def _to_int(value: Any) -> int:
+    """Agrégats SQL (PostgreSQL) peuvent renvoyer Decimal — JSON exige int natif."""
+    if value is None:
+        return 0
+    if isinstance(value, Decimal):
+        return int(value)
+    return int(value)
+
+
+def _to_float_optional(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        return float(value)
+    return float(value)
 
 
 def get_progress_timeline(
@@ -115,9 +133,9 @@ def get_progress_timeline(
         if isinstance(day_date, datetime):
             day_date = day_date.date()
         rows_by_day[day_date] = {
-            "attempts": row[1] or 0,
-            "correct": row[2] or 0,
-            "avg_time": float(row[3]) if row[3] is not None else None,
+            "attempts": _to_int(row[1]),
+            "correct": _to_int(row[2]),
+            "avg_time": _to_float_optional(row[3]),
         }
 
     # Récupérer by_type par jour
@@ -146,8 +164,8 @@ def get_progress_timeline(
             day_date = day_date.date()
         ex_type = row[1] or "unknown"
         by_type_by_day[day_date][ex_type] = {
-            "attempts": row[2] or 0,
-            "correct": row[3] or 0,
+            "attempts": _to_int(row[2]),
+            "correct": _to_int(row[3]),
         }
 
     ch_by_type_result = db.execute(
@@ -175,8 +193,8 @@ def get_progress_timeline(
         logic_key = f"logic_{raw_type}"
         prev = by_type_by_day[day_date].get(logic_key, {"attempts": 0, "correct": 0})
         by_type_by_day[day_date][logic_key] = {
-            "attempts": prev["attempts"] + (row[2] or 0),
-            "correct": prev["correct"] + (row[3] or 0),
+            "attempts": _to_int(prev["attempts"]) + _to_int(row[2]),
+            "correct": _to_int(prev["correct"]) + _to_int(row[3]),
         }
 
     # Construire la série continue (sans trou)
@@ -189,16 +207,17 @@ def get_progress_timeline(
         day_data = rows_by_day.get(
             current, {"attempts": 0, "correct": 0, "avg_time": None}
         )
-        attempts = day_data["attempts"]
-        correct = day_data["correct"]
-        avg_time = day_data.get("avg_time")
+        attempts = _to_int(day_data["attempts"])
+        correct = _to_int(day_data["correct"])
+        avg_time = _to_float_optional(day_data.get("avg_time"))
 
         success_rate_pct = round((correct / attempts) * 100, 1) if attempts > 0 else 0.0
         avg_time_spent_s = round(avg_time, 1) if avg_time is not None else None
 
         by_type: Dict[str, Dict[str, Any]] = {}
         for ex_type, data in by_type_by_day.get(current, {}).items():
-            a, c = data["attempts"], data["correct"]
+            a = _to_int(data["attempts"])
+            c = _to_int(data["correct"])
             by_type[ex_type] = {
                 "attempts": a,
                 "correct": c,

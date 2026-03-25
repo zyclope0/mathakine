@@ -77,6 +77,10 @@ export function useChallenges(filters?: ChallengeFilters) {
       queryClient.invalidateQueries({ queryKey: ["challenge", variables.challenge_id] });
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
       queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+      // Timeline et progression défis : toute tentative (correcte ou non) est comptabilisée
+      queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "challenges", "detailed-progress"] });
 
       // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations + défis quotidiens
       if (data.is_correct) {
@@ -86,6 +90,7 @@ export function useChallenges(filters?: ChallengeFilters) {
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
         queryClient.invalidateQueries({ queryKey: ["recommendations"] });
         queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       }
 
       // Afficher les badges gagnés si présents

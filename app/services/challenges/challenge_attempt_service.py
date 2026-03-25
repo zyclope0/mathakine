@@ -88,13 +88,17 @@ def _execute_attempt(
         raise ChallengeAttemptRecordError("Impossible d'enregistrer la tentative.")
 
     try:
+        progress_savepoint = db.begin_nested()
         upsert_challenge_progress(
             db,
             cmd.user_id,
             normalize_challenge_type_key(challenge),
             is_correct,
         )
+        progress_savepoint.commit()
     except Exception as progress_err:
+        if "progress_savepoint" in locals() and progress_savepoint.is_active:
+            progress_savepoint.rollback()
         logger.warning(
             "challenge_progress upsert (best effort): %s",
             progress_err,

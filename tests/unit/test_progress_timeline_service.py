@@ -2,8 +2,10 @@
 Tests unitaires pour le service F07 — Courbe d'évolution temporelle.
 """
 
+import json
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import text
 
@@ -20,6 +22,8 @@ from app.models.user import User, UserRole
 from app.services.progress.progress_timeline_service import (
     DEFAULT_PERIOD,
     VALID_PERIODS,
+    _to_float_optional,
+    _to_int,
     get_progress_timeline,
 )
 from app.utils.db_helpers import get_enum_value
@@ -62,6 +66,23 @@ def test_valid_periods():
     """Vérifie que les périodes valides sont 7d et 30d."""
     assert VALID_PERIODS == frozenset({"7d", "30d"})
     assert DEFAULT_PERIOD == "7d"
+
+
+def test_decimal_coercion_helpers_are_json_serializable():
+    """PostgreSQL renvoie souvent Decimal pour SUM/COUNT ; le handler JSON ne doit pas planter."""
+    sample = {
+        "attempts": _to_int(Decimal("4")),
+        "correct": _to_int(Decimal("3")),
+        "avg": _to_float_optional(Decimal("33.75")),
+        "by_type": {
+            "addition": {
+                "attempts": _to_int(Decimal("4")),
+                "correct": _to_int(Decimal("3")),
+                "success_rate_pct": 75.0,
+            },
+        },
+    }
+    json.dumps(sample)
 
 
 def test_get_progress_timeline_empty(db_session):
@@ -144,6 +165,8 @@ def test_get_progress_timeline_with_attempts(db_session):
     assert result["summary"]["total_attempts"] == 4
     assert result["summary"]["total_correct"] == 3
     assert result["summary"]["overall_success_rate_pct"] == 75.0
+
+    json.dumps(result)
 
 
 def test_get_progress_timeline_period_fallback(db_session):

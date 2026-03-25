@@ -21,7 +21,7 @@ from app.services.challenges.challenge_query_service import (
     get_challenge_detail_for_api,
     get_challenge_hint_for_api,
     get_challenges_stats_for_api_sync,
-    get_completed_challenges_ids,
+    get_completed_challenges_ids as query_completed_challenges_ids,
     list_challenges_for_api,
 )
 from app.services.challenges.challenge_stream_service import prepare_stream_context
@@ -234,7 +234,7 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        completed_ids = await run_db_bound(get_completed_challenges_ids, user_id)
+        completed_ids = await run_db_bound(query_completed_challenges_ids, user_id)
 
         logger.debug(
             f"Recuperation de {len(completed_ids)} challenges completes pour l'utilisateur {user_id}"
