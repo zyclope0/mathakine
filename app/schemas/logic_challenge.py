@@ -132,6 +132,9 @@ class LogicChallengeInDB(LogicChallengeBase):
     """Schéma pour un défi logique en base de données"""
 
     id: int
+    difficulty_tier: Optional[int] = Field(
+        None, ge=1, le=12, description="F42 — matrice âge × difficulté (1–12)"
+    )
     creator_id: Optional[int] = None
     visual_data: Optional[Dict[str, Any]] = None
     image_url: Optional[str] = None

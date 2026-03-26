@@ -340,6 +340,10 @@ def create_test_logic_challenges(db: Session):
         ),
     ]
 
+    from app.core.difficulty_tier import assign_logic_challenge_difficulty_tier
+
+    for ch in logic_challenges:
+        assign_logic_challenge_difficulty_tier(ch)
     db.add_all(logic_challenges)
     db.flush()
     logger.info(f"{len(logic_challenges)} défis logiques créés")

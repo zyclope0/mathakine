@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import case, distinct, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.difficulty_tier import compute_difficulty_tier_for_logic_challenge
 from app.core.logging_config import get_logger
 from app.core.types import ChallengeStatsDict
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
@@ -66,11 +67,15 @@ def _prepare_challenge_data(
     db_age_group = normalize_age_group_for_db(age_group)
     logger.debug(f"Conversion groupe d'âge: {age_group} -> {db_age_group}")
 
+    tier = compute_difficulty_tier_for_logic_challenge(
+        db_age_group, None, difficulty_rating
+    )
     return {
         "title": title,
         "description": description,
         "challenge_type": challenge_type,
         "age_group": db_age_group,
+        "difficulty_tier": tier,
         "question": question,
         "correct_answer": correct_answer,
         "solution_explanation": solution_explanation,

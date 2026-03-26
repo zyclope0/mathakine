@@ -16,7 +16,7 @@ L'anti-répétition utilise uniquement les colonnes existantes de ``Recommendati
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Iterable, List, Set
+from typing import Iterable, List, Optional, Set
 
 from sqlalchemy.orm import Session
 
@@ -69,6 +69,7 @@ def exercise_rank_sort_key(
     exercise: Exercise,
     user_age_group: str,
     penalized_exercise_ids: Set[int],
+    user_target_tier: Optional[int] = None,
 ) -> tuple:
     """
     Clé de tri croissante : les meilleurs candidats ont la plus petite clé.
@@ -76,14 +77,22 @@ def exercise_rank_sort_key(
     Ordre :
       - non pénalisé (0) avant pénalisé (1)
       - correspondance âge (0) avant hors bucket (1)
+      - distance tier F42 (0 = meilleur) si ``user_target_tier`` et ``difficulty_tier`` connus
       - view_count croissant
       - ``-id`` : tie-break final stable (id le plus élevé = meilleur parmi équivalents)
     """
     penalized_tier = 1 if exercise.id in penalized_exercise_ids else 0
     age_tier = 0 if exercise_fits_user_age_bucket(exercise, user_age_group) else 1
+    if (
+        user_target_tier is not None
+        and getattr(exercise, "difficulty_tier", None) is not None
+    ):
+        tier_dist = abs(int(exercise.difficulty_tier) - int(user_target_tier))
+    else:
+        tier_dist = 0
     view = exercise.view_count or 0
     eid = exercise.id if exercise.id is not None else 0
-    return (penalized_tier, age_tier, view, -eid)
+    return (penalized_tier, age_tier, tier_dist, view, -eid)
 
 
 def select_top_ranked_exercises(
@@ -91,6 +100,7 @@ def select_top_ranked_exercises(
     user_age_group: str,
     penalized_exercise_ids: Set[int],
     limit: int,
+    user_target_tier: Optional[int] = None,
 ) -> List[Exercise]:
     """Trie les candidats selon ``exercise_rank_sort_key`` et retourne les ``limit`` premiers."""
     if limit <= 0:
@@ -99,6 +109,8 @@ def select_top_ranked_exercises(
     if not items:
         return []
     items.sort(
-        key=lambda e: exercise_rank_sort_key(e, user_age_group, penalized_exercise_ids)
+        key=lambda e: exercise_rank_sort_key(
+            e, user_age_group, penalized_exercise_ids, user_target_tier
+        )
     )
     return items[:limit]

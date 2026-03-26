@@ -539,7 +539,7 @@ L2    → livré ✅ commit 4a74e52
 L3-A  → livré ✅ commit f04853a   (F40, GET /api/users/me/rank + pied de page)
 L3-B  → livré ✅ commit f5e793f   (F41, period=week|month|all sur leaderboard + me/rank)
 F42 Phase 1 → livré ✅ commit 5b22a06 + 35efd13 (age_group users, backfill, profil, API)
-F42 Phase 2 → PROCHAIN   (difficulty_tier, double-lecture recommandations)
+F42 Phase 2 → livré ✅ migration `20260327_content_difficulty_tier` + reco + persistance contenus
 ```
 
 **Notes techniques F42 Phase 1 (review 2026-03-26) :**

@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.difficulty_tier import compute_difficulty_tier_for_exercise_strings
 from app.core.logging_config import get_logger
 from app.db.adapter import DatabaseAdapter
 from app.models.exercise import Exercise
@@ -67,11 +68,13 @@ class ExerciseRepository:
         Returns:
             Dictionnaire avec id et données de l'exercice créé, ou None
         """
+        tier = compute_difficulty_tier_for_exercise_strings(age_group, difficulty)
         exercise_data = {
             "title": title,
             "exercise_type": exercise_type,
             "age_group": age_group,
             "difficulty": difficulty,
+            "difficulty_tier": tier,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,

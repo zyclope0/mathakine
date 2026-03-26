@@ -88,6 +88,7 @@ def challenge_to_list_item(challenge) -> Dict[str, Any]:
         "success_rate": challenge.success_rate,
         "view_count": challenge.view_count,
         "is_archived": challenge.is_archived,
+        "difficulty_tier": getattr(challenge, "difficulty_tier", None),
     }
 
 
@@ -130,4 +131,5 @@ def challenge_to_detail_dict(challenge) -> Dict[str, Any]:
         "is_active": challenge.is_active,
         "is_archived": challenge.is_archived,
         "response_mode": resolve_challenge_response_mode(challenge),
+        "difficulty_tier": getattr(challenge, "difficulty_tier", None),
     }

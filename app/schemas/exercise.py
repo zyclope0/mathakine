@@ -196,6 +196,9 @@ class ExerciseInDB(ExerciseBase):
     creator_id: Optional[int] = None
     image_url: Optional[str] = None
     audio_url: Optional[str] = None
+    difficulty_tier: Optional[int] = Field(
+        None, ge=1, le=12, description="F42 — matrice âge × difficulté (1–12)"
+    )
     is_active: bool
     is_archived: bool
     view_count: int
@@ -219,6 +222,7 @@ class ExerciseListItem(BaseModel):
     exercise_type: str
     difficulty: str
     age_group: Optional[str] = None
+    difficulty_tier: Optional[int] = Field(None, ge=1, le=12)
     question: str
     correct_answer: str
     choices: List[str] = Field(default_factory=list)

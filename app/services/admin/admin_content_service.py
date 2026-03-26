@@ -238,6 +238,7 @@ class AdminContentService:
             "audio_url": e.audio_url or "",
             "is_active": e.is_active,
             "is_archived": e.is_archived,
+            "difficulty_tier": e.difficulty_tier,
             "created_at": e.created_at.isoformat() if e.created_at else None,
             "updated_at": e.updated_at.isoformat() if e.updated_at else None,
         }
@@ -378,6 +379,10 @@ class AdminContentService:
                 setattr(ex, k, v in (True, "true", "1", 1))
             elif k in allowed_json:
                 setattr(ex, k, v)
+        if any(k in data for k in ("difficulty", "age_group")):
+            from app.core.difficulty_tier import assign_exercise_difficulty_tier
+
+            assign_exercise_difficulty_tier(ex)
         log_admin_action(
             db,
             admin_user_id,
@@ -419,6 +424,9 @@ class AdminContentService:
             is_active=orig.is_active,
             is_archived=False,
         )
+        from app.core.difficulty_tier import assign_exercise_difficulty_tier
+
+        assign_exercise_difficulty_tier(copy)
         db.add(copy)
         db.flush()
         log_admin_action(
@@ -494,6 +502,7 @@ class AdminContentService:
             "is_archived": c.is_archived,
             "difficulty_rating": c.difficulty_rating,
             "estimated_time_minutes": c.estimated_time_minutes,
+            "difficulty_tier": c.difficulty_tier,
             "created_at": c.created_at.isoformat() if c.created_at else None,
             "updated_at": c.updated_at.isoformat() if c.updated_at else None,
         }
@@ -628,6 +637,9 @@ class AdminContentService:
             visual_data=data.get("visual_data"),
             hints=data.get("hints"),
         )
+        from app.core.difficulty_tier import assign_logic_challenge_difficulty_tier
+
+        assign_logic_challenge_difficulty_tier(ch)
         db.add(ch)
         db.flush()
         log_admin_action(
@@ -696,6 +708,10 @@ class AdminContentService:
                     setattr(ch, k, AgeGroup(str(v).strip()))
                 except ValueError:
                     pass
+        if any(k in data for k in ("difficulty", "age_group", "difficulty_rating")):
+            from app.core.difficulty_tier import assign_logic_challenge_difficulty_tier
+
+            assign_logic_challenge_difficulty_tier(ch)
         log_admin_action(
             db,
             admin_user_id,
@@ -741,6 +757,9 @@ class AdminContentService:
             difficulty_rating=orig.difficulty_rating,
             estimated_time_minutes=orig.estimated_time_minutes,
         )
+        from app.core.difficulty_tier import assign_logic_challenge_difficulty_tier
+
+        assign_logic_challenge_difficulty_tier(copy)
         db.add(copy)
         db.flush()
         log_admin_action(

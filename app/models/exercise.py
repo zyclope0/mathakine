@@ -60,6 +60,8 @@ class Exercise(Base):
     age_group = Column(
         String, nullable=False
     )  # Groupe d'âge cible (8-10, 11-13, 14-16)
+    # F42 — matrice 4×3 (1..12), nullable si « tous âges » ou données héritées
+    difficulty_tier = Column(Integer, nullable=True, index=True)
     context_theme = Column(String, nullable=True)  # Contexte Star Wars spécifique
     complexity = Column(Integer, nullable=True)  # Niveau de complexité cognitive (1-5)
     ai_generated = Column(Boolean, default=False)  # Généré par IA

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from app.core.constants import AgeGroups, get_difficulty_from_age_group
+from app.core.difficulty_tier import compute_user_target_difficulty_tier
 from app.core.logging_config import get_logger
 from app.core.user_age_group import normalized_age_group_from_user_profile
 from app.utils.exercise_type_normalization import normalize_exercise_type_key
@@ -48,6 +49,8 @@ class RecommendationUserContext:
     practice_rhythm: str
     #: Clés = ``normalize_exercise_type_key`` ; valeurs = difficulté (ex. INITIE, CHEVALIER)
     diagnostic_difficulty_by_type: Dict[str, str]
+    #: F42 — tier 1..12 pour l'utilisateur (âge résolu × difficulté globale) ; ``None`` si ALL_AGES
+    target_difficulty_tier: Optional[int]
 
 
 def get_target_difficulty_for_type(
@@ -160,10 +163,13 @@ def build_recommendation_user_context(user, db) -> RecommendationUserContext:
     learning_goal = getattr(user, "learning_goal", None) or ""
     practice_rhythm = getattr(user, "practice_rhythm", None) or ""
 
+    target_tier = compute_user_target_difficulty_tier(age_group, default_difficulty)
+
     return RecommendationUserContext(
         age_group=age_group,
         global_default_difficulty=default_difficulty,
         learning_goal=learning_goal,
         practice_rhythm=practice_rhythm,
         diagnostic_difficulty_by_type=dict(diagnostic_by_type),
+        target_difficulty_tier=target_tier,
     )

@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.difficulty_tier import assign_exercise_difficulty_tier
 from app.core.types import ExerciseCreatePrepared, ValidationResult
 from app.models.exercise import Exercise
 from app.services.admin.admin_helpers import log_admin_action
@@ -74,6 +75,7 @@ def persist_exercise_create(
         tags=prepared.get("tags"),
         ai_generated=False,
     )
+    assign_exercise_difficulty_tier(ex)
     db.add(ex)
     db.flush()
     log_admin_action(

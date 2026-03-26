@@ -364,6 +364,7 @@ class ExerciseService:
             cast(Exercise.exercise_type, String).label("exercise_type_str"),
             cast(Exercise.difficulty, String).label("difficulty_str"),
             Exercise.age_group,
+            Exercise.difficulty_tier,
         ).filter(Exercise.is_archived == False)
         exercises_query = ExerciseService._apply_exercise_list_filters(
             exercises_query,
@@ -404,6 +405,7 @@ class ExerciseService:
                     row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
                 ),
                 age_group=row.age_group,
+                difficulty_tier=row.difficulty_tier,
                 question=row.question,
                 correct_answer=row.correct_answer,
                 choices=safe_parse_json(row.choices, []),
@@ -435,7 +437,20 @@ class ExerciseService:
         Returns:
             L'exercice créé ou None en cas d'erreur
         """
-        return DatabaseAdapter.create(db, Exercise, exercise_data)
+        from app.core.difficulty_tier import (
+            compute_difficulty_tier_for_exercise_strings,
+        )
+
+        data = dict(exercise_data)
+        if (
+            data.get("difficulty_tier") is None
+            and data.get("age_group")
+            and data.get("difficulty")
+        ):
+            data["difficulty_tier"] = compute_difficulty_tier_for_exercise_strings(
+                data["age_group"], data["difficulty"]
+            )
+        return DatabaseAdapter.create(db, Exercise, data)
 
     @staticmethod
     def update_exercise(
@@ -457,7 +472,20 @@ class ExerciseService:
             logger.error(f"Exercice avec ID {exercise_id} non trouvé pour mise à jour")
             return False
 
-        return DatabaseAdapter.update(db, exercise, exercise_data)
+        from app.core.difficulty_tier import (
+            compute_difficulty_tier_for_exercise_strings,
+        )
+
+        edata = dict(exercise_data)
+        if "difficulty_tier" not in edata and any(
+            k in edata for k in ("difficulty", "age_group")
+        ):
+            next_age = edata.get("age_group", exercise.age_group)
+            next_diff = edata.get("difficulty", exercise.difficulty)
+            edata["difficulty_tier"] = compute_difficulty_tier_for_exercise_strings(
+                next_age, next_diff
+            )
+        return DatabaseAdapter.update(db, exercise, edata)
 
     @staticmethod
     def archive_exercise(db: Session, exercise_id: int) -> None:

@@ -10,6 +10,10 @@ from sqlalchemy.orm.attributes import set_committed_value
 from sqlalchemy.sql import func
 
 from app.core.constants import AgeGroups, normalize_age_group
+from app.core.difficulty_tier import (
+    compute_user_target_difficulty_tier,
+    exercise_tier_filter_expression,
+)
 from app.core.logging_config import get_logger
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -147,6 +151,7 @@ def _score_challenge_for_recommendation(
     stats: SimpleNamespace,
     learning_goal: str,
     now: datetime,
+    user_target_tier: Optional[int] = None,
 ) -> float:
     """
     Score borné et lisible. ``difficulty_rating`` est traité comme indicateur souvent partiel
@@ -185,6 +190,12 @@ def _score_challenge_for_recommendation(
         score += 2.0
     if learning_goal == "samuser":
         score += 1.2
+    if (
+        user_target_tier is not None
+        and getattr(ch, "difficulty_tier", None) is not None
+    ):
+        dist = abs(int(ch.difficulty_tier) - int(user_target_tier))
+        score -= dist * 0.35
     return score
 
 
@@ -194,6 +205,7 @@ def _select_logic_challenge_recommendation_entries(
     user_age_group: str,
     learning_goal: str,
     completed_challenge_ids: Set[int],
+    user_target_tier: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """
     R5 — Pool filtré (actif, non archivé, âge, non réussi), tri par score explicite
@@ -233,7 +245,12 @@ def _select_logic_challenge_recommendation_entries(
     scored: List[Tuple[float, LogicChallenge]] = []
     for ch in pool:
         sc = _score_challenge_for_recommendation(
-            ch, profile, stats, learning_goal or "", now
+            ch,
+            profile,
+            stats,
+            learning_goal or "",
+            now,
+            user_target_tier=user_target_tier,
         )
         scored.append((sc, ch))
     scored.sort(key=lambda x: (-x[0], -x[1].id))
@@ -400,10 +417,13 @@ class RecommendationService:
                     valid_types = [t.value for t in ExerciseType]
                     valid_difficulties = [d.value for d in DifficultyLevel]
 
-                    # Trouver des exercices appropriés (filtrer par age_group si dispo)
+                    improv_tier = compute_user_target_difficulty_tier(
+                        user_age_group, target_difficulty
+                    )
+                    # Trouver des exercices appropriés (F42 : fenêtre tier ±1 + legacy)
                     exercise_query = db.query(Exercise).filter(
                         func.lower(Exercise.exercise_type) == ex_type,
-                        Exercise.difficulty == target_difficulty,
+                        exercise_tier_filter_expression(improv_tier, target_difficulty),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
                         Exercise.is_archived == False,
@@ -437,6 +457,7 @@ class RecommendationService:
                         user_age_group,
                         penalized_exercise_ids,
                         2,
+                        user_target_tier=improv_tier,
                     )
                     ex_reason_params = params_improvement(
                         ex_type, int(success_rate), target_difficulty
@@ -489,9 +510,12 @@ class RecommendationService:
                         valid_types = [t.value for t in ExerciseType]
                         valid_difficulties = [d.value for d in DifficultyLevel]
 
+                        prog_tier = compute_user_target_difficulty_tier(
+                            user_age_group, next_difficulty
+                        )
                         exercise_query = db.query(Exercise).filter(
                             func.lower(Exercise.exercise_type) == ex_type,
-                            Exercise.difficulty == next_difficulty,
+                            exercise_tier_filter_expression(prog_tier, next_difficulty),
                             Exercise.exercise_type.in_(valid_types),
                             Exercise.difficulty.in_(valid_difficulties),
                             Exercise.is_archived == False,
@@ -514,6 +538,7 @@ class RecommendationService:
                             user_age_group,
                             penalized_exercise_ids,
                             1,
+                            user_target_tier=prog_tier,
                         )
                         prog_params = params_progression(
                             ex_type, int(success_rate), next_difficulty
@@ -602,10 +627,13 @@ class RecommendationService:
                         )
 
                     # Proposer un exercice pour maintenir cette compétence
+                    maint_tier = compute_user_target_difficulty_tier(
+                        user_age_group, user_level
+                    )
                     ex_filter = [
                         func.lower(Exercise.exercise_type)
                         == normalize_exercise_type_key(ex_type),
-                        Exercise.difficulty == user_level,
+                        exercise_tier_filter_expression(maint_tier, user_level),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
                         Exercise.is_archived == False,
@@ -630,6 +658,7 @@ class RecommendationService:
                         user_age_group,
                         penalized_exercise_ids,
                         1,
+                        user_target_tier=maint_tier,
                     )
                     nt_key = normalize_exercise_type_key(ex_type)
                     maint_params = params_maintenance(nt_key, user_level)
@@ -668,9 +697,12 @@ class RecommendationService:
 
                 for nt in sorted(new_types):
                     target_d = get_target_difficulty_for_type(ctx, nt, None)
+                    disc_tier = compute_user_target_difficulty_tier(
+                        user_age_group, target_d
+                    )
                     ex_filter = [
                         func.lower(Exercise.exercise_type) == nt,
-                        Exercise.difficulty == target_d,
+                        exercise_tier_filter_expression(disc_tier, target_d),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
                         Exercise.is_archived == False,
@@ -700,6 +732,7 @@ class RecommendationService:
                         user_age_group,
                         discovery_penalized,
                         1,
+                        user_target_tier=disc_tier,
                     )
                     if not picked:
                         continue
@@ -738,6 +771,7 @@ class RecommendationService:
                 user_age_group,
                 learning_goal or "",
                 completed_challenge_ids,
+                user_target_tier=ctx.target_difficulty_tier,
             ):
                 ch = entry["challenge"]
                 recommendations.append(
@@ -767,12 +801,24 @@ class RecommendationService:
                 logger.debug(f"Types valides: {valid_types}")
                 logger.debug(f"Difficultés valides: {valid_difficulties}")
 
+                fb_tier = compute_user_target_difficulty_tier(
+                    user_age_group, ctx.global_default_difficulty
+                )
                 ex_filter = [
                     Exercise.exercise_type.in_(valid_types),
                     Exercise.difficulty.in_(valid_difficulties),
                     Exercise.is_archived == False,
                     Exercise.is_active == True,
                 ]
+                if fb_tier is not None:
+                    lo_fb = max(1, fb_tier - 1)
+                    hi_fb = min(12, fb_tier + 1)
+                    ex_filter.append(
+                        or_(
+                            Exercise.difficulty_tier.is_(None),
+                            Exercise.difficulty_tier.between(lo_fb, hi_fb),
+                        )
+                    )
                 if user_age_group != AgeGroups.ALL_AGES:
                     age_values = list(
                         AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
@@ -798,6 +844,7 @@ class RecommendationService:
                     user_age_group,
                     penalized_exercise_ids,
                     3,
+                    user_target_tier=fb_tier,
                 )
 
                 logger.debug(

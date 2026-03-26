@@ -94,6 +94,8 @@ class LogicChallenge(Base):
     difficulty = Column(
         String(50), nullable=True, index=True
     )  # Optionnel pour compatibilité
+    # F42 — aligné exercises (1..12) ; nullable si ALL_AGES ou legacy
+    difficulty_tier = Column(Integer, nullable=True, index=True)
 
     # Contenu du défi
     content = Column(Text, nullable=True)  # Contenu formaté du défi

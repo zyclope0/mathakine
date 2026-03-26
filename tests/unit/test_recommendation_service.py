@@ -494,6 +494,7 @@ def test_get_target_difficulty_for_type_order():
         learning_goal="",
         practice_rhythm="",
         diagnostic_difficulty_by_type={"division": "INITIE", "addition": "CHEVALIER"},
+        target_difficulty_tier=None,
     )
     assert (
         get_target_difficulty_for_type(ctx, "division", "MAITRE") == "MAITRE"
@@ -560,6 +561,7 @@ def test_build_recommendation_user_context_prefers_persisted_age_group(db_sessio
 
     ctx = build_recommendation_user_context(user, db_session)
     assert ctx.age_group == AgeGroups.GROUP_6_8
+    assert ctx.target_difficulty_tier == 1
 
 
 def test_improvement_uses_diagnostic_per_type_when_no_progress(db_session):
