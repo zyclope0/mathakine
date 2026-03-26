@@ -814,7 +814,7 @@ function ProfilePageContent() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
                           <div className="flex flex-col gap-1 pr-4">
                             <Label
-                              htmlFor="preferred_age_group"
+                              htmlFor="preferred_difficulty"
                               className="text-sm font-medium text-foreground"
                             >
                               {tLearning("preferredAgeGroup")}
@@ -828,7 +828,7 @@ function ProfilePageContent() {
                             disabled={isUpdatingProfile}
                           >
                             <SelectTrigger
-                              id="preferred_age_group"
+                              id="preferred_difficulty"
                               aria-label={tLearning("preferredAgeGroup")}
                               className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
                             >
