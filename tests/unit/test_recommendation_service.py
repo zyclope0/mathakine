@@ -545,6 +545,23 @@ def test_build_recommendation_user_context_normalizes_diagnostic_keys(db_session
     assert ctx.diagnostic_difficulty_by_type["division"] == "INITIE"
 
 
+def test_build_recommendation_user_context_prefers_persisted_age_group(db_session):
+    """F42 — users.age_group prime sur preferred_difficulty pour l'axe âge."""
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        age_group="6-8",
+        preferred_difficulty="GRAND_MAITRE",
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    ctx = build_recommendation_user_context(user, db_session)
+    assert ctx.age_group == AgeGroups.GROUP_6_8
+
+
 def test_improvement_uses_diagnostic_per_type_when_no_progress(db_session):
     """
     R2 — Fort en 3 types, faible en division : la reco « amélioration » division cible INITIE

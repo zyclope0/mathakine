@@ -15,6 +15,7 @@ from typing import Any, Dict, Optional
 
 from app.core.constants import AgeGroups, get_difficulty_from_age_group
 from app.core.logging_config import get_logger
+from app.core.user_age_group import normalized_age_group_from_user_profile
 from app.utils.exercise_type_normalization import normalize_exercise_type_key
 
 logger = get_logger(__name__)
@@ -74,8 +75,8 @@ def build_recommendation_user_context(user, db) -> RecommendationUserContext:
     """
     Construit le contexte à partir du profil, du diagnostic F03 (par type) et de la médiane globale.
     """
-    age_group = None
-    if getattr(user, "preferred_difficulty", None):
+    age_group = normalized_age_group_from_user_profile(user)
+    if not age_group and getattr(user, "preferred_difficulty", None):
         val = str(user.preferred_difficulty).lower().strip()
         if val in (
             AgeGroups.GROUP_6_8,

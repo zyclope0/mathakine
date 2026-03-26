@@ -6,7 +6,7 @@ selon une cascade de priorités :
 
   1. Diagnostic IRT (F03) — évaluation initiale par type d'exercice, valide 30 jours
   2. Progression temps réel — taux de réussite + streak sur les 7 derniers jours
-  3. Profil utilisateur — preferred_difficulty ou grade_level
+  3. Profil utilisateur — users.age_group (F42), puis preferred_difficulty ou grade_level
   4. Fallback — GROUP_9_11 (PADAWAN)
 
 Après résolution du niveau de base, un ajustement « boost/descente » est appliqué :
@@ -42,6 +42,7 @@ from sqlalchemy.orm import Session
 
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
 from app.core.logging_config import get_logger
+from app.core.user_age_group import normalized_age_group_from_user_profile
 from app.models.progress import Progress
 
 logger = get_logger(__name__)
@@ -421,6 +422,14 @@ def resolve_adaptive_difficulty(
     # 3. Profil utilisateur
     # ------------------------------------------------------------------
     try:
+        persisted_ag = normalized_age_group_from_user_profile(user)
+        if persisted_ag:
+            logger.debug(
+                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
+                f"→ users.age_group → {persisted_ag}"
+            )
+            return persisted_ag
+
         preferred = getattr(user, "preferred_difficulty", None)
         if preferred:
             ordinal = _PREF_DIFFICULTY_TO_ORDINAL.get(preferred)

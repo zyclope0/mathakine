@@ -65,10 +65,13 @@ def test_get_leaderboard_week_prefers_recent_point_events(db_session):
     )
     db_session.commit()
 
+    # Score élevé pour rester dans le top ``limit + 50`` même si la BD de test
+    # contient déjà beaucoup d'utilisateurs avec des point_events récents.
+    hot_week_pts = 1_000_000
     GamificationService.apply_points(
         db_session,
         u_hot.id,
-        80,
+        hot_week_pts,
         PointEventSourceType.EXERCISE_COMPLETED,
         source_id=2,
     )
@@ -92,7 +95,7 @@ def test_get_leaderboard_week_prefers_recent_point_events(db_session):
         period=LeaderboardPeriod.WEEK,
     )
     hot_entry = next(e for e in board if e["username"] == u_hot.username)
-    assert hot_entry["total_points"] == 80
+    assert hot_entry["total_points"] == hot_week_pts
 
 
 def test_get_user_rank_week_matches_window(db_session):

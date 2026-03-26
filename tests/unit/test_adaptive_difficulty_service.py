@@ -44,11 +44,13 @@ def _make_user(
     user_id=1,
     preferred_difficulty=None,
     grade_level=None,
+    age_group=None,
 ):
     user = MagicMock()
     user.id = user_id
     user.preferred_difficulty = preferred_difficulty
     user.grade_level = grade_level
+    user.age_group = age_group
     return user
 
 
@@ -307,6 +309,36 @@ class TestResolveAdaptiveDifficulty:
             result = resolve_adaptive_difficulty(db, user, "DIVISION")
 
         # MAITRE ? ordinal 3 ? GROUP_15_17
+        assert result == AgeGroups.GROUP_15_17
+
+    def test_priority3_users_age_group_overrides_preferred_difficulty(self):
+        """F42 — users.age_group prime sur preferred_difficulty (axes séparés)."""
+        db = _make_db(progress=None)
+        user = _make_user(
+            user_id=1,
+            age_group="6-8",
+            preferred_difficulty=DifficultyLevels.GRAND_MAITRE,
+        )
+
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+
+        assert result == AgeGroups.GROUP_6_8
+
+    def test_priority3_users_age_group_15_plus_maps_to_canonical(self):
+        """Profil API 15+ → forme canonique 15-17 pour la cascade."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, age_group="15+")
+
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+
         assert result == AgeGroups.GROUP_15_17
 
     def test_priority3_grade_level_used_when_no_preferred_difficulty(self):

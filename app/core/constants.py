@@ -173,6 +173,7 @@ class AgeGroups:
             "GROUP_15_17",
             "age_16_18",
             "15-17ans",
+            "15+",  # F42 profil utilisateur (borne haute ouverte)
         ],
         ADULT: ["adulte", "adultes", "adult", "adults", "18+", "majeur"],
         ALL_AGES: [
