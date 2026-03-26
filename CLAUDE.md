@@ -55,8 +55,8 @@ Contexte projet chargé automatiquement à chaque session Claude Code.
 
 | Priorité | Fichier | Problème |
 |----------|---------|----------|
-| P0 | `app/utils/token_tracker.py` | Fuite mémoire — defaultdict sans éviction |
-| P0 | `app/services/gamification/gamification_service.py:86` | Race condition — `with_for_update()` absent |
+| ~~P0~~ | ~~`app/utils/token_tracker.py`~~ | ~~Fuite mémoire read-path (`get_stats` + `defaultdict` → buckets vides)~~ — **RÉSOLU** (dict explicite + `.get` en lecture ; TTL/cap inchangés) |
+| ~~P0~~ | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition — `with_for_update()` absent~~ — **RÉSOLU** (guard PostgreSQL/SQLite + `with_for_update()` implémenté) |
 | P1 | `frontend/app/api/chat/route.ts` | Routes chat sans authentification (coût OpenAI non contrôlé) |
 | P1 | `.env.example` | `REDIS_URL` absente → crash démarrage prod |
 | P1 | `app/services/challenges/challenge_service.py:353` | Double filtrage `is_active`/`is_archived` incohérent |
