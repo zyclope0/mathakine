@@ -98,6 +98,23 @@ async def test_admin_ai_stats_challenge_type_param(archiviste_client):
 
 
 @pytest.mark.asyncio
+async def test_admin_ai_stats_unknown_challenge_types_do_not_pollute_tracker(
+    archiviste_client,
+):
+    """Lectures admin avec des clés libres ne doivent pas créer d'entrées en mémoire."""
+    token_tracker._usage_history.clear()
+    token_tracker._daily_totals.clear()
+    before_keys = len(token_tracker._usage_history)
+    client = archiviste_client["client"]
+    for i in range(12):
+        response = await client.get(
+            f"/api/admin/ai-stats?challenge_type=admin_unknown_probe_{i}"
+        )
+        assert response.status_code == 200
+    assert len(token_tracker._usage_history) == before_keys
+
+
+@pytest.mark.asyncio
 async def test_admin_ai_stats_invalid_days(archiviste_client):
     """GET /api/admin/ai-stats?days=0 — jours invalides → 400."""
     client = archiviste_client["client"]

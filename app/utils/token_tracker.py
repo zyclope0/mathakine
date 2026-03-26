@@ -18,11 +18,15 @@ logger = get_logger(__name__)
 
 
 class TokenTracker:
-    """Tracker simple en mémoire pour l'utilisation des tokens (peut être migré vers DB)."""
+    """Tracker simple en mémoire pour l'utilisation des tokens (peut être migré vers DB).
+
+    ``_usage_history`` est un ``dict`` explicite (pas ``defaultdict``) : une lecture
+    (ex. ``get_stats(challenge_type=...)``) ne doit jamais créer de bucket vide.
+    """
 
     def __init__(self):
         # Structure: {metric_key: [{"timestamp": datetime, "tokens": int, "cost": float}]}
-        self._usage_history: Dict[str, list] = defaultdict(list)
+        self._usage_history: Dict[str, list] = {}
         self._daily_totals: Dict[str, Dict] = defaultdict(
             lambda: {"tokens": 0, "cost": 0.0}
         )
@@ -140,7 +144,7 @@ class TokenTracker:
             "model": model,
         }
 
-        self._usage_history[challenge_type].append(usage_record)
+        self._usage_history.setdefault(challenge_type, []).append(usage_record)
 
         # Mettre à jour les totaux quotidiens
         today = datetime.now().date()
@@ -182,7 +186,7 @@ class TokenTracker:
         if challenge_type:
             records = [
                 r
-                for r in self._usage_history[challenge_type]
+                for r in self._usage_history.get(challenge_type, [])
                 if r["timestamp"] > cutoff_date
             ]
         else:

@@ -139,3 +139,20 @@ class TestWorkloadBreakdown:
         )
 
         assert usage["cost"] == pytest.approx(0.00225)
+
+
+class TestGetStatsReadPathNoMutation:
+    """Lecture filtrée ne doit pas créer de buckets vides (admin ai-stats)."""
+
+    def test_unknown_challenge_type_does_not_create_usage_bucket(self):
+        tracker = TokenTracker()
+        stats = tracker.get_stats(challenge_type="totally_unknown_metric_key", days=1)
+        assert stats["total_tokens"] == 0
+        assert stats["count"] == 0
+        assert "totally_unknown_metric_key" not in tracker._usage_history
+
+    def test_many_unknown_challenge_types_do_not_grow_store(self):
+        tracker = TokenTracker()
+        for i in range(50):
+            tracker.get_stats(challenge_type=f"unknown_probe_{i}", days=1)
+        assert len(tracker._usage_history) == 0
