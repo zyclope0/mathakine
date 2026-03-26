@@ -539,7 +539,8 @@ L2    → livré ✅ commit 4a74e52
 L3-A  → livré ✅ commit f04853a   (F40, GET /api/users/me/rank + pied de page)
 L3-B  → livré ✅ commit f5e793f   (F41, period=week|month|all sur leaderboard + me/rank)
 F42 Phase 1 → livré ✅ commit 5b22a06 + 35efd13 (age_group users, backfill, profil, API)
-F42 Phase 2 → livré ✅ migration `20260327_content_difficulty_tier` + reco + persistance contenus
+F42 Phase 2 → livré ✅ commit 2779fbf  (difficulty_tier contenus + reco + migration + index)
+F42 Phase 3 → PROCHAIN  (boundaries API/TS + authoring admin — voir §11)
 ```
 
 **Notes techniques F42 Phase 1 (review 2026-03-26) :**
@@ -561,6 +562,131 @@ F42 Phase 2 → livré ✅ migration `20260327_content_difficulty_tier` + reco +
   → CLAUDE.md P1 "apply_points non appelé pour exercices standard" est **obsolète**
 - Libellés espace réservés au dashboard parent (RGPD mineurs) — pas dans le classement public
 - "Étoiles" remplace "Commandants" pour le groupe 15+
+
+---
+
+## 11. F42 Phase 3 — Findings Codex post-review (2026-03-26)
+
+> Source : rapport Codex sur le lot F42 Phase 2 — findings vérifiés factuellement.
+> P2a (index migration) déjà corrigé avant push (commit 2779fbf). Les 4 points restants
+> sont à traiter dans un lot dédié ou en parallèle des P0.
+
+### Finding C1 — P1 : Authoring admin des défis ne nourrit pas `difficulty_tier`
+
+**Fichiers :** `ChallengeCreateModal.tsx`, `admin_content_service.py`
+
+**Problème :** `ChallengeCreateModal.tsx` n'expose pas de champ `difficulty` ni
+`difficulty_rating`. L'appel POST envoie uniquement `title, description, challenge_type,
+age_group, question, correct_answer, solution_explanation, visual_data`.
+`admin_content_service.py` construit `LogicChallenge()` sans difficulté → `assign_logic_
+challenge_difficulty_tier` tombe sur `difficulty_rating=None` → bande pédagogique médiane
+fixe (tier = age_band * 3 + 2). Tous les défis créés manuellement tombent en tier médian.
+
+**Impact :** Affaiblit F42 côté reco pour le contenu admin. Le chemin IA est correct
+(challenge_ai_service assigne la difficulté).
+
+**Fix attendu :**
+- `ChallengeCreateModal.tsx` : ajouter un champ `difficulty_rating` (slider 1–5 ou select)
+  dans `initialState` et l'inclure dans l'appel POST
+- `admin_content_service.py` : lire `difficulty_rating` depuis `data` avant de construire
+  `LogicChallenge()`
+
+**Note :** `ChallengeEditModal.tsx` passe déjà `difficulty` → tier se calcule mieux en
+édition. Seule la création est affectée.
+
+---
+
+### Finding C2 — P2 : Contrat API/TS incomplet sur `difficulty_tier`
+
+**Fichiers :** `app/schemas/logic_challenge.py`, `app/services/exercises/exercise_service.py`,
+`frontend/types/api.ts`
+
+**Problème (3 sous-points) :**
+
+1. **`ChallengeListItem` sans `difficulty_tier`** : `challenge_to_list_item()` (mapper) met
+   `difficulty_tier` dans le dict, mais `ChallengeListItem` (schéma ligne 274) ne le déclare
+   pas → Pydantic v2 le jette silencieusement lors de `ChallengeListItem.model_validate()`.
+   `GET /api/challenges` ne retourne jamais `difficulty_tier`.
+
+2. **Détail exercice sans `difficulty_tier`** : `ExerciseService.get_exercise_for_api()` ne
+   sélectionne pas `Exercise.difficulty_tier` dans sa query (contrairement à `list_exercises`
+   qui l'inclut bien). `GET /api/exercises/{id}` ne retourne pas le champ.
+
+3. **Types TypeScript sans `difficulty_tier`** : `frontend/types/api.ts` n'a pas `difficulty_tier`
+   sur les interfaces `Exercise` et `Challenge`.
+
+**Fix attendu :**
+- `app/schemas/logic_challenge.py` : ajouter `difficulty_tier: Optional[int] = None` à `ChallengeListItem`
+- `app/services/exercises/exercise_service.py` : ajouter `Exercise.difficulty_tier` au select
+  dans `get_exercise_for_api()` + le mapper dans `_exercise_row_to_dict`
+- `frontend/types/api.ts` : ajouter `difficulty_tier?: number` sur `Exercise` et `Challenge`
+
+---
+
+### Finding C3 — P2 : Migration dépend du code applicatif vivant
+
+**Fichier :** `migrations/versions/20260327_add_content_difficulty_tier.py`
+
+**Problème :** La migration importe `assign_exercise_difficulty_tier`, `assign_logic_
+challenge_difficulty_tier` et les modèles ORM au runtime. Un refactor futur de ces helpers
+pourrait changer rétroactivement la sémantique du backfill ou casser un `alembic upgrade
+head` from-scratch.
+
+**Décision :** Acceptable à l'échelle actuelle (pattern déjà utilisé dans ce projet, < 10k
+contenus). À refactoriser en SQL pur si la base dépasse 100k lignes ou si les modèles
+changent de structure.
+
+**Action :** Documenter dans le commentaire de la migration — fait (docstring mentionne
+"backfill Python"). Aucune action immédiate requise.
+
+---
+
+### Finding C4 — P3 : `LogicChallengeService.create/update` ne recalculent pas le tier
+
+**Fichier :** `app/services/challenges/logic_challenge_service.py` (lignes 111, 153)
+
+**Problème :** Ce service ne fait pas `assign_logic_challenge_difficulty_tier`. Actuellement
+utilisé uniquement par des tests, pas par le chemin prod. Risque de rechute si branché en
+prod sans le savoir.
+
+**Fix attendu :** Ajouter `assign_logic_challenge_difficulty_tier(challenge)` dans `create`
+et `update` de `LogicChallengeService`, ou documenter que ce service ne doit pas être utilisé
+directement en dehors des tests.
+
+---
+
+### Finding C5 — P3 : Couverture d'intégration insuffisante sur `difficulty_tier`
+
+**Fichiers :** `tests/api/test_admin_content.py`, `tests/api/test_challenge_endpoints.py`
+
+**Problème :** Les tests API challenges/exercises ne vérifient pas la présence de
+`difficulty_tier` dans les réponses. Les régressions de boundary (C2) ont pu passer au vert.
+
+**Fix attendu :**
+- `test_challenge_endpoints.py` : assert `"difficulty_tier" in response_body` sur GET /api/challenges
+- `test_admin_content.py` : assert le tier calculé sur un défi créé avec `difficulty_rating` explicite
+- `test_recommendation_endpoints.py` ou `test_recommendation_service.py` : test de bout en bout
+  vérifiant que `target_difficulty_tier` non-None produit une sélection d'exercices cohérente
+
+---
+
+### Séquence F42 Phase 3 recommandée
+
+**Option A — Lot unique F42-P3 (effort S, ~2h Cursor) :**
+```
+Périmètre :
+- C1 : ChallengeCreateModal.tsx + admin_content_service.py  (authoring)
+- C2 : ChallengeListItem + get_exercise_for_api + api.ts    (boundaries)
+- C4 : LogicChallengeService.create/update                  (rechute)
+- C5 : 3 assertions test supplémentaires                    (couverture)
+C3 n'est pas traité (décision consciente documentée).
+```
+
+**Option B — Intégrer aux P0 (lot combiné) :**
+Traiter C1+C2+C4 en même temps que les corrections P0 (token_tracker + gamification).
+C5 suit naturellement.
+
+**Commit cible :** `fix(f42): complete API boundaries, admin authoring, and test coverage`
 
 ---
 
