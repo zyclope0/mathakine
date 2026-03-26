@@ -538,9 +538,22 @@ sont deux axes orthogonaux traités comme un seul. Aucune colonne `age_group` su
 L2    → livré ✅ commit 4a74e52
 L3-A  → livré ✅ commit f04853a   (F40, GET /api/users/me/rank + pied de page)
 L3-B  → livré ✅ commit f5e793f   (F41, period=week|month|all sur leaderboard + me/rank)
-F42 Phase 1 → PROCHAIN   (migration age_group sur users, backfill conditionnel)
-F42 Phase 2 → après Phase 1   (difficulty_tier, double-lecture recommandations)
+F42 Phase 1 → livré ✅ commit 5b22a06 + 35efd13 (age_group users, backfill, profil, API)
+F42 Phase 2 → PROCHAIN   (difficulty_tier, double-lecture recommandations)
 ```
+
+**Notes techniques F42 Phase 1 (review 2026-03-26) :**
+
+- **P2 — age_group dans le JWT** : valeur brute `"9-11"` incluse dans le payload du token
+  d'accès (décodable base64 côté client). Même exposition que `grade_level` déjà présent →
+  pas une régression, mais décision consciente. À documenter si un audit RGPD est demandé.
+  *Décision : acceptable pour le confort UX (évite un appel API supplémentaire). À revisiter
+  si la politique de données évolue.*
+
+- **P3 — Migration non batchée** : le `UPDATE users SET ... WHERE age_group IS NULL` est un
+  seul statement sans LIMIT/OFFSET. Acceptable pour la base actuelle (<10k users). Pour toute
+  future migration de masse sur `users`, utiliser des tranches de 500 comme prévu dans le plan
+  initial (cf. §L3-C Phase 1 ci-dessus).
 
 **Corrections post-débat :**
 - F42 N'EST PAS prérequis de F40 — la dépendance déclarée était fausse
