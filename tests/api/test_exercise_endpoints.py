@@ -471,3 +471,33 @@ async def test_submit_answer_invalid_json_returns_400(
         headers={"Content-Type": "application/json"},
     )
     assert response.status_code == 400
+
+
+async def test_get_exercise_by_id_includes_difficulty_tier(
+    padawan_client, db_session, mock_exercise
+):
+    """GET /api/exercises/{id} — détail expose difficulty_tier (F42)."""
+    from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+
+    client = padawan_client["client"]
+    ex_data = mock_exercise()
+    exercise = Exercise(
+        title=ex_data["title"],
+        exercise_type=ExerciseType(ex_data["exercise_type"]),
+        difficulty=DifficultyLevel(ex_data["difficulty"]),
+        age_group=ex_data.get("age_group", "6-8"),
+        question=ex_data["question"],
+        correct_answer=ex_data["correct_answer"],
+        choices=ex_data.get("choices"),
+        is_active=True,
+        is_archived=False,
+        difficulty_tier=7,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    response = await client.get(f"/api/exercises/{exercise.id}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body.get("difficulty_tier") == 7

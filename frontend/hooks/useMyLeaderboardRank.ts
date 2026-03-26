@@ -18,8 +18,7 @@ export function useMyLeaderboardRank(enabled: boolean, period: LeaderboardPeriod
 
   return useQuery<MyLeaderboardRankResponse, ApiClientError>({
     queryKey: ["leaderboard", "me", "rank", period],
-    queryFn: async () =>
-      api.get<MyLeaderboardRankResponse>(`/api/users/me/rank?${params}`),
+    queryFn: async () => api.get<MyLeaderboardRankResponse>(`/api/users/me/rank?${params}`),
     enabled,
     staleTime: 60 * 1000,
   });

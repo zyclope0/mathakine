@@ -160,12 +160,8 @@ export default function LeaderboardPage() {
   const { leaderboard, isLoading, error } = useLeaderboard(50, period);
   const { shouldReduceMotion } = useAccessibleAnimation();
 
-  const inTop = useMemo(
-    () => leaderboard.some((e) => e.is_current_user),
-    [leaderboard]
-  );
-  const fetchMyRankEnabled =
-    !isLoading && !error && leaderboard.length > 0 && !inTop;
+  const inTop = useMemo(() => leaderboard.some((e) => e.is_current_user), [leaderboard]);
+  const fetchMyRankEnabled = !isLoading && !error && leaderboard.length > 0 && !inTop;
   const {
     data: myRank,
     isLoading: myRankLoading,
@@ -173,11 +169,7 @@ export default function LeaderboardPage() {
   } = useMyLeaderboardRank(fetchMyRankEnabled, period);
 
   const showMyRankFooter =
-    fetchMyRankEnabled &&
-    Boolean(user) &&
-    Boolean(myRank) &&
-    !myRankLoading &&
-    !myRankError;
+    fetchMyRankEnabled && Boolean(user) && Boolean(myRank) && !myRankLoading && !myRankError;
 
   const listVariants: Variants = shouldReduceMotion
     ? { hidden: {}, show: {} }

@@ -44,7 +44,10 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AGE_GROUPS, type AgeGroup } from "@/lib/constants/exercises";
-import { USER_PROFILE_AGE_GROUPS, type UserProfileAgeGroup } from "@/lib/constants/userProfileAgeGroup";
+import {
+  USER_PROFILE_AGE_GROUPS,
+  type UserProfileAgeGroup,
+} from "@/lib/constants/userProfileAgeGroup";
 import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
 import { fr } from "date-fns/locale";
 import { useThemeStore } from "@/lib/stores/themeStore";
@@ -924,7 +927,8 @@ function ProfilePageContent() {
                                 grade_system:
                                   (user.grade_system as "suisse" | "unifie") || "unifie",
                                 grade_level: user.grade_level?.toString() || "",
-                                age_group: (user.age_group as UserProfileAgeGroup | undefined) || "",
+                                age_group:
+                                  (user.age_group as UserProfileAgeGroup | undefined) || "",
                                 learning_style: user.learning_style || "",
                                 preferred_difficulty: user.preferred_difficulty || "",
                                 learning_goal: user.learning_goal || "",
@@ -994,7 +998,9 @@ function ProfilePageContent() {
                             </div>
                             <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                               {user.age_group &&
-                              USER_PROFILE_AGE_GROUPS.includes(user.age_group as UserProfileAgeGroup)
+                              USER_PROFILE_AGE_GROUPS.includes(
+                                user.age_group as UserProfileAgeGroup
+                              )
                                 ? tLearning(`ageGroupBands.${user.age_group}`)
                                 : "—"}
                             </p>
