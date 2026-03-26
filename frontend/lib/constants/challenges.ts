@@ -111,6 +111,15 @@ export const ADMIN_CHALLENGE_TYPE_OPTIONS = [
   { value: "custom", label: "Personnalisé" },
 ] as const;
 
+/** Échelle 1.0–5.0 (authoring admin) — alignée ``difficulty_rating`` / tier F42. */
+export const ADMIN_CHALLENGE_DIFFICULTY_RATING_OPTIONS = [
+  { value: "1.0", label: "1 — Très facile" },
+  { value: "2.0", label: "2 — Facile" },
+  { value: "3.0", label: "3 — Modéré" },
+  { value: "4.0", label: "4 — Exigeant" },
+  { value: "5.0", label: "5 — Très exigeant" },
+] as const;
+
 /** Options de groupe d'âge pour les modales admin défis (format backend majuscules) */
 export const ADMIN_CHALLENGE_AGE_GROUP_OPTIONS = [
   { value: "GROUP_6_8", label: "6-8 ans" },

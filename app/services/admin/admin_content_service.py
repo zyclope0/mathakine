@@ -34,6 +34,19 @@ from app.services.badges.badge_requirement_validation import validate_badge_requ
 class AdminContentService:
     """Opérations CRUD admin pour exercices, défis, badges et export."""
 
+    @staticmethod
+    def _coerce_challenge_difficulty_rating_value(raw: Any) -> float:
+        """Normalise ``difficulty_rating`` admin (1.0–5.0) ; défaut 3.0 si absent/invalide."""
+        if raw is None:
+            return 3.0
+        try:
+            v = float(raw)
+        except (TypeError, ValueError):
+            return 3.0
+        if v < 1.0 or v > 5.0:
+            return 3.0
+        return v
+
     # ── Badges ────────────────────────────────────────────────────────────
 
     @staticmethod
@@ -623,6 +636,12 @@ class AdminContentService:
         except ValueError:
             ag = AgeGroup.GROUP_10_12
 
+        difficulty_rating = (
+            AdminContentService._coerce_challenge_difficulty_rating_value(
+                data.get("difficulty_rating")
+            )
+        )
+
         ch = LogicChallenge(
             title=title,
             description=description,
@@ -636,6 +655,7 @@ class AdminContentService:
             or None,
             visual_data=data.get("visual_data"),
             hints=data.get("hints"),
+            difficulty_rating=difficulty_rating,
         )
         from app.core.difficulty_tier import assign_logic_challenge_difficulty_tier
 
@@ -687,13 +707,19 @@ class AdminContentService:
             "tags",
         }
         allowed_bool = {"is_active", "is_archived"}
-        allowed_int = {"difficulty_rating", "estimated_time_minutes"}
+        allowed_int = {"estimated_time_minutes"}
         allowed_json = {"choices", "visual_data", "hints"}
         for k, v in data.items():
             if k in allowed_str and v is not None:
                 setattr(ch, k, str(v) if not isinstance(v, str) else v)
             elif k in allowed_bool and v is not None:
                 setattr(ch, k, v in (True, "true", "1", 1))
+            elif k == "difficulty_rating" and v is not None:
+                setattr(
+                    ch,
+                    "difficulty_rating",
+                    AdminContentService._coerce_challenge_difficulty_rating_value(v),
+                )
             elif k in allowed_int and v is not None:
                 setattr(ch, k, int(v) if isinstance(v, (int, float)) else v)
             elif k in allowed_json:

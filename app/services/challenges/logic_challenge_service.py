@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.difficulty_tier import compute_difficulty_tier_for_logic_challenge
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
 from app.exceptions import ChallengeNotFoundError
@@ -147,7 +148,16 @@ class LogicChallengeService:
         ):
             challenge_data["created_at"] = datetime.now(timezone.utc)
 
-        return DatabaseAdapter.create(db, LogicChallenge, challenge_data)
+        from app.core.difficulty_tier import compute_difficulty_tier_for_logic_challenge
+
+        data = dict(challenge_data)
+        if data.get("difficulty_tier") is None:
+            data["difficulty_tier"] = compute_difficulty_tier_for_logic_challenge(
+                data.get("age_group"),
+                data.get("difficulty"),
+                data.get("difficulty_rating"),
+            )
+        return DatabaseAdapter.create(db, LogicChallenge, data)
 
     @staticmethod
     def update_challenge(
@@ -186,7 +196,17 @@ class LogicChallengeService:
                 f"Groupe d'âge adapté pour mise à jour: de '{age_group}' à '{challenge_data['age_group']}'"
             )
 
-        return DatabaseAdapter.update(db, challenge, challenge_data)
+        edata = dict(challenge_data)
+        if "difficulty_tier" not in edata and any(
+            k in edata for k in ("difficulty", "age_group", "difficulty_rating")
+        ):
+            next_age = edata.get("age_group", challenge.age_group)
+            next_diff = edata.get("difficulty", challenge.difficulty)
+            next_rating = edata.get("difficulty_rating", challenge.difficulty_rating)
+            edata["difficulty_tier"] = compute_difficulty_tier_for_logic_challenge(
+                next_age, next_diff, next_rating
+            )
+        return DatabaseAdapter.update(db, challenge, edata)
 
     @staticmethod
     def archive_challenge(db: Session, challenge_id: int) -> None:

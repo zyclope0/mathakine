@@ -34,6 +34,7 @@ def _exercise_row_to_dict(
     include_hint: bool = False,
     include_tags: bool = False,
     include_ai_generated: bool = False,
+    include_difficulty_tier: bool = False,
 ) -> Dict[str, Any]:
     """
     Mapper row → dict (DRY). Centralise la normalisation enum et safe_parse_json.
@@ -67,6 +68,8 @@ def _exercise_row_to_dict(
         result["tags"] = safe_parse_json(getattr(row, "tags", None), [])
     if include_ai_generated:
         result["ai_generated"] = getattr(row, "ai_generated", False) or False
+    if include_difficulty_tier:
+        result["difficulty_tier"] = getattr(row, "difficulty_tier", None)
     return result
 
 
@@ -200,6 +203,7 @@ class ExerciseService:
                     Exercise.tags,
                     Exercise.ai_generated,
                     Exercise.age_group,
+                    Exercise.difficulty_tier,
                     cast(Exercise.exercise_type, String).label("exercise_type_str"),
                     cast(Exercise.difficulty, String).label("difficulty_str"),
                 )
@@ -217,6 +221,7 @@ class ExerciseService:
                 include_hint=True,
                 include_tags=True,
                 include_ai_generated=True,
+                include_difficulty_tier=True,
             )
         except ExerciseNotFoundError:
             raise

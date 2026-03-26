@@ -68,6 +68,8 @@ export interface Exercise {
   exercise_type: string;
   age_group?: string | null;
   difficulty?: string; // Interne uniquement, dérivé de age_group
+  /** Tier pédagogique 1–12 (F42), si persisté. */
+  difficulty_tier?: number | null;
   tags?: string | null;
   image_url?: string | null;
   audio_url?: string | null;
@@ -138,6 +140,8 @@ export interface Challenge {
   hints?: string[] | null;
   visual_data?: Record<string, unknown> | null;
   difficulty_rating?: number | null;
+  /** Tier pédagogique 1–12 (F42), si persisté. */
+  difficulty_tier?: number | null;
   estimated_time_minutes?: number | null;
   success_rate?: number | null;
   image_url?: string | null;

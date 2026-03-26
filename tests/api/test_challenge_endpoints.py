@@ -391,6 +391,7 @@ async def test_get_logic_challenges(logic_challenge_db, padawan_client):
     assert "type" in first_challenge or "challenge_type" in first_challenge
     assert "age_group" in first_challenge
     assert "question" in first_challenge or "description" in first_challenge
+    assert "difficulty_tier" in first_challenge
 
 
 # ========== Tests normatifs et ponctuels (recherche, pagination, tri) ==========

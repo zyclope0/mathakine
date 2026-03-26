@@ -279,6 +279,7 @@ class ChallengeListItem(BaseModel):
     description: str
     challenge_type: str
     age_group: str
+    difficulty_tier: Optional[int] = None
     difficulty: Optional[str] = None
     tags: Optional[str] = None
     difficulty_rating: Optional[float] = None

@@ -270,6 +270,7 @@ def test_create_challenge(db_session):
     assert challenge.estimated_time_minutes == 15
     assert challenge.is_active is True
     assert challenge.is_archived is False  # Valeur par défaut
+    assert challenge.difficulty_tier == 9  # GROUP_13_15 + rating 4.5 → F42 tier 9
 
     # Vérification alternative : s'assurer que les types existent dans les valeurs possibles
     assert str(challenge.challenge_type) in [
@@ -392,6 +393,7 @@ def test_update_challenge(db_session):
     assert updated_challenge.challenge_type == LogicChallengeType.SEQUENCE.value
     assert updated_challenge.age_group == AgeGroup.GROUP_10_12.value
     assert updated_challenge.estimated_time_minutes == 15
+    assert updated_challenge.difficulty_tier == 6  # GROUP_10_12 + rating 4.5 → F42 tier 6
 
 
 def test_update_nonexistent_challenge(db_session):
@@ -1179,6 +1181,7 @@ def test_create_challenge_with_mock(mock_db_adapter):
     # Les types devraient être adaptés
     assert "challenge_type" in challenge_data_arg
     assert "age_group" in challenge_data_arg
+    assert challenge_data_arg.get("difficulty_tier") == 5
 
     # Vérifier le résultat
     assert result == mock_created_challenge

@@ -125,6 +125,23 @@ async def test_admin_challenges_post_nominal(archiviste_client):
 
 
 @pytest.mark.asyncio
+async def test_admin_challenges_post_difficulty_rating_sets_tier(archiviste_client):
+    """POST /api/admin/challenges — difficulty_rating explicite → tier F42 cohérent."""
+    client = archiviste_client["client"]
+    payload = {
+        "title": "Défi admin F42 difficulty_rating",
+        "description": "Description avec difficulté explicite.",
+        "age_group": "GROUP_10_12",
+        "difficulty_rating": 4.0,
+    }
+    response = await client.post("/api/admin/challenges", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["difficulty_rating"] == 4.0
+    assert data["difficulty_tier"] == 6
+
+
+@pytest.mark.asyncio
 async def test_admin_challenge_get_nominal(archiviste_client):
     """GET /api/admin/challenges/{challenge_id} — détail pour édition (B2 boundary)."""
     client = archiviste_client["client"]
@@ -196,6 +213,39 @@ async def test_admin_challenges_put_nominal(archiviste_client):
     assert data.get("id") == challenge_id
     assert data.get("title") == put_payload["title"]
     assert data.get("description") == put_payload["description"]
+
+
+@pytest.mark.asyncio
+async def test_admin_challenges_put_updates_difficulty_rating_and_tier(
+    archiviste_client,
+):
+    """PUT /api/admin/challenges/{id} — difficulty_rating appliqué → tier F42 cohérent."""
+    client = archiviste_client["client"]
+    create_resp = await client.post(
+        "/api/admin/challenges",
+        json={
+            "title": "Défi PUT difficulty_rating micro-lot",
+            "description": "Init.",
+            "age_group": "GROUP_10_12",
+            "difficulty_rating": 2.0,
+        },
+    )
+    assert create_resp.status_code == 201
+    challenge_id = create_resp.json()["id"]
+
+    put_resp = await client.put(
+        f"/api/admin/challenges/{challenge_id}",
+        json={
+            "title": "Défi PUT difficulty_rating micro-lot",
+            "description": "Init.",
+            "age_group": "GROUP_10_12",
+            "difficulty_rating": 5.0,
+        },
+    )
+    assert put_resp.status_code == 200
+    data = put_resp.json()
+    assert data["difficulty_rating"] == 5.0
+    assert data["difficulty_tier"] == 6
 
 
 @pytest.mark.asyncio

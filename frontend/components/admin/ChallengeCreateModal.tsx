@@ -24,6 +24,7 @@ import { api } from "@/lib/api/client";
 import {
   ADMIN_CHALLENGE_TYPE_OPTIONS,
   ADMIN_CHALLENGE_AGE_GROUP_OPTIONS,
+  ADMIN_CHALLENGE_DIFFICULTY_RATING_OPTIONS,
 } from "@/lib/constants/challenges";
 
 interface ChallengeCreateModalProps {
@@ -37,6 +38,7 @@ const initialState = {
   description: "",
   challenge_type: "puzzle",
   age_group: "GROUP_10_12",
+  difficulty_rating: "3.0",
   question: "",
   correct_answer: "",
   solution_explanation: "",
@@ -82,6 +84,7 @@ export function ChallengeCreateModal({ open, onOpenChange, onCreated }: Challeng
         description: data.description,
         challenge_type: data.challenge_type,
         age_group: data.age_group,
+        difficulty_rating: Number.parseFloat(data.difficulty_rating),
         question: data.question || undefined,
         correct_answer: data.correct_answer || undefined,
         solution_explanation: data.solution_explanation || undefined,
@@ -153,6 +156,24 @@ export function ChallengeCreateModal({ open, onOpenChange, onCreated }: Challeng
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Difficulté (échelle 1–5)</Label>
+            <Select
+              value={data.difficulty_rating}
+              onValueChange={(v) => update("difficulty_rating", v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ADMIN_CHALLENGE_DIFFICULTY_RATING_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-2">
             <Label>

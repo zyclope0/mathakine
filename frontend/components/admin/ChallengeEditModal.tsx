@@ -25,7 +25,15 @@ import { ChevronDown, ChevronRight, Copy, Plus, Trash2 } from "lucide-react";
 import {
   ADMIN_CHALLENGE_TYPE_OPTIONS,
   ADMIN_CHALLENGE_AGE_GROUP_OPTIONS,
+  ADMIN_CHALLENGE_DIFFICULTY_RATING_OPTIONS,
 } from "@/lib/constants/challenges";
+
+/** Valeur Select 1.0–5.0 à partir d’un rating API (snap au palier entier). */
+function difficultyRatingSelectValue(rating: unknown): string {
+  const n = typeof rating === "number" && !Number.isNaN(rating) ? rating : 3;
+  const stepped = Math.min(5, Math.max(1, Math.round(n)));
+  return `${stepped}.0`;
+}
 
 export interface ChallengeDetail {
   id: number;
@@ -33,6 +41,8 @@ export interface ChallengeDetail {
   description: string;
   challenge_type: string;
   age_group: string;
+  difficulty_rating?: number | null;
+  difficulty_tier?: number | null;
   difficulty: string;
   content: string;
   question: string;
@@ -107,6 +117,7 @@ export function ChallengeEditModal({
         description: data.description,
         challenge_type: data.challenge_type,
         age_group: data.age_group,
+        difficulty_rating: data.difficulty_rating,
         difficulty: data.difficulty || "",
         content: data.content || "",
         question: data.question || "",
@@ -248,6 +259,24 @@ export function ChallengeEditModal({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Difficulté (échelle 1–5)</Label>
+              <Select
+                value={difficultyRatingSelectValue(data.difficulty_rating)}
+                onValueChange={(v) => update("difficulty_rating", Number.parseFloat(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADMIN_CHALLENGE_DIFFICULTY_RATING_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>
