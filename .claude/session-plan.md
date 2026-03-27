@@ -18,7 +18,7 @@
 | Generation exercices (local) | PARTIEL | **DONE** — `build_exercise_generation_profile()` + `SpatialNarratives` + `pedagogical_band_override` |
 | Generation exercices (OpenAI) | PARTIEL | **DONE** — `calibration_desc` injecte dans system prompt |
 | Adaptive second axe exercices | PARTIEL | **DONE** — `AdaptiveGenerationContext`, `resolve_adaptive_context()`, separation age / bande |
-| Fallback band nouveaux users | NON IDENTIFIE | **DONE (2026-03-27)** — "discovery" au lieu de "learning" pour users sans mastery (fix P1a) |
+| Fallback band cold-start | ANALYSE | **REVERT (2026-03-27)** — fallback reste "learning" (decision produit requise — voir F42-P2) |
 | Generation defis / contexte user | PARTIEL | **DONE** — `challenge_generation_context.py` lit `users.age_group` via `build_recommendation_user_context()` |
 | SSE defis difficulty_tier (chemin normal) | MANQUANT | **DONE** — `_persist_challenge_sync()` retourne `difficulty_tier` depuis DB |
 | SSE defis difficulty_tier (chemin erreur) | MANQUANT | **DONE (2026-03-27)** — `normalize_generated_challenge()` accepte + retourne `difficulty_tier` (fix P1b) |
@@ -53,7 +53,7 @@
 [DONE] F42-C2   : Evaluation / progression (bridge mastery -> tier)
 [DONE] F42-C3A  : Defis personnalises par contexte utilisateur
 [DONE] F42-ADMIN-CHECK : Controle end-to-end admin
-[DONE] F42-P1   : Corrections bugs debat (fix P1a + P1b)
+[DONE] F42-P1   : Fix P1b uniquement (difficulty_tier dans chemins erreur SSE challenge)
 TODO   F42-C1B  : Destarwarisation UI/i18n exercices hors gamification publique
 TODO   F42-P2   : Corrections dette technique (cache mastery + safeguard bridge)
 TODO   F42-C3B  : Gamification/theme cleanup + surfaces stales + alias enums
@@ -103,23 +103,36 @@ TODO   F42-C4   : Cleanup final des traces Star Wars encore visibles
 
 #### Actions
 
-**P2a — Cache in-process mastery (effort faible, ROI elevé) :**
+**P2a — Decision produit : fallback band cold-start (DECISION REQUISE avant implementation) :**
+
+Contexte exact (Codex 2026-03-27) :
+- Sans signal d'age → fallback GROUP_9_11 + "learning" → tier 5
+- Avec age 6-8 connu + sans mastery → 6-8 + "learning" → tier 2
+- Ce sont deux cas distincts. "learning" est le fallback valide pour tous les lots F42.
+
+Trois options produit a choisir explicitement :
+- Option A : conserver `"learning"` (neutre, compatible, statu quo)
+- Option B : `"discovery"` pour TOUS les cas sans mastery (plus conservateur, impact global)
+- Option C : `"discovery"` seulement quand `mastery_source == "fallback"` ET age_group == GROUP_9_11 (fallback d'age aussi)
+
+Fichier : `app/services/exercises/adaptive_difficulty_service.py` ligne ~643
+
+**P2b — Cache in-process mastery (effort faible, ROI elevé) :**
 - Ajouter un cache applicatif TTL 5min sur `resolve_adaptive_context()` (keyed sur `user_id + exercise_type`)
 - Implémentation : dict in-process avec timestamp, pas Redis
 - Fichier : `app/services/exercises/adaptive_difficulty_service.py`
 
-**P2b — Safeguard bridge (effort minimal) :**
+**P2c — Safeguard bridge (effort minimal) :**
 - Ajouter un assert/clamp + log d'alerte sur la valeur de sortie de `mastery_to_tier()`
 - Fichier : `app/core/mastery_tier_bridge.py`
 - Objectif : detecter dégradation silencieuse si valeur hors 1-12
 
-**P2c — Instrumenter taux de réussite par tier :**
+**P2d — Instrumenter taux de réussite par tier :**
 - Mesurer le taux de réussite par `difficulty_tier` en production
 - Objectif : valider empiriquement que les 12 tiers produisent des taux dans la fenetre 60-80%
-- C'est la validation scientifique des seuils Yerkes-Dodson (pédagogue du debat)
 
 #### Commit cible
-`fix(f42): add mastery cache, bridge safeguard and tier instrumentation`
+`fix(f42): cold-start fallback decision + mastery cache + bridge safeguard`
 
 ---
 

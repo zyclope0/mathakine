@@ -474,6 +474,8 @@ class TestResolveAdaptiveContext:
         assert ctx.mastery_source == "irt_diagnostic"
 
     def test_no_progress_and_no_irt_falls_back_to_learning(self):
+        # Fallback band is "learning" — neutral legacy-compatible default.
+        # Changing this is a product decision (F42-P2), not a trivial fix.
         db = _make_db(progress=None)
         user = _make_user(user_id=1, age_group="9-11")
 

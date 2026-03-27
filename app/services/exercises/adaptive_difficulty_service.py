@@ -601,7 +601,7 @@ def resolve_adaptive_context(
     Cascade for the pedagogical band:
       1. ``Progress.mastery_level`` if >= 5 recent attempts
       2. Latest valid IRT diagnostic (mapped to discovery / learning / consolidation)
-      3. Fallback "discovery" (safe default — avoid cognitive overload for unknown learners)
+      3. Fallback "learning" (neutral legacy-compatible default)
 
     This function does NOT modify the public HTTP contract.
     """
@@ -636,14 +636,15 @@ def resolve_adaptive_context(
             )
 
     # ------------------------------------------------------------------
-    # Step 3: fallback — "discovery" is the safe pedagogical default
-    # A user with no mastery or IRT data should start at the easiest band.
-    # Using "learning" was a legacy neutral value; "discovery" is correct
-    # per Sweller CLT (avoid cognitive overload for unknown-level learners).
+    # Step 3: fallback — "learning" is the neutral/legacy-compatible band.
+    # This applies to ALL users with no mastery or IRT data, regardless of
+    # age group. Changing this fallback is a product decision (F42-P2), not
+    # a trivial fix — it affects exercise generation, challenge calibration,
+    # and all previously validated F42 lots.
     # ------------------------------------------------------------------
     return AdaptiveGenerationContext(
         age_group=age_group,
-        pedagogical_band="discovery",
+        pedagogical_band="learning",
         mastery_source="fallback",
     )
 

@@ -767,7 +767,7 @@ class TestAdaptiveContextBandResolution:
         assert ctx.pedagogical_band == "consolidation"
 
     def test_no_progress_gives_fallback_learning(self):
-        """Sans données de maîtrise, bande par défaut = learning."""
+        """Sans données de maîtrise, bande par défaut = learning (fallback neutre validé par lots F42)."""
         from unittest.mock import MagicMock, patch
 
         from app.services.exercises.adaptive_difficulty_service import (
