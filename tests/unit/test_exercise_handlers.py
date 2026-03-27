@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app.services.exercises.adaptive_difficulty_service import AdaptiveGenerationContext
 from app.services.exercises.exercise_generation_service import (
     AgeGroupRequiredError,
     generate_exercise_sync,
@@ -184,3 +185,64 @@ def test_generate_exercise_sync_exercise_type_raw_none_fallback_to_addition():
         )
 
     assert result.exercise_type == "ADDITION"
+
+
+def test_generate_exercise_sync_save_persists_runtime_difficulty_tier():
+    """Le tier F42 calculé au runtime doit être transmis à la persistance."""
+
+    captured = {}
+
+    @contextmanager
+    def _mock_persist_session():
+        yield MagicMock()
+
+    def _fake_persist_generated_exercise(**kwargs):
+        captured.update(kwargs)
+        return {"id": 123}
+
+    generated = {
+        "title": "Test",
+        "exercise_type": "ADDITION",
+        "age_group": "9-11",
+        "difficulty": "PADAWAN",
+        "difficulty_tier": None,
+        "question": "2+2?",
+        "correct_answer": "4",
+        "choices": ["4", "5", "6"],
+        "explanation": "Test",
+    }
+
+    with (
+        patch(
+            "app.services.exercises.exercise_generation_service._resolve_adaptive_context_sync",
+            return_value=AdaptiveGenerationContext(
+                age_group="9-11",
+                pedagogical_band="discovery",
+                mastery_source="progress_mastery",
+            ),
+        ),
+        patch(
+            "app.services.exercises.exercise_generation_service.sync_db_session",
+            new=_mock_persist_session,
+        ),
+        patch(
+            "app.services.exercises.exercise_generation_service.generate_simple_exercise",
+            return_value=generated,
+        ),
+        patch(
+            "app.services.exercises.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
+            side_effect=_fake_persist_generated_exercise,
+        ),
+    ):
+        result = generate_exercise_sync(
+            exercise_type_raw="addition",
+            age_group_raw=None,
+            adaptive=True,
+            save=True,
+            user_id=1,
+        )
+
+    assert result.difficulty_tier == 4
+    assert captured["difficulty_tier"] == 4
+    assert captured["difficulty"] == "PADAWAN"
+    assert captured["age_group"] == "9-11"

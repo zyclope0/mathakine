@@ -27,6 +27,16 @@
     "years": "ans",
     "allAges": "Tous âges"
   },
+  "progressionRanks": {
+    "cadet": "Cadet",
+    "scout": "Éclaireur",
+    "explorer": "Explorateur",
+    "navigator": "Navigateur",
+    "cartographer": "Cartographe",
+    "commander": "Commandant",
+    "stellar_archivist": "Archiviste stellaire",
+    "cosmic_legend": "Légende cosmique"
+  },
   "auth": {
     "login": {
       "title": "Connexion",
@@ -187,11 +197,11 @@
         "division": "Division"
       },
       "levelLabel": {
-        "INITIE": "Initié",
-        "PADAWAN": "Padawan",
-        "CHEVALIER": "Chevalier",
-        "MAITRE": "Maître",
-        "GRAND_MAITRE": "Grand Maître"
+        "INITIE": "Découverte",
+        "PADAWAN": "Apprenti",
+        "CHEVALIER": "Confirmé",
+        "MAITRE": "Avancé",
+        "GRAND_MAITRE": "Expert"
       },
       "scoreDetail": "{correct} / {total} correct(s)",
       "ctaDashboard": "Voir mon tableau de bord",
@@ -395,10 +405,10 @@
       "divers": "Divers"
     },
     "difficulty": {
-      "initie": "Initié",
-      "padawan": "Padawan",
-      "chevalier": "Chevalier",
-      "maitre": "Maître"
+      "initie": "Découverte",
+      "padawan": "Apprenti",
+      "chevalier": "Confirmé",
+      "maitre": "Avancé"
     },
     "solver": {
       "question": "Question",
@@ -498,6 +508,7 @@
       "description": "Créez un défi mathélogique personnalisé avec l'IA",
       "challengeType": "Type de défi",
       "ageGroup": "Groupe d'âge",
+      "ageGroupProfileRecommended": "Profil (recommandé)",
       "selectType": "Sélectionner un type",
       "selectAgeGroup": "Sélectionner un groupe",
       "customPrompt": "Prompt personnalisé (optionnel)",
@@ -747,7 +758,7 @@
       "successRate": "Taux de réussite",
       "currentLevel": "Niveau actuel",
       "experiencePoints": "Points d'expérience",
-      "jediRank": "Rang Jedi",
+      "progressionRank": "Rang de progression",
       "exercisesSolved": "Exercices résolus",
       "experiencePointsLabel": "Points d'expérience",
       "challengesCompleted": "Défis réussis",
@@ -765,7 +776,7 @@
       "excellent": "Excellent !"
     },
     "recommendations": {
-      "title": "Conseils du Guide Spatial",
+      "title": "Suggestions pour la suite",
       "generate": "Générer des recommandations",
       "generating": "Génération...",
       "noRecommendations": "Aucune recommandation pour le moment",
@@ -793,11 +804,11 @@
           "reco_exercise_fallback": "Quelques exercices pour poursuivre votre apprentissage."
         },
         "difficulties": {
-          "initie": "Initié",
-          "padawan": "Padawan",
-          "chevalier": "Chevalier",
-          "maitre": "Maître",
-          "grand_maitre": "Grand Maître"
+          "initie": "Découverte",
+          "padawan": "Apprenti",
+          "chevalier": "Confirmé",
+          "maitre": "Avancé",
+          "grand_maitre": "Expert"
         },
         "challengeTypes": {
           "sequence": "suite logique",
@@ -1117,20 +1128,13 @@
       "avgTime": "Temps moyen",
       "byCategory": "Badges par catégorie"
     },
-    "jediRanks": {
-      "youngling": "Youngling",
-      "padawan": "Padawan",
-      "knight": "Chevalier Jedi",
-      "master": "Guide Spatial",
-      "grand_master": "Grand Maître"
-    },
     "stats": {
-      "totalPoints": "Points Force",
+      "totalPoints": "Points",
       "currentLevel": "Niveau",
-      "jediRank": "Rang Jedi",
+      "progressionRank": "Rang de progression",
       "badgesEarned": "Badges Obtenus",
       "levelTooltip": "Niveau actuel",
-      "rankTooltip": "Rang Jedi (youngling, padawan, knight, master, grand master)"
+      "rankTooltip": "Rang de progression (Cadet → Légende cosmique) selon ton niveau"
     },
     "categories": {
       "progression": "Progression",
@@ -1205,7 +1209,7 @@
   },
   "leaderboard": {
     "title": "Classement",
-    "description": "Voyez où vous vous situez parmi les apprentis",
+    "description": "Compare ton classement aux autres apprenants selon les points",
     "loading": "Chargement du classement...",
     "emptyState": {
       "title": "Le classement est vide pour le moment.",
@@ -1545,10 +1549,10 @@
       "lecture": "Lecture"
     },
     "difficulties": {
-      "initie": "Initié",
-      "padawan": "Padawan",
-      "chevalier": "Chevalier",
-      "maitre": "Maître"
+      "initie": "Découverte",
+      "padawan": "Apprenti",
+      "chevalier": "Confirmé",
+      "maitre": "Avancé"
     }
   },
   "settings": {
@@ -1674,12 +1678,12 @@
     "using": {
       "title": "Au cœur de l'apprentissage",
       "exercises": "Exercices sur mesure",
-      "exercisesDesc": "Addition, fractions, géométrie... L'Intelligence Artificielle génère des exercices à l'infini. L'algorithme ajuste la difficulté (Padawan, Jedi, Maître) pour toi (mode QCM ou saisie libre selon tes besoins).",
+      "exercisesDesc": "Addition, fractions, géométrie... L'intelligence artificielle génère des exercices à l'infini. L'algorithme ajuste la difficulté pour toi, du niveau découverte au niveau avancé (QCM ou saisie libre selon tes besoins).",
       "challenges": "Défis logiques",
       "challengesDesc": "Séquences, motifs visuels, énigmes, probabilités… Entraîne ton esprit critique. Certains défis sont générés par IA pour offrir une rejouabilité infinie.",
       "dashboard": "Tableau de bord & Défis du jour",
       "dashboardDesc": "Retrouve chaque jour 3 objectifs à accomplir pour gagner de l'XP bonus et maintenir ta série. Suis ta précision par catégorie et exporte ton journal en PDF.",
-      "badges": "Badges & Rangs Jedi",
+      "badges": "Badges et progression",
       "badgesDesc": "Gagne de l'XP à chaque réussite pour monter en niveau. Débloque des dizaines de badges uniques illustrant tes progrès mathématiques."
     },
     "accessibility": {
@@ -1710,7 +1714,7 @@
       "q5": "C'est quoi les Défis du Jour ?",
       "a5": "Chaque jour, Mathakine génère 3 objectifs personnalisés pour te pousser à t'entraîner dans différentes catégories. Cela rapporte des points d'expérience bonus.",
       "q6": "Dois-je choisir la difficulté manuellement ?",
-      "a6": "Non, c'est optionnel. L'algorithme ajuste la difficulté en arrière-plan (Padawan, Jedi, Maître) selon tes résultats et ton évaluation initiale. Si aucune donnée n'est disponible, il utilise le \"Groupe d'âge préféré\" (6-8 ans, 9-11 ans, etc.) défini dans tes Paramètres comme point de départ.",
+      "a6": "Non, c'est optionnel. L'algorithme ajuste la difficulté en arrière-plan selon tes résultats et ton évaluation initiale. Si aucune donnée n'est disponible, il utilise le \"Groupe d'âge préféré\" (6-8 ans, 9-11 ans, etc.) défini dans tes Paramètres comme point de départ.",
       "q7": "L'interface est trop chargée pour moi.",
       "a7": "Ouvre les Paramètres (ou fais Alt+F) pour activer le Mode Focus. Tu peux aussi réduire les animations (Alt+M) et changer le thème (Dune, Forêt...).",
       "q8": "Les résultats sont-ils notés (sur 20) ?",

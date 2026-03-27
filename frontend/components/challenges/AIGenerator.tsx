@@ -3,6 +3,7 @@
 import {
   CHALLENGE_TYPES,
   AGE_GROUPS,
+  CHALLENGE_AI_AGE_USE_PROFILE,
   CHALLENGE_PROMPT_SUGGESTIONS,
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
@@ -49,10 +50,13 @@ export function AIGenerator({ onChallengeGenerated, compact = false }: AIGenerat
     label: getTypeDisplay(v),
   }));
 
-  const ageOptions: AISelectOption[] = Object.values(AGE_GROUPS).map((v) => ({
-    value: v,
-    label: getAgeDisplay(v),
-  }));
+  const ageOptions: AISelectOption[] = [
+    { value: CHALLENGE_AI_AGE_USE_PROFILE, label: t("aiGenerator.ageGroupProfileRecommended") },
+    ...Object.values(AGE_GROUPS).map((v) => ({
+      value: v,
+      label: getAgeDisplay(v),
+    })),
+  ];
 
   const persistedId = generatedChallenge
     ? normalizeCreatedResourceId(generatedChallenge.id)
@@ -85,7 +89,8 @@ export function AIGenerator({ onChallengeGenerated, compact = false }: AIGenerat
       typeOptions={typeOptions}
       defaultType={CHALLENGE_TYPES.SEQUENCE}
       ageOptions={ageOptions}
-      defaultAge={AGE_GROUPS.GROUP_9_11}
+      defaultAge={CHALLENGE_AI_AGE_USE_PROFILE}
+      compactAgeSelectTriggerClassName="h-9 min-w-[132px] max-w-[11rem]"
       isGenerating={isGenerating}
       streamedText={streamedText}
       generatedItem={generatedItem}

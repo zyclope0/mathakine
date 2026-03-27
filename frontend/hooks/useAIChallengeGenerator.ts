@@ -16,6 +16,7 @@ import {
   AI_GENERATION_SSE_PATH,
 } from "@/lib/ai/generation/postAiGenerationSse";
 import { debugLog, debugError } from "@/lib/utils/debug";
+import { CHALLENGE_AI_AGE_USE_PROFILE } from "@/lib/constants/challenges";
 
 interface UseAIChallengeGeneratorOptions {
   onChallengeGenerated?: ((challenge: Challenge) => void) | undefined;
@@ -65,13 +66,17 @@ export function useAIChallengeGenerator({
     abortControllerRef.current = abortController;
 
     try {
+      const body: Record<string, unknown> = {
+        challenge_type: type,
+        prompt: prompt.trim(),
+      };
+      if (ageGroup !== CHALLENGE_AI_AGE_USE_PROFILE) {
+        body.age_group = ageGroup;
+      }
+
       const response = await postAiGenerationSse(
         AI_GENERATION_SSE_PATH.challenge,
-        {
-          challenge_type: type,
-          age_group: ageGroup,
-          prompt: prompt.trim(),
-        },
+        body,
         abortController.signal
       );
 

@@ -5,6 +5,104 @@ Exercises, challenges, export — preuve minimale pour les mutations.
 
 import pytest
 
+# ── F42 boundary: exercises ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_admin_exercise_post_sets_difficulty_tier(archiviste_client):
+    """POST /api/admin/exercises — difficulty_tier calculé et renvoyé (F42)."""
+    client = archiviste_client["client"]
+    payload = {
+        "title": "Exercice F42 tier test",
+        "question": "Combien font 4+5?",
+        "correct_answer": "9",
+        "exercise_type": "addition",
+        "difficulty": "INITIE",
+        "age_group": "6-8",
+    }
+    resp = await client.post("/api/admin/exercises", json=payload)
+    assert resp.status_code == 201
+    data = resp.json()
+    # age_group=6-8 + difficulty=INITIE → tier 1 (age_band=0 × ped_band=0 + 1)
+    assert data.get("difficulty_tier") == 1
+
+
+@pytest.mark.asyncio
+async def test_admin_exercise_put_updates_difficulty_tier(archiviste_client):
+    """PUT /api/admin/exercises/{id} — difficulty_tier recalculé quand difficulty/age_group changent."""
+    client = archiviste_client["client"]
+    create_resp = await client.post(
+        "/api/admin/exercises",
+        json={
+            "title": "Exercice F42 PUT tier",
+            "question": "1+1?",
+            "correct_answer": "2",
+            "exercise_type": "addition",
+            "difficulty": "INITIE",
+            "age_group": "6-8",
+        },
+    )
+    assert create_resp.status_code == 201
+    ex_id = create_resp.json()["id"]
+    assert create_resp.json()["difficulty_tier"] == 1
+
+    put_resp = await client.put(
+        f"/api/admin/exercises/{ex_id}",
+        json={"difficulty": "CHEVALIER", "age_group": "12-14"},
+    )
+    assert put_resp.status_code == 200
+    data = put_resp.json()
+    # age_group=12-14 + difficulty=CHEVALIER → tier 9 (age_band=2 × 3 + ped_band=2 + 1)
+    assert data.get("difficulty_tier") == 9
+
+
+@pytest.mark.asyncio
+async def test_admin_exercise_list_includes_difficulty_tier(archiviste_client):
+    """GET /api/admin/exercises — list items exposent difficulty_tier (F42)."""
+    client = archiviste_client["client"]
+    await client.post(
+        "/api/admin/exercises",
+        json={
+            "title": "Exercice F42 list tier",
+            "question": "2+2?",
+            "correct_answer": "4",
+            "exercise_type": "addition",
+            "difficulty": "PADAWAN",
+            "age_group": "9-11",
+        },
+    )
+    resp = await client.get("/api/admin/exercises")
+    assert resp.status_code == 200
+    items = resp.json().get("items", [])
+    assert len(items) > 0
+    # Every item must carry difficulty_tier key (may be None for legacy data)
+    for item in items:
+        assert "difficulty_tier" in item
+
+
+@pytest.mark.asyncio
+async def test_admin_challenge_list_includes_difficulty_tier_and_rating(
+    archiviste_client,
+):
+    """GET /api/admin/challenges — list items exposent difficulty_tier et difficulty_rating (F42)."""
+    client = archiviste_client["client"]
+    await client.post(
+        "/api/admin/challenges",
+        json={
+            "title": "Défi F42 list tier",
+            "description": "Test list tier.",
+            "age_group": "GROUP_10_12",
+            "difficulty_rating": 3.0,
+        },
+    )
+    resp = await client.get("/api/admin/challenges")
+    assert resp.status_code == 200
+    items = resp.json().get("items", [])
+    assert len(items) > 0
+    for item in items:
+        assert "difficulty_tier" in item
+        assert "difficulty_rating" in item
+
 
 @pytest.mark.asyncio
 async def test_admin_exercises_post_nominal(archiviste_client):

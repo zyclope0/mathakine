@@ -35,15 +35,42 @@ Fondements scientifiques :
     prouvée par type (GRAND_MAITRE IRT), pas globalement.
 """
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 from sqlalchemy.orm import Session
 
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
+from app.core.difficulty_tier import pedagogical_band_index_from_difficulty
 from app.core.logging_config import get_logger
+from app.core.mastery_tier_bridge import mastery_level_int_to_pedagogical_band
 from app.core.user_age_group import normalized_age_group_from_user_profile
 from app.models.progress import Progress
+
+
+@dataclass
+class AdaptiveGenerationContext:
+    """Rich context resolved for local exercise generation (F42 second axis).
+
+    Carries the age_group resolved by the adaptive cascade AND a pedagogical_band
+    derived from mastery data (when available).  Two learners in the same age
+    group but with different mastery can therefore receive different bands and
+    hence different numeric calibration bounds.
+
+    Attributes:
+        age_group:          Canonical age_group (e.g. "GROUP_9_11").
+        pedagogical_band:   "discovery" | "learning" | "consolidation".
+                            Falls back to "learning" when no mastery data is
+                            available (legacy-compatible default).
+        mastery_source:     Human-readable description of what drove the band
+                            (for debug / traceability).
+    """
+
+    age_group: str
+    pedagogical_band: str
+    mastery_source: str = "fallback"
+
 
 logger = get_logger(__name__)
 
@@ -461,4 +488,194 @@ def resolve_adaptive_difficulty(
     logger.debug(
         f"[AdaptiveDifficulty] user={user_id} type={exercise_type} → fallback PADAWAN"
     )
+    return AgeGroups.GROUP_9_11
+
+
+# ---------------------------------------------------------------------------
+# Second axis: pedagogical band from mastery — C2 single source (bridge)
+# ---------------------------------------------------------------------------
+
+_PEDAGOGICAL_BAND_LABELS = ("discovery", "learning", "consolidation")
+
+
+def _band_from_mastery_level(mastery_level: Optional[int]) -> str:
+    """Map Progress.mastery_level (1–5) → pedagogical_band string."""
+    return mastery_level_int_to_pedagogical_band(mastery_level)
+
+
+def _resolve_band_from_progress(
+    db: Session, user_id: int, exercise_type: str
+) -> Optional[str]:
+    """
+    Attempt to resolve a pedagogical band from the user's Progress record.
+
+    Returns "discovery" | "learning" | "consolidation", or None if no
+    sufficiently rich Progress record is found.
+    """
+    try:
+        window_start = datetime.now(timezone.utc) - timedelta(
+            days=_REALTIME_WINDOW_DAYS
+        )
+        progress = (
+            db.query(Progress)
+            .filter(
+                Progress.user_id == user_id,
+                Progress.exercise_type == exercise_type.lower(),
+                Progress.last_active_date >= window_start,
+            )
+            .first()
+        )
+        if progress and progress.total_attempts >= _MIN_ATTEMPTS_FOR_REALTIME:
+            band = _band_from_mastery_level(progress.mastery_level)
+            logger.debug(
+                "[AdaptiveDifficulty] user=%s type=%s mastery=%s → band=%s",
+                user_id,
+                exercise_type,
+                progress.mastery_level,
+                band,
+            )
+            return band
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[AdaptiveDifficulty] Erreur lecture bande mastery user=%s: %s",
+            user_id,
+            e,
+        )
+    return None
+
+
+def _resolve_band_from_irt(
+    db: Session,
+    user_id: int,
+    exercise_type: str,
+) -> Optional[str]:
+    """
+    Resolve a pedagogical band from the latest valid IRT diagnostic.
+
+    This preserves the previous adaptive signal when no recent ``Progress`` row
+    is available, while keeping the age axis stable in the F42 path.
+    """
+    irt_level = resolve_irt_level(db, user_id, exercise_type)
+    if irt_level is None:
+        return None
+    band_idx = pedagogical_band_index_from_difficulty(irt_level)
+    if band_idx is None:
+        return None
+    return _PEDAGOGICAL_BAND_LABELS[band_idx]
+
+
+# ---------------------------------------------------------------------------
+# Public entry point — rich context (age_group + pedagogical_band)
+# ---------------------------------------------------------------------------
+
+
+def resolve_adaptive_context(
+    db: Session,
+    user,
+    exercise_type: str,
+) -> AdaptiveGenerationContext:
+    """
+    Resolve a full :class:`AdaptiveGenerationContext` for F42 generation.
+
+    This is the **second-axis entry point**.  It separates two independent signals:
+
+    1. **Base age_group** — resolved from the user's *stable profile*
+       (``users.age_group`` → ``preferred_difficulty`` → ``grade_level`` → fallback).
+       This age does NOT change with mastery: two learners with the same profile
+       age always share the same base age_group in this path.
+
+    2. **Pedagogical band** — resolved from ``Progress.mastery_level`` for the
+       requested exercise type.  Two learners with the same profile age but
+       different mastery levels receive *different* bands, and therefore different
+       F42 tiers and different calibration bounds.
+
+    This separation is the key invariant of the F42 second axis:
+      ``same age_group, different mastery → different band → different tier``.
+
+    Cascade for the base age_group (stable, mastery-independent):
+      1. ``users.age_group`` if set
+      2. ``preferred_difficulty`` if set
+      3. ``grade_level`` if set
+      4. Fallback GROUP_9_11
+
+    Cascade for the pedagogical band:
+      1. ``Progress.mastery_level`` if >= 5 recent attempts
+      2. Latest valid IRT diagnostic (mapped to discovery / learning / consolidation)
+      3. Fallback "discovery" (safe default — avoid cognitive overload for unknown learners)
+
+    This function does NOT modify the public HTTP contract.
+    """
+    user_id = getattr(user, "id", None)
+
+    # ------------------------------------------------------------------
+    # Step 1: stable base age_group (NOT remapped by mastery)
+    # ------------------------------------------------------------------
+    # We deliberately do NOT call resolve_adaptive_difficulty() here because
+    # that function already uses mastery/IRT to remap the age_group, which
+    # would conflate the two axes and prevent "same age, different band".
+    age_group = _resolve_stable_age_group(user)
+
+    # ------------------------------------------------------------------
+    # Step 2: pedagogical_band from mastery data (second axis)
+    # ------------------------------------------------------------------
+    if user_id is not None:
+        band = _resolve_band_from_progress(db, user_id, exercise_type)
+        if band is not None:
+            return AdaptiveGenerationContext(
+                age_group=age_group,
+                pedagogical_band=band,
+                mastery_source="progress_mastery",
+            )
+
+        band = _resolve_band_from_irt(db, user_id, exercise_type)
+        if band is not None:
+            return AdaptiveGenerationContext(
+                age_group=age_group,
+                pedagogical_band=band,
+                mastery_source="irt_diagnostic",
+            )
+
+    # ------------------------------------------------------------------
+    # Step 3: fallback — "discovery" is the safe pedagogical default
+    # A user with no mastery or IRT data should start at the easiest band.
+    # Using "learning" was a legacy neutral value; "discovery" is correct
+    # per Sweller CLT (avoid cognitive overload for unknown-level learners).
+    # ------------------------------------------------------------------
+    return AdaptiveGenerationContext(
+        age_group=age_group,
+        pedagogical_band="discovery",
+        mastery_source="fallback",
+    )
+
+
+def _resolve_stable_age_group(user) -> str:
+    """
+    Resolve the stable base age_group from the user profile WITHOUT using
+    mastery/IRT data.  This is the age axis for F42 generation — it must not
+    be remapped by mastery so that the two axes remain independent.
+
+    Cascade (mirrors steps 3 & 4 of resolve_adaptive_difficulty):
+      1. users.age_group (F42 persisted)
+      2. preferred_difficulty / preferred age_group
+      3. grade_level
+      4. Fallback GROUP_9_11
+    """
+    try:
+        persisted_ag = normalized_age_group_from_user_profile(user)
+        if persisted_ag:
+            return persisted_ag
+
+        preferred = getattr(user, "preferred_difficulty", None)
+        if preferred:
+            ordinal = _PREF_DIFFICULTY_TO_ORDINAL.get(preferred)
+            if ordinal is not None:
+                return _ordinal_to_age_group(ordinal)
+
+        grade = getattr(user, "grade_level", None)
+        if grade and isinstance(grade, int):
+            ordinal = _GRADE_TO_ORDINAL.get(grade, 1)
+            return _ordinal_to_age_group(ordinal)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[AdaptiveDifficulty] Erreur lecture profil stable user: %s", e)
+
     return AgeGroups.GROUP_9_11

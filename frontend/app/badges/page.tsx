@@ -37,34 +37,28 @@ import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
+import { PROGRESSION_RANK_ICONS, PROGRESSION_RANK_TEXT_CLASS } from "@/lib/constants/leaderboard";
+import {
+  canonicalProgressionRankBucket,
+  isKnownProgressionRankBucket,
+} from "@/lib/gamification/progressionRankLabel";
 
-function getJediRankInfo(
+function getProgressionRankInfo(
   rank: string,
-  t: (k: string) => string
+  tRank: (key: string) => string
 ): { title: string; icon: string; color: string } {
-  const icons: Record<string, string> = {
-    youngling: "🌟",
-    padawan: "⚔️",
-    knight: "🗡️",
-    master: "👑",
-    grand_master: "✨",
-  };
-  const colors: Record<string, string> = {
-    youngling: "text-yellow-400",
-    padawan: "text-blue-400",
-    knight: "text-green-400",
-    master: "text-purple-400",
-    grand_master: "text-amber-400",
-  };
+  const canon = canonicalProgressionRankBucket(rank);
+  const safe = isKnownProgressionRankBucket(rank) ? canon : "cadet";
   return {
-    title: t(`jediRanks.${rank}`) || t("jediRanks.youngling"),
-    icon: icons[rank] || "🌟",
-    color: colors[rank] || "text-yellow-400",
+    title: tRank(safe),
+    icon: PROGRESSION_RANK_ICONS[safe] ?? "🌟",
+    color: PROGRESSION_RANK_TEXT_CLASS[safe] ?? "text-slate-400",
   };
 }
 
 export default function BadgesPage() {
   const t = useTranslations("badges");
+  const tProgRank = useTranslations("progressionRanks");
   const {
     earnedBadges,
     availableBadges,
@@ -95,8 +89,8 @@ export default function BadgesPage() {
     await checkBadges();
   };
 
-  const jediRank = userStats?.jedi_rank || "youngling";
-  const rankInfo = getJediRankInfo(jediRank, t);
+  const progressionRankBucket = userStats?.jedi_rank || "cadet";
+  const rankInfo = getProgressionRankInfo(progressionRankBucket, tProgRank);
   const earnedCount = earnedBadges.length;
   const earnedBadgeIds = new Set(earnedBadges.map((ub) => ub.id));
   const visibleTotal = availableBadges.filter(

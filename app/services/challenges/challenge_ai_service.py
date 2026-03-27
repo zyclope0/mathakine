@@ -6,7 +6,7 @@ Extrait la logique de gÃ©nÃ©ration streaming depuis challenge_handlers.
 import json
 import traceback
 from datetime import datetime
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
 
 from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
 from tenacity import (
@@ -54,6 +54,9 @@ from app.utils.json_utils import extract_json_from_text
 from app.utils.sse_utils import sse_error_message, sse_status_message
 from app.utils.token_tracker import token_tracker
 
+if TYPE_CHECKING:
+    from app.schemas.logic_challenge import ChallengeStreamPersonalizationMeta
+
 logger = get_logger(__name__)
 CHALLENGE_AI_GENERIC_ERROR_MESSAGE = (
     "Erreur inattendue lors de la g\u00e9n\u00e9ration du d\u00e9fi. R\u00e9essayez."
@@ -67,9 +70,14 @@ def normalize_generated_challenge(
     challenge_data: Dict[str, Any],
     challenge_type: str,
     age_group: str,
+    *,
+    f42_rating_hint: Optional[float] = None,
+    difficulty_tier: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    Normalise les donnÃ©es gÃ©nÃ©rÃ©es avec ajustements de difficultÃ© (policy IA5).
+    Normalise les données générées avec ajustements de difficulté (policy IA5).
+    difficulty_tier: F42 tier 1-12 from the personalization context — included
+    in the output so that fallback SSE paths (DB error) carry the tier too.
     """
     if age_group not in AGE_GROUP_PARAMS:
         logger.warning(
@@ -100,6 +108,7 @@ def normalize_generated_challenge(
         visual_data=vd,
         title=title,
         ai_difficulty=ai_d,
+        f42_rating_hint=f42_rating_hint,
     )
 
     raw_choices = challenge_data.get("choices")
@@ -113,7 +122,7 @@ def normalize_generated_challenge(
     return {
         "challenge_type": challenge_type,
         "age_group": final_age_group,
-        "title": challenge_data.get("title", f"DÃ©fi {challenge_type}"),
+        "title": challenge_data.get("title", f"Défi {challenge_type}"),
         "description": challenge_data.get("description", ""),
         "question": challenge_data.get("question", ""),
         "correct_answer": str(challenge_data.get("correct_answer", "")),
@@ -121,8 +130,9 @@ def normalize_generated_challenge(
         "hints": challenge_data.get("hints", []),
         "visual_data": vd,
         "difficulty_rating": final_difficulty,
+        "difficulty_tier": difficulty_tier,
         "estimated_time_minutes": 10,
-        "tags": "ai,generated,mathÃ©logique",
+        "tags": "ai,generated,mathélogique",
         "choices": choices_out,
         "response_mode": response_mode,
         "difficulty_calibration": calibration_meta,
@@ -136,6 +146,7 @@ def _build_ai_generation_parameters(
     model: str,
     difficulty_calibration: Any,
     response_mode: Optional[str] = None,
+    f42_personalization: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """ParamÃ¨tres de gÃ©nÃ©ration persistÃ©s (JSON) â€” Ã©vite les clÃ©s ad hoc dans le handler."""
     gp: Dict[str, Any] = {
@@ -148,6 +159,8 @@ def _build_ai_generation_parameters(
         gp["difficulty_calibration"] = difficulty_calibration
     if response_mode:
         gp["response_mode"] = response_mode
+    if f42_personalization:
+        gp["f42_personalization"] = f42_personalization
     return gp
 
 
@@ -156,6 +169,7 @@ def _persist_challenge_sync(
     user_id: Optional[int],
     challenge_type: str,
     model: str = "unknown",
+    f42_personalization: Optional[Dict[str, Any]] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Persiste un challenge gÃ©nÃ©rÃ© en base via sync_db_session.
@@ -188,6 +202,7 @@ def _persist_challenge_sync(
                     "difficulty_calibration"
                 ),
                 response_mode=normalized_challenge.get("response_mode"),
+                f42_personalization=f42_personalization,
             ),
         )
         if (
@@ -213,6 +228,7 @@ def _persist_challenge_sync(
                 "hints": created_challenge.hints or [],
                 "visual_data": created_challenge.visual_data or {},
                 "difficulty_rating": created_challenge.difficulty_rating,
+                "difficulty_tier": created_challenge.difficulty_tier,
                 "estimated_time_minutes": created_challenge.estimated_time_minutes,
                 "tags": created_challenge.tags,
                 "is_active": created_challenge.is_active,
@@ -233,6 +249,8 @@ async def generate_challenge_stream(
     prompt: str,
     user_id: Optional[int],
     locale: str = "fr",
+    *,
+    personalization: Optional["ChallengeStreamPersonalizationMeta"] = None,
 ) -> AsyncGenerator[str, None]:
     """
     GÃ©nÃ©rateur async qui produit des Ã©vÃ©nements SSE (f"data: {json.dumps(...)}\n\n").
@@ -277,6 +295,14 @@ async def generate_challenge_stream(
         )
 
         system_prompt = build_challenge_system_prompt(challenge_type, age_group)
+        if personalization is not None:
+            from app.services.challenges.challenge_generation_context import (
+                build_personalization_prompt_section_from_meta,
+            )
+
+            system_prompt += "\n\n" + build_personalization_prompt_section_from_meta(
+                personalization
+            )
         user_prompt = build_challenge_user_prompt(challenge_type, age_group, prompt)
 
         if AIConfig.is_o1_model(ai_params["model"]):
@@ -578,7 +604,19 @@ async def generate_challenge_stream(
             validation_passed = True
 
         normalized_challenge = normalize_generated_challenge(
-            challenge_data, challenge_type, age_group
+            challenge_data,
+            challenge_type,
+            age_group,
+            f42_rating_hint=(
+                personalization.target_difficulty_rating_hint
+                if personalization is not None
+                else None
+            ),
+            difficulty_tier=(
+                personalization.resolved_target_tier
+                if personalization is not None
+                else None
+            ),
         )
 
         if not normalized_challenge.get("title") or not normalized_challenge.get(
@@ -590,12 +628,18 @@ async def generate_challenge_stream(
             return
 
         try:
+            pers_dump = (
+                personalization.model_dump(exclude_none=True)
+                if personalization is not None
+                else None
+            )
             challenge_dict = await run_db_bound(
                 _persist_challenge_sync,
                 normalized_challenge,
                 user_id,
                 challenge_type,
                 ai_params.get("model", "unknown"),
+                pers_dump,
             )
             if challenge_dict:
                 duration = (datetime.now() - start_time).total_seconds()

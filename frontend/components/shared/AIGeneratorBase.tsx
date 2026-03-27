@@ -57,6 +57,8 @@ export interface AIGeneratorBaseProps {
   defaultType: string;
   ageOptions: AISelectOption[];
   defaultAge: string;
+  /** Mode compact uniquement : classes du trigger « groupe d'âge » (défaut h-9 w-[95px]). */
+  compactAgeSelectTriggerClassName?: string;
 
   /** Pilules de suggestions cliquables sous le textarea (optionnel). */
   promptSuggestions?: string[];
@@ -105,6 +107,7 @@ export function AIGeneratorBase({
   defaultType,
   ageOptions,
   defaultAge,
+  compactAgeSelectTriggerClassName,
   promptSuggestions = [...DEFAULT_PROMPT_SUGGESTIONS],
   isGenerating,
   streamedText,
@@ -166,7 +169,10 @@ export function AIGeneratorBase({
               </SelectContent>
             </Select>
             <Select value={selectedAge} onValueChange={setSelectedAge} disabled={isGenerating}>
-              <SelectTrigger id={ageSelectId} className="h-9 w-[95px]">
+              <SelectTrigger
+                id={ageSelectId}
+                className={compactAgeSelectTriggerClassName ?? "h-9 w-[95px]"}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

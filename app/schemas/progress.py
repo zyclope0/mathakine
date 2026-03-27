@@ -114,7 +114,7 @@ class Progress(ProgressInDB):
 
 
 class UserProgressSummary(BaseModel):
-    """Résumé de la progression d'un utilisateur (Rapport du Conseil Jedi)"""
+    """Résumé synthétique de la progression d'un utilisateur."""
 
     user_id: int
     user_name: str

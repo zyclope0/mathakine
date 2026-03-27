@@ -333,10 +333,11 @@ export function BadgeEditModal({
               />
             </div>
             <div className="grid gap-2">
-              <Label>Titre Star Wars</Label>
+              <Label>Titre thématique (optionnel)</Label>
               <Input
                 value={data.star_wars_title || ""}
                 onChange={(e) => update("star_wars_title", e.target.value)}
+                placeholder="ex. Première mission réussie"
               />
             </div>
           </div>

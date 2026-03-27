@@ -120,3 +120,6 @@ def test_list_challenge_progress_for_user_empty_and_populated(db_session):
     assert out[0]["challenge_type"] == "visual"
     assert out[0]["completion_rate"] == 100.0
     assert out[0]["last_attempted_at"] is not None
+    assert "f42" in out[0]
+    assert out[0]["f42"]["difficulty_tier"] is not None
+    assert out[0]["f42"]["pedagogical_band"] == "consolidation"

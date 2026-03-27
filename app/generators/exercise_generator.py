@@ -6,7 +6,7 @@ import random
 
 from app.core.constants import DifficultyLevels, ExerciseTypes, Messages, Tags
 from app.core.logging_config import get_logger
-from app.core.messages import ExerciseMessages, StarWarsNarratives
+from app.core.messages import ExerciseMessages, SpatialNarratives
 from app.generators.exercise_generation_policy import (
     SIMPLE_TITLE_ADDITION,
     SIMPLE_TITLE_DIVERS,
@@ -41,27 +41,36 @@ def _ai_prefix() -> str:
 
 
 # Fonctions de génération d'exercices
-def generate_ai_exercise(exercise_type, age_group):
+def generate_ai_exercise(exercise_type, age_group, *, pedagogical_band_override=None):
     """
-    Génère un exercice avec IA en utilisant des prompts et contextes Star Wars
+    Génère un exercice avec thème spatial neutre et calibrage F42.
+    Le profil F42 (difficulty_tier, pedagogical_band, calibration_desc) est
+    calculé avant la génération et influence le calibrage des bornes.
+
+    ``pedagogical_band_override`` (keyword-only): quand fourni par
+    :func:`exercise_generation_service.generate_exercise_sync`, il injecte la
+    bande résolue depuis les données de maîtrise (second axe F42) plutôt que
+    de la dériver depuis ``derived_difficulty``.
     """
-    normalized_type, normalized_age_group, derived_difficulty, type_limits = (
-        init_exercise_context(exercise_type, age_group)
+    (
+        normalized_type,
+        normalized_age_group,
+        derived_difficulty,
+        type_limits,
+        f42_profile,
+    ) = init_exercise_context(
+        exercise_type, age_group, pedagogical_band_override=pedagogical_band_override
     )
     exercise_data = build_base_exercise_data(
         normalized_type, normalized_age_group, derived_difficulty, ai_generated=True
     )
+    # Store F42 profile in the exercise dict so it survives to persistance helpers.
+    exercise_data["difficulty_tier"] = f42_profile["difficulty_tier"]
 
-    # Préfixe et suffixe pour enrichir l'explication
-    explanation_prefix = StarWarsNarratives.get_explanation_prefix(
-        derived_difficulty
-    )  # Use derived_difficulty
-    explanation_suffix = StarWarsNarratives.get_explanation_suffix(
-        derived_difficulty
-    )  # Use derived_difficulty
+    explanation_prefix = SpatialNarratives.get_explanation_prefix(derived_difficulty)
+    explanation_suffix = SpatialNarratives.get_explanation_suffix(derived_difficulty)
 
     if normalized_type == ExerciseTypes.ADDITION:
-        # Utiliser les limites de difficulté pour déterminer les plages de nombres
         min_val = type_limits.get("min", 1)
         max_val = type_limits.get("max", 10)
 
@@ -69,27 +78,25 @@ def generate_ai_exercise(exercise_type, age_group):
         num2 = random.randint(min_val, max_val)
         result = num1 + num2
 
-        # Thème Star Wars pour l'addition
-        if derived_difficulty == DifficultyLevels.INITIE:  # Use derived_difficulty
+        if derived_difficulty == DifficultyLevels.INITIE:
             question_template = random.choice(
                 [
-                    f"Tu as trouvé {num1} cristaux Kyber et ton ami en a trouvé {num2}. Combien avez-vous de cristaux au total?",
-                    f"Il y a {num1} droïdes dans le hangar et {num2} droïdes dans l'atelier. Combien y a-t-il de droïdes en tout?",
-                    f"Tu as parcouru {num1} parsecs hier et {num2} parsecs aujourd'hui. Quelle distance as-tu parcourue en tout?",
+                    f"Tu as trouvé {num1} cristaux sur la planète et ton équipier en a trouvé {num2}. Combien avez-vous de cristaux au total ?",
+                    f"Il y a {num1} robots dans le hangar et {num2} robots dans l'atelier. Combien y a-t-il de robots en tout ?",
+                    f"Tu as parcouru {num1} kilomètres hier et {num2} kilomètres aujourd'hui. Quelle distance as-tu parcourue en tout ?",
                 ]
             )
             explanation_template = f"Pour trouver la réponse, tu dois additionner {num1} et {num2}, ce qui donne {result}."
-        else:  # Default for other difficulty levels
+        else:
             question_template = random.choice(
                 [
-                    f"Un escadron de {num1} X-wings et un escadron de {num2} Y-wings se préparent pour attaquer l'Étoile de la Mort. Combien de vaisseaux y a-t-il au total?",
-                    f"L'Empire a envoyé {num1} stormtroopers sur Endor et {num2} stormtroopers sur Hoth. Combien de stormtroopers ont été déployés en tout?",
-                    f"Un destroyer stellaire contient {num1} TIE fighters et {num2} navettes. Combien de vaisseaux sont à bord au total?",
+                    f"Une escadre de {num1} vaisseaux et une flottille de {num2} navettes se préparent pour la mission. Combien de vaisseaux y a-t-il au total ?",
+                    f"La base Alpha a reçu {num1} caisses de ravitaillement et la base Bêta en a reçu {num2}. Combien de caisses au total ?",
+                    f"Un cargo spatial contient {num1} conteneurs et {num2} modules. Combien d'éléments sont à bord au total ?",
                 ]
             )
-            explanation_template = f"Pour calculer le total, on additionne les deux nombres: {num1} + {num2} = {result}."
+            explanation_template = f"Pour calculer le total, on additionne les deux nombres : {num1} + {num2} = {result}."
 
-        # Générer des choix intelligents avec erreurs typiques
         choices = generate_smart_choices(
             "ADDITION",
             num1,
@@ -101,7 +108,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Alliance Rebelle - Addition pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Mission spatiale - Addition pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -124,22 +131,21 @@ def generate_ai_exercise(exercise_type, age_group):
         )  # Eviter les soustractions avec résultat négatif
         result = num1 - num2
 
-        # Thème Star Wars pour la soustraction
-        if derived_difficulty == DifficultyLevels.INITIE:  # Use derived_difficulty
+        if derived_difficulty == DifficultyLevels.INITIE:
             question_template = random.choice(
                 [
-                    f"Tu as {num1} portions de rations, mais tu en as utilisé {num2}. Combien te reste-t-il?",
-                    f"Il y avait {num1} droïdes dans le hangar, mais {num2} sont partis en mission. Combien reste-t-il de droïdes?",
-                    f"Tu as parcouru {num1} années-lumière, mais il te reste encore {num2} années-lumière à faire. Quelle distance as-tu déjà parcourue?",
+                    f"Tu as {num1} rations de voyage, mais tu en as utilisé {num2}. Combien te reste-t-il ?",
+                    f"Il y avait {num1} robots dans le hangar, mais {num2} sont partis en mission. Combien en reste-t-il ?",
+                    f"Tu as parcouru {num1} kilomètres, mais il te reste encore {num2} kilomètres à faire. Quelle distance as-tu déjà parcourue ?",
                 ]
             )
             explanation_template = f"Pour trouver la réponse, tu dois soustraire {num2} de {num1}, ce qui donne {result}."
-        else:  # Default for other difficulty levels
+        else:
             question_template = random.choice(
                 [
-                    f"La flotte rebelle comptait {num1} vaisseaux, mais {num2} ont été détruits dans la bataille. Combien de vaisseaux reste-t-il?",
-                    f"L'Empire avait {num1} planètes sous son contrôle, mais {num2} se sont rebellées. Combien de planètes restent loyales?",
-                    f"Le Faucon Millenium a {num1} pièces de contrebande, mais {num2} sont confisquées par les Impériaux. Combien de pièces reste-t-il?",
+                    f"La flotte comptait {num1} vaisseaux, mais {num2} ont été endommagés. Combien de vaisseaux restent opérationnels ?",
+                    f"La station disposait de {num1} modules, mais {num2} sont hors service. Combien sont encore actifs ?",
+                    f"Un cargo transportait {num1} conteneurs, mais {num2} ont été livrés. Combien en reste-t-il à bord ?",
                 ]
             )
             explanation_template = (
@@ -159,7 +165,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Conflit galactique - Soustraction pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Mission spatiale - Soustraction pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -178,22 +184,21 @@ def generate_ai_exercise(exercise_type, age_group):
         num2 = random.randint(min_val, max_val)
         result = num1 * num2
 
-        # Thème Star Wars pour la multiplication
-        if derived_difficulty == DifficultyLevels.INITIE:  # Use derived_difficulty
+        if derived_difficulty == DifficultyLevels.INITIE:
             question_template = random.choice(
                 [
-                    f"Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux y a-t-il au total?",
-                    f"Chaque droïde astromech a {num2} outils. Combien d'outils ont {num1} droïdes au total?",
-                    f"Chaque module de formation a {num2} exercices. Combien d'exercices y a-t-il dans {num1} modules?",
+                    f"Chaque astronaute a {num2} cristaux. S'il y a {num1} astronautes, combien de cristaux y a-t-il au total ?",
+                    f"Chaque robot a {num2} capteurs. Combien de capteurs ont {num1} robots au total ?",
+                    f"Chaque module de formation a {num2} exercices. Combien d'exercices y a-t-il dans {num1} modules ?",
                 ]
             )
-            explanation_template = f"Pour trouver le total, tu dois multiplier le nombre de {num1} par {num2}, ce qui donne {result}."
-        else:  # Default for other difficulty levels
+            explanation_template = f"Pour trouver le total, tu dois multiplier {num1} par {num2}, ce qui donne {result}."
+        else:
             question_template = random.choice(
                 [
-                    f"Chaque escadron comprend {num2} X-wings. Combien de X-wings y a-t-il dans {num1} escadrons?",
-                    f"Chaque Star Destroyer transporte {num2} TIE Fighters. Combien de TIE Fighters y a-t-il sur {num1} Star Destroyers?",
-                    f"Chaque secteur contient {num2} systèmes stellaires. Combien de systèmes y a-t-il dans {num1} secteurs?",
+                    f"Chaque escadre comprend {num2} vaisseaux. Combien de vaisseaux y a-t-il dans {num1} escadres ?",
+                    f"Chaque station spatiale héberge {num2} équipages. Combien d'équipages pour {num1} stations ?",
+                    f"Chaque secteur contient {num2} systèmes stellaires. Combien de systèmes y a-t-il dans {num1} secteurs ?",
                 ]
             )
             explanation_template = (
@@ -211,7 +216,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Forces galactiques - Multiplication pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Mission spatiale - Multiplication pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -233,22 +238,21 @@ def generate_ai_exercise(exercise_type, age_group):
         result = random.randint(min_result, max_result)  # quotient
         num1 = num2 * result  # dividende
 
-        # Thème Star Wars pour la division
-        if derived_difficulty == DifficultyLevels.INITIE:  # Use derived_difficulty
+        if derived_difficulty == DifficultyLevels.INITIE:
             question_template = random.choice(
                 [
-                    f"Tu as {num1} cristaux Kyber à distribuer équitablement entre {num2} Padawans. Combien de cristaux chaque Padawan recevra-t-il?",
-                    f"Il y a {num1} droïdes à répartir dans {num2} hangars. Combien de droïdes y aura-t-il dans chaque hangar?",
-                    f"Tu dois parcourir {num1} parsecs en {num2} jours. Combien de parsecs dois-tu parcourir chaque jour?",
+                    f"Tu as {num1} cristaux à distribuer équitablement entre {num2} explorateurs. Combien de cristaux chacun recevra-t-il ?",
+                    f"Il y a {num1} robots à répartir dans {num2} hangars. Combien de robots y aura-t-il dans chaque hangar ?",
+                    f"Tu dois parcourir {num1} kilomètres en {num2} jours. Combien de kilomètres dois-tu parcourir chaque jour ?",
                 ]
             )
             explanation_template = f"Pour trouver la réponse, tu dois diviser {num1} par {num2}, ce qui donne {result}."
-        else:  # Default for other difficulty levels
+        else:
             question_template = random.choice(
                 [
-                    f"L'Alliance a {num1} soldats à répartir équitablement dans {num2} bases. Combien de soldats seront affectés à chaque base?",
-                    f"L'Empire a fabriqué {num1} blasters qui doivent être distribués à {num2} escouades. Combien de blasters chaque escouade recevra-t-elle?",
-                    f"Un convoi de {num1} containers doit être réparti sur {num2} vaisseaux de transport. Combien de containers chaque vaisseau transportera-t-il?",
+                    f"La base spatiale a {num1} membres d'équipage à répartir dans {num2} sections. Combien par section ?",
+                    f"Un entrepôt orbital contient {num1} pièces à distribuer à {num2} ateliers. Combien chaque atelier recevra-t-il ?",
+                    f"Un convoi de {num1} conteneurs doit être réparti sur {num2} cargos. Combien de conteneurs par cargo ?",
                 ]
             )
             explanation_template = (
@@ -267,7 +271,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Stratégie galactique - Division pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Mission spatiale - Division pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -326,21 +330,20 @@ def generate_ai_exercise(exercise_type, age_group):
         else:
             formatted_result = f"{result.numerator}/{result.denominator}"
 
-        # Questions Star Wars selon la difficulté
-        if derived_difficulty == DifficultyLevels.INITIE:  # Use derived_difficulty
+        if derived_difficulty == DifficultyLevels.INITIE:
             question_template = random.choice(
                 [
-                    f"Luke mange {num1}/{denom1} de sa ration et Leia mange {num2}/{denom2} de la sienne. Quelle fraction ont-ils mangée ensemble?",
-                    f"R2-D2 a réparé {num1}/{denom1} des systèmes et C-3PO {num2}/{denom2}. Quelle fraction totale ont-ils réparée?",
-                    f"Dans le Faucon Millenium, {num1}/{denom1} des moteurs fonctionnent et {num2}/{denom2} des boucliers. Quelle fraction totale est opérationnelle?",
+                    f"Un explorateur boit {num1}/{denom1} de sa gourde et son équipier en boit {num2}/{denom2} de la sienne. Quelle fraction ont-ils bue ensemble ?",
+                    f"Le robot A a réparé {num1}/{denom1} des systèmes et le robot B {num2}/{denom2}. Quelle fraction totale ont-ils réparée ?",
+                    f"Dans le vaisseau, {num1}/{denom1} des moteurs fonctionnent et {num2}/{denom2} des boucliers. Quelle fraction totale est opérationnelle ?",
                 ]
             )
         else:
             question_template = random.choice(
                 [
-                    f"L'Étoile de la Mort a détruit {num1}/{denom1} de la flotte rebelle, puis {num2}/{denom2} de plus. Quelle fraction totale a été détruite?",
-                    f"Yoda maîtrise {num1}/{denom1} de la Force et enseigne {num2}/{denom2} de ses connaissances. Quelle fraction a-t-il transmise?",
-                    f"L'Empire contrôle {num1}/{denom1} de la galaxie et conquiert {num2}/{denom2} de plus. Quelle fraction contrôle-t-il maintenant?",
+                    f"Une flotte a perdu {num1}/{denom1} de ses appareils, puis {num2}/{denom2} de plus. Quelle fraction totale a été perdue ?",
+                    f"Un navigateur maîtrise {num1}/{denom1} des trajets et enseigne {num2}/{denom2} de ses connaissances. Quelle fraction a-t-il transmise ?",
+                    f"La station contrôle {num1}/{denom1} du réseau et étend sa portée de {num2}/{denom2}. Quelle fraction contrôle-t-elle maintenant ?",
                 ]
             )
 
@@ -354,8 +357,8 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Fractions Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
-                "question": f"Problème galactique: {question_template.replace(f'{num1}/{denom1} {operation} {num2}/{denom2}', f'{num1}/{denom1} {operation} {num2}/{denom2}')}",
+                "title": f"{_ai_prefix()}Fractions spatiales - pour les {age_group}",
+                "question": f"Problème de navigation : {question_template}",
                 "correct_answer": formatted_result,
                 "choices": choices,
                 "explanation": f"{_ai_prefix()}{explanation_prefix} Pour {op_word} les fractions {num1}/{denom1} et {num2}/{denom2}, le résultat est {formatted_result}. {explanation_suffix}",
@@ -392,9 +395,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"L'Étoile de la Mort a une section carrée de côté {side} km. Quel est son {property}?",
-                    f"La base rebelle a un hangar carré de {side} m de côté. Calcule son {property}.",
-                    f"Le Temple Jedi a une salle carrée de {side} m de côté. Quel est son {property}?",
+                    f"Une station orbitale a une section carrée de côté {side} km. Quel est son {property} ?",
+                    f"Un hangar spatial est carré avec {side} m de côté. Calcule son {property}.",
+                    f"Un module de la base lunaire est une salle carrée de {side} m de côté. Quel est son {property} ?",
                 ]
             )
 
@@ -412,9 +415,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Le Faucon Millenium a une soute rectangulaire de {length}m × {width}m. Quel est son {property}?",
-                    f"Un Star Destroyer a un hangar de {length} km sur {width} km. Calcule son {property}.",
-                    f"La cantina de Mos Eisley mesure {length}m × {width}m. Quel est son {property}?",
+                    f"Un cargo spatial a une soute rectangulaire de {length}m × {width}m. Quel est son {property} ?",
+                    f"Un vaisseau de transport a un hangar de {length} km sur {width} km. Calcule son {property}.",
+                    f"Le centre de commandement mesure {length}m × {width}m. Quel est son {property} ?",
                 ]
             )
 
@@ -433,9 +436,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Un X-wing a des ailes triangulaires de base {base}m et hauteur {height}m. Quelle est leur {property}?",
-                    f"Le sabre laser de Yoda forme un triangle de base {base} cm et hauteur {height} cm. Calcule son {property}.",
-                    f"Une voile solaire triangulaire mesure {base}km × {height}km. Quel est son {property}?",
+                    f"Un voilier spatial a des ailes triangulaires de base {base}m et hauteur {height}m. Quelle est leur {property} ?",
+                    f"Une antenne de relais forme un triangle de base {base} cm et hauteur {height} cm. Calcule son {property}.",
+                    f"Une voile solaire triangulaire mesure {base}km × {height}km. Quel est son {property} ?",
                 ]
             )
 
@@ -452,9 +455,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"L'Étoile de la Mort a un rayon de {radius} km. Quel est son {property}?",
-                    f"La planète Tatooine a un rayon de {radius} milliers de km. Calcule son {property}.",
-                    f"Un bouclier déflecteur circulaire a un rayon de {radius}m. Quel est son {property}?",
+                    f"Un astéroïde sphérique a un rayon de {radius} km. Quel est son {property} ?",
+                    f"Une planète de la ceinture d'astéroïdes a un rayon de {radius} milliers de km. Calcule son {property}.",
+                    f"Un bouclier déflecteur circulaire a un rayon de {radius}m. Quel est son {property} ?",
                 ]
             )
 
@@ -469,7 +472,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Géométrie Galactique - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Géométrie spatiale - pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -502,9 +505,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Luke a {age_actuel} ans. Dans {années} ans, quel âge aura-t-il?",
-                    f"Leia a {age_actuel} ans aujourd'hui. Quel âge aura-t-elle dans {années} ans?",
-                    f"Anakin a {age_actuel} ans. Dans combien d'années aura-t-il {result} ans?",
+                    f"Un astronaute a {age_actuel} ans. Dans {années} ans, quel âge aura-t-il ?",
+                    f"Une exploratrice a {age_actuel} ans aujourd'hui. Quel âge aura-t-elle dans {années} ans ?",
+                    f"Un navigateur a {age_actuel} ans. Dans combien d'années aura-t-il {result} ans ?",
                 ]
             )
             explanation_template = (
@@ -518,9 +521,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Tu achètes un sabre laser à {prix} crédits. Tu paies {payé} crédits. Combien de monnaie?",
-                    f"Un droïde coûte {prix} crédits. Tu donnes {payé} crédits. Quelle est la monnaie?",
-                    f"Des rations coûtent {prix} crédits. Tu paies avec {payé} crédits. Combien récupères-tu?",
+                    f"Tu achètes un équipement à {prix} crédits. Tu paies {payé} crédits. Combien de monnaie ?",
+                    f"Un module coûte {prix} crédits. Tu donnes {payé} crédits. Quelle est la monnaie ?",
+                    f"Des provisions coûtent {prix} crédits. Tu paies avec {payé} crédits. Combien récupères-tu ?",
                 ]
             )
             explanation_template = (
@@ -536,9 +539,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Le Faucon Millenium parcourt {distance} parsecs en {temps} heures. Quelle est sa vitesse?",
-                    f"Un X-wing vole {distance} km en {temps} minutes. Quelle est sa vitesse par minute?",
-                    f"Un Star Destroyer voyage {distance} années-lumière en {temps} jours. Vitesse par jour?",
+                    f"Un vaisseau parcourt {distance} km en {temps} heures. Quelle est sa vitesse ?",
+                    f"Une sonde explore {distance} km en {temps} minutes. Quelle est sa vitesse par minute ?",
+                    f"Un cargo voyage {distance} années-lumière en {temps} jours. Vitesse par jour ?",
                 ]
             )
             explanation_template = (
@@ -554,9 +557,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"L'Empire a {initial} vaisseaux. Leur nombre augmente de {pourcentage}%. Nouveau total?",
-                    f"La Rébellion a {initial} soldats. Ils recrutent {pourcentage}% de plus. Combien maintenant?",
-                    f"Jabba possède {initial} crédits. Il gagne {pourcentage}% de plus. Nouveau montant?",
+                    f"La flotte compte {initial} appareils. Leur nombre augmente de {pourcentage}%. Nouveau total ?",
+                    f"La base a {initial} membres. Elle recrute {pourcentage}% de plus. Combien maintenant ?",
+                    f"Un entrepôt contient {initial} caisses. Le stock augmente de {pourcentage}%. Nouveau total ?",
                 ]
             )
             explanation_template = (
@@ -570,9 +573,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Dans un sac, {total} cristaux dont {favorables} sont bleus. Probabilité d'un cristal bleu?",
-                    f"Sur {total} planètes, {favorables} sont habitées. Probabilité qu'une planète soit habitée?",
-                    f"Parmi {total} droïdes, {favorables} sont défaillants. Probabilité d'un droïde défaillant?",
+                    f"Dans un sac, {total} pierres dont {favorables} sont brillantes. Probabilité d'une pierre brillante ?",
+                    f"Sur {total} planètes explorées, {favorables} sont habitables. Quelle est la probabilité ?",
+                    f"Parmi {total} capteurs, {favorables} sont défaillants. Probabilité d'un capteur défaillant ?",
                 ]
             )
             explanation_template = f"Probabilité = cas favorables ÷ total: {favorables} ÷ {total} = {result}."
@@ -583,9 +586,9 @@ def generate_ai_exercise(exercise_type, age_group):
             sequence = [start + diff * i for i in range(4)]
             result = sequence[-1] + diff
 
-            question_template = f"Séquence Jedi: {', '.join(map(str, sequence))}, ... Quel est le terme suivant?"
+            question_template = f"Suite numérique : {', '.join(map(str, sequence))}, … Quel est le terme suivant ?"
             explanation_template = (
-                f"La séquence augmente de {diff}: {sequence[-1]} + {diff} = {result}."
+                f"La suite augmente de {diff}: {sequence[-1]} + {diff} = {result}."
             )
 
         else:  # logique_avancée
@@ -594,9 +597,9 @@ def generate_ai_exercise(exercise_type, age_group):
 
             question_template = random.choice(
                 [
-                    f"Yoda dit: 'Si {a} Padawans s'entraînent {b} heures chacun, combien d'heures au total?'",
-                    f"L'Empire déploie {a} escadrons de {b} TIE Fighters. Combien de TIE Fighters?",
-                    f"Dans {a} systèmes, il y a {b} planètes chacun. Combien de planètes au total?",
+                    f"Si {a} équipages s'entraînent {b} heures chacun, combien d'heures au total ?",
+                    f"La base déploie {a} escadres de {b} appareils. Combien d'appareils au total ?",
+                    f"Dans {a} secteurs, il y a {b} stations chacun. Combien de stations au total ?",
                 ]
             )
             explanation_template = f"Total = {a} × {b} = {result}."
@@ -618,7 +621,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Défis Galactiques - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Défis numériques - pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -642,13 +645,13 @@ def generate_ai_exercise(exercise_type, age_group):
                 (
                     lambda: a + b - c,
                     f"{a} + {b} - {c}",
-                    f"Luke a trouvé {a} cristaux, puis {b} de plus, mais il en a donné {c} à Leia.",
+                    f"Un explorateur a trouvé {a} cristaux, puis {b} de plus, mais il en a échangé {c}.",
                     f"On calcule étape par étape: {a} + {b} = {a+b}, puis {a+b} - {c} = {a+b-c}.",
                 ),
                 (
                     lambda: a * b + c,
                     f"{a} × {b} + {c}",
-                    f"Chaque Padawan a {b} sabres et il y a {a} Padawans, plus {c} sabres de réserve.",
+                    f"Chaque astronaute a {b} outils et il y a {a} astronautes, plus {c} outils de réserve.",
                     f"D'abord la multiplication: {a} × {b} = {a*b}, puis on ajoute {c}: {a*b} + {c} = {a*b+c}.",
                 ),
             ]
@@ -662,13 +665,13 @@ def generate_ai_exercise(exercise_type, age_group):
                 (
                     lambda: a + b * c,
                     f"{a} + {b} × {c}",
-                    f"L'Alliance a {a} vaisseaux, plus {b} escadrons de {c} chasseurs chacun.",
-                    f"Attention à la priorité! D'abord {b} × {c} = {b*c}, puis {a} + {b*c} = {a + b*c}.",
+                    f"La flotte a {a} vaisseaux, plus {b} escadres de {c} appareils chacune.",
+                    f"Attention à la priorité ! D'abord {b} × {c} = {b*c}, puis {a} + {b*c} = {a + b*c}.",
                 ),
                 (
                     lambda: a * b - c,
                     f"{a} × {b} - {c}",
-                    f"L'Empire a {a} bataillons de {b} stormtroopers, mais {c} ont déserté.",
+                    f"La base a {a} escouades de {b} membres, mais {c} sont en mission.",
                     f"D'abord {a} × {b} = {a*b}, puis on soustrait {c}: {a*b} - {c} = {a*b - c}.",
                 ),
             ]
@@ -686,19 +689,19 @@ def generate_ai_exercise(exercise_type, age_group):
                 (
                     lambda: (a + b) * c,
                     f"({a} + {b}) × {c}",
-                    f"Luke et Leia ont ensemble {a} + {b} cristaux, chaque cristal vaut {c} crédits.",
+                    f"Deux équipes ont ensemble {a} + {b} minerais, chaque minerai vaut {c} crédits.",
                     f"D'abord les parenthèses: ({a} + {b}) = {a+b}, puis × {c} = {(a+b)*c}.",
                 ),
                 (
                     lambda: (a - b) * c,
                     f"({a} - {b}) × {c}",
-                    f"L'Empire avait {a} vaisseaux, {b} ont été détruits, les {a-b} restants ont {c} équipages chacun.",
+                    f"La station avait {a} appareils, {b} sont en révision, les {a-b} restants ont {c} équipages chacun.",
                     f"D'abord ({a} - {b}) = {a-b}, puis × {c} = {(a-b)*c}.",
                 ),
                 (
                     lambda: a * (b + c),
                     f"{a} × ({b} + {c})",
-                    f"Chaque base rebelle ({a} bases) a {b} + {c} défenseurs.",
+                    f"Chaque avant-poste ({a} au total) a {b} + {c} membres d'équipage.",
                     f"D'abord ({b} + {c}) = {b+c}, puis {a} × {b+c} = {a*(b+c)}.",
                 ),
             ]
@@ -724,7 +727,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Opération Mixte Galactique (Niveau: {derived_difficulty})",
+                "title": f"{_ai_prefix()}Opération mixte - pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -775,9 +778,9 @@ def generate_ai_exercise(exercise_type, age_group):
             result = base_num + modifier
             question_template = random.choice(
                 [
-                    f"R2-D2 a {base_num} droïdes amis. C-3PO en a {modifier} de plus que R2-D2. Combien C-3PO a-t-il d'amis droïdes?",
-                    f"Luke a {base_num} sabres laser. Il en trouve {modifier} autres dans un temple Jedi. Combien en a-t-il maintenant?",
-                    f"Dans la cantina, il y a {base_num} contrebandiers et {modifier} pilotes rebelles arrivent. Combien de personnes au total?",
+                    f"Un robot a {base_num} capteurs. Un autre en a {modifier} de plus. Combien le second en a-t-il ?",
+                    f"Un astronaute a {base_num} outils. Il en trouve {modifier} autres dans la réserve. Combien en a-t-il maintenant ?",
+                    f"Dans le hangar, il y a {base_num} techniciens et {modifier} pilotes arrivent. Combien de personnes au total ?",
                 ]
             )
 
@@ -785,9 +788,9 @@ def generate_ai_exercise(exercise_type, age_group):
             result = large_num - base_num
             question_template = random.choice(
                 [
-                    f"Luke avait {large_num} sabres laser. Il en donne {base_num} à ses Padawans. Combien lui en reste-t-il?",
-                    f"L'Empire avait {large_num} TIE Fighters. {base_num} ont été détruits par la Rébellion. Combien en reste-t-il?",
-                    f"Yoda possédait {large_num} cristaux Kyber. Il en utilise {base_num} pour l'entraînement. Combien lui reste-t-il?",
+                    f"Un entrepôt avait {large_num} pièces. On en utilise {base_num}. Combien en reste-t-il ?",
+                    f"La flotte avait {large_num} appareils. {base_num} ont été mis en révision. Combien restent opérationnels ?",
+                    f"Un stock contenait {large_num} composants. {base_num} ont été distribués. Combien en reste-t-il ?",
                 ]
             )
 
@@ -795,9 +798,9 @@ def generate_ai_exercise(exercise_type, age_group):
             result = base_num * modifier
             question_template = random.choice(
                 [
-                    f"Dans la cantina, il y a {base_num} tables. Chaque table peut accueillir {modifier} personnes. Combien de personnes peuvent s'asseoir au total?",
-                    f"Chaque X-wing a {modifier} missiles. Combien de missiles ont {base_num} X-wings?",
-                    f"Chaque Padawan s'entraîne {modifier} heures par jour. Combien d'heures pour {base_num} Padawans?",
+                    f"Dans le hangar, il y a {base_num} tables d'atelier. Chaque table a {modifier} outils. Combien d'outils au total ?",
+                    f"Chaque navette a {modifier} sièges. Combien de sièges ont {base_num} navettes ?",
+                    f"Chaque technicien travaille {modifier} heures par jour. Combien d'heures pour {base_num} techniciens ?",
                 ]
             )
 
@@ -806,9 +809,9 @@ def generate_ai_exercise(exercise_type, age_group):
             result = step1_result - base_num
             question_template = random.choice(
                 [
-                    f"Leia a {base_num} crédits. Elle achète {modifier} blasters à {base_num} crédits chacun. Combien lui reste-t-il?",
-                    f"Un X-wing consomme {modifier} unités de carburant par parsec. Pour un voyage de {base_num} parsecs, combien d'unités faut-il?",
-                    f"Obi-Wan a {base_num} Padawans. Chacun a {modifier} sabres laser. Combien de sabres au total?",
+                    f"Un pilote a {base_num} crédits. Il achète {modifier} pièces à {base_num} crédits chacune. Combien lui reste-t-il ?",
+                    f"Un vaisseau consomme {modifier} unités de carburant par trajet. Pour {base_num} trajets, combien d'unités faut-il ?",
+                    f"Un chef d'équipe supervise {base_num} techniciens. Chacun a {modifier} outils. Combien d'outils au total ?",
                 ]
             )
             if "reste-t-il" in question_template:
@@ -828,9 +831,9 @@ def generate_ai_exercise(exercise_type, age_group):
             sequence = f"{start}, {start + step}, {start + 2*step}, {start + 3*step}"
             question_template = random.choice(
                 [
-                    f"Yoda entraîne ses Padawans en séquence: {start}, {start + step}, {start + 2*step}... Quel est le prochain nombre dans cette séquence de la Force?",
-                    f"Les coordonnées galactiques suivent cette séquence: {start}, {start + step}, {start + 2*step}... Quelle est la prochaine coordonnée?",
-                    f"Le code d'accès Jedi suit ce motif: {start}, {start + step}, {start + 2*step}... Quel est le nombre suivant?",
+                    f"Une suite de coordonnées : {start}, {start + step}, {start + 2*step}… Quel est le terme suivant ?",
+                    f"Les capteurs enregistrent ces valeurs : {start}, {start + step}, {start + 2*step}… Quelle est la prochaine valeur ?",
+                    f"Le code d'accès suit ce motif : {start}, {start + step}, {start + 2*step}… Quel est le nombre suivant ?",
                 ]
             )
 
@@ -839,15 +842,15 @@ def generate_ai_exercise(exercise_type, age_group):
             result = base_num * multiplier
             question_template = random.choice(
                 [
-                    f"Dans une bataille, l'Alliance a {multiplier} fois plus de X-wings que l'Empire a de TIE Fighters. Si l'Empire a {base_num} TIE Fighters, combien l'Alliance a-t-elle de X-wings?",
-                    f"Un destroyer stellaire transporte {multiplier} fois plus de soldats qu'une corvette. Si une corvette a {base_num} soldats, combien le destroyer en a-t-il?",
-                    f"Jabba a {multiplier} fois plus de crédits que Han Solo. Si Han a {base_num} crédits, combien Jabba en a-t-il?",
+                    f"La flotte A a {multiplier} fois plus d'appareils que la flotte B. Si la flotte B a {base_num} appareils, combien la flotte A en a-t-elle ?",
+                    f"Un croiseur transporte {multiplier} fois plus de membres d'équipage qu'une frégate. Si la frégate a {base_num} membres, combien le croiseur en a-t-il ?",
+                    f"Une grande base a {multiplier} fois plus de réserves qu'un avant-poste. Si l'avant-poste a {base_num} unités, combien la base en a-t-elle ?",
                 ]
             )
 
         else:  # Types plus complexes pour niveaux élevés
             result = base_num + modifier
-            question_template = f"Problème Jedi complexe: La somme de deux nombres consécutifs est {result + result - 1}. Quel est le plus petit nombre?"
+            question_template = f"Problème de logique : La somme de deux nombres consécutifs est {result + result - 1}. Quel est le plus petit nombre ?"
             result = base_num  # Pour les problèmes algébriques
 
         # Générer des choix incorrects plausibles
@@ -861,7 +864,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"{_ai_prefix()}Énigme Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Problème textuel - pour les {age_group}",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
@@ -914,14 +917,27 @@ def ensure_explanation(exercise_dict):
     return exercise_dict
 
 
-def generate_simple_exercise(exercise_type, age_group):
-    """Génère un exercice simple sans IA"""
-    normalized_type, normalized_age_group, derived_difficulty, type_limits = (
-        init_exercise_context(exercise_type, age_group)
+def generate_simple_exercise(
+    exercise_type, age_group, *, pedagogical_band_override=None
+):
+    """Génère un exercice simple sans IA avec calibrage F42.
+
+    ``pedagogical_band_override`` (keyword-only): injecte la bande résolue depuis
+    les données de maîtrise (second axe F42) quand disponible.
+    """
+    (
+        normalized_type,
+        normalized_age_group,
+        derived_difficulty,
+        type_limits,
+        f42_profile,
+    ) = init_exercise_context(
+        exercise_type, age_group, pedagogical_band_override=pedagogical_band_override
     )
     exercise_data = build_base_exercise_data(
         normalized_type, normalized_age_group, derived_difficulty, ai_generated=False
     )
+    exercise_data["difficulty_tier"] = f42_profile["difficulty_tier"]
 
     if normalized_type == ExerciseTypes.ADDITION:
         # Génération d'une addition
@@ -1106,10 +1122,10 @@ def generate_simple_exercise(exercise_type, age_group):
             # Problème logique simple
             objets = random.choice(
                 [
-                    ("sabres laser", "Luke"),
-                    ("droïdes", "R2-D2"),
-                    ("vaisseaux", "l'Alliance"),
-                    ("cristaux", "Yoda"),
+                    ("capteurs", "l'équipe"),
+                    ("robots", "la station"),
+                    ("vaisseaux", "la flotte"),
+                    ("cristaux", "l'explorateur"),
                 ]
             )
             objet, personnage = objets
@@ -1118,8 +1134,8 @@ def generate_simple_exercise(exercise_type, age_group):
             donnés = random.randint(1, initial - 1)
             result = initial - donnés
 
-            problem = f"{personnage} a {initial} {objet}. Il en donne {donnés} à ses amis. Combien lui en reste-t-il ?"
-            explanation = f"Pour trouver ce qui reste, on soustrait ce qui a été donné du total initial. Donc {initial} - {donnés} = {result}."
+            problem = f"{personnage} a {initial} {objet}. Elle/il en distribue {donnés}. Combien en reste-t-il ?"
+            explanation = f"Pour trouver ce qui reste, on soustrait ce qui a été distribué du total initial. Donc {initial} - {donnés} = {result}."
             answer_type = "number"
 
         elif problem_type == "devinette_nombre":
@@ -1161,24 +1177,23 @@ def generate_simple_exercise(exercise_type, age_group):
             answer_type = "number"
 
         elif problem_type == "probleme_concret":
-            # Problème concret avec contexte Star Wars
             scenarios = [
                 {
-                    "context": "Dans la cantina de Mos Eisley",
-                    "action": "Luke commande {nb1} boissons à {prix} crédits chacune",
+                    "context": "À la cantine de la station orbitale",
+                    "action": "Un astronaute commande {nb1} repas à {prix} crédits chacun",
                     "question": "Combien paie-t-il au total ?",
                     "calc": lambda nb1, prix: nb1 * prix,
-                    "explanation": "Pour calculer le total, on multiplie le nombre de boissons par le prix unitaire. Donc {nb1} × {prix} = {result}.",
+                    "explanation": "Pour calculer le total, on multiplie le nombre de repas par le prix unitaire. Donc {nb1} × {prix} = {result}.",
                 },
                 {
-                    "context": "Sur la planète Tatooine",
-                    "action": "Anakin trouve {nb1} pièces. Il en perd {nb2} dans le désert",
+                    "context": "Sur la lune de la base",
+                    "action": "Un explorateur trouve {nb1} minerais. Il en perd {nb2} dans la tempête",
                     "question": "Combien lui en reste-t-il ?",
                     "calc": lambda nb1, nb2: nb1 - nb2,
                     "explanation": "Pour trouver ce qui reste, on soustrait ce qui est perdu du total initial. Donc {nb1} - {nb2} = {result}.",
                 },
                 {
-                    "context": "Dans l'escadron de X-Wings",
+                    "context": "Dans l'escadre de navettes",
                     "action": "Il y a {nb1} pilotes répartis équitablement dans {nb2} escouades",
                     "question": "Combien de pilotes par escouade ?",
                     "calc": lambda nb1, nb2: nb1 // nb2,
@@ -1223,8 +1238,8 @@ def generate_simple_exercise(exercise_type, age_group):
             b = random.randint(min_val, max_val)
             result = a + b
 
-            problem = f"Luke a {a} sabres laser. Leia lui en donne {b} de plus. Combien Luke a-t-il de sabres laser maintenant ?"
-            explanation = f"Pour trouver le total, on additionne les sabres laser de Luke et ceux de Leia. Donc {a} + {b} = {result}."
+            problem = f"Un astronaute a {a} outils. Son équipier lui en donne {b} de plus. Combien en a-t-il maintenant ?"
+            explanation = f"Pour trouver le total, on additionne les deux quantités. Donc {a} + {b} = {result}."
             answer_type = "number"
 
         # Créer des choix appropriés

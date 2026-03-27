@@ -42,7 +42,7 @@ export function Recommendations() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl text-foreground flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary-on-dark" />
-            {t("title", { default: "Conseils du Maître Jedi" })}
+            {t("title", { default: "Suggestions pour la suite" })}
           </CardTitle>
           <Button
             variant="ghost"

@@ -73,3 +73,48 @@ def test_diagnostic_service_reexports_pending_api():
 
     assert ds.store_pending_state is store_pending_state
     assert ds.get_pending_state is get_pending_state
+
+
+def test_get_latest_score_includes_f42_projection(db_session):
+    from app.core.constants import AgeGroups, DifficultyLevels
+    from app.core.security import get_password_hash
+    from app.models.diagnostic_result import DiagnosticResult
+    from app.models.user import User, UserRole
+    from app.services.diagnostic.diagnostic_service import get_latest_score
+    from app.utils.db_helpers import get_enum_value
+    from tests.utils.test_helpers import unique_email, unique_username
+
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password=get_password_hash("Test123!Ab"),
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        age_group="6-8",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    dr = DiagnosticResult(
+        user_id=user.id,
+        triggered_from="onboarding",
+        scores={
+            "addition": {
+                "level": 1,
+                "difficulty": DifficultyLevels.PADAWAN,
+                "correct": 1,
+                "total": 2,
+            },
+        },
+        questions_asked=2,
+    )
+    db_session.add(dr)
+    db_session.commit()
+
+    out = get_latest_score(db_session, user.id)
+    assert out is not None
+    assert out["canonical_age_group_f42"] == AgeGroups.GROUP_6_8
+    assert "scores_f42" in out
+    assert out["scores_f42"]["addition"]["pedagogical_band"] == "learning"
+    assert out["scores_f42"]["addition"]["difficulty_tier"] == 2
+    assert out["scores"]["addition"]["difficulty"] == DifficultyLevels.PADAWAN

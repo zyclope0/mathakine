@@ -57,7 +57,7 @@ def _validate_difficulty(v: Any, allow_none: bool = False) -> Optional[str]:
 
 
 class ExerciseBase(BaseModel):
-    """Schéma de base pour les exercices (Épreuves Jedi)"""
+    """Schéma de base pour les exercices mathématiques."""
 
     title: str = Field(
         ...,
@@ -209,7 +209,7 @@ class ExerciseInDB(ExerciseBase):
 
 
 class Exercise(ExerciseInDB):
-    """Schéma pour un exercice complet (Holocron d'Épreuve)"""
+    """Schéma pour un exercice complet (toutes les métadonnées exposées)."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -354,7 +354,7 @@ class SubmitAnswerRequest(BaseModel):
 
 
 class ExerciseStats(BaseModel):
-    """Statistiques sur un exercice (Données de l'Holocron)"""
+    """Statistiques agrégées sur un exercice (vues, tentatives, réussite)."""
 
     exercise_id: int
     view_count: int
@@ -399,6 +399,9 @@ class GenerateExerciseResult(BaseModel):
     exercise_type: str = Field(..., description="Type d'exercice (ex: ADDITION)")
     age_group: Optional[str] = Field(None, description="Groupe d'âge cible")
     difficulty: str = Field(..., description="Niveau de difficulté dérivé")
+    difficulty_tier: Optional[int] = Field(
+        None, ge=1, le=12, description="F42 — tier pédagogique 1–12 (âge × difficulté)"
+    )
     question: str = Field(..., description="Question de l'exercice")
     correct_answer: str = Field(..., description="Réponse correcte")
     choices: List[str] = Field(default_factory=list, description="Options QCM")

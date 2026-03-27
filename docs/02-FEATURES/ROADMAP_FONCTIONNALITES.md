@@ -126,16 +126,16 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [BACKLOG] critique | 4 | 3 | 1 | 3 | 5 | **6.2** | P2* |
 | F40 | Leaderboard — position de l'utilisateur hors top 50 | [DONE] | 2 | 4 | 2 | 1 | 3 | **10.7** | P2 |
 | F41 | Leaderboard — filtre temporel (semaine / mois / tout) | [DONE] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
-| F42 | Architecture difficulté — séparation âge et niveau sur 2 axes | [DONE] P1+P2 27/03/2026 | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
+| F42 | Architecture difficulté — séparation âge et niveau sur 2 axes | [PARTIAL] P1+P2+P3 livrés, boucle metier encore incomplète | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
 
 > *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
 > *F39 : score composite 6.2 mais risque juridique Disney/Lucasfilm = bloquant avant toute commercialisation a grande echelle. Traiter avant la premiere campagne d'acquisition.*
-> *F42 : P1+P2 livrés ; prérequis pour F40-v2 (filtre âge leaderboard) et équité des comparaisons. F40/F41 ne dépendent pas de F42.*
+> *F42 : P1+P2+P3 livres (27/03/2026), mais la boucle metier n'est pas encore totalement fermee ; la generation locale exercice reste structurellement `age_group -> derived_difficulty -> pedagogical_band -> type_limits ajustees`. F42 reste prerequis pour F40-v2 (filtre age leaderboard) et l'equite des comparaisons. F40/F41 ne dependent pas de F42.*
 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
 **[DONE] Implemente dans le code**
-- F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35, F40, F41, F42
+- F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35, F40, F41
 
 **[PARTIAL] Fondations deja posees**
 - F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
@@ -879,7 +879,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 |---------|-----------------|--------------------|-----------------------|
 | **F40 — Leaderboard position utilisateur hors top 50** | Planifié 25/03/2026 | Classement top 50 + `is_current_user` flag sur chaque entrée. | Nouvel endpoint `GET /api/users/me/rank` (COUNT query) + injection rang courant en bas de liste avec séparateur visuel. Effort S. **Aucun prérequis — livrable après L2 sans F42.** F42 est prérequis de F40-v2 (rang filtré par groupe d'âge) uniquement. |
 | **F41 — Leaderboard filtre temporel** | Livré 24/03/2026 (lot L3-B) | `GET /api/users/leaderboard?period=all\|week\|month` + `GET /api/users/me/rank?period=…` ; agrégation `SUM(points_delta)` sur `point_events` (fenêtres glissantes 7j / 30j UTC) ; sélecteur période sur la page classement. | **Déploiement produit** : si `point_events` est très peu peuplé, privilégier le défaut « Tout temps » en communication ; surveiller taux de liste vide en « 7 jours ». |
-| **F42 — Architecture difficulté/âge — séparation des deux axes** | Phase 1 + 2 livrées 27/03/2026 | P1 : migration `20260326_users_age_group`, profil, API. P2 : migration `20260327_content_difficulty_tier` ; colonnes `difficulty_tier` (1–12) sur `exercises` et `logic_challenges` ; reco exercices filtrées par fenêtre tier ±1 + legacy si tier NULL ; scoring défis ajusté par distance de tier. | Libellés « espace » réservés au dashboard parent (RGPD mineurs). |
+| **F42 — Architecture difficulté/âge — séparation des deux axes** | [PARTIAL] P1 + P2 + P3 techniques livrés, fermeture métier restante | P1 : migration `20260326_users_age_group`, profil, API. P2 : migration `20260327_content_difficulty_tier` ; colonnes `difficulty_tier` (1–12) sur `exercises` et `logic_challenges` ; reco exercices filtrées par fenêtre tier ±1 + legacy si tier NULL ; scoring défis ajusté par distance de tier. P3 : boundaries/admin renforcés et début de câblage génération. | Réserve post-review 27/03/2026 : la génération locale exercice reste structurellement `age_group -> derived_difficulty -> pedagogical_band -> type_limits ajustées` ; un lot dédié reste nécessaire pour un pilotage runtime pleinement 4x3. Libellés « espace » réservés au dashboard parent (RGPD mineurs). |
 | **Leaderboard — filtre par groupe d'âge (utilisateur)** | Report 25/03/2026 (lot L1) | Le classement expose `limit` et des champs enrichis ; le paramètre `age_group` a été **retiré** car il filtrait à tort sur `preferred_difficulty` (difficulté easy/medium/hard ≠ tranche d'âge). | Dépend de F42 Phase 1 (colonne `age_group` sur `User`) puis F40. |
 | F14 - Monitoring IA persistance DB | Code au 23/03/2026 | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness | persistance DB complete des metriques runtime live |
 | F38 - Progression gamification compte coherente & historique des gains | Code au 23/03/2026 | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard` | historique utilisateur dedie, agregats par source, UX compte lisible |

@@ -12,14 +12,23 @@ import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useLeaderboard, type LeaderboardEntry } from "@/hooks/useLeaderboard";
 import {
   RANK_MEDALS,
-  JEDI_RANK_ICONS,
-  JEDI_RANK_TEXT_CLASS,
+  PROGRESSION_RANK_ICONS,
+  PROGRESSION_RANK_TEXT_CLASS,
   leaderboardPodiumSurfaceClass,
 } from "@/lib/constants/leaderboard";
+import {
+  canonicalProgressionRankBucket,
+  isKnownProgressionRankBucket,
+} from "@/lib/gamification/progressionRankLabel";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function LeaderboardWidget() {
   const t = useTranslations("dashboard.leaderboardWidget");
+  const tProgRank = useTranslations("progressionRanks");
+  const progressionRankLabel = (bucket: string) => {
+    const c = canonicalProgressionRankBucket(bucket);
+    return isKnownProgressionRankBucket(bucket) ? tProgRank(c) : bucket;
+  };
   const { leaderboard, isLoading, error } = useLeaderboard(5);
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
@@ -87,7 +96,9 @@ export function LeaderboardWidget() {
           ) : (
             <ul role="list" className="list-none m-0 p-0">
               {leaderboard.map((entry: LeaderboardEntry, idx: number) => {
-                const jediClass = JEDI_RANK_TEXT_CLASS[entry.jedi_rank] ?? "text-muted-foreground";
+                const rankCanon = canonicalProgressionRankBucket(entry.jedi_rank);
+                const rankClass = PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-muted-foreground";
+                const rankReadable = progressionRankLabel(entry.jedi_rank);
                 return (
                   <motion.li
                     key={`${entry.rank}-${entry.username}`}
@@ -124,11 +135,11 @@ export function LeaderboardWidget() {
                         {entry.username}
                       </span>
                       <span
-                        className={cn("flex-shrink-0 text-sm leading-none", jediClass)}
-                        title={entry.jedi_rank}
-                        aria-hidden
+                        className={cn("flex-shrink-0 text-sm leading-none", rankClass)}
+                        title={rankReadable}
+                        aria-label={rankReadable}
                       >
-                        {JEDI_RANK_ICONS[entry.jedi_rank] ?? "🌟"}
+                        {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
                       </span>
                     </span>
 

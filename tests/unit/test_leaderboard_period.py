@@ -65,9 +65,24 @@ def test_get_leaderboard_week_prefers_recent_point_events(db_session):
     )
     db_session.commit()
 
-    # Score élevé pour rester dans le top ``limit + 50`` même si la BD de test
-    # contient déjà beaucoup d'utilisateurs avec des point_events récents.
-    hot_week_pts = 1_000_000
+    # Score calculé relativement au max hebdo courant pour rester déterministe
+    # même si la base de test partagée contient déjà de gros cumuls récents.
+    period_subq = (
+        db_session.query(
+            PointEvent.user_id.label("uid"),
+            func.sum(PointEvent.points_delta).label("period_pts"),
+        )
+        .filter(
+            PointEvent.created_at
+            >= leaderboard_period_cutoff_utc(LeaderboardPeriod.WEEK)
+        )
+        .group_by(PointEvent.user_id)
+        .subquery()
+    )
+    existing_max = db_session.query(
+        func.coalesce(func.max(period_subq.c.period_pts), 0)
+    ).scalar()
+    hot_week_pts = int(existing_max or 0) + 1000
     GamificationService.apply_points(
         db_session,
         u_hot.id,

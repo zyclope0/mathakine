@@ -39,6 +39,7 @@ class ExerciseRepository:
         exercise_type: str,
         age_group: str,
         difficulty: str,
+        difficulty_tier: Optional[int],
         title: str,
         question: str,
         correct_answer: str,
@@ -56,6 +57,7 @@ class ExerciseRepository:
             exercise_type: Type d'exercice
             age_group: Groupe d'âge
             difficulty: Difficulté dérivée
+            difficulty_tier: Tier F42 résolu au runtime (si déjà calculé)
             title: Titre
             question: Question
             correct_answer: Réponse correcte
@@ -68,7 +70,11 @@ class ExerciseRepository:
         Returns:
             Dictionnaire avec id et données de l'exercice créé, ou None
         """
-        tier = compute_difficulty_tier_for_exercise_strings(age_group, difficulty)
+        tier = (
+            difficulty_tier
+            if difficulty_tier is not None
+            else compute_difficulty_tier_for_exercise_strings(age_group, difficulty)
+        )
         exercise_data = {
             "title": title,
             "exercise_type": exercise_type,

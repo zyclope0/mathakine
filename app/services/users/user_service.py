@@ -10,6 +10,7 @@ from app.core.leaderboard_period import (
     leaderboard_period_cutoff_utc,
 )
 from app.core.logging_config import get_logger
+from app.core.mastery_tier_bridge import project_exercise_progress_f42
 from app.core.types import (
     ChallengesProgressDict,
     ChartData,
@@ -18,9 +19,27 @@ from app.core.types import (
     UserProgressDict,
 )
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
+from app.services.gamification.compute import canonicalize_progression_rank_bucket
 
 logger = get_logger(__name__)
+
 from sqlalchemy import func, text
+
+
+def _norm_exercise_type_lookup_key(raw: Any) -> str:
+    """Clé stable pour joindre Progress / Exercise (type en majuscules)."""
+    if raw is None:
+        return "UNKNOWN"
+    if isinstance(raw, str):
+        s = raw.strip().upper()
+        return s if s else "UNKNOWN"
+    if hasattr(raw, "value"):
+        s = str(raw.value).strip().upper()
+        return s if s else "UNKNOWN"
+    s = str(raw).strip().upper()
+    return s if s else "UNKNOWN"
+
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
@@ -596,6 +615,17 @@ class UserService:
             return 0
 
     @staticmethod
+    def _is_visible_in_leaderboards(user: User) -> bool:
+        """Applique la confidentialité leaderboard côté service."""
+        settings = user.accessibility_settings or {}
+        privacy = (
+            (settings.get("privacy_settings") or {})
+            if isinstance(settings.get("privacy_settings"), dict)
+            else {}
+        )
+        return privacy.get("show_in_leaderboards") is not False
+
+    @staticmethod
     def _iter_leaderboard_rows_from_users(
         users: List[User],
         current_user_id: int,
@@ -607,13 +637,7 @@ class UserService:
         for user in users:
             if len(leaderboard) >= limit:
                 break
-            settings = user.accessibility_settings or {}
-            privacy = (
-                (settings.get("privacy_settings") or {})
-                if isinstance(settings.get("privacy_settings"), dict)
-                else {}
-            )
-            if privacy.get("show_in_leaderboards") is False:
+            if not UserService._is_visible_in_leaderboards(user):
                 continue
             score = int(score_fn(user))
             leaderboard.append(
@@ -621,7 +645,10 @@ class UserService:
                     "username": user.username,
                     "total_points": score,
                     "current_level": user.current_level or 1,
-                    "jedi_rank": user.jedi_rank or "youngling",
+                    "jedi_rank": canonicalize_progression_rank_bucket(
+                        getattr(user, "jedi_rank", None),
+                        int(getattr(user, "current_level", None) or 1),
+                    ),
                     "is_current_user": user.id == current_user_id,
                     "avatar_url": user.avatar_url,
                     "current_streak": user.current_streak or 0,
@@ -649,15 +676,27 @@ class UserService:
               glissante (7j / 30j, UTC).
         """
         cutoff = leaderboard_period_cutoff_utc(period)
+        batch_size = max(limit + 50, 100)
 
         if cutoff is None:
-            q = db.query(User).filter(User.is_active.is_(True))
-            users = (
-                q.options(selectinload(User.user_achievements))
+            q = (
+                db.query(User)
+                .filter(User.is_active.is_(True))
+                .options(selectinload(User.user_achievements))
                 .order_by(User.total_points.desc(), User.id.asc())
-                .limit(limit + 50)
-                .all()
             )
+            users: List[User] = []
+            offset = 0
+            while len(users) < limit:
+                batch = q.offset(offset).limit(batch_size).all()
+                if not batch:
+                    break
+                users.extend(
+                    user
+                    for user in batch
+                    if UserService._is_visible_in_leaderboards(user)
+                )
+                offset += len(batch)
             return UserService._iter_leaderboard_rows_from_users(
                 users,
                 current_user_id,
@@ -675,7 +714,7 @@ class UserService:
             .subquery()
         )
 
-        rows = (
+        q = (
             db.query(
                 User, func.coalesce(period_subq.c.period_pts, 0).label("lb_points")
             )
@@ -686,11 +725,22 @@ class UserService:
                 func.coalesce(period_subq.c.period_pts, 0).desc(),
                 User.id.asc(),
             )
-            .limit(limit + 50)
-            .all()
         )
-        users_ordered = [r[0] for r in rows]
-        scores_by_id = {r[0].id: int(r[1] or 0) for r in rows}
+        users_ordered: List[User] = []
+        scores_by_id: Dict[int, int] = {}
+        offset = 0
+        while len(users_ordered) < limit:
+            rows = q.offset(offset).limit(batch_size).all()
+            if not rows:
+                break
+            for user, lb_points in rows:
+                if not UserService._is_visible_in_leaderboards(user):
+                    continue
+                users_ordered.append(user)
+                scores_by_id[user.id] = int(lb_points or 0)
+                if len(users_ordered) >= limit:
+                    break
+            offset += len(rows)
         return UserService._iter_leaderboard_rows_from_users(
             users_ordered,
             current_user_id,
@@ -818,15 +868,27 @@ class UserService:
                 category_attempts[exercise_type]["correct"] += 1
                 category_attempts[exercise_type]["completed_ids"].add(exercise.id)
 
+        progress_rows = db.query(Progress).filter(Progress.user_id == user_id).all()
+        progress_by_type: Dict[str, Progress] = {}
+        for prow in progress_rows:
+            progress_by_type[_norm_exercise_type_lookup_key(prow.exercise_type)] = prow
+
         for exercise_type, stats in category_attempts.items():
             total = stats["total"]
             correct = stats["correct"]
-            by_category[exercise_type] = {
+            cat_entry: Dict[str, Any] = {
                 "completed": len(stats["completed_ids"]),
                 "attempts": total,
                 "correct": correct,
                 "accuracy": round(correct / total, 2) if total > 0 else 0.0,
             }
+            if user_row is not None:
+                match = progress_by_type.get(
+                    _norm_exercise_type_lookup_key(exercise_type)
+                )
+                if match is not None:
+                    cat_entry["f42"] = project_exercise_progress_f42(match, user_row)
+            by_category[exercise_type] = cat_entry
 
         return {
             "total_attempts": total_attempts,
@@ -1172,7 +1234,10 @@ class UserService:
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,
             "total_points": user.total_points,
             "current_level": user.current_level,
-            "jedi_rank": user.jedi_rank,
+            "jedi_rank": canonicalize_progression_rank_bucket(
+                getattr(user, "jedi_rank", None),
+                int(getattr(user, "current_level", None) or 1),
+            ),
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }
 

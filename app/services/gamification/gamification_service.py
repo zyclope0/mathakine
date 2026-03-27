@@ -11,7 +11,10 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import get_logger
 from app.models.point_event import PointEvent
 from app.models.user import User
-from app.services.gamification.compute import compute_state_from_total_points
+from app.services.gamification.compute import (
+    canonicalize_progression_rank_bucket,
+    compute_state_from_total_points,
+)
 from app.services.gamification.constants import POINTS_PER_LEVEL
 from app.services.gamification.exceptions import (
     GamificationUserNotFoundError,
@@ -54,7 +57,9 @@ class GamificationService:
             "title": title,
             "current_xp": current_xp,
             "next_level_xp": POINTS_PER_LEVEL,
-            "jedi_rank": getattr(user, "jedi_rank", None) or "youngling",
+            "jedi_rank": canonicalize_progression_rank_bucket(
+                getattr(user, "jedi_rank", None), level
+            ),
         }
 
     @staticmethod

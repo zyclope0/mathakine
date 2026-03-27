@@ -16,10 +16,12 @@ import pytest
 
 from app.core.constants import AgeGroups, DifficultyLevels
 from app.services.exercises.adaptive_difficulty_service import (
+    AdaptiveGenerationContext,
     _adjust_for_realtime_progress,
     _irt_ordinal_for_type,
     _mastery_to_ordinal,
     _ordinal_to_age_group,
+    resolve_adaptive_context,
     resolve_adaptive_difficulty,
     resolve_irt_level,
 )
@@ -427,6 +429,64 @@ class TestResolveAdaptiveDifficulty:
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
         assert result == AgeGroups.GROUP_9_11
+
+
+class TestResolveAdaptiveContext:
+    """Le chemin F42 doit garder l'âge stable et réutiliser IRT en fallback de bande."""
+
+    def test_progress_mastery_changes_band_but_not_age_group(self):
+        progress = _make_progress(
+            total_attempts=12,
+            completion_rate=80.0,
+            streak=2,
+            mastery_level=5,
+        )
+        db = _make_db(progress=progress)
+        user = _make_user(user_id=1, age_group="9-11")
+
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            ctx = resolve_adaptive_context(db, user, "ADDITION")
+
+        assert isinstance(ctx, AdaptiveGenerationContext)
+        assert ctx.age_group == AgeGroups.GROUP_9_11
+        assert ctx.pedagogical_band == "consolidation"
+        assert ctx.mastery_source == "progress_mastery"
+
+    def test_irt_fallback_changes_band_but_not_age_group(self):
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, age_group="9-11")
+        irt_score = _make_irt_score(
+            difficulty=DifficultyLevels.GRAND_MAITRE, days_ago=5
+        )
+
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_score,
+        ):
+            ctx = resolve_adaptive_context(db, user, "ADDITION")
+
+        assert isinstance(ctx, AdaptiveGenerationContext)
+        assert ctx.age_group == AgeGroups.GROUP_9_11
+        assert ctx.pedagogical_band == "consolidation"
+        assert ctx.mastery_source == "irt_diagnostic"
+
+    def test_no_progress_and_no_irt_falls_back_to_learning(self):
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, age_group="9-11")
+
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            ctx = resolve_adaptive_context(db, user, "ADDITION")
+
+        assert isinstance(ctx, AdaptiveGenerationContext)
+        assert ctx.age_group == AgeGroups.GROUP_9_11
+        assert ctx.pedagogical_band == "learning"
+        assert ctx.mastery_source == "fallback"
 
 
 # ---------------------------------------------------------------------------

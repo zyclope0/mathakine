@@ -35,8 +35,14 @@ from sqlalchemy.orm import Session
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
 from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
+from app.core.mastery_tier_bridge import (
+    DEFAULT_AGE_GROUP_FALLBACK,
+    canonical_age_group_with_fallback,
+    enrich_diagnostic_scores_f42,
+)
 from app.core.security import sign_diagnostic_state, verify_diagnostic_state
 from app.models.diagnostic_result import DiagnosticResult
+from app.models.user import User
 from app.services.diagnostic.diagnostic_pending_storage import (
     delete_pending_state,
     get_pending_state,
@@ -458,14 +464,26 @@ def get_latest_score(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
     )
     if not result:
         return None
-    return {
+    scores = result.scores or {}
+    payload: Dict[str, Any] = {
         "id": result.id,
         "completed_at": result.completed_at.isoformat(),
         "triggered_from": result.triggered_from,
         "questions_asked": result.questions_asked,
         "duration_seconds": result.duration_seconds,
-        "scores": result.scores or {},
+        "scores": scores,
     }
+    user = db.query(User).filter(User.id == user_id).first()
+    canon = (
+        canonical_age_group_with_fallback(user)
+        if user is not None
+        else DEFAULT_AGE_GROUP_FALLBACK
+    )
+    payload["scores_f42"] = enrich_diagnostic_scores_f42(
+        scores, canonical_age_group=canon
+    )
+    payload["canonical_age_group_f42"] = canon
+    return payload
 
 
 def has_completed_diagnostic(db: Session, user_id: int) -> bool:

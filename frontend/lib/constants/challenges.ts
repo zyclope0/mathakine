@@ -146,6 +146,12 @@ export function getAdminAgeDisplay(val: string | null | undefined): string {
   return ADMIN_AGE_GROUP_LABELS[val] ?? val;
 }
 
+/**
+ * Valeur interne UI : ne pas envoyer au backend ; l'âge est résolu via le profil F42.
+ * @see useAIChallengeGenerator (omission de `age_group` dans le POST).
+ */
+export const CHALLENGE_AI_AGE_USE_PROFILE = "__profile__" as const;
+
 // Importer et ré-exporter les constantes de groupe d'âge unifiées (DRY)
 export {
   AGE_GROUPS,

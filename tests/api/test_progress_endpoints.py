@@ -4,6 +4,7 @@ Tests des endpoints API pour le suivi des progrès des utilisateurs.
 
 import pytest
 
+from app.core.constants import AgeGroups
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.progress import Progress
@@ -158,6 +159,70 @@ async def test_get_user_progress_by_type(padawan_client, db_session, mock_exerci
     cat = data["by_category"][exercise_type_val]
     assert "completed" in cat
     assert "accuracy" in cat
+    # Sans ligne Progress (tentative insérée hors flux submit), pas de projection F42.
+    assert "f42" not in cat
+
+
+async def test_get_user_progress_by_type_includes_f42_after_submit(
+    padawan_client, db_session, mock_exercise
+):
+    """GET /me/progress : by_category[type].f42 après POST /exercises/{id}/attempt."""
+    client = padawan_client["client"]
+
+    exercise_data = mock_exercise(exercise_type="addition")
+    exercise_type_str = (
+        exercise_data["exercise_type"].upper()
+        if isinstance(exercise_data["exercise_type"], str)
+        else exercise_data["exercise_type"]
+    )
+    difficulty_str = (
+        exercise_data["difficulty"].upper()
+        if isinstance(exercise_data["difficulty"], str)
+        else exercise_data["difficulty"]
+    )
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+
+    exercise = Exercise(
+        title=exercise_data["title"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
+        age_group=exercise_data.get("age_group", "6-8"),
+        question=exercise_data["question"],
+        correct_answer=exercise_data["correct_answer"],
+        choices=exercise_data.get("choices"),
+        explanation=exercise_data.get("explanation"),
+        is_active=exercise_data.get("is_active", True),
+        creator_id=None,
+        is_archived=False,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    submit = await client.post(
+        f"/api/exercises/{exercise.id}/attempt",
+        json={"answer": exercise.correct_answer, "time_spent": 30},
+    )
+    assert submit.status_code == 200
+
+    response = await client.get("/api/users/me/progress")
+    assert response.status_code == 200
+    data = response.json()
+    exercise_type_val = _enum_val(exercise.exercise_type)
+    cat = data["by_category"][exercise_type_val]
+    assert "f42" in cat
+    f42 = cat["f42"]
+    assert f42["canonical_age_group"] == AgeGroups.GROUP_9_11
+    assert f42["pedagogical_band"] == "consolidation"
+    assert f42["difficulty_tier"] == 6
+    assert f42["mastery_level"] == 5
 
 
 async def test_get_user_progress_unauthorized(client):
@@ -237,6 +302,10 @@ async def test_get_challenges_detailed_progress_ok(padawan_client, db_session):
     row = next(i for i in data["items"] if i["challenge_type"] == "sequence")
     assert row["total_attempts"] == 1
     assert row["correct_attempts"] == 1
+    assert "f42" in row
+    assert row["f42"]["pedagogical_band"] == "consolidation"
+    assert row["f42"]["difficulty_tier"] == 6
+    assert row["f42"]["canonical_age_group"] == AgeGroups.GROUP_9_11
 
 
 async def test_get_user_progress_nonexistent_type(padawan_client):

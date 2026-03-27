@@ -29,6 +29,7 @@ This file defines which document should be trusted for what.
 |---|---|---|---|
 | [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Backlog source of truth | Active | Priorities, implemented history, open follow-ups |
 | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) | Active runtime/API reference | Active / truth-reviewed | Mirrors current routes at a high level; runtime notes refreshed 2026-03-23 |
+| [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) | Produit simple: difficulté pédagogique vs rangs publics | Active reference | Version lisible équipe/produit ; le manifeste technique reste dans `00-REFERENCE/` |
 | [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md) | Gamification account + ledger reference | Active | Account-level points, level computation, ledger writes and read surfaces |
 | [CHALLENGE_CONTRACT_IA9.md](CHALLENGE_CONTRACT_IA9.md) | Contrat défis : `response_mode`, `choices`, symétrie | Active | Lot IA9 ; code source `challenge_contract_policy.py` |
 | [AUTH_FLOW.md](AUTH_FLOW.md) | Auth reference | Active | Runtime auth flow reference |
@@ -53,6 +54,7 @@ This file defines which document should be trusted for what.
 
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
 - [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+- [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)
 - [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
 - [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md)
 - [AUTH_FLOW.md](AUTH_FLOW.md)

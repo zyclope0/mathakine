@@ -54,8 +54,8 @@ class Progress(Base):
         DateTime(timezone=True), nullable=True
     )  # Dernière session active
 
-    # Niveau de maîtrise (compatible avec le thème Star Wars)
-    # 1: Novice, 2: Initié, 3: Padawan, 4: Chevalier, 5: Maître
+    # Niveau de maîtrise agrégé (1–5, échelle legacy persistée ; projection F42 via
+    # app.core.mastery_tier_bridge à partir du taux de complétion).
     mastery_level = Column(Integer, default=1)
 
     # Médailles et récompenses (format JSON)
@@ -81,15 +81,15 @@ class Progress(Base):
         return (self.correct_attempts / self.total_attempts) * 100
 
     def update_mastery_level(self):
-        """Met à jour le niveau de maîtrise basé sur le taux de complétion"""
+        """Met à jour mastery_level 1–5 à partir du taux de complétion (seuils legacy)."""
         rate = self.calculate_completion_rate()
         if rate >= 95:
-            self.mastery_level = 5  # Maître
+            self.mastery_level = 5
         elif rate >= 85:
-            self.mastery_level = 4  # Chevalier
+            self.mastery_level = 4
         elif rate >= 70:
-            self.mastery_level = 3  # Padawan
+            self.mastery_level = 3
         elif rate >= 50:
-            self.mastery_level = 2  # Initié
+            self.mastery_level = 2
         else:
-            self.mastery_level = 1  # Novice
+            self.mastery_level = 1

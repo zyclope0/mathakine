@@ -210,7 +210,8 @@ def test_serialize_user_profile_for_api():
     assert gl["current"] == 3
     assert gl["current_xp"] == 20
     assert gl["next_level_xp"] == POINTS_PER_LEVEL
-    assert gl["jedi_rank"] == "padawan"
+    assert response_data["jedi_rank"] == "scout"
+    assert gl["jedi_rank"] == "scout"
 
 
 def test_build_gamification_level_for_api_uses_persisted_fields():
@@ -226,6 +227,7 @@ def test_build_gamification_level_for_api_uses_persisted_fields():
     assert gl["current_xp"] == 50
     assert gl["next_level_xp"] == 100
     assert gl["title"] == LEVEL_TITLES[3]
+    assert gl["jedi_rank"] == "scout"
 
 
 def test_build_gamification_level_for_api_xp_fallback_from_total_points():
@@ -238,6 +240,7 @@ def test_build_gamification_level_for_api_xp_fallback_from_total_points():
     gl = UserService.build_gamification_level_for_api(user)
 
     assert gl["current_xp"] == 77
+    assert gl["jedi_rank"] == "cadet"
 
 
 def test_build_gamification_level_for_api_high_level_generic_title():
@@ -251,6 +254,7 @@ def test_build_gamification_level_for_api_high_level_generic_title():
 
     assert gl["title"] == "Niveau 42"
     assert gl["current"] == 42
+    assert gl["jedi_rank"] == "cosmic_legend"
 
 
 def test_get_user_by_email():

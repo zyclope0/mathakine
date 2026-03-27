@@ -10,8 +10,9 @@ Ce dossier contient les references transversales vivantes : architecture, gouver
 ## Lire d'abord
 
 1. [ARCHITECTURE.md](ARCHITECTURE.md)
-2. [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
-3. [GETTING_STARTED.md](GETTING_STARTED.md)
+2. [DIFFICULTY_AND_RANKS_MANIFEST.md](DIFFICULTY_AND_RANKS_MANIFEST.md)
+3. [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
+4. [GETTING_STARTED.md](GETTING_STARTED.md)
 
 ## Regle
 

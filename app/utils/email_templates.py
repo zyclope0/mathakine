@@ -1,15 +1,15 @@
 """
-Templates emails Mathakine - Thème Jedi / L'Ordre des Mathématiques
+Templates emails Mathakine — thème spatial sobre.
 Design unifié, ergonomique et accessible pour tous les clients email.
 """
 
-# Couleurs du thème Jedi/Space (compatible clients email)
+# Couleurs du thème (compatible clients email)
 THEME = {
-    "bg_dark": "#0f172a",  # Fond header (espace)
+    "bg_dark": "#0f172a",  # Fond header
     "bg_content": "#ffffff",  # Corps du message
-    "accent": "#06b6d4",  # Cyan (lame de sabre)
+    "accent": "#06b6d4",  # Cyan accent
     "accent_hover": "#0891b2",
-    "gold": "#f59e0b",  # Sagesse Jedi
+    "gold": "#f59e0b",  # Mise en avant secondaire
     "text_dark": "#1e293b",
     "text_light": "#e2e8f0",
     "text_muted": "#64748b",
@@ -49,7 +49,7 @@ def _wrapper(header_title: str, header_subtitle: str, body_html: str) -> str:
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚔️ Mathakine</h1>
+            <h1>🚀 Mathakine</h1>
             <p class="subtitle">{header_subtitle}</p>
         </div>
         <div class="content">
@@ -58,7 +58,7 @@ def _wrapper(header_title: str, header_subtitle: str, body_html: str) -> str:
     </div>
     <div class="container">
         <div class="footer">
-            <p>© 2025 Mathakine — L'Ordre Jedi des Mathématiques</p>
+            <p>© 2026 Mathakine — Plateforme d'apprentissage des mathématiques</p>
         </div>
     </div>
 </body>
@@ -73,8 +73,8 @@ def verification_email_html(username: str, verification_link: str) -> str:
     """
     body = f"""
             <p>Bonjour <strong>{username}</strong>,</p>
-            <p>Bienvenue au sein de l'Ordre Jedi des Mathématiques ! 🌟</p>
-            <p>Ton inscription est presque terminée. Clique sur le bouton ci-dessous pour activer ton compte et commencer ton entraînement.</p>
+            <p>Bienvenue sur Mathakine ! 🌟</p>
+            <p>Ton inscription est presque terminée. Clique sur le bouton ci-dessous pour activer ton compte et commencer à t'entraîner.</p>
             <div class="cta-wrapper">
                 <a href="{verification_link}" class="cta">Activer mon compte</a>
             </div>
@@ -94,7 +94,7 @@ def verification_email_text(username: str, verification_link: str) -> str:
     """Version texte brute de l'email de vérification."""
     return f"""Bonjour {username},
 
-Bienvenue au sein de l'Ordre Jedi des Mathématiques !
+Bienvenue sur Mathakine !
 
 Ton inscription est presque terminée. Active ton compte en cliquant sur ce lien :
 {verification_link}
@@ -103,7 +103,7 @@ Ce lien expire dans 24 heures.
 
 Tu ne t'es pas inscrit ? Tu peux ignorer cet email.
 
-© 2025 Mathakine — L'Ordre Jedi des Mathématiques"""
+© 2026 Mathakine — Plateforme d'apprentissage des mathématiques"""
 
 
 def password_reset_email_html(username: str, reset_link: str) -> str:
@@ -143,4 +143,4 @@ Ce lien expire dans 1 heure.
 
 Tu n'as pas demandé ce changement ? Ignore cet email.
 
-© 2025 Mathakine — L'Ordre Jedi des Mathématiques"""
+© 2026 Mathakine — Plateforme d'apprentissage des mathématiques"""

@@ -7,8 +7,10 @@ from typing import Any, Dict, List
 
 from sqlalchemy.orm import Session
 
+from app.core.mastery_tier_bridge import project_challenge_progress_row_f42
 from app.models.challenge_progress import ChallengeProgress
 from app.models.logic_challenge import LogicChallenge, LogicChallengeType
+from app.models.user import User
 from app.utils.db_helpers import get_python_enum_value
 
 
@@ -84,14 +86,16 @@ def upsert_challenge_progress(
 
 def list_challenge_progress_for_user(db: Session, user_id: int) -> List[Dict[str, Any]]:
     """Liste ordonnée des lignes challenge_progress pour l'utilisateur (API)."""
+    user = db.query(User).filter(User.id == user_id).first()
     rows = (
         db.query(ChallengeProgress)
         .filter(ChallengeProgress.user_id == user_id)
         .order_by(ChallengeProgress.challenge_type)
         .all()
     )
-    return [
-        {
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        item: Dict[str, Any] = {
             "id": r.id,
             "user_id": r.user_id,
             "challenge_type": r.challenge_type,
@@ -103,5 +107,7 @@ def list_challenge_progress_for_user(db: Session, user_id: int) -> List[Dict[str
                 r.last_attempted_at.isoformat() if r.last_attempted_at else None
             ),
         }
-        for r in rows
-    ]
+        if user is not None:
+            item["f42"] = project_challenge_progress_row_f42(r, user)
+        out.append(item)
+    return out

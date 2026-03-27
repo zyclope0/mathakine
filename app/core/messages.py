@@ -36,12 +36,12 @@ class SystemMessages:
 # Messages liés aux exercices
 class ExerciseMessages:
     # Titres des exercices
-    TITLE_ADDITION = "Addition galactique"
-    TITLE_SUBTRACTION = "Soustraction stellaire"
-    TITLE_MULTIPLICATION = "Multiplication cosmique"
-    TITLE_DIVISION = "Division spatiale"
-    TITLE_FRACTIONS = "Fractions de l'hyperespace"
-    TITLE_GEOMETRIE = "Géométrie des constellations"
+    TITLE_ADDITION = "Addition"
+    TITLE_SUBTRACTION = "Soustraction"
+    TITLE_MULTIPLICATION = "Multiplication"
+    TITLE_DIVISION = "Division"
+    TITLE_FRACTIONS = "Fractions"
+    TITLE_GEOMETRIE = "Géométrie"
     TITLE_DIVERS = "Défi mathématique"
     TITLE_DEFAULT = "Exercice mathématique"
     TITLE_AI_PREFIX = (
@@ -75,7 +75,7 @@ class ExerciseMessages:
 
     # Tags
     TAGS_ALGORITHMIC = "algorithmique,simple"
-    TAGS_AI = "ia,generatif,starwars"
+    TAGS_AI = "ia,generatif"
 
     # Réponses
     SUCCESS_ANSWER_CORRECT = "Bravo ! Ta réponse est correcte."
@@ -91,262 +91,69 @@ class ExerciseMessages:
     INFO_EXERCISE_SKIPPED = "Exercice passé"
 
 
-# Éléments narratifs Star Wars pour les exercices générés par IA
-class StarWarsNarratives:
-    # Personnages Star Wars pour les contextes
-    CHARACTERS = [
-        "Luke Skywalker",
-        "Princesse Leia",
-        "Han Solo",
-        "Chewbacca",
-        "Maître Yoda",
-        "Obi-Wan Kenobi",
-        "R2-D2",
-        "C-3PO",
-        "Darth Vader",
-        "Rey",
-        "Kylo Ren",
-        "BB-8",
-        "Finn",
-        "Poe Dameron",
-        "Padmé Amidala",
-        "Qui-Gon Jinn",
-        "Mace Windu",
-        "Ahsoka Tano",
-        "Boba Fett",
-        "Le Mandalorien",
-    ]
+class SpatialNarratives:
+    """Neutral space-themed narratives for generated exercises (F42-C1A)."""
 
-    # Objets Star Wars
-    OBJECTS = [
-        "sabres laser",
-        "vaisseaux",
-        "blasters",
-        "droïdes",
-        "cristaux kyber",
-        "pièces détachées",
-        "crédits galactiques",
-        "hologrammes",
-        "speeders",
-        "chasseurs X-wing",
-        "chasseurs TIE",
-        "grenades thermiques",
-        "jetpacks",
-        "casques de stormtrooper",
-    ]
-
-    # Lieux Star Wars
-    LOCATIONS = [
-        "Tatooine",
-        "Coruscant",
-        "Endor",
-        "Hoth",
-        "Dagobah",
-        "Naboo",
-        "Mustafar",
-        "Alderaan",
-        "Jakku",
-        "Exegol",
-        "Cantina de Mos Eisley",
-        "Temple Jedi",
-        "l'Étoile de la Mort",
-        "la Base Starkiller",
-        "Geonosis",
-    ]
-
-    # Préfixes pour les explications - OPTIMISÉS par difficulté
     EXPLANATION_PREFIXES = {
         "INITIE": [
-            "Jeune Padawan, comme l'enseigne Maître Yoda :",
-            "Dans tes premiers pas vers la maîtrise de la Force :",
-            "Pour un apprenti Jedi, cette leçon est fondamentale :",
-            "R2-D2 bipe d'approbation car :",
-            "Luke a appris cette technique de base :",
-            "C-3PO calcule que :",
+            "Jeune explorateur, voici une technique de base :",
+            "Dans tes premières missions spatiales :",
+            "Pour un apprenti navigateur, cette leçon est essentielle :",
         ],
         "PADAWAN": [
-            "En progressant dans ta formation Jedi :",
-            "Les archives du Temple enseignent que :",
-            "Comme l'a découvert Anakin Skywalker :",
-            "La Résistance utilise cette stratégie car :",
-            "Obi-Wan explique à ses élèves que :",
-            "Dans les missions de reconnaissance :",
+            "En progressant dans ta formation de pilote :",
+            "Les archives de la station enseignent que :",
+            "Lors de tes missions d'exploration :",
         ],
         "CHEVALIER": [
-            "Un Chevalier Jedi maîtrise ces calculs car :",
-            "Dans les batailles galactiques complexes :",
-            "Le Conseil Jedi reconnaît l'importance de :",
-            "Lors des missions diplomatiques critiques :",
-            "Les stratèges de l'Alliance savent que :",
-            "Face aux défis de l'Empire :",
+            "Un navigateur confirmé maîtrise ces calculs car :",
+            "Dans les missions interstellaires complexes :",
+            "Le centre de commandement reconnaît l'importance de :",
         ],
         "MAITRE": [
-            "Un Maître Jedi comprend que :",
-            "Dans la sagesse millénaire de l'Ordre :",
-            "Les grands stratèges galactiques enseignent :",
-            "Face aux mystères de la Force :",
-            "Dans les décisions qui façonnent la galaxie :",
-            "Comme l'ont prouvé les anciens Maîtres :",
+            "Un commandant expérimenté comprend que :",
+            "Dans la connaissance accumulée des explorateurs :",
+            "Les grands stratèges spatiaux enseignent :",
         ],
     }
 
-    # Conclusions pour les explications - OPTIMISÉES par difficulté
+    EXPLANATION_PREFIXES_GENERIC = [
+        "Dans l'espace, la précision des calculs est essentielle.",
+        "Les navigateurs savent que les mathématiques guident chaque trajectoire.",
+        "La maîtrise des nombres est le meilleur outil d'un explorateur.",
+    ]
+
     EXPLANATION_SUFFIXES = {
         "INITIE": [
-            "Continue ainsi, jeune Padawan !",
+            "Continue ainsi, jeune explorateur !",
             "Tu progresses bien dans ta formation.",
-            "La Force grandit en toi.",
-            "Même R2-D2 est impressionné !",
-            "Tu es sur la bonne voie vers la maîtrise.",
-            "Que la Force t'accompagne dans tes calculs.",
+            "Même l'ordinateur de bord est impressionné !",
         ],
         "PADAWAN": [
-            "Tu maîtrises les bases comme un vrai Jedi.",
-            "Tes compétences s'affinent, continue !",
-            "La voie du Jedi s'éclaire devant toi.",
-            "Tu honores l'enseignement de tes Maîtres.",
-            "Ces connaissances te serviront dans tes missions.",
-            "Tu progresses vers le rang de Chevalier.",
+            "Tu maîtrises les bases comme un vrai pilote.",
+            "Tes compétences de navigation s'affinent !",
+            "Ces connaissances te serviront en mission.",
         ],
         "CHEVALIER": [
-            "Digne d'un Chevalier Jedi accompli.",
-            "Ta maîtrise égale celle des grands stratèges.",
-            "Le Conseil Jedi serait fier de tes progrès.",
-            "Tu démontres la sagesse d'un vrai Jedi.",
-            "Ces compétences te distinguent dans la galaxie.",
-            "Tu es prêt pour les défis les plus complexes.",
+            "Digne d'un navigateur accompli.",
+            "Ta maîtrise égale celle des meilleurs pilotes.",
+            "Tu es prêt pour les missions les plus complexes.",
         ],
         "MAITRE": [
-            "Sagesse digne d'un Maître Jedi.",
-            "Tu atteins les sommets de la connaissance.",
-            "Même Yoda approuverait ta maîtrise.",
-            "Ta sagesse éclairera les générations futures.",
-            "Tu incarnes l'excellence de l'Ordre Jedi.",
-            "Que ta sagesse guide la galaxie vers la paix.",
+            "Sagesse digne d'un commandant de flotte.",
+            "Tu atteins les sommets de l'expertise spatiale.",
+            "Ta maîtrise éclairera les futures expéditions.",
         ],
     }
 
-    # Préfixes génériques (fallback pour compatibilité)
-    EXPLANATION_PREFIXES_GENERIC = [
-        "Dans l'univers Star Wars, il est important de partager équitablement les ressources, comme les armes laser.",
-        "Les Jedi enseignent que la maîtrise des mathématiques est essentielle à l'équilibre de la Force.",
-        "Comme le dit souvent Maître Yoda, 'Par les calculs, plus clair l'avenir devient.'",
-        "Dans la galaxie lointaine, très lointaine, la précision des calculs peut faire la différence entre victoire et défaite.",
-        "Pour un futur Jedi, comprendre les nombres est aussi important que manier le sabre laser.",
-        "La Résistance utilise quotidiennement ce type de calcul pour planifier ses missions.",
-        "L'Ordre Jedi a toujours valorisé les connaissances mathématiques dans la formation des Padawans.",
-        "Dans les archives du Temple Jedi, ce genre de problème est considéré comme fondamental.",
-        "Qu'on soit du côté lumineux ou obscur de la Force, ces compétences mathématiques sont universelles.",
-        "Même les droïdes comme R2-D2 doivent maîtriser ces calculs pour naviguer dans l'hyperespace.",
-    ]
-
-    # Suffixes génériques (fallback pour compatibilité)
     EXPLANATION_SUFFIXES_GENERIC = [
-        "Cette compétence te rapproche du rang de Maître Jedi.",
-        "En maîtrisant ces calculs, tu progresses sur le chemin de la Force.",
-        "Que la Force des mathématiques soit avec toi, jeune Padawan.",
-        "Comme dirait Maître Yoda: 'Apprendre toujours, nous devons.'",
-        "Ces connaissances te serviront dans toute la galaxie.",
-        "Continue ainsi, et tu pourras bientôt construire ton propre sabre laser.",
-        "La maîtrise de ces calculs te distingue des simples recrues de l'Empire.",
-        "Même un Seigneur Sith serait impressionné par ta maîtrise des nombres.",
-        "La Résistance a besoin de cerveaux brillants comme le tien.",
-        "Avec de telles compétences, même le Conseil Jedi pourrait te remarquer.",
+        "Cette compétence te rapproche du rang de commandant.",
+        "Continue ainsi, et tu pourras piloter ta propre mission.",
+        "Les bases spatiales ont besoin de cerveaux brillants comme le tien.",
     ]
-
-    # Contextes spécialisés par type d'exercice
-    CONTEXTS_BY_TYPE = {
-        "ADDITION": {
-            "objects": [
-                "cristaux Kyber",
-                "vaisseaux rebelles",
-                "droïdes",
-                "soldats",
-                "crédits",
-            ],
-            "actions": [
-                "rejoignent",
-                "s'allient",
-                "se rassemblent",
-                "fusionnent",
-                "s'unissent",
-            ],
-            "locations": [
-                "base rebelle",
-                "cantina",
-                "hangar",
-                "temple Jedi",
-                "station spatiale",
-            ],
-        },
-        "SUBTRACTION": {
-            "objects": [
-                "TIE Fighters",
-                "stormtroopers",
-                "ressources",
-                "munitions",
-                "vaisseaux",
-            ],
-            "actions": [
-                "sont détruits",
-                "désertent",
-                "sont perdus",
-                "sont confisqués",
-                "disparaissent",
-            ],
-            "locations": [
-                "bataille spatiale",
-                "raid impérial",
-                "mission secrète",
-                "combat",
-                "siège",
-            ],
-        },
-        "MULTIPLICATION": {
-            "objects": ["escadrons", "bataillons", "flottes", "systèmes", "garnisons"],
-            "actions": [
-                "se multiplient",
-                "se déploient",
-                "s'organisent",
-                "se coordonnent",
-                "s'étendent",
-            ],
-            "locations": [
-                "secteur galactique",
-                "front de guerre",
-                "territoire",
-                "zone d'influence",
-                "région",
-            ],
-        },
-        "DIVISION": {
-            "objects": [
-                "ressources",
-                "troupes",
-                "équipements",
-                "territoires",
-                "responsabilités",
-            ],
-            "actions": [
-                "se répartissent",
-                "se divisent",
-                "se distribuent",
-                "se partagent",
-                "s'organisent",
-            ],
-            "locations": [
-                "bases",
-                "planètes",
-                "secteurs",
-                "commandements",
-                "divisions",
-            ],
-        },
-    }
 
     @classmethod
     def get_explanation_prefix(cls, difficulty="PADAWAN"):
-        """Récupère un préfixe d'explication adapté à la difficulté"""
         prefixes = cls.EXPLANATION_PREFIXES.get(
             difficulty.upper(), cls.EXPLANATION_PREFIXES_GENERIC
         )
@@ -354,7 +161,6 @@ class StarWarsNarratives:
 
     @classmethod
     def get_explanation_suffix(cls, difficulty="PADAWAN"):
-        """Récupère un suffixe d'explication adapté à la difficulté"""
         suffixes = cls.EXPLANATION_SUFFIXES.get(
             difficulty.upper(), cls.EXPLANATION_SUFFIXES_GENERIC
         )
@@ -365,7 +171,7 @@ class StarWarsNarratives:
 class InterfaceTexts:
     # En-tête
     HEADER_TITLE = "Mathakine"
-    HEADER_SUBTITLE = "L'API Rebelle"
+    HEADER_SUBTITLE = "Apprendre les maths en s'amusant"
 
     # Menu principal
     MENU_HOME = "Accueil"
@@ -375,7 +181,7 @@ class InterfaceTexts:
 
     # Page d'accueil
     HOME_TITLE = "Bienvenue sur Mathakine"
-    HOME_SUBTITLE = "La plateforme d'entraînement mathématique pour les Padawans"
+    HOME_SUBTITLE = "La plateforme d'entraînement mathématique pour tous les niveaux"
     HOME_START_BUTTON = "Commencer l'entraînement"
     HOME_DASHBOARD_BUTTON = "Consulter vos progrès"
 
@@ -404,7 +210,7 @@ class InterfaceTexts:
     # Pied de page
     FOOTER_TEXT = "Mathakine - Exerce-toi aux mathématiques de façon amusante !"
     FOOTER_GITHUB = "Projet GitHub"
-    FOOTER_VERSION = "Version 3.0 - L'API Rebelle"
+    FOOTER_VERSION = "Version 3.0 — Mathakine"
 
     # Boutons génériques
     BUTTON_SUBMIT = "Valider"
@@ -446,8 +252,8 @@ class InterfaceTexts:
     LABEL_ANSWER = "Ta réponse"
 
     # Textes de page d'accueil
-    HOME_WELCOME = "Bienvenue sur Mathakine - L'API Rebelle"
-    HOME_DESCRIPTION = "Rejoins les forces rebelles et entraîne-toi avec des exercices mathématiques amusants et interactifs."
+    HOME_WELCOME = "Bienvenue sur Mathakine"
+    HOME_DESCRIPTION = "Entraîne-toi avec des exercices mathématiques clairs, progressifs et interactifs."
 
     # Messages de connexion/inscription
     LOGIN_TITLE = "Connexion"
@@ -482,9 +288,9 @@ class NotificationMessages:
 # Messages spécifiques aux utilisateurs
 class UserMessages:
     # Connexion et inscription
-    SUCCESS_REGISTRATION = "Inscription réussie ! Bienvenue dans l'Ordre Jedi."
-    SUCCESS_LOGIN = "Connexion réussie ! Que la Force soit avec toi."
-    SUCCESS_LOGOUT = "Déconnexion réussie. Que la Force te guide."
+    SUCCESS_REGISTRATION = "Inscription réussie ! Bienvenue sur Mathakine."
+    SUCCESS_LOGIN = "Connexion réussie ! Bonne séance d'entraînement."
+    SUCCESS_LOGOUT = "Déconnexion réussie. À bientôt !"
     ERROR_INVALID_CREDENTIALS = "Les informations d'identification sont incorrectes."
     ERROR_USERNAME_EXISTS = "Ce nom d'utilisateur est déjà pris."
     ERROR_EMAIL_EXISTS = "Cette adresse email est déjà utilisée."
@@ -508,7 +314,7 @@ class UserMessages:
         "Seuls les Gardiens et Archivistes peuvent effectuer cette action."
     )
     ERROR_CHEVALIER_REQUIRED = (
-        "Seuls les Chevaliers Jedi et supérieurs peuvent effectuer cette action."
+        "Cette action est réservée aux comptes avec une habilitation avancée."
     )
 
     # Progression

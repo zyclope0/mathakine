@@ -20,6 +20,7 @@ from app.services.auth.auth_service import (
     recover_refresh_token_from_access_token,
     refresh_access_token,
 )
+from app.services.gamification.compute import canonicalize_progression_rank_bucket
 
 logger = get_logger(__name__)
 
@@ -57,7 +58,10 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
         "total_points": int(getattr(user, "total_points", None) or 0),
         "current_level": int(getattr(user, "current_level", None) or 1),
         "experience_points": int(getattr(user, "experience_points", None) or 0),
-        "jedi_rank": getattr(user, "jedi_rank", None) or "youngling",
+        "jedi_rank": canonicalize_progression_rank_bucket(
+            getattr(user, "jedi_rank", None),
+            int(getattr(user, "current_level", None) or 1),
+        ),
         "gamification_level": UserService.build_gamification_level_for_api(user),
     }
 
@@ -199,8 +203,9 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
             "experience_points": (
                 user.experience_points if hasattr(user, "experience_points") else 0
             ),
-            "jedi_rank": (
-                user.jedi_rank if hasattr(user, "jedi_rank") else "youngling"
+            "jedi_rank": canonicalize_progression_rank_bucket(
+                user.jedi_rank if hasattr(user, "jedi_rank") else None,
+                int(user.current_level if hasattr(user, "current_level") else 1),
             ),
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }

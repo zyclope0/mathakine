@@ -18,7 +18,7 @@ ChallengeResponseModeLiteral = Literal[
 
 
 class LogicChallengeBase(BaseModel):
-    """Schéma de base pour les défis de logique (Épreuves du Conseil Jedi)"""
+    """Schéma de base pour les défis de logique mathématique."""
 
     title: str = Field(
         ...,
@@ -305,11 +305,57 @@ class ChallengeHintResponse(BaseModel):
     hint: str = Field(..., description="Indice demandé")
 
 
+ChallengeAgeGroupSourceLiteral = Literal["explicit", "profile", "fallback"]
+
+
+class ChallengeStreamPersonalizationMeta(BaseModel):
+    """Métadonnées F42 pour prompts, calibration et audit ``generation_parameters``."""
+
+    explicit_age_group: Optional[str] = Field(None, max_length=64)
+    user_context_age_group: str = Field(
+        default="tous-ages",
+        max_length=64,
+        description="Tranche d'âge issue du contexte reco profil (peut être tous-ages).",
+    )
+    age_group_source: ChallengeAgeGroupSourceLiteral = Field(
+        default="fallback",
+        description="explicit = âge choisi dans l'UI ; profile = profil F42 ; fallback = enveloppe par défaut.",
+    )
+    target_pedagogical_band: str = Field(
+        default="learning",
+        max_length=32,
+        description="Bande pédagogique (discovery / learning / consolidation).",
+    )
+    user_target_difficulty_tier: Optional[int] = Field(
+        None, ge=1, le=12, description="Tier profil avant recalcul éventuel."
+    )
+    resolved_target_tier: Optional[int] = Field(
+        None,
+        ge=1,
+        le=12,
+        description="Tier effectif pour la génération (âge résolu × bande).",
+    )
+    target_difficulty_rating_hint: Optional[float] = Field(
+        None, ge=1.0, le=5.0, description="Hint 1–5 pour la policy de difficulté."
+    )
+    calibration_text: str = Field(
+        default="",
+        max_length=2000,
+        description="Texte de calibrage F42 injecté dans le prompt système.",
+    )
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
 class GenerateChallengeStreamPostBody(BaseModel):
     """Corps JSON POST /api/challenges/generate-ai-stream (contrat symétrique aux exercices)."""
 
     challenge_type: str = Field(default="sequence", max_length=64)
-    age_group: str = Field(default="9-11", max_length=64)
+    age_group: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Omis ou null : résolution via le profil utilisateur authentifié (F42).",
+    )
     prompt: str = Field(default="", max_length=8000)
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
@@ -327,6 +373,10 @@ class GenerateChallengeStreamQuery(BaseModel):
     prompt: str = Field(default="", description="Prompt utilisateur sanitized")
     user_id: Optional[int] = Field(None, description="ID utilisateur authentifié")
     locale: str = Field(default="fr", description="Locale (Accept-Language résolu)")
+    personalization: Optional[ChallengeStreamPersonalizationMeta] = Field(
+        None,
+        description="Contexte F42 (audit + calibration) — champs additifs, non requis par les clients.",
+    )
 
 
 class LogicChallengeStats(BaseModel):

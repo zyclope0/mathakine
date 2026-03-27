@@ -145,11 +145,13 @@ def test_challenge_service_integration(db_session):
     assert retrieved is not None
     assert retrieved.id == challenge_id
 
-    # list_challenges filtre par enum (valeurs lowercase en DB) ; limit élevé pour inclure notre défi
+    # Recherche déterministe pour éviter le faux négatif lié à l'ordre random par défaut.
     challenges = list_challenges(
         db=db_session,
         challenge_type=LogicChallengeType.SEQUENCE.value,
-        limit=100,
+        search=unique_id,
+        order="recent",
+        limit=10,
     )
     assert len(challenges) >= 1
     assert any(

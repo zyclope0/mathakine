@@ -14,6 +14,7 @@ from app.core.constants import (
     Tags,
     normalize_age_group,
 )
+from app.core.difficulty_tier import build_exercise_generation_profile
 from app.core.messages import ExerciseMessages
 from app.utils.exercise_generator_validators import (
     get_difficulty_from_age_group,
@@ -21,13 +22,77 @@ from app.utils.exercise_generator_validators import (
 )
 
 
+def adjust_type_limits_for_f42_profile(
+    type_limits: Dict[str, Any], f42_profile: dict
+) -> Dict[str, Any]:
+    """Apply a fine-grained F42 calibration to the base ``type_limits`` dict.
+
+    Within a ``derived_difficulty`` bucket (e.g. PADAWAN covers tiers 4/5/6),
+    three pedagogical bands exist: discovery (0), learning (1), consolidation (2).
+    This helper scales numeric bounds *within* the legacy bucket so that:
+      - band 0 (discovery): lower third of the range
+      - band 1 (learning):  middle third  (identity — no change)
+      - band 2 (consolidation): upper third of the range
+
+    Pure function — mutates nothing, returns a new dict.
+    """
+    band = f42_profile.get("pedagogical_band", "learning")
+    if band == "learning":
+        # Middle of the legacy bucket — return as-is (no change)
+        return type_limits
+
+    adjusted: Dict[str, Any] = {}
+    for key, value in type_limits.items():
+        if not isinstance(value, int):
+            adjusted[key] = value
+            continue
+
+        if band == "discovery":
+            # Move toward the lower 60 % of the range
+            # New max = original min + 60 % of span
+            if key in ("max", "max1", "max2", "max_divisor", "max_result"):
+                base_min = type_limits.get(
+                    key.replace("max", "min"), type_limits.get("min", 1)
+                )
+                span = value - base_min
+                adjusted[key] = base_min + max(1, int(span * 0.6))
+            else:
+                adjusted[key] = value
+        else:
+            # band == "consolidation": move toward the upper 60 % of the range
+            # New min = original max - 60 % of span
+            if key in ("min", "min1", "min2", "min_divisor", "min_result"):
+                base_max = type_limits.get(
+                    key.replace("min", "max"), type_limits.get("max", value * 2)
+                )
+                span = base_max - value
+                adjusted[key] = value + max(0, int(span * 0.4))
+            else:
+                adjusted[key] = value
+
+    return adjusted
+
+
 def init_exercise_context(
-    exercise_type: str, age_group: str
-) -> Tuple[str, str, str, Dict[str, Any]]:
+    exercise_type: str,
+    age_group: str,
+    *,
+    pedagogical_band_override: Optional[str] = None,
+) -> Tuple[str, str, str, Dict[str, Any], dict]:
     """Normalise les paramètres et récupère les limites de difficulté.
 
     Returns:
-        (normalized_type, normalized_age_group, derived_difficulty, type_limits)
+        (normalized_type, normalized_age_group, derived_difficulty, type_limits, f42_profile)
+
+    ``type_limits`` are already adjusted by ``adjust_type_limits_for_f42_profile``
+    so that the F42 pedagogical band drives the numeric bounds before generation.
+    ``f42_profile`` is also returned for callers that need the full profile.
+
+    ``pedagogical_band_override`` (keyword-only) injects a mastery-resolved band
+    (from :func:`resolve_adaptive_context`) so that learners with the same
+    ``age_group`` but different mastery levels receive different calibration bounds.
+    When absent, the legacy derivation ``age_group → derived_difficulty → band``
+    is used unchanged (fully backward-compatible).
     """
     normalized_type = normalize_exercise_type(exercise_type)
     normalized_age_group = normalize_age_group(age_group)
@@ -36,10 +101,24 @@ def init_exercise_context(
     difficulty_config = DIFFICULTY_LIMITS.get(
         derived_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN]
     )
-    type_limits = difficulty_config.get(
+    base_limits = difficulty_config.get(
         normalized_type, difficulty_config.get("default", {"min": 1, "max": 10})
     )
-    return normalized_type, normalized_age_group, derived_difficulty, type_limits
+    f42_profile = build_exercise_generation_profile(
+        normalized_type,
+        normalized_age_group,
+        derived_difficulty,
+        pedagogical_band_override=pedagogical_band_override,
+    )
+    # Apply F42 calibration: bornes ajustées par la bande pédagogique F42.
+    type_limits = adjust_type_limits_for_f42_profile(base_limits, f42_profile)
+    return (
+        normalized_type,
+        normalized_age_group,
+        derived_difficulty,
+        type_limits,
+        f42_profile,
+    )
 
 
 def build_base_exercise_data(
@@ -50,11 +129,7 @@ def build_base_exercise_data(
     ai_generated: bool,
 ) -> Dict[str, Any]:
     """Construit la structure de base commune à tout exercice généré."""
-    tags = (
-        Tags.AI + "," + Tags.GENERATIVE + "," + Tags.STARWARS
-        if ai_generated
-        else Tags.ALGORITHMIC
-    )
+    tags = Tags.AI + "," + Tags.GENERATIVE if ai_generated else Tags.ALGORITHMIC
     return {
         "exercise_type": normalized_type,
         "age_group": normalized_age_group,

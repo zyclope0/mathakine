@@ -46,15 +46,15 @@ import {
 
 const ROLES = [
   { value: "all", label: "Tous les rôles" },
-  { value: "padawan", label: "Padawan" },
-  { value: "maitre", label: "Maître" },
+  { value: "padawan", label: "Apprenant" },
+  { value: "maitre", label: "Enseignant" },
   { value: "gardien", label: "Gardien" },
   { value: "archiviste", label: "Archiviste" },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
-  padawan: "Padawan",
-  maitre: "Maître",
+  padawan: "Apprenant",
+  maitre: "Enseignant",
   gardien: "Gardien",
   archiviste: "Archiviste",
 };

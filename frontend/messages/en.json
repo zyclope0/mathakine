@@ -27,6 +27,16 @@
     "years": "years",
     "allAges": "All ages"
   },
+  "progressionRanks": {
+    "cadet": "Cadet",
+    "scout": "Scout",
+    "explorer": "Explorer",
+    "navigator": "Navigator",
+    "cartographer": "Cartographer",
+    "commander": "Commander",
+    "stellar_archivist": "Stellar Archivist",
+    "cosmic_legend": "Cosmic Legend"
+  },
   "auth": {
     "login": {
       "title": "Login",
@@ -187,11 +197,11 @@
         "division": "Division"
       },
       "levelLabel": {
-        "INITIE": "Beginner",
-        "PADAWAN": "Padawan",
-        "CHEVALIER": "Knight",
-        "MAITRE": "Master",
-        "GRAND_MAITRE": "Grand Master"
+        "INITIE": "Discovery",
+        "PADAWAN": "Learner",
+        "CHEVALIER": "Proficient",
+        "MAITRE": "Advanced",
+        "GRAND_MAITRE": "Expert"
       },
       "scoreDetail": "{correct} / {total} correct",
       "ctaDashboard": "Go to my dashboard",
@@ -395,10 +405,10 @@
       "divers": "Miscellaneous"
     },
     "difficulty": {
-      "initie": "Initiate",
-      "padawan": "Padawan",
-      "chevalier": "Knight",
-      "maitre": "Master"
+      "initie": "Discovery",
+      "padawan": "Learner",
+      "chevalier": "Proficient",
+      "maitre": "Advanced"
     },
     "solver": {
       "question": "Question",
@@ -498,6 +508,7 @@
       "description": "Create a personalized math logic challenge with AI",
       "challengeType": "Challenge type",
       "ageGroup": "Age group",
+      "ageGroupProfileRecommended": "Profile (recommended)",
       "selectType": "Select a type",
       "selectAgeGroup": "Select a group",
       "customPrompt": "Custom prompt (optional)",
@@ -760,7 +771,7 @@
       "successRate": "Success rate",
       "currentLevel": "Current level",
       "experiencePoints": "Experience points",
-      "jediRank": "Jedi Rank",
+      "progressionRank": "Progress rank",
       "exercisesSolved": "Exercises solved",
       "experiencePointsLabel": "Experience points",
       "challengesCompleted": "Challenges completed",
@@ -778,7 +789,7 @@
       "excellent": "Excellent!"
     },
     "recommendations": {
-      "title": "Spatial Guide Advice",
+      "title": "Suggested next steps",
       "generate": "Generate recommendations",
       "generating": "Generating...",
       "noRecommendations": "No recommendations at the moment",
@@ -806,11 +817,11 @@
           "reco_exercise_fallback": "A few exercises to keep you learning."
         },
         "difficulties": {
-          "initie": "Initiate",
-          "padawan": "Padawan",
-          "chevalier": "Knight",
-          "maitre": "Master",
-          "grand_maitre": "Grand Master"
+          "initie": "Discovery",
+          "padawan": "Learner",
+          "chevalier": "Proficient",
+          "maitre": "Advanced",
+          "grand_maitre": "Expert"
         },
         "challengeTypes": {
           "sequence": "sequence",
@@ -1117,20 +1128,13 @@
       "avgTime": "Average time",
       "byCategory": "Badges by category"
     },
-    "jediRanks": {
-      "youngling": "Youngling",
-      "padawan": "Padawan",
-      "knight": "Jedi Knight",
-      "master": "Spatial Guide",
-      "grand_master": "Grand Master"
-    },
     "stats": {
-      "totalPoints": "Force Points",
+      "totalPoints": "Points",
       "currentLevel": "Level",
-      "jediRank": "Jedi Rank",
+      "progressionRank": "Progress rank",
       "badgesEarned": "Badges Earned",
       "levelTooltip": "Current level",
-      "rankTooltip": "Jedi rank (youngling, padawan, knight, master, grand master)"
+      "rankTooltip": "Progression rank (Cadet → Cosmic Legend) based on your level"
     },
     "categories": {
       "progression": "Progression",
@@ -1206,7 +1210,7 @@
   "leaderboard": {
     "error": "Unable to load leaderboard.",
     "title": "Leaderboard",
-    "description": "See where you rank among apprentices",
+    "description": "See how you rank against other learners by points",
     "loading": "Loading leaderboard...",
     "emptyState": {
       "title": "The leaderboard is empty for now.",
@@ -1446,10 +1450,10 @@
       "lecture": "Reading"
     },
     "difficulties": {
-      "initie": "Beginner",
-      "padawan": "Padawan",
-      "chevalier": "Knight",
-      "maitre": "Master"
+      "initie": "Discovery",
+      "padawan": "Learner",
+      "chevalier": "Proficient",
+      "maitre": "Advanced"
     }
   },
   "settings": {
@@ -1674,12 +1678,12 @@
     "using": {
       "title": "At the heart of learning",
       "exercises": "Tailored Exercises",
-      "exercisesDesc": "Addition, fractions, geometry... Artificial Intelligence generates infinite exercises. The algorithm adjusts the difficulty (Padawan, Jedi, Master) for you (multiple-choice or free input based on your needs).",
+      "exercisesDesc": "Addition, fractions, geometry... Artificial intelligence generates infinite exercises. The algorithm adjusts difficulty for you—from discovery level through advanced—using multiple-choice or free input based on your needs.",
       "challenges": "Logic Challenges",
       "challengesDesc": "Sequences, visual patterns, riddles, probability... Train your critical thinking. Some challenges are AI-generated to provide infinite replayability.",
       "dashboard": "Dashboard & Daily Challenges",
       "dashboardDesc": "Find 3 daily goals to complete to earn bonus XP and keep your streak alive. Track your accuracy by category and export your log as a PDF.",
-      "badges": "Badges & Jedi Ranks",
+      "badges": "Badges & progress",
       "badgesDesc": "Earn XP with every success to level up. Unlock dozens of unique badges illustrating your mathematical progress."
     },
     "accessibility": {
@@ -1710,7 +1714,7 @@
       "q5": "What are the Daily Challenges?",
       "a5": "Every day, Mathakine generates 3 personalized goals to encourage you to practice across different categories. They reward you with bonus XP.",
       "q6": "Do I have to choose the difficulty manually?",
-      "a6": "No, it's optional. The algorithm adjusts the difficulty in the background (Padawan, Jedi, Master) based on your results and initial evaluation. If no data is available, it uses the \"Preferred age group\" (6-8 years, 9-11 years, etc.) set in your Settings as a starting point.",
+      "a6": "No, it's optional. The algorithm adjusts difficulty in the background based on your results and initial assessment. If no data is available, it uses the \"Preferred age group\" (6-8 years, 9-11 years, etc.) set in your Settings as a starting point.",
       "q7": "The interface is too cluttered for me.",
       "a7": "Open Settings (or press Alt+F) to enable Focus Mode. You can also reduce animations (Alt+M) and change the theme (Dune, Forest...).",
       "q8": "Are the results graded (out of 100)?",

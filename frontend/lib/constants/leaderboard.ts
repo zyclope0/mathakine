@@ -9,22 +9,35 @@ export const RANK_MEDALS: Record<number, string> = {
   3: "🥉",
 };
 
-export const JEDI_RANK_ICONS: Record<string, string> = {
-  youngling: "🌟",
-  padawan: "⚔️",
-  knight: "🗡️",
-  master: "👑",
-  grand_master: "✨",
+/** Icônes par bucket — clés canoniques API ``jedi_rank`` (F42-C3C, 8 paliers). */
+export const PROGRESSION_RANK_ICONS: Record<string, string> = {
+  cadet: "🌟",
+  scout: "🔭",
+  explorer: "🧭",
+  navigator: "🛰️",
+  cartographer: "🗺️",
+  commander: "⭐",
+  stellar_archivist: "📚",
+  cosmic_legend: "✨",
 };
 
-/** Couleur du libellé / icône de rang Jedi (cohérent profil + leaderboard). */
-export const JEDI_RANK_TEXT_CLASS: Record<string, string> = {
-  youngling: "text-slate-400",
-  padawan: "text-blue-400",
-  knight: "text-green-400",
-  master: "text-purple-400",
-  grand_master: "text-amber-400",
+/** @deprecated Utiliser ``PROGRESSION_RANK_ICONS``. */
+export const JEDI_RANK_ICONS = PROGRESSION_RANK_ICONS;
+
+/** Couleurs du badge de rang (profil + leaderboard). */
+export const PROGRESSION_RANK_TEXT_CLASS: Record<string, string> = {
+  cadet: "text-slate-400",
+  scout: "text-cyan-400",
+  explorer: "text-blue-400",
+  navigator: "text-sky-400",
+  cartographer: "text-emerald-400",
+  commander: "text-violet-400",
+  stellar_archivist: "text-amber-400",
+  cosmic_legend: "text-amber-300",
 };
+
+/** @deprecated Utiliser ``PROGRESSION_RANK_TEXT_CLASS``. */
+export const JEDI_RANK_TEXT_CLASS = PROGRESSION_RANK_TEXT_CLASS;
 
 /** Fond + contour discret pour le podium (rangs 1–3). */
 export function leaderboardPodiumSurfaceClass(rank: number): string {

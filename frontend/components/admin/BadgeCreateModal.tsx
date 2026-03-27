@@ -173,8 +173,8 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
                 perdre motive 2× plus
               </p>
               <p className="pt-2 mt-2 border-t border-border/50">
-                <strong>Visuel (sans SW) :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur
-                (Apprenti des Nombres, Maître des Sommes) — esprit progression/maîtrise
+                <strong>Visuel :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur (ex. « Premiers
+                pas », « Expert du calcul ») — progression et maîtrise
               </p>
             </div>
           )}
@@ -275,11 +275,11 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
               />
             </div>
             <div className="grid gap-2">
-              <Label>Titre Star Wars</Label>
+              <Label>Titre thématique (optionnel)</Label>
               <Input
                 value={data.star_wars_title}
                 onChange={(e) => update("star_wars_title", e.target.value)}
-                placeholder="Éveil de la Force"
+                placeholder="ex. Première mission réussie"
               />
             </div>
           </div>

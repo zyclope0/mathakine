@@ -22,6 +22,7 @@ from app.core.ai_generation_policy import (
 )
 from app.core.config import settings
 from app.core.db_boundary import sync_db_session
+from app.core.difficulty_tier import build_exercise_generation_profile
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.core.enhanced_server_adapter import EnhancedServerAdapter
@@ -133,15 +134,20 @@ def build_exercise_system_prompt(
     age_group: str,
     diff_info: Dict[str, Any],
     default_theme: str,
+    calibration_desc: str = "",
 ) -> str:
     """Construit le prompt systÃ¨me pour la gÃ©nÃ©ration d'exercices."""
     theme_line = f"- Contexte par dÃ©faut : {default_theme}" if default_theme else ""
+    cal_line = (
+        f"- Calibrage pÃ©dagogique : {calibration_desc}" if calibration_desc else ""
+    )
     return f"""Tu es un crÃ©ateur d'exercices mathÃ©matiques pÃ©dagogiques.
 
 ## CONTRAINTES OBLIGATOIRES
 - Type d'exercice : **{exercise_type}** (STRICTEMENT ce type, aucun autre)
 - Niveau : {derived_difficulty} ({diff_info['desc']})
 - Groupe d'Ã¢ge cible : {age_group}
+{cal_line}
 {theme_line}
 
 ## GUIDE PAR TYPE
@@ -172,7 +178,7 @@ Toutes les expressions mathÃ©matiques DOIVENT Ãªtre Ã©crites en LaTeX dans
 - CRITIQUE LaTeX : AprÃ¨s une fraction $\\frac{{a}}{{b}}$, TOUJOURS mettre un espace avant le mot ou nombre suivant.
   Ex: "$\\frac{{1}}{{8}}$ du total" âœ… â€” "$\\frac{{1}}{{8}}81$ du total" âŒ (le 81 collÃ© casse le rendu)
   Ex: "$\\frac{{2}}{{7}}$ de 72" âœ… â€” "$\\frac{{2}}{{7}}72$" âŒ
-- Le texte narratif (contexte Star Wars, etc.) reste en prose normale, seules les maths sont en LaTeX.
+- Le texte narratif (contexte spatial, etc.) reste en prose normale, seules les maths sont en LaTeX.
 
 ## FORMAT JSON STRICT
 {{
@@ -250,13 +256,22 @@ async def generate_exercise_stream(
             derived_difficulty, DIFFICULTY_RANGES["PADAWAN"]
         )
         default_theme = (
-            "spatial/galactique (vaisseaux, planÃ¨tes, Ã©toiles - sans rÃ©fÃ©rences Star Wars)"
+            "spatial/galactique (vaisseaux, planÃ¨tes, Ã©toiles)"
             if not _has_custom_theme(prompt)
             else ""
         )
 
+        gen_profile = build_exercise_generation_profile(
+            exercise_type, age_group, derived_difficulty
+        )
+
         system_prompt = build_exercise_system_prompt(
-            exercise_type, derived_difficulty, age_group, diff_info, default_theme
+            exercise_type,
+            derived_difficulty,
+            age_group,
+            diff_info,
+            default_theme,
+            calibration_desc=gen_profile["calibration_desc"],
         )
         user_prompt = build_exercise_user_prompt(
             prompt, exercise_type, derived_difficulty

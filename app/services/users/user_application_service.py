@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.db_boundary import sync_db_session
 from app.core.leaderboard_period import LeaderboardPeriod
 from app.core.logging_config import get_logger
+from app.schemas.challenge_progress import ChallengeProgressDetailedResponse
 from app.schemas.user import UserCreate
 from app.services.auth.auth_service import create_registered_user_with_verification
 from app.services.challenges.challenge_progress_service import (
@@ -136,7 +137,10 @@ def get_challenges_progress_data(user_id: int) -> Dict[str, Any]:
 def get_challenges_detailed_progress_data(user_id: int) -> Dict[str, Any]:
     """Liste challenge_progress par type pour l'utilisateur (GET detailed-progress)."""
     with sync_db_session() as db:
-        return {"items": list_challenge_progress_for_user(db, user_id)}
+        items = list_challenge_progress_for_user(db, user_id)
+        return ChallengeProgressDetailedResponse.model_validate(
+            {"items": items}
+        ).model_dump(mode="json")
 
 
 def update_profile(

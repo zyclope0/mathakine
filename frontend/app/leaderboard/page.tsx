@@ -21,10 +21,14 @@ import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
 import {
   RANK_MEDALS,
-  JEDI_RANK_ICONS,
-  JEDI_RANK_TEXT_CLASS,
+  PROGRESSION_RANK_ICONS,
+  PROGRESSION_RANK_TEXT_CLASS,
   leaderboardPodiumSurfaceClass,
 } from "@/lib/constants/leaderboard";
+import {
+  canonicalProgressionRankBucket,
+  isKnownProgressionRankBucket,
+} from "@/lib/gamification/progressionRankLabel";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
@@ -59,6 +63,7 @@ interface LeaderboardRowProps {
   tBadges: string;
   rowVariants: Variants;
   shouldReduceMotion: boolean;
+  progressionRankLabel: (bucket: string) => string;
 }
 
 function LeaderboardRow({
@@ -71,8 +76,11 @@ function LeaderboardRow({
   tBadges,
   rowVariants,
   shouldReduceMotion,
+  progressionRankLabel,
 }: LeaderboardRowProps) {
-  const jediClass = JEDI_RANK_TEXT_CLASS[entry.jedi_rank] ?? "text-muted-foreground";
+  const rankCanon = canonicalProgressionRankBucket(entry.jedi_rank);
+  const rankClass = PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-muted-foreground";
+  const rankReadable = progressionRankLabel(entry.jedi_rank);
 
   return (
     <motion.li
@@ -103,11 +111,11 @@ function LeaderboardRow({
           {entry.username}
         </span>
         <span
-          className={cn("flex-shrink-0 text-base leading-none", jediClass)}
-          title={entry.jedi_rank}
-          aria-label={entry.jedi_rank}
+          className={cn("flex-shrink-0 text-base leading-none", rankClass)}
+          title={rankReadable}
+          aria-label={rankReadable}
         >
-          {JEDI_RANK_ICONS[entry.jedi_rank] ?? "🌟"}
+          {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
         </span>
         {entry.is_current_user && (
           <span
@@ -155,6 +163,11 @@ function LeaderboardRow({
 
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
+  const tProgRank = useTranslations("progressionRanks");
+  const progressionRankLabel = (bucket: string) => {
+    const c = canonicalProgressionRankBucket(bucket);
+    return isKnownProgressionRankBucket(bucket) ? tProgRank(c) : bucket;
+  };
   const { user } = useAuth();
   const [period, setPeriod] = useState<LeaderboardPeriod>("all");
   const { leaderboard, isLoading, error } = useLeaderboard(50, period);
@@ -276,6 +289,7 @@ export default function LeaderboardPage() {
                         tBadges={t("badgesStat")}
                         rowVariants={rowVariants}
                         shouldReduceMotion={Boolean(shouldReduceMotion)}
+                        progressionRankLabel={progressionRankLabel}
                       />
                     ))}
                   </motion.ul>
@@ -306,12 +320,16 @@ export default function LeaderboardPage() {
                             <span
                               className={cn(
                                 "flex-shrink-0 text-base leading-none",
-                                JEDI_RANK_TEXT_CLASS[user.jedi_rank] ?? "text-muted-foreground"
+                                PROGRESSION_RANK_TEXT_CLASS[
+                                  canonicalProgressionRankBucket(user.jedi_rank)
+                                ] ?? "text-muted-foreground"
                               )}
-                              title={user.jedi_rank}
-                              aria-label={user.jedi_rank}
+                              title={progressionRankLabel(user.jedi_rank)}
+                              aria-label={progressionRankLabel(user.jedi_rank)}
                             >
-                              {JEDI_RANK_ICONS[user.jedi_rank] ?? "🌟"}
+                              {PROGRESSION_RANK_ICONS[
+                                canonicalProgressionRankBucket(user.jedi_rank)
+                              ] ?? "🌟"}
                             </span>
                           ) : null}
                           <span

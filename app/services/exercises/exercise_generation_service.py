@@ -7,6 +7,7 @@ Modèle runtime : sync, exécuté via run_db_bound() depuis les handlers.
 from typing import Any, Dict, Optional
 
 from app.core.db_boundary import sync_db_session
+from app.core.difficulty_tier import build_exercise_generation_profile
 from app.core.logging_config import get_logger
 from app.generators.exercise_generator import (
     ensure_explanation,
@@ -16,6 +17,8 @@ from app.generators.exercise_generator import (
 from app.repositories.exercise_repository import ExerciseRepository
 from app.schemas.exercise import GenerateExerciseResult
 from app.services.exercises.adaptive_difficulty_service import (
+    AdaptiveGenerationContext,
+    resolve_adaptive_context,
     resolve_adaptive_difficulty,
 )
 from app.utils.exercise_generator_validators import (
@@ -48,6 +51,33 @@ def _resolve_age_group_adaptive_sync(
     return age_group_raw
 
 
+def _resolve_adaptive_context_sync(
+    user_id: int,
+    exercise_type_raw: Optional[str],
+    age_group_raw: Optional[str],
+) -> Optional[AdaptiveGenerationContext]:
+    """
+    Résout le contexte adaptatif complet (age_group + pedagogical_band).
+
+    Uniquement déclenché quand ``user_id`` est fourni ET qu'``age_group_raw``
+    est absent (sinon la tranche d'âge est imposée explicitement).
+    Retourne ``None`` si l'utilisateur n'est pas trouvé ou en cas d'erreur.
+    """
+    if age_group_raw:
+        return None  # Explicit age_group → no adaptive context needed
+    try:
+        resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
+        with sync_db_session() as db:
+            user = ExerciseRepository.get_user_by_id(db, user_id)
+            if user:
+                return resolve_adaptive_context(db, user, resolved_type)
+    except Exception as err:
+        logger.warning(
+            "[AdaptiveDifficulty] Résolution contexte échouée, fallback: %s", err
+        )
+    return None
+
+
 def _parse_use_ai(use_ai: Any) -> bool:
     """Parse le paramètre use_ai (bool ou string)."""
     if isinstance(use_ai, bool):
@@ -77,11 +107,19 @@ def generate_exercise_sync(
     Génère un exercice (AI ou simple), optionnellement persisté.
     Sync, exécuté via run_db_bound() depuis les handlers.
     """
-    # Résolution adaptive
+    # Résolution adaptive — chemin enrichi (second axe F42) quand user_id fourni
+    adaptive_ctx = None
     if adaptive and user_id:
-        age_group_raw = _resolve_age_group_adaptive_sync(
+        adaptive_ctx = _resolve_adaptive_context_sync(
             user_id, exercise_type_raw, age_group_raw
         )
+        if adaptive_ctx is not None:
+            age_group_raw = adaptive_ctx.age_group
+        else:
+            # Fallback: simple age_group resolution (legacy path)
+            age_group_raw = _resolve_age_group_adaptive_sync(
+                user_id, exercise_type_raw, age_group_raw
+            )
 
     if require_age_group and not age_group_raw:
         raise AgeGroupRequiredError("Le paramètre 'age_group' est requis")
@@ -91,12 +129,44 @@ def generate_exercise_sync(
         normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
     )
 
-    # Génération
+    # Resolve the pedagogical band: use mastery-driven band when available,
+    # otherwise fall back to the legacy derivation (age_group → difficulty → band).
+    pedagogical_band_override = (
+        adaptive_ctx.pedagogical_band if adaptive_ctx is not None else None
+    )
+
+    # Build F42 profile before generation so both paths have it available.
+    f42_profile = build_exercise_generation_profile(
+        exercise_type,
+        age_group,
+        derived_difficulty,
+        pedagogical_band_override=pedagogical_band_override,
+    )
+    logger.debug(
+        "F42 profile: tier=%s band=%s source=%s",
+        f42_profile["difficulty_tier"],
+        f42_profile["pedagogical_band"],
+        getattr(adaptive_ctx, "mastery_source", "legacy"),
+    )
+
+    # Génération — bande pédagogique injectée dans les générateurs locaux
     ai_generated = _parse_use_ai(use_ai)
     if ai_generated:
-        exercise_dict = generate_ai_exercise(exercise_type, age_group)
+        exercise_dict = generate_ai_exercise(
+            exercise_type,
+            age_group,
+            pedagogical_band_override=pedagogical_band_override,
+        )
     else:
-        exercise_dict = generate_simple_exercise(exercise_type, age_group)
+        exercise_dict = generate_simple_exercise(
+            exercise_type,
+            age_group,
+            pedagogical_band_override=pedagogical_band_override,
+        )
+
+    # Ensure the F42 tier is propagated even if generators set it to None.
+    if exercise_dict.get("difficulty_tier") is None and f42_profile["difficulty_tier"]:
+        exercise_dict["difficulty_tier"] = f42_profile["difficulty_tier"]
 
     exercise_dict = ensure_explanation(exercise_dict)
     logger.debug(f"Explication générée: {exercise_dict.get('explanation', '')}")
@@ -110,6 +180,7 @@ def generate_exercise_sync(
                     exercise_type=exercise_dict["exercise_type"],
                     age_group=exercise_dict["age_group"],
                     difficulty=exercise_dict["difficulty"],
+                    difficulty_tier=exercise_dict.get("difficulty_tier"),
                     title=exercise_dict["title"],
                     question=exercise_dict["question"],
                     correct_answer=exercise_dict["correct_answer"],

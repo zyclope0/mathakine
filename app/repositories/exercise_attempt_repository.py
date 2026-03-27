@@ -99,7 +99,9 @@ def update_progress_after_attempt(
     difficulty: str,
     is_correct: bool,
     time_spent: float,
-) -> None:
+    *,
+    user: Any = None,
+) -> Optional[Dict[str, Any]]:
     """
     Met à jour ou crée Progress après une tentative.
     Extrait de _update_user_statistics.
@@ -144,6 +146,23 @@ def update_progress_after_attempt(
             streak=1 if is_correct else 0,
             highest_streak=1 if is_correct else 0,
         )
+        new_progress.update_mastery_level()
         db.add(new_progress)
 
     db.flush()
+
+    if user is None:
+        return None
+    from app.core.mastery_tier_bridge import project_exercise_progress_f42
+
+    progress_row = (
+        db.query(Progress)
+        .filter(
+            Progress.user_id == user_id,
+            Progress.exercise_type == exercise_type,
+        )
+        .first()
+    )
+    if not progress_row:
+        return None
+    return project_exercise_progress_f42(progress_row, user)

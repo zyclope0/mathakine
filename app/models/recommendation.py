@@ -16,7 +16,7 @@ from app.db.base import Base
 
 
 class Recommendation(Base):
-    """Modèle pour les recommandations personnalisées d'exercices (Conseils de Maître Jedi)"""
+    """Modèle pour les recommandations personnalisées d'exercices."""
 
     __tablename__ = "recommendations"
 

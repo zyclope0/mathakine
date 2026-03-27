@@ -323,6 +323,7 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
                 prompt=query.prompt,
                 user_id=query.user_id,
                 locale=query.locale,
+                personalization=query.personalization,
             ):
                 yield event
 

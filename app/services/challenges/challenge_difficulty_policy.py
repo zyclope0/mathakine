@@ -218,6 +218,7 @@ def calibrate_challenge_difficulty(
     visual_data: Union[Dict[str, Any], str, None],
     title: str,
     ai_difficulty: Optional[float],
+    f42_rating_hint: Optional[float] = None,
 ) -> Tuple[float, Dict[str, Any]]:
     """
     Calcule ``difficulty_rating`` final + métadonnées ``difficulty_calibration`` pour la persistance.
@@ -238,6 +239,18 @@ def calibrate_challenge_difficulty(
 
     canonical_age = normalize_age_group(age_group)
     baseline = calculate_difficulty_for_age_group(canonical_age)
+    f42_applied = False
+    if f42_rating_hint is not None:
+        try:
+            hint = float(f42_rating_hint)
+        except (TypeError, ValueError):
+            hint = None
+        if hint is not None and 1.0 <= hint <= 5.0:
+            baseline = round(
+                min(5.0, max(1.0, baseline * 0.55 + hint * 0.45)),
+                2,
+            )
+            f42_applied = True
 
     if (
         ai_difficulty is not None
@@ -302,4 +315,7 @@ def calibrate_challenge_difficulty(
         "caps_applied": caps_applied,
         "final_rating": round(final, 2),
     }
+    if f42_applied:
+        calibration_meta["f42_rating_hint"] = f42_rating_hint
+        calibration_meta["f42_baseline_blend"] = True
     return round(final, 2), calibration_meta

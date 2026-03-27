@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import get_logger
 from app.models.achievement import Achievement, UserAchievement
 from app.services.badges.badge_format_helpers import format_requirements_to_text
+from app.services.gamification.compute import canonicalize_progression_rank_bucket
 from app.services.users.user_service import UserService
 
 logger = get_logger(__name__)
@@ -76,7 +77,10 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                     "total_points": user_stats[0] if user_stats else 0,
                     "current_level": user_stats[1] if user_stats else 1,
                     "experience_points": user_stats[2] if user_stats else 0,
-                    "jedi_rank": user_stats[3] if user_stats else "youngling",
+                    "jedi_rank": canonicalize_progression_rank_bucket(
+                        user_stats[3] if user_stats else None,
+                        int(user_stats[1] if user_stats else 1),
+                    ),
                     "pinned_badge_ids": pinned,
                     "current_streak": (
                         user_stats[4] if user_stats and len(user_stats) > 4 else 0
@@ -90,7 +94,7 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                     "total_points": 0,
                     "current_level": 1,
                     "experience_points": 0,
-                    "jedi_rank": "youngling",
+                    "jedi_rank": "cadet",
                     "pinned_badge_ids": [],
                     "current_streak": 0,
                     "best_streak": 0,

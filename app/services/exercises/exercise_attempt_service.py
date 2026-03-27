@@ -14,6 +14,7 @@ from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.models.exercise import ExerciseType
+from app.models.user import User
 from app.repositories.exercise_attempt_repository import (
     create_attempt,
     get_exercise_for_submit_validation,
@@ -103,10 +104,18 @@ def submit_answer(
     exercise_type = exercise.get("exercise_type", "")
     difficulty = exercise.get("difficulty", "")
 
+    user_for_progress = db.query(User).filter(User.id == user_id).first()
+
     try:
         progress_savepoint = db.begin_nested()
         update_progress_after_attempt(
-            db, user_id, exercise_type, difficulty, is_correct, time_spent
+            db,
+            user_id,
+            exercise_type,
+            difficulty,
+            is_correct,
+            time_spent,
+            user=user_for_progress,
         )
         progress_savepoint.commit()
     except SQLAlchemyError as stats_err:
