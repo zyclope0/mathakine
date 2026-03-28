@@ -35,12 +35,16 @@ logger = get_logger(__name__)
 
 def _badge_dict_to_earned(badge_dict: dict) -> ChallengeBadgeEarned:
     """Convertit un dict badge (BadgeService) en ChallengeBadgeEarned."""
+    title = badge_dict.get("thematic_title")
+    if title is None:
+        title = badge_dict.get("star_wars_title")
     return ChallengeBadgeEarned(
         badge_id=badge_dict.get("id"),
         code=badge_dict.get("code"),
         name=badge_dict.get("name"),
         description=badge_dict.get("description"),
-        star_wars_title=badge_dict.get("star_wars_title"),
+        thematic_title=title,
+        star_wars_title=title,
         difficulty=badge_dict.get("difficulty"),
         points_reward=badge_dict.get("points_reward"),
         earned_at=badge_dict.get("earned_at"),

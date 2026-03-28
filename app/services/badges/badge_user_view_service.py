@@ -81,6 +81,8 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                     "code": badge[1],
                     "name": badge[2],
                     "description": badge[3],
+                    # F43-A4: clé publique préférée + alias legacy (même valeur, colonne DB inchangée).
+                    "thematic_title": badge[4],
                     "star_wars_title": badge[4],
                     "difficulty": badge[5],
                     "points_reward": badge[6],
@@ -128,6 +130,7 @@ def get_available_badges(
                 "name": badge.name,
                 "description": badge.description,
                 "criteria_text": format_requirements_to_text(badge),
+                "thematic_title": badge.star_wars_title,
                 "star_wars_title": badge.star_wars_title,
                 "difficulty": badge.difficulty,
                 "points_reward": badge.points_reward,

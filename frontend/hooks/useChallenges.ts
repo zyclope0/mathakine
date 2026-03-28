@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
+import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 import type { Challenge, ChallengeAttemptResponse } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -96,8 +97,9 @@ export function useChallenges(filters?: ChallengeFilters) {
       // Afficher les badges gagnés si présents
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
+          const subtitle = readBadgeThematicTitleRaw(badge);
           toast.success(t("badges.badgeUnlocked"), {
-            description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
+            description: `${badge.name}${subtitle ? ` - ${subtitle}` : ""}`,
             duration: 5000,
           });
         });

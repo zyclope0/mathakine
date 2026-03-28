@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features â€” Mathakine
 
-> **Document vivant** - Derniere MAJ : 28/03/2026 (F42 clos, F43 aligne sur le runtime, et la dette contractuelle legacy est maintenant sequencee explicitement dans la roadmap)  
+> **Document vivant** - Derniere MAJ : 28/03/2026 (F42 clos, A44 clos, F43-A3 livre ; priorisation operationnelle re-evaluee avant F43-A4)  
 > **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -114,7 +114,7 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) | [DONE] | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
 | F36 | [UX][TECH] Flash auth au refresh | [BACKLOG] | 2 | 2 | 1 | 1 | 3 | **7.2** | P2 |
 | F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | [BACKLOG] actif | 3 | 3 | 4 | 2 | 3 | **11.7** | P2 |
-| F38 | [UX][Gamification] Progression compte coherente & historique des gains | [PARTIAL] | 3 | 4 | 2 | 2 | 4 | **10.2** | P2 |
+| F38 | [UX][Gamification] Progression compte coherente & historique des gains | [PARTIAL] runtime recale ; lecture produit du ledger encore manquante | 3 | 4 | 2 | 2 | 4 | **10.2** | P1 |
 | F23 | [PROP] Exercices adaptatifs SR+IA | [BACKLOG] | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | [BACKLOG] | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | [BACKLOG] | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
@@ -123,13 +123,13 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F28 | Mode aventure / histoire narrative | [BACKLOG] | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
 | F29 | Personnalisation avatar / profil | [BACKLOG] | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
 | F34 | Module Sciences - Curiosites (Vrai/Faux, format court) | [BACKLOG] prototype seulement | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
-| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [PARTIAL] visible neutralise ; migration contractuelle additive restante | 4 | 3 | 1 | 3 | 5 | **6.2** | P2* |
+| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [PARTIAL] visible neutralise ; `progression_rank` livre ; `thematic_title` restant | 4 | 3 | 1 | 3 | 5 | **6.2** | P1* |
 | F40 | Leaderboard â€” position de l'utilisateur hors top 50 | [DONE] | 2 | 4 | 2 | 1 | 3 | **10.7** | P2 |
 | F41 | Leaderboard â€” filtre temporel (semaine / mois / tout) | [DONE] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
 | F42 | Architecture difficultÃ© â€” sÃ©paration Ã¢ge et niveau sur 2 axes | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
 
 > *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
-> *F39 : le visible produit est maintenant neutralise. La suite propre n'est pas un "big bang rename", mais une migration contractuelle additive et depreciee (`jedi_rank` -> `progression_rank`, puis `star_wars_title` -> `thematic_title`).*
+> *F39 : le visible produit est maintenant neutralise. `F43-A3` a livre `progression_rank`. La suite propre n'est pas un "big bang rename", mais la fin de la migration contractuelle additive avec `thematic_title`.*
 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
@@ -139,11 +139,46 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 **[PARTIAL] Fondations deja posees**
 - F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
 - F20 : normalisation visible de la difficulte livree, mais legacy backend/DB volontairement conserve
-- F38 : moteur gamification persistant + ledger `point_events` + calcul niveau/XP/rang, mais pas encore d'historique utilisateur dedie ni de lecture produit complete du ledger
-- F39 : rangs publics et surfaces visibles neutralises ; prochaine etape propre = migration additive des contrats legacy, pas refactor global destructif
+- F38 : moteur gamification persistant + ledger `point_events` + calcul niveau/XP/rang recales, mais pas encore d'historique utilisateur dedie ni de lecture produit complete du ledger
+- F39 : rangs publics et surfaces visibles neutralises ; `F43-A3` livre, prochaine etape propre = migration additive `star_wars_title` -> `thematic_title`
 
 **[BACKLOG] Encore a livrer**
 - le reste de la matrice, avec priorite conservee
+
+### 2.2 Priorite operationnelle reelle (post-F43-A3)
+
+Les scores `D/G/E/R/B` restent la base de reference. En revanche, l'ordre d'execution reel doit tenir compte :
+- de l'etat deja livre dans le code
+- des dependances entre features
+- des dettes contractuelles visibles restantes
+- du ratio valeur / risque a court terme
+
+Ordre recommande maintenant :
+
+1. **F39 / F43-A4** - finir la migration contractuelle additive `star_wars_title` -> `thematic_title`
+2. **CC1-L1** - corriger les bugs/code mort du clean code pass local (encoding, clamp, suppressions sures)
+3. **F04** - revisions espacees (SM-2), plus gros levier EdTech encore absent
+4. **F38** - historique des gains et lecture produit coherente du ledger compte
+5. **F37** - coherence dashboard / temporalite / charge cognitive
+6. **F14** - persistance DB complete des metriques runtime IA
+7. **F36** - suppression du flash auth au refresh
+8. **F09** - dashboard parent
+9. **F08** - objectifs personnalises
+10. **F10** - mode focus / session ciblee
+11. **F30** - effet protege
+12. **F31** - exemples resolus progressifs
+13. **F23** - exercices adaptatifs SR+IA (a ouvrir seulement apres F04)
+14. **F11** - partage progression vers parents
+15. **F16 / F17 / F18 / F19 / F21** - confort, engagement et croissance
+16. **F24 / F25 / F27** - chantiers plus lourds ou structurels
+17. **F28 / F29 / F34** - backlog lointain / produit
+
+Lecture simple :
+- **P0 operationnel** : F39-A4, CC1-L1, F04
+- **P1 operationnel** : F38, F37, F14, F36, F09, F08, F10
+- **P2 operationnel** : F30, F31, F23, F11, F16, F17, F18, F19, F21
+- **P3 operationnel** : F24, F25, F27
+- **P4 operationnel** : F28, F29, F34
 
 ---
 
@@ -732,7 +767,7 @@ Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
 
 **Score** : 6.2 | D=4, G=3, E=1, R=3, B=5
 
-**Statut** : [PARTIAL] Le visible produit est neutralise. La dette restante est surtout contractuelle et technique.
+**Statut** : [PARTIAL] Le visible produit est neutralise. `F43-A3` est livre ; la dette restante est surtout contractuelle et technique.
 
 **Probleme reel restant** :
 - les labels visibles ne fuitent plus l'univers Star Wars dans les surfaces produit principales
@@ -757,7 +792,7 @@ Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
 
 **Lots recommandes dans la roadmap** :
 - ~~**F43-A3** - migration contractuelle additive `jedi_rank` -> `progression_rank`~~ **FAIT** (2026-03-28) : cle `progression_rank` ajoutee cote API publique + consumers frontend prioritaires ; `jedi_rank` conserve (alias).
-- **F43-A4** - migration contractuelle additive `star_wars_title` -> `thematic_title`
+- ~~**F43-A4** - migration contractuelle additive `star_wars_title` -> `thematic_title`~~ **FAIT** (2026-03-28) : cle `thematic_title` sur payloads badges publics + `new_badges` (tentatives) ; `star_wars_title` conserve (alias, meme valeur). (**priorite immediate**)
 
 **Ce que ces lots doivent faire** :
 - ajouter les nouvelles cles sans casser le JSON existant

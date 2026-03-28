@@ -5,6 +5,7 @@ import { api, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trackFirstAttempt } from "@/lib/analytics/edtech";
+import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 
 export interface SubmitAnswerPayload {
   exercise_id: number;
@@ -21,7 +22,10 @@ export interface SubmitAnswerResponse {
   new_badges?: Array<{
     id: number;
     name: string;
-    star_wars_title?: string;
+    /** Cle publique preferee (F43-A4) - meme valeur que `star_wars_title`. */
+    thematic_title?: string | null;
+    /** @deprecated F43-A4 - compat ; preferer `thematic_title`. */
+    star_wars_title?: string | null;
     points_reward: number;
   }>;
   badges_earned?: number;
@@ -62,8 +66,9 @@ export function useSubmitAnswer() {
       // Afficher les badges gagnés si présents
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
+          const subtitle = readBadgeThematicTitleRaw(badge);
           toast.success(t("badges.badgeUnlocked"), {
-            description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
+            description: `${badge.name}${subtitle ? ` - ${subtitle}` : ""}`,
             duration: 5000,
           });
         });

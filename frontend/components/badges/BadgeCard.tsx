@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { motion, type Variants, type Transition } from "framer-motion";
 import { BadgeIcon } from "./BadgeIcon";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 
 interface SuccessRateProgressDetail {
   type: "success_rate";
@@ -135,6 +136,7 @@ export function BadgeCard({
   };
 
   const difficultyColor = getDifficultyColor(badge.difficulty);
+  const thematicLine = readBadgeThematicTitleRaw(badge);
 
   // Variantes d'animation avec garde-fous
   const variants = createVariants({
@@ -270,9 +272,9 @@ export function BadgeCard({
                     {badge.name || badge.code || "Badge sans nom"}
                   </span>
                 </CardTitle>
-                {!isEarned && badge.star_wars_title && (
+                {!isEarned && thematicLine && (
                   <CardDescription className="mt-2 text-primary-on-dark italic text-sm">
-                    {badge.star_wars_title}
+                    {thematicLine}
                   </CardDescription>
                 )}
                 {/* Compact: difficulté + pts toujours visibles */}
@@ -355,9 +357,9 @@ export function BadgeCard({
           {/* Zone dépliable au survol (obtenus) : tout le détail */}
           {isEarned ? (
             <div className="badge-card-expandable space-y-4">
-              {badge.star_wars_title && (
+              {thematicLine && (
                 <CardDescription className="text-primary-on-dark italic text-sm">
-                  {badge.star_wars_title}
+                  {thematicLine}
                 </CardDescription>
               )}
               {rarity && rarity.rarity === "rare" && (

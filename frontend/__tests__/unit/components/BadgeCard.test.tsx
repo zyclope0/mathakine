@@ -40,9 +40,20 @@ describe("BadgeCard", () => {
     expect(screen.getByText("Premiers Pas")).toBeInTheDocument();
   });
 
-  it("affiche le titre Star Wars si disponible", () => {
+  it("affiche le titre thématique (legacy star_wars_title) si disponible", () => {
     render(<BadgeCard badge={mockBadge} isEarned={false} />, { wrapper: TestWrapper });
     expect(screen.getByText("Éveil de la Force")).toBeInTheDocument();
+  });
+
+  it("priorise thematic_title sur star_wars_title (F43-A4)", () => {
+    const badge: Badge = {
+      ...mockBadge,
+      thematic_title: "Titre spatial",
+      star_wars_title: "Ancien",
+    };
+    render(<BadgeCard badge={badge} isEarned={false} />, { wrapper: TestWrapper });
+    expect(screen.getByText("Titre spatial")).toBeInTheDocument();
+    expect(screen.queryByText("Ancien")).not.toBeInTheDocument();
   });
 
   it("affiche l'icône de verrouillage si le badge n'est pas obtenu", () => {

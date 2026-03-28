@@ -40,6 +40,7 @@ def award_badge(
             "code": badge.code,
             "name": badge.name,
             "description": badge.description,
+            "thematic_title": badge.star_wars_title,
             "star_wars_title": badge.star_wars_title,
             "difficulty": badge.difficulty,
             "points_reward": badge.points_reward,

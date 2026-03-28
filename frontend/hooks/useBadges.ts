@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api, ApiClientError } from "@/lib/api/client";
 import type { UserBadgesResponse, GamificationStats, Badge, UserBadge } from "@/types/api";
+import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useLocaleStore } from "@/lib/stores/localeStore";
@@ -102,8 +103,9 @@ export function useBadges() {
       // Pour l'instant, garder les messages en français comme fallback
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
+          const subtitle = readBadgeThematicTitleRaw(badge);
           toast.success(t("badges.newBadgeUnlocked"), {
-            description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
+            description: `${badge.name}${subtitle ? ` - ${subtitle}` : ""}`,
             duration: 6000,
             icon: "🎖️",
           });
@@ -155,6 +157,9 @@ export function useBadges() {
         };
         if (eb.description !== undefined) {
           badgeToAdd.description = eb.description;
+        }
+        if (eb.thematic_title !== undefined) {
+          badgeToAdd.thematic_title = eb.thematic_title;
         }
         if (eb.star_wars_title !== undefined) {
           badgeToAdd.star_wars_title = eb.star_wars_title;

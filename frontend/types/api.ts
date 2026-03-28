@@ -210,7 +210,10 @@ export interface ChallengeAttemptResponse {
   new_badges?: Array<{
     id: number;
     name: string;
-    star_wars_title?: string;
+    /** Clé publique préférée (F43-A4) — même valeur que `star_wars_title`. */
+    thematic_title?: string | null;
+    /** @deprecated F43-A4 — alias legacy. */
+    star_wars_title?: string | null;
   }>;
   points_earned?: number;
   progress_notification?: { name: string; remaining: number };
@@ -245,6 +248,9 @@ export interface Badge {
   category?: string | null;
   difficulty?: string | null;
   points_reward?: number | null;
+  /** Libellé narratif optionnel (F43-A4) — préféré pour l’affichage. */
+  thematic_title?: string | null;
+  /** @deprecated F43-A4 — même valeur que `thematic_title`. */
   star_wars_title?: string | null;
   icon_url?: string | null;
   is_secret?: boolean;

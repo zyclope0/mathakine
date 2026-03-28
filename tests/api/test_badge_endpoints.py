@@ -19,6 +19,10 @@ async def test_get_badges_user_200(padawan_client):
     assert "data" in data
     assert "earned_badges" in data["data"]
     assert "user_stats" in data["data"]
+    for b in data["data"]["earned_badges"]:
+        assert "thematic_title" in b
+        assert "star_wars_title" in b
+        assert b.get("thematic_title") == b.get("star_wars_title")
 
 
 @pytest.mark.asyncio
@@ -29,6 +33,10 @@ async def test_get_badges_available_200(client):
     data = response.json()
     assert data.get("success") is True
     assert isinstance(data.get("data"), list)
+    for b in data.get("data", []):
+        assert "thematic_title" in b
+        assert "star_wars_title" in b
+        assert b.get("thematic_title") == b.get("star_wars_title")
 
 
 @pytest.mark.asyncio

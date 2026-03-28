@@ -91,7 +91,7 @@ Contract note:
 | GET | `/api/challenges` | list / filters / hide_completed |
 | GET | `/api/challenges/stats` | agrégats **catalogue** défis actifs (`is_active` + non archivés) : `total`, `total_archived`, `by_type`, `by_difficulty`, `by_age_group` — chaque bucket `{ count, percentage }` (pourcentages relatifs à `total`). Auth + accès complet requis (`require_full_access`). Impl. : `ChallengeStatsService.get_challenges_stats_for_api` |
 | GET | `/api/challenges/{challenge_id}` | challenge detail (incl. `response_mode` IA9, `choices` filtrés selon politique type) |
-| POST | `/api/challenges/{challenge_id}/attempt` | soumission réponse ; corps JSON selon `ChallengeAttemptRequest`. Réponse typée `SubmitChallengeAttemptResult` : `is_correct`, `explanation` (si correct), `new_badges`, `progress_notification`, `hints_remaining` (si incorrect), **`points_earned`** (entier si tentative correcte **et** crédit ledger `apply_points` réussi ; sinon omis/`null`) |
+| POST | `/api/challenges/{challenge_id}/attempt` | soumission réponse ; corps JSON selon `ChallengeAttemptRequest`. Réponse typée `SubmitChallengeAttemptResult` : `is_correct`, `explanation` (si correct), `new_badges` (chaque entrée : **`thematic_title`** clé publique préférée F43-A4 + **`star_wars_title`** alias legacy, même valeur), `progress_notification`, `hints_remaining` (si incorrect), **`points_earned`** (entier si tentative correcte **et** crédit ledger `apply_points` réussi ; sinon omis/`null`) |
 | GET | `/api/challenges/{challenge_id}/hint` | hint |
 | GET | `/api/challenges/completed-ids` | completed ids |
 | POST | `/api/challenges/generate-ai-stream` | AI generation SSE (JSON body: `challenge_type`, `age_group`, `prompt`) ; événements `status`, `warning`, `challenge`, `error`, `done` — si la validation finale échoue après auto-correction : `error` puis `done`, **pas** d’événement `challenge` ni persistance. Cote frontend, le client explicite maintenant les echecs `401`, `403`, CSRF manquant et backend generique avant affichage toast. |
@@ -101,9 +101,9 @@ Contract note:
 
 | Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/badges/user` | user badges |
-| GET | `/api/badges/available` | public badges, `?limit=N` (défaut 100, max 200) |
-| POST | `/api/badges/check` | badge check |
+| GET | `/api/badges/user` | user badges ; chaque entrée `earned_badges[]` inclut **`thematic_title`** (F43-A4, préféré) et **`star_wars_title`** (legacy, même valeur) |
+| GET | `/api/badges/available` | public badges, `?limit=N` (défaut 100, max 200) ; même paire de clés **`thematic_title`** + **`star_wars_title`** (alias) sur chaque badge |
+| POST | `/api/badges/check` | badge check ; `new_badges[]` avec **`thematic_title`** + **`star_wars_title`** (même valeur) |
 | GET | `/api/badges/stats` | gamification stats |
 | GET | `/api/badges/rarity` | rarity stats |
 | PATCH | `/api/badges/pin` | pin `badge_ids` |

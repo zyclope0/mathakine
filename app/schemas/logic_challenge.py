@@ -431,11 +431,18 @@ class ChallengeBadgeEarned(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
+    thematic_title: Optional[str] = Field(
+        None,
+        description=(
+            "Libellé narratif optionnel du badge (clé publique préférée, F43-A4). "
+            "Même valeur que la colonne persistée `achievements.star_wars_title`."
+        ),
+    )
     star_wars_title: Optional[str] = Field(
         None,
         description=(
-            "Champ legacy optionnel (nom de clé historique) ; libellé narratif de "
-            "badge, souvent absent — ne pas s'en servir comme source d'affichage principale."
+            "Alias legacy (F43-A4) — même valeur que `thematic_title` ; conservé pour "
+            "compatibilité clients ; ne pas privilégier pour les nouveaux intégrateurs."
         ),
     )
     difficulty: Optional[str] = None
