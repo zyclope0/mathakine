@@ -94,6 +94,7 @@ Services are grouped by bounded context. No business logic file remains at root 
 | **exercises** | `app/services/exercises/` | exercise_service, exercise_attempt_service, exercise_* (9 files) |
 | **challenges** | `app/services/challenges/` | challenge_service, logic_challenge_service, maze_validator, etc. (11 files) |
 | **progress** | `app/services/progress/` | progress_timeline_service, streak_service, daily_challenge_service |
+| **spaced_repetition** | `app/services/spaced_repetition/` | sm2_engine, spaced_repetition_service |
 | **admin** | `app/services/admin/` | admin_service, admin_read_service, admin_content_service, etc. (14 files) |
 | **analytics** | `app/services/analytics/` | analytics_service |
 | **communication** | `app/services/communication/` | email_service, chat_service |
@@ -103,6 +104,12 @@ Services are grouped by bounded context. No business logic file remains at root 
 | **recommendation** | `app/services/recommendation/` | recommendation_service |
 
 ## 5. Production Hardening Decisions Now Active
+
+### Learning-state foundations
+
+- F04-P1 now persists spaced repetition cards in `spaced_repetition_items`
+- the current write seam is `app/services/exercises/exercise_attempt_service.py`
+- user-level F04 state remains derived; no boolean flag is stored on `users`
 
 ### AI runtime governance
 

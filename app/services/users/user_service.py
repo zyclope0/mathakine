@@ -59,6 +59,9 @@ from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.services.gamification.gamification_service import GamificationService
+from app.services.spaced_repetition.spaced_repetition_read_service import (
+    get_spaced_repetition_user_summary,
+)
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
@@ -421,7 +424,7 @@ class UserService:
         Agrège l'activité sur la période (sans pseudo-XP ni niveau compte).
 
         Points / niveau / XP palier persistants : GET /api/users/me (gamification_level, total_points, …).
-        Route: GET /api/users/stats
+        Route: GET /api/users/stats (inclut ``spaced_repetition`` — agrégat F04).
         """
         from datetime import datetime, timezone
 
@@ -440,6 +443,7 @@ class UserService:
             db, user_id, time_range
         )
         total_challenges = UserService._count_completed_challenges(db, user_id)
+        spaced_repetition = get_spaced_repetition_user_summary(db, user_id)
 
         return {
             "total_exercises": stats.get("total_attempts", 0),
@@ -451,6 +455,7 @@ class UserService:
             "progress_over_time": progress_over_time,
             "exercises_by_day": exercises_by_day,
             "lastUpdated": datetime.now(timezone.utc).isoformat(),
+            "spaced_repetition": spaced_repetition,
         }
 
     @staticmethod

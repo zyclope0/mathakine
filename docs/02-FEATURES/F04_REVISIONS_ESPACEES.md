@@ -1,80 +1,175 @@
-# F04 — Révisions espacées (algorithme SM-2)
+# F04 - Revisions espacees (algorithme SM-2)
 
-> **Référence technique** — Spécification pour implémentation future  
-> **Date :** 06/03/2026  
-> **Statut :** Non implémenté (spec)  
-> **Source :** [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
+> Reference technique - implementation roadmap
+> Date : 2026-03-29
+> Statut : [PARTIAL] `F04-P1` backend livre ; `F04-P2` read-model user-level a venir
+> Source : [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
 
 ---
 
 ## 1. Vue d'ensemble
 
-F04 implémente un système de révisions espacées basé sur l'algorithme SM-2 (Wozniak, 1987) pour optimiser la rétention à long terme des compétences acquises.
+F04 introduit un systeme de revisions espacees base sur SM-2 pour optimiser la retention a long terme des competences acquises.
 
-**Fondements scientifiques :**
-- Ebbinghaus (1885) — Courbe de l'oubli : 70% oublié en 24h, 90% en une semaine
-- Cepeda et al. (2006) — Méta-analyse 317 études : pratique espacée +200% vs massée
-- Kornell & Bjork (2008) — Spacing + interleaving en mathématiques (g = 0.43)
-- SM-2 : fondement de SuperMemo, Anki, DuoLingo
-
----
-
-## 2. Algorithme SM-2 adapté
-
-```
-Intervalles de révision :
-- 1ère révision : J+1
-- 2ème révision : J+3
-- 3ème révision : J+7
-- Suivantes : intervalle × ease_factor
-
-Ajustement ease_factor (EF, init 2.5) :
-- Réponse correcte rapide (qualité 4-5) : EF + 0.1
-- Réponse correcte lente (qualité 3) : EF inchangé
-- Réponse incorrecte (qualité 0-2) : EF − 0.2, retour J+1
-```
-
-**Qualité** : 0–5 (échelle utilisateur ou dérivée de temps de réponse + correct/incorrect).
+Fondements scientifiques retenus :
+- Ebbinghaus (1885) : courbe de l'oubli
+- Cepeda et al. (2006) : pratique espacee > pratique massee
+- Kornell & Bjork (2008) : spacing + interleaving efficaces en mathematiques
+- SM-2 : base historique de SuperMemo / Anki
 
 ---
 
-## 3. Modèle de données prévu
+## 2. Etat actuel du chantier
+
+### Livre dans `F04-P1`
+
+- table persistante `spaced_repetition_items`
+- modele ORM `SpacedRepetitionItem`
+- moteur SM-2 pur dans `app/services/spaced_repetition/sm2_engine.py`
+- service applicatif `record_exercise_attempt_for_spaced_repetition(...)`
+- branchement sur `exercise_attempt_service.submit_answer(...)`
+- idempotence par `last_attempt_id`
+
+### Non livre a ce stade
+
+- read-model user-level F04
+- endpoint public ou user-level pour exposer l'etat F04
+- widget dashboard "revisions du jour"
+- integration defis
+- integration F23 (SR + IA)
+
+---
+
+## 3. Algorithme SM-2 retenu
+
+Intervalles :
+- 1er succes : J+1
+- 2e succes : J+3
+- 3e succes : J+7
+- suivants : intervalle precedent x ease factor
+
+Ease factor :
+- initial : `2.5`
+- plancher : `1.3`
+- plafond : `3.0`
+- succes rapide (`quality >= 4`) : `+0.1`
+- succes lent (`quality == 3`) : inchange
+- echec (`quality < 3`) : `-0.2` et retour a `J+1`
+
+Qualite derivee depuis la tentative exercice :
+- incorrect : `0`
+- correct et `time_spent <= 60s` : `5`
+- correct et `60s < time_spent < 120s` : `4`
+- correct et `time_spent >= 120s` : `3`
+
+Invalidite d'entree :
+- `quality` hors `0..5` -> `SpacedRepetitionInputError`
+
+---
+
+## 4. Granularite retenue
+
+Une carte SR = un couple `(user_id, exercise_id)`.
+
+Justification :
+- cle toujours disponible au moment du `submit_answer`
+- alignement naturel avec les tentatives existantes
+- pas de collision entre exercices distincts du meme type ou meme tier
+- lecture future "revisions du jour" plus simple qu'un agregat par concept encore instable
+
+Decision associee :
+- `exercise_id` est `NOT NULL`
+- suppression de l'exercice -> suppression des cartes SR associees (`ON DELETE CASCADE`)
+- pas de booleen `is_f04_user` stocke sur `users` ; l'etat F04 user-level restera derive
+
+---
+
+## 5. Modele de donnees actif
 
 ```sql
 spaced_repetition_items (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  exercise_id INT REFERENCES exercises(id) ON DELETE SET NULL,
-  -- Ou : challenge_id, concept_id selon granularité choisie
-  ease_factor FLOAT DEFAULT 2.5,
-  interval_days INT DEFAULT 1,
+  exercise_id INT NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+  ease_factor FLOAT NOT NULL,
+  interval_days INT NOT NULL,
   next_review_date DATE NOT NULL,
-  repetition_count INT DEFAULT 0,
-  last_quality INT,  -- 0-5
+  repetition_count INT NOT NULL,
+  last_quality INT NULL,
+  last_attempt_id INT NULL, -- correlation idempotente, sans FK
   created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ,
+  UNIQUE (user_id, exercise_id)
 )
 ```
 
-**Granularité à trancher** : par exercice individuel, par concept (type + difficulté), ou par item généré (ex. ID temporaire). Impact sur la table et les jointures.
+Index utile actuellement :
+- `(user_id, next_review_date)` pour les futures lectures "due today"
 
 ---
 
-## 4. Intégration prévue
+## 6. Integration runtime actuelle
 
-- **Après chaque tentative** : mise à jour ou création de l'item SR (qualité dérivée de correct/incorrect + temps)
-- **Widget dashboard** : "Révisions du jour" — liste des items dont `next_review_date = TODAY`
-- **Dépendances** : Profite du diagnostic (F03) pour prioriser les types faibles ; prépare F23 (exercices adaptatifs SR+IA)
+Write path actif :
+- `app/services/exercises/exercise_attempt_service.py`
+- apres `create_attempt(...)`
+- dans un savepoint dedie, pour ne pas casser le flux principal si SR echoue
+
+Regle runtime :
+- tentative exercice standard seulement
+- pas de handler dedie dans `F04-P1`
+- pas de changement frontend dans `F04-P1`
 
 ---
 
-## 5. Effort estimé
+## 7. Read-model cible pour `F04-P2`
 
-1–2 semaines (migration + service + UI widget)
+Le prochain lot backend doit exposer un etat user-level derive, sans champ stocke sur `users`.
+
+Payload cible :
+
+```json
+{
+  "f04_initialized": true,
+  "active_cards_count": 12,
+  "due_today_count": 3,
+  "overdue_count": 1,
+  "next_review_date": "2026-03-31"
+}
+```
+
+Interpretation produit :
+- `0 carte` -> F04 non initialise
+- `due_today_count > 0` -> revisions a afficher
+- `overdue_count > 0` -> utilisateur en retard
 
 ---
 
-## 6. Références
+## 8. Documentation a realigner
+
+### Mise a jour immediate apres `F04-P1`
+
+- `docs/00-REFERENCE/ARCHITECTURE.md`
+  - ajouter le domaine `app/services/spaced_repetition/`
+  - mentionner le seam `exercise_attempt_service.submit_answer(...)`
+- `docs/00-REFERENCE/DATA_MODEL.md`
+  - ajouter `SpacedRepetitionItem`
+  - documenter la cardinalite `(user, exercise)`
+- `docs/05-ADR/`
+  - ADR dedie sur la granularite SR, l'idempotence et la derive user-level
+
+### Mise a jour a faire quand `F04-P2` existera
+
+- `docs/02-FEATURES/API_QUICK_REFERENCE.md`
+  - documenter l'endpoint ou la surface API exposee pour le read-model F04
+- toute doc technique qui decrit les handlers/services users si un nouveau handler ou endpoint est ajoute
+- toute doc dashboard si le payload F04 est consomme ensuite par une UI
+
+---
+
+## 9. References
 
 - [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
-- [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) — Révisions espacées dans le parcours utilisateur
+- [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)
+- [../00-REFERENCE/DATA_MODEL.md](../00-REFERENCE/DATA_MODEL.md)
+- [../05-ADR/ADR-005-spaced-repetition-foundation.md](../05-ADR/ADR-005-spaced-repetition-foundation.md)

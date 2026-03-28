@@ -2,7 +2,7 @@
 
 > Scope : `app/models/`
 > Updated : 2026-03-27
-> Source : code ORM SQLAlchemy — 20 entités actives
+> Source : code ORM SQLAlchemy — 22 entités actives
 
 ---
 
@@ -14,6 +14,7 @@
 | `Exercise` | `exercises` | `app/models/exercise.py` |
 | `Attempt` | `attempts` | `app/models/attempt.py` |
 | `Progress` | `progress` | `app/models/progress.py` |
+| `SpacedRepetitionItem` | `spaced_repetition_items` | `app/models/spaced_repetition_item.py` |
 | `LogicChallenge` | `logic_challenges` | `app/models/logic_challenge.py` |
 | `LogicChallengeAttempt` | `logic_challenge_attempts` | `app/models/logic_challenge.py` |
 | `ChallengeProgress` | `challenge_progress` | `app/models/challenge_progress.py` |
@@ -161,6 +162,29 @@ Agrégats de maîtrise par `(user_id, exercise_type, difficulty)`.
 
 ---
 
+### `spaced_repetition_items`
+
+One SM-2 card per `(user_id, exercise_id)`.
+
+| Colonne | Type | Notes |
+|---------|------|-------|
+| `id` | Integer PK | |
+| `user_id` | Integer FK `users.id` CASCADE | Index |
+| `exercise_id` | Integer FK `exercises.id` CASCADE | NOT NULL, index |
+| `ease_factor` | Float | Ease factor SM-2 |
+| `interval_days` | Integer | Intervalle courant |
+| `next_review_date` | Date | Date de prochaine revision |
+| `repetition_count` | Integer | Nombre de succes consecutifs |
+| `last_quality` | Integer nullable | Qualite SM-2 `0..5` |
+| `last_attempt_id` | Integer nullable | Correlation idempotente, sans FK |
+| `created_at` / `updated_at` | DateTime TZ | |
+
+Index notable :
+- unique `(user_id, exercise_id)`
+- composite `(user_id, next_review_date)`
+
+---
+
 ## Relations principales
 
 ```
@@ -168,6 +192,7 @@ users
  ├─── exercises (creator_id)          1:N
  ├─── attempts (user_id)              1:N
  ├─── progress (user_id)              1:N
+ ├─── spaced_repetition_items         1:N
  ├─── logic_challenge_attempts        1:N
  ├─── challenge_progress (user_id)    1:N
  ├─── point_events (user_id)          1:N  ← ledger gamification
@@ -178,6 +203,7 @@ users
  └─── daily_challenges (user_id)      1:N
 
 exercises ──── attempts               1:N
+exercises ──── spaced_repetition_items 1:N
 
 logic_challenges
  ├─── logic_challenge_attempts        1:N

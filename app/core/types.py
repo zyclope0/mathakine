@@ -68,6 +68,19 @@ class PaginatedResponse(TypedDict):
     limit: int
 
 
+class SpacedRepetitionUserSummary(TypedDict):
+    """
+    Agrégat lecture F04 (révisions espacées) — dérivé de spaced_repetition_items.
+    ``next_review_date`` : prochaine échéance strictement après ``today`` (UTC), ISO date.
+    """
+
+    f04_initialized: bool
+    active_cards_count: int
+    due_today_count: int
+    overdue_count: int
+    next_review_date: Optional[str]
+
+
 class DashboardStats(TypedDict):
     total_exercises: int
     total_challenges: int
@@ -78,6 +91,7 @@ class DashboardStats(TypedDict):
     progress_over_time: "ChartData"
     exercises_by_day: "ChartData"
     lastUpdated: str
+    spaced_repetition: SpacedRepetitionUserSummary
 
 
 class PerformanceByType(TypedDict):

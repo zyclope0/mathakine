@@ -623,6 +623,10 @@ async def test_get_user_statistics(padawan_client, db_session, mock_exercise):
     assert (
         "total_exercises" in data or "correct_answers" in data or "success_rate" in data
     )
+    assert "spaced_repetition" in data
+    sr = data["spaced_repetition"]
+    assert sr.get("f04_initialized") is not None
+    assert "active_cards_count" in sr
     # Vérifier que les tentatives ont bien été comptées
     total = data.get("total_exercises", data.get("total_attempts", 0))
     correct = data.get("correct_answers", data.get("correct_attempts", 0))

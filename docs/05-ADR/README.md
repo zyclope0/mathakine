@@ -21,6 +21,7 @@ Use ADRs when:
 | [ADR-002](ADR-002-chat-assistant-public-boundary.md) | Accepted | Chat assistant - public access without authentication |
 | [ADR-003](ADR-003-gamification-concurrency-model.md) | Accepted | Gamification - SELECT FOR UPDATE conditional on dialect |
 | [ADR-004](ADR-004-ai-model-policy-architecture.md) | Accepted (documented debt) | AI model policy - exercises / challenges duality |
+| [ADR-005](ADR-005-spaced-repetition-foundation.md) | Accepted | Spaced repetition foundation - per user/exercise cards, derived user state |
 
 ## Reading Rule
 
