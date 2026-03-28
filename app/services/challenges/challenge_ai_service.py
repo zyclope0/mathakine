@@ -81,7 +81,7 @@ def normalize_generated_challenge(
     """
     if age_group not in AGE_GROUP_PARAMS:
         logger.warning(
-            f"Groupe d'Ã¢ge '{age_group}' non trouvÃ© dans le mapping, utilisation de '9-11' par dÃ©faut"
+            f"Groupe d'age '{age_group}' non trouve dans le mapping, utilisation de '9-11' par defaut"
         )
 
     final_age_group = age_group
@@ -360,7 +360,6 @@ async def generate_challenge_stream(
             else:
                 api_kwargs["max_tokens"] = ai_params["max_tokens"]
                 api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
-
             logger.info(
                 f"Appel API: model={ai_params['model']}, o1={use_o1}, o3={use_o3}, reasoning={ai_params.get('reasoning_effort', 'N/A')}"
             )

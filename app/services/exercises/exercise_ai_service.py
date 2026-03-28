@@ -1,5 +1,5 @@
 """
-Service de gÃ©nÃ©ration d'exercices par IA en streaming.
+Service de génération d'exercices par IA en streaming.
 Extrait la logique de generate_ai_exercise_stream depuis exercise_handlers.
 """
 
@@ -45,25 +45,25 @@ logger = get_logger(__name__)
 
 METRICS_EXERCISE_AI_PREFIX = "exercise_ai"
 EXERCISE_AI_GENERIC_ERROR_MESSAGE = (
-    "Erreur inattendue lors de la g\u00e9n\u00e9ration de l'exercice. R\u00e9essayez."
+    "Erreur inattendue lors de la génération de l'exercice. Réessayez."
 )
 EXERCISE_AI_TRANSIENT_ERROR_MESSAGE = (
-    "Erreur temporaire lors de la g\u00e9n\u00e9ration de l'exercice. R\u00e9essayez."
+    "Erreur temporaire lors de la génération de l'exercice. Réessayez."
 )
 EXERCISE_AI_POLICY_ERROR_MESSAGE = (
-    "Configuration du service d'exercices IA indisponible. R\u00e9essayez plus tard."
+    "Configuration du service d'exercices IA indisponible. Réessayez plus tard."
 )
-EXERCISE_AI_INVALID_JSON_MESSAGE = (
-    "La r\u00e9ponse g\u00e9n\u00e9r\u00e9e est invalide. R\u00e9essayez."
+EXERCISE_AI_INVALID_JSON_MESSAGE = "La réponse générée est invalide. Réessayez."
+EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE = (
+    "Impossible d'enregistrer l'exercice généré. Réessayez plus tard."
 )
-EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE = "Impossible d'enregistrer l'exercice g\u00e9n\u00e9r\u00e9. R\u00e9essayez plus tard."
 
-# \u00c9v\u00e9nement terminal SSE (align\u00e9 sur le flux d\u00e9fis : fin de flux contr\u00f4l\u00e9e apr\u00e8s succ\u00e8s ou erreurs m\u00e9tier/validation/persistance).
+# Événement terminal SSE (aligné sur le flux défis : fin de flux contrôlée après succès ou erreurs métier/validation/persistance).
 _SSE_DONE = f"data: {json.dumps({'type': 'done'})}\n\n"
 
 
 def _exercise_ai_metrics_key(exercise_type: str) -> str:
-    """Cle metriques / tokens : prefixe stable + type (pas de collision avec les defis)."""
+    """Clé métriques / tokens : préfixe stable + type (pas de collision avec les défis)."""
     t = (exercise_type or "unknown").strip().lower()
     return f"{METRICS_EXERCISE_AI_PREFIX}:{t}"
 
@@ -72,23 +72,23 @@ DIFFICULTY_RANGES = {
     "INITIE": {
         "min": 1,
         "max": 20,
-        "desc": "nombres simples de 1 Ã  20",
+        "desc": "nombres simples de 1 à 20",
     },
-    "PADAWAN": {"min": 1, "max": 100, "desc": "nombres jusqu'Ã  100"},
+    "PADAWAN": {"min": 1, "max": 100, "desc": "nombres jusqu'à 100"},
     "CHEVALIER": {
         "min": 10,
         "max": 500,
-        "desc": "nombres jusqu'Ã  500, calculs intermÃ©diaires",
+        "desc": "nombres jusqu'à 500, calculs intermédiaires",
     },
     "MAITRE": {
         "min": 50,
         "max": 1000,
-        "desc": "nombres jusqu'Ã  1000, problÃ¨mes complexes",
+        "desc": "nombres jusqu'à 1000, problèmes complexes",
     },
     "GRAND_MAITRE": {
         "min": 100,
         "max": 10000,
-        "desc": "grands nombres, problÃ¨mes avancÃ©s",
+        "desc": "grands nombres, problèmes avancés",
     },
 }
 
@@ -98,8 +98,8 @@ def _persist_exercise_ai_sync(
     locale: str = "fr",
 ) -> Optional[int]:
     """
-    Persiste un exercice gÃ©nÃ©rÃ© en base via sync_db_session.
-    Retourne l'id de l'exercice crÃ©Ã© ou None.
+    Persiste un exercice généré en base via sync_db_session.
+    Retourne l'id de l'exercice créé ou None.
     """
     with sync_db_session() as db:
         created = EnhancedServerAdapter.create_generated_exercise(
@@ -121,10 +121,10 @@ def _persist_exercise_ai_sync(
 
 
 def _has_custom_theme(prompt: str) -> bool:
-    """DÃ©tecte si le prompt demande un contexte thÃ©matique personnalisÃ©."""
+    """Détecte si le prompt demande un contexte thématique personnalisé."""
     if not prompt or not prompt.strip():
         return False
-    keywords = ["thÃ¨me", "theme", "contexte", "histoire", "univers", "monde"]
+    keywords = ["thème", "theme", "contexte", "histoire", "univers", "monde"]
     return any(word in prompt.lower() for word in keywords)
 
 
@@ -136,58 +136,58 @@ def build_exercise_system_prompt(
     default_theme: str,
     calibration_desc: str = "",
 ) -> str:
-    """Construit le prompt systÃ¨me pour la gÃ©nÃ©ration d'exercices."""
-    theme_line = f"- Contexte par dÃ©faut : {default_theme}" if default_theme else ""
+    """Construit le prompt système pour la génération d'exercices."""
+    theme_line = f"- Contexte par défaut : {default_theme}" if default_theme else ""
     cal_line = (
-        f"- Calibrage pÃ©dagogique : {calibration_desc}" if calibration_desc else ""
+        f"- Calibrage pédagogique : {calibration_desc}" if calibration_desc else ""
     )
-    return f"""Tu es un crÃ©ateur d'exercices mathÃ©matiques pÃ©dagogiques.
+    return f"""Tu es un créateur d'exercices mathématiques pédagogiques.
 
 ## CONTRAINTES OBLIGATOIRES
 - Type d'exercice : **{exercise_type}** (STRICTEMENT ce type, aucun autre)
 - Niveau : {derived_difficulty} ({diff_info['desc']})
-- Groupe d'Ã¢ge cible : {age_group}
+- Groupe d'âge cible : {age_group}
 {cal_line}
 {theme_line}
 
 ## GUIDE PAR TYPE
-- addition/soustraction/multiplication/division : opÃ©ration unique du type demandÃ©
-- fractions : opÃ©rations avec fractions (addition, simplification, comparaison)
-- geometrie : pÃ©rimÃ¨tres, aires, volumes avec formules adaptÃ©es au niveau
-- texte : problÃ¨me concret avec mise en situation, nÃ©cessitant raisonnement
-- mixte : combiner 2-3 opÃ©rations diffÃ©rentes dans un mÃªme calcul
-- divers : suites logiques, pourcentages, conversions, probabilitÃ©s simples
+- addition/soustraction/multiplication/division : opération unique du type demandé
+- fractions : opérations avec fractions (addition, simplification, comparaison)
+- geometrie : périmètres, aires, volumes avec formules adaptées au niveau
+- texte : problème concret avec mise en situation, nécessitant raisonnement
+- mixte : combiner 2-3 opérations différentes dans un même calcul
+- divers : suites logiques, pourcentages, conversions, probabilités simples
 
-## RÃˆGLES QUALITÃ‰
-1. La question doit Ãªtre claire et sans ambiguÃ¯tÃ©
-2. Les 4 choix doivent inclure : la bonne rÃ©ponse + 3 erreurs plausibles (erreurs de calcul typiques)
-3. L'explication doit dÃ©tailler le raisonnement Ã©tape par Ã©tape, avec des calculs COHÃ‰RENTS avec la rÃ©ponse
-4. L'indice doit GUIDER sans donner la rÃ©ponse (ex: "Quelle opÃ©ration pour trouver le total ?")
-5. CRITIQUE: VÃ©rifie que correct_answer correspond EXACTEMENT aux calculs dans l'explication. Pas de contradiction.
-6. FRACTIONS (moitiÃ©/tiers/etc.) : formule A = totalÃ—frac1, B = totalÃ—frac2, puis (total - A - B). L'explication doit suivre EXACTEMENT ces calculs et conclure par correct_answer. INTERDIT : inventer une "erreur", une "correction" ou un recalcul contradictoire. Exemple : 120 cristaux, 1/2 rouges (60) + 1/3 bleus (40) = 100 â†’ ni rouges ni bleus = 20. Jamais 30.
+## RÈGLES QUALITÉ
+1. La question doit être claire et sans ambiguïté
+2. Les 4 choix doivent inclure : la bonne réponse + 3 erreurs plausibles (erreurs de calcul typiques)
+3. L'explication doit détailler le raisonnement étape par étape, avec des calculs COHÉRENTS avec la réponse
+4. L'indice doit GUIDER sans donner la réponse (ex: "Quelle opération pour trouver le total ?")
+5. CRITIQUE: Vérifie que correct_answer correspond EXACTEMENT aux calculs dans l'explication. Pas de contradiction.
+6. FRACTIONS (moitié/tiers/etc.) : formule A = total×frac1, B = total×frac2, puis (total - A - B). L'explication doit suivre EXACTEMENT ces calculs et conclure par correct_answer. INTERDIT : inventer une "erreur", une "correction" ou un recalcul contradictoire. Exemple : 120 cristaux, 1/2 rouges (60) + 1/3 bleus (40) = 100 → ni rouges ni bleus = 20. Jamais 30.
 
-## FORMATAGE MATHÃ‰MATIQUE (OBLIGATOIRE)
-Toutes les expressions mathÃ©matiques DOIVENT Ãªtre Ã©crites en LaTeX dans les champs `question`, `explanation` et `hint`.
-- Formule inline : $a + b = c$ (dÃ©limiteurs $ ... $)
-- Formule bloc centrÃ©e : $$\\frac{{a}}{{b}} = c$$ (pour les Ã©tapes clÃ©s de l'explication)
-- OpÃ©rateurs : $\\times$ (Ã—), $\\div$ (Ã·), $\\frac{{a}}{{b}}$ (fraction), $a^2$ (exposant), $\\sqrt{{x}}$ (racine)
+## FORMATAGE MATHÉMATIQUE (OBLIGATOIRE)
+Toutes les expressions mathématiques DOIVENT être écrites en LaTeX dans les champs `question`, `explanation` et `hint`.
+- Formule inline : $a + b = c$ (délimiteurs $ ... $)
+- Formule bloc centrée : $$\\frac{{a}}{{b}} = c$$ (pour les étapes clés de l'explication)
+- Opérateurs : $\\times$ (×), $\\div$ (÷), $\\frac{{a}}{{b}}$ (fraction), $a^2$ (exposant), $\\sqrt{{x}}$ (racine)
 - Exemples corrects :
-  - "Calcule $3 \\times 4$" âœ… â€” "Calcule 3 Ã— 4" âŒ
-  - "Explication : $\\frac{{1}}{{2}} + \\frac{{1}}{{3}} = \\frac{{5}}{{6}}$" âœ…
-  - "L'aire est $\\pi \\times r^2$" âœ… â€” "L'aire est Ï€ Ã— rÂ²" âŒ
-- CRITIQUE LaTeX : AprÃ¨s une fraction $\\frac{{a}}{{b}}$, TOUJOURS mettre un espace avant le mot ou nombre suivant.
-  Ex: "$\\frac{{1}}{{8}}$ du total" âœ… â€” "$\\frac{{1}}{{8}}81$ du total" âŒ (le 81 collÃ© casse le rendu)
-  Ex: "$\\frac{{2}}{{7}}$ de 72" âœ… â€” "$\\frac{{2}}{{7}}72$" âŒ
+  - "Calcule $3 \\times 4$" (correct) vs "Calcule 3 x 4" (incorrect)
+  - "Explication : $\\frac{{1}}{{2}} + \\frac{{1}}{{3}} = \\frac{{5}}{{6}}$" (correct)
+  - "L'aire est $\\pi \\times r^2$" (correct) vs "L'aire est pi x r^2" (incorrect)
+- CRITIQUE LaTeX : Après une fraction $\\frac{{a}}{{b}}$, TOUJOURS mettre un espace avant le mot ou nombre suivant.
+  Ex: "$\\frac{{1}}{{8}}$ du total" (correct) vs "$\\frac{{1}}{{8}}81$ du total" (incorrect) (le 81 colle casse le rendu)
+  Ex: "$\\frac{{2}}{{7}}$ de 72" (correct) vs "$\\frac{{2}}{{7}}72$" (incorrect)
 - Le texte narratif (contexte spatial, etc.) reste en prose normale, seules les maths sont en LaTeX.
 
 ## FORMAT JSON STRICT
 {{
   "title": "Titre court et engageant",
-  "question": "Ã‰noncÃ© complet du problÃ¨me",
-  "correct_answer": "RÃ©ponse numÃ©rique uniquement",
+  "question": "Énoncé complet du problème",
+  "correct_answer": "Réponse numérique uniquement",
   "choices": ["choix1", "choix2", "choix3", "choix4"],
-  "explanation": "Explication pÃ©dagogique dÃ©taillÃ©e",
-  "hint": "Piste sans rÃ©vÃ©ler la solution"
+  "explanation": "Explication pédagogique détaillée",
+  "hint": "Piste sans révéler la solution"
 }}"""
 
 
@@ -198,11 +198,11 @@ def build_exercise_user_prompt(
 ) -> str:
     """Construit le prompt utilisateur."""
     if prompt and prompt.strip():
-        return f"""INSTRUCTIONS PERSONNALISÃ‰ES DE L'UTILISATEUR (PRIORITAIRES) :
+        return f"""INSTRUCTIONS PERSONNALISÉES DE L'UTILISATEUR (PRIORITAIRES) :
 "{prompt.strip()}"
 
-CrÃ©e un exercice de type {exercise_type} (niveau {derived_difficulty}) en respectant ces instructions personnalisÃ©es."""
-    return f"CrÃ©e un exercice de type {exercise_type} pour le niveau {derived_difficulty} avec un contexte spatial engageant."
+Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respectant ces instructions personnalisées."""
+    return f"Crée un exercice de type {exercise_type} pour le niveau {derived_difficulty} avec un contexte spatial engageant."
 
 
 async def generate_exercise_stream(
@@ -214,7 +214,7 @@ async def generate_exercise_stream(
     user_id: Optional[int] = None,
 ) -> AsyncGenerator[str, None]:
     """
-    GÃ©nÃ©rateur async qui produit des Ã©vÃ©nements SSE (f"data: {json.dumps(...)}\n\n").
+    Générateur async qui produit des événements SSE (f"data: {json.dumps(...)}\n\n").
     """
     start_time = datetime.now()
     metrics_key = _exercise_ai_metrics_key(exercise_type)
@@ -234,7 +234,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="openai_import_error",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': 'BibliothÃ¨que OpenAI non installÃ©e'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Bibliothèque OpenAI non installée'})}\n\n"
             return
 
         if not settings.OPENAI_API_KEY:
@@ -245,7 +245,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="openai_api_key_missing",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': 'OpenAI API key non configurÃ©e'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': 'OpenAI API key non configurée'})}\n\n"
             return
 
         client = AsyncOpenAI(
@@ -256,7 +256,7 @@ async def generate_exercise_stream(
             derived_difficulty, DIFFICULTY_RANGES["PADAWAN"]
         )
         default_theme = (
-            "spatial/galactique (vaisseaux, planÃ¨tes, Ã©toiles)"
+            "spatial/galactique (vaisseaux, planètes, étoiles)"
             if not _has_custom_theme(prompt)
             else ""
         )
@@ -280,7 +280,7 @@ async def generate_exercise_stream(
         try:
             model = resolve_exercise_ai_model()
             resolved_model = model
-            system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/aprÃ¨s."
+            system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après."
             api_kwargs = build_exercise_ai_stream_kwargs(
                 model=model,
                 exercise_type=exercise_type,
@@ -314,7 +314,7 @@ async def generate_exercise_stream(
             yield f"data: {json.dumps({'type': 'error', 'message': OPENAI_CIRCUIT_OPEN_USER_MESSAGE})}\n\n"
             return
 
-        yield f"data: {json.dumps({'type': 'status', 'message': 'GÃ©nÃ©ration en cours...'})}\n\n"
+        yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
 
         @retry(
             stop=stop_after_attempt(AIConfig.MAX_RETRIES),
@@ -337,7 +337,7 @@ async def generate_exercise_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur OpenAI exercices apr\u00e8s {AIConfig.MAX_RETRIES} tentatives: {api_error}"
+                f"Erreur OpenAI exercices après {AIConfig.MAX_RETRIES} tentatives: {api_error}"
             )
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -447,7 +447,7 @@ async def generate_exercise_stream(
             exercise_data = extract_json_from_text(full_response)
         except json.JSONDecodeError as json_error:
             logger.error(f"Exercice IA JSON invalide: {json_error}")
-            logger.debug(f"Extrait reponse: {full_response[:800]!r}")
+            logger.debug(f"Extrait réponse: {full_response[:800]!r}")
             _track_openai_cost()
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -479,7 +479,7 @@ async def generate_exercise_stream(
         )
         if not valid:
             logger.warning(
-                f"Validation metier exercice IA refusee (non persistee): {reasons}"
+                f"Validation métier exercice IA refusée (non persistée): {reasons}"
             )
             _track_openai_cost()
             generation_metrics.record_generation(
@@ -557,7 +557,7 @@ async def generate_exercise_stream(
         yield _SSE_DONE
 
     except Exception as gen_error:
-        logger.error(f"Erreur lors de la gÃ©nÃ©ration IA: {gen_error}")
+        logger.error(f"Erreur lors de la génération IA: {gen_error}")
         logger.debug(traceback.format_exc())
         generation_metrics.record_generation(
             challenge_type=metrics_key,

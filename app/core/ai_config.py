@@ -18,10 +18,6 @@ logger = get_logger(__name__)
 class AIConfig:
     """Configuration centralisée pour la génération IA."""
 
-    # Référence historique (non utilisée par le flux défis ; fallback vide o3 → policy dédiée).
-    ADVANCED_MODEL: str = "gpt-5.1"
-    BASIC_MODEL: str = "gpt-5-mini"
-
     # Résolution modèle **défis** (stream) : ``challenge_ai_model_policy.resolve_challenge_ai_model``.
     # Fallback stream vide (o3) : ``resolve_challenge_ai_fallback_model``.
 

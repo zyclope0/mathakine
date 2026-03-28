@@ -85,12 +85,6 @@ def level_and_xp_from_total_points(total_points: int) -> Tuple[int, int]:
     return int(level), int(xp)
 
 
-def experience_points_in_current_level(total_points: int) -> int:
-    """Alias explicite : XP accumulée dans le niveau courant."""
-    _, xp = level_and_xp_from_total_points(total_points)
-    return int(xp)
-
-
 def points_to_gain_next_level(current_level: int) -> int:
     """Points nécessaires pour passer du niveau courant au suivant."""
     return int(cost_to_advance_from_level(current_level))

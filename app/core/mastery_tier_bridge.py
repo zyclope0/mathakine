@@ -227,7 +227,23 @@ def project_challenge_progress_row_f42(row: Any, user: Any) -> Dict[str, Any]:
     band = challenge_mastery_string_to_pedagogical_band(
         getattr(row, "mastery_level", None)
     )
-    tier = compute_tier_from_age_group_and_band(canon, band)
+    raw_tier = compute_tier_from_age_group_and_band(canon, band)
+    if raw_tier is None:
+        tier = None
+    elif DIFFICULTY_TIER_MIN <= raw_tier <= DIFFICULTY_TIER_MAX:
+        tier = raw_tier
+    else:
+        logger.warning(
+            "project_challenge_progress_row_f42: tier out of bounds, clamping: "
+            "raw=%s age_group=%s mastery_level=%s band=%s (expected %s..%s)",
+            raw_tier,
+            canon,
+            getattr(row, "mastery_level", None),
+            band,
+            DIFFICULTY_TIER_MIN,
+            DIFFICULTY_TIER_MAX,
+        )
+        tier = max(DIFFICULTY_TIER_MIN, min(DIFFICULTY_TIER_MAX, int(raw_tier)))
     return {
         "canonical_age_group": canon,
         "pedagogical_band": band,
