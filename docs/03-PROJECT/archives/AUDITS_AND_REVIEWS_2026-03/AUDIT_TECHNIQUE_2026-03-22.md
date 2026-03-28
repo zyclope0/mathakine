@@ -1,6 +1,6 @@
 ﻿# Audit Technique -- Mathakine -- 2026-03-22
 > ⚠️ OBSOLETE comme source de verite runtime - snapshot historique de revue conserve pour trace.
-> La reference actuelle pour la gouvernance IA runtime et l'observabilite est [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+> La reference actuelle pour la gouvernance IA runtime et l'observabilite est [../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 ---
 

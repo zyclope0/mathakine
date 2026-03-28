@@ -431,7 +431,13 @@ class ChallengeBadgeEarned(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
-    star_wars_title: Optional[str] = None
+    star_wars_title: Optional[str] = Field(
+        None,
+        description=(
+            "Champ legacy optionnel (nom de clé historique) ; libellé narratif de "
+            "badge, souvent absent — ne pas s'en servir comme source d'affichage principale."
+        ),
+    )
     difficulty: Optional[str] = None
     points_reward: Optional[int] = None
     earned_at: Optional[str] = None

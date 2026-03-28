@@ -1,19 +1,24 @@
 # Gamification account progress and points ledger
 
-> Active reference for account-level gamification persistence
-> Updated: 23/03/2026
+> Active reference for account-level progression
+> Updated: 27/03/2026
 
 ## Scope
 
 This document describes the persistent gamification layer for the user account:
 - points accumulation
 - account level progression
-- Jedi rank derivation
-- points ledger writes
+- public progression rank derivation
+- ledger writes and main read surfaces
 
 It does **not** describe:
-- IRT / pedagogical level estimation
-- challenge/exercise difficulty adaptation
+- pedagogical difficulty
+- diagnostic or mastery estimation
+- exercise/challenge content calibration
+
+Those concerns are now documented separately in:
+- [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)
+- [../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md](../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)
 
 ---
 
@@ -32,15 +37,12 @@ It does **not** describe:
 - `app/services/gamification/constants.py`
 - `app/services/gamification/point_source.py`
 
-### Exposed routes
+### Public label resolution
 
-- `GET /api/users/me`
-- `GET /api/badges/stats`
-- `GET /api/badges/user`
-- `GET /api/users/leaderboard`
-
-High-level route map remains:
-- [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+- `frontend/lib/gamification/progressionRankLabel.ts`
+- `frontend/lib/constants/leaderboard.ts`
+- `frontend/messages/fr.json`
+- `frontend/messages/en.json`
 
 ---
 
@@ -55,36 +57,79 @@ User-level persistent fields include:
 - `current_streak`
 - `best_streak`
 
-These fields live on `users` and are not dashboard-only derived values.
+Important:
+- the persisted field name is still `jedi_rank` for historical compatibility
+- the public UI no longer exposes Jedi wording
+- canonical public buckets are now neutral progression buckets
 
 ---
 
 ## Level computation
 
-The current account progression rule is centralized in `compute_state_from_total_points(...)`.
+The unique account progression rule is centralized in:
+- `compute_state_from_total_points(...)`
 
-Current constants:
-- `POINTS_PER_LEVEL = 100`
+`total_points` is the source of truth. Level and XP-in-bracket use a **piecewise cost curve** (`LEVEL_UP_COST_SEGMENTS` in `app/services/gamification/constants.py`): each transition `L → L+1` has an integer point cost that steps up by tier (e.g. 200 for low levels, then 300, 420, 580, 750 for higher bands).
 
-Current rule:
-- `current_level = max(1, total_points // 100 + 1)`
-- `experience_points = total_points % 100`
-- `jedi_rank` is derived from the level bracket
+- `cumulative_points_at_level_start(L)` = minimum total needed to be at level `L` (level 1 starts at 0).
+- `current_level` = largest `L` with `total_points >= cumulative_points_at_level_start(L)`.
+- `experience_points` = `total_points - cumulative_points_at_level_start(current_level)` (progress in the current level).
+- API `gamification_level.next_level_xp` = `cost_to_advance_from_level(current_level)`.
 
-Current rank thresholds:
-- `< 5` -> `youngling`
-- `< 15` -> `padawan`
-- `< 30` -> `knight`
-- `< 50` -> `master`
-- otherwise -> `grand_master`
+Legacy (pre F42-P4): `POINTS_PER_LEVEL_LEGACY = 100` — linear `// 100 + 1` model; kept as a named constant only, not used for level math.
 
-Any change to this formula should stay centralized in the gamification service / compute layer.
+The rank bucket is still derived from `current_level` (synthetic level from points).
+
+### Current canonical rank buckets
+
+Technical bucket computation is centralized in:
+- `jedi_rank_for_level(...)`
+
+Canonical public buckets:
+- `cadet`
+- `scout`
+- `explorer`
+- `navigator`
+- `cartographer`
+- `commander`
+- `stellar_archivist`
+- `cosmic_legend`
+
+Current thresholds:
+- `< 3` -> `cadet`
+- `< 6` -> `scout`
+- `< 10` -> `explorer`
+- `< 15` -> `navigator`
+- `< 22` -> `cartographer`
+- `< 30` -> `commander`
+- `< 42` -> `stellar_archivist`
+- otherwise -> `cosmic_legend`
+
+Numeric level labels (« Niveau n ») are **client-side i18n**; the API exposes `current` and `jedi_rank` only (F42-P5).
+
+---
+
+## Legacy compatibility
+
+Historical persisted values may still contain:
+- `youngling`
+- `padawan`
+- `knight`
+- `master`
+- `grand_master`
+
+Current handling:
+- backend canonicalization is available on treated public payloads
+- frontend also canonicalizes defensively before resolving labels/icons
+
+This is acceptable as a compatibility layer.
+It should not be treated as the public product vocabulary anymore.
 
 ---
 
 ## Points ledger (`point_events`)
 
-The ledger table stores one row per points attribution event.
+The ledger stores one row per points attribution event.
 
 Key columns:
 - `user_id`
@@ -96,42 +141,45 @@ Key columns:
 - `created_at`
 
 Important boundary:
-- the ledger is written **server-side only**
-- there is no public endpoint exposing raw `point_events`
-- there is no generic public `apply_points` endpoint for clients
+- ledger writes are server-side only
+- there is no generic public `apply_points` endpoint
+- there is no raw public ledger dump route
 
-This is intentional for product and security reasons.
+This is intentional.
 
 ---
 
 ## Current write paths
 
-### 1. Badge awards
+### Badge awards
 
 When a newly earned badge has `points_reward > 0`, the badge flow delegates to:
 - `app/services/badges/badge_gamification_updates.py`
 - then `GamificationService.apply_points(...)`
 
-`source_type` used:
+`source_type`:
 - `badge_awarded`
 
-### 2. Daily challenge completion
+### Daily challenge completion
 
 When a daily challenge is completed and has `bonus_points > 0`, the flow delegates to:
 - `app/services/progress/daily_challenge_service.py`
 - then `GamificationService.apply_points(...)`
 
-`source_type` used:
+`source_type`:
 - `daily_challenge_completed`
 
-### Current source enum
+### Standard exercise completion
 
-Defined in:
+Successful standard exercise submissions can also award points through:
+- the exercise attempt flow
+- then `GamificationService.apply_points(...)`
+
+`source_type`:
+- `exercise_completed`
+
+Current source enum:
 - `app/services/gamification/point_source.py`
-
-Current values:
-- `badge_awarded`
-- `daily_challenge_completed`
 
 ---
 
@@ -139,11 +187,11 @@ Current values:
 
 ### `GET /api/users/me`
 
-Used as the main account-facing source for persistent gamification identity:
+Main account-facing source for persistent progression identity:
 - `gamification_level`
 - `total_points`
 - `current_level`
-- `jedi_rank`
+- `jedi_rank` (transport key, neutralized in display)
 
 ### `GET /api/badges/stats`
 
@@ -154,11 +202,11 @@ Aggregated stats for the current user:
 
 ### `GET /api/badges/user`
 
-Returns earned badges and a `user_stats` block including pinned badges and persistent account stats.
+Returns earned badges and `user_stats`, including persistent account progression state.
 
 ### `GET /api/users/leaderboard`
 
-Uses points/ranking information for leaderboard ordering and display.
+Uses points/rank information for ordering and display.
 
 ---
 
@@ -166,30 +214,35 @@ Uses points/ranking information for leaderboard ordering and display.
 
 Current behavior:
 - `GamificationService.apply_points(...)` updates the user row and appends a ledger row in the same DB flow
-- it does **not** use `with_for_update`
+- the treated production path is row-lock aware where required
+- SQLite test compatibility remains preserved
 
-Reason documented in code:
-- SQLite test compatibility
-- low expected contention on this flow
-
-This is an accepted current trade-off, not an undocumented omission.
+This is an accepted implementation detail, not an accidental omission.
 
 ---
 
-## Relationship with backlog F38
+## Relationship with product backlog
 
-F38 remains the product/backlog follow-up for:
-- more coherent account progression UX
-- clearer history of gains
-- possible richer user-facing exploitation of gamification state
+The remaining backlog around account progression is now mostly UX/product-facing:
+- richer ledger history for the user
+- aggregates by source
+- clearer account progression storytelling
 
-If product eventually needs a public ledger history view, that should be designed explicitly and not inferred from the current backend internals.
+What is already done:
+- persistent points engine
+- level/XP/rank computation
+- leaderboard, profile/dashboard and badges integration
+- public neutral rank labels
+
+What is still optional future work:
+- dedicated user-facing history of point gains
+- more explicit account progress breakdown by source
 
 ---
 
 ## Related docs
 
 - [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
-- [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md)
+- [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
-- [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+- [../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md](../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)

@@ -1,7 +1,8 @@
-# Remaining Follow-Ups - 2026-03-19
+# Historical Remaining Follow-Ups Snapshot - 2026-03-19
 
-> Active recap of the points still outside the closed backend iterations.
-> Updated after backend maturity audit, **closure of iteration `I`** (2026-03-19), and **closure of recommendation iteration `R`** (R7, 2026-03-21).
+> Historical snapshot kept for traceability.
+> This file is no longer the active tracker for current work.
+> Active execution tracking now lives in [../../../../.claude/session-plan.md](../../../../.claude/session-plan.md), and active product backlog truth lives in [../../../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../../../02-FEATURES/ROADMAP_FONCTIONNALITES.md).
 
 ## Current Status
 

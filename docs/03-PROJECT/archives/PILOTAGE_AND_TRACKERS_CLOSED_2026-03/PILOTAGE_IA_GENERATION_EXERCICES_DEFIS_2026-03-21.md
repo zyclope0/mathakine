@@ -5,7 +5,7 @@
 > Portee: generation d'exercices et de defis pilotes par IA, cout, qualite, robustesse, gouvernance modele
 
 > ⚠️ OBSOLÈTE — ce document reste le journal de pilotage et le ledger des lots IA, mais n'est plus la source de vérité runtime des modèles et de l'observabilité.
-> Source de vérité actuelle : [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+> Source de vérité actuelle : [../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 ---
 
@@ -114,7 +114,7 @@ Le nombre d'appels modele peut augmenter uniquement en cas de:
 ## Etat runtime des modeles
 
 > ⚠️ OBSOLÈTE — cette section contient un mélange de constats historiques pre/post-refactor.
-> Pour les défauts de modèles, allowlists, hiérarchies d'override et limites assumées au 22/03/2026, utiliser [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+> Pour les défauts de modèles, allowlists, hiérarchies d'override et limites assumées au 22/03/2026, utiliser [../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 ## Configuration locale constatee
 
@@ -363,7 +363,7 @@ Index gouvernance multi-workloads (lot **IA10**, mars 2026) : `app/core/app_mode
 
 > ⚠️ OBSOLÈTE — cette section est un plan historique.
 > Les lots IA10b, IA11a, IA11b, IA12, IA13a et IA13b sont désormais réalisés.
-> Les décisions runtime en vigueur sont consolidées dans [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
+> Les décisions runtime en vigueur sont consolidées dans [../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../../../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 Les lots doivent etre traites separement, avec review systematique.
 

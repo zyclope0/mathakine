@@ -1,142 +1,239 @@
-# F05 — Adaptation dynamique de difficulté
+# F05 - Adaptation dynamique de difficulte
 
-> **Référence technique** — Contexte complet pour développeurs et prompts IA  
-> **Date :** 06/03/2026  
-> **Statut :** Implémenté (v3.0.0-alpha.3+)  
-> **Source :** [ROADMAP_FONCTIONNALITES §F05](ROADMAP_FONCTIONNALITES.md), [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md)
-
----
-
-## 1. Vue d'ensemble
-
-F05 détermine le niveau de difficulté adapté à chaque utilisateur et type d'exercice, puis adapte le mode de réponse (QCM vs saisie libre) selon le niveau IRT prouvé.
-
-**Fondements scientifiques :**
-
-- Vygotsky (1978) — Zone proximale de développement (ZPD)
-- Bjork (1994) — Desirable difficulties
-- Csikszentmihalyi (1990) — Flow (difficulté ≈ compétence)
+> Reference active
+> Updated: 27/03/2026
+> Statut: implemente, aligne sur F42
 
 ---
 
-## 2. Architecture — Cascade de résolution
+## 1. But
 
-La difficulté est résolue par **cascade de priorités** dans `app/services/exercises/adaptive_difficulty_service.py` :
+F05 regle aujourd'hui deux sujets complementaires :
 
-| Priorité | Source | Condition | Retourne |
-|----------|--------|-----------|----------|
-| 1 | **Diagnostic IRT** (F03) | Diagnostic < 30 jours, type évalué | `age_group` depuis `diagnostic_results.scores` |
-| 2 | **Progression temps réel** | ≥ 5 tentatives sur 7 jours (table `progress`) | `age_group` depuis `mastery_level` |
-| 3 | **Profil utilisateur** | `preferred_difficulty` ou `grade_level` | `age_group` mappé |
-| 4 | **Fallback** | Aucune donnée | `GROUP_9_11` (PADAWAN) |
+1. resoudre une enveloppe pedagogique d'age
+2. resoudre un second axe pedagogique de maitrise
 
-**Ajustement temps réel** (boost/descente) appliqué après résolution :
+Le modele canonique n'est plus "un seul niveau Star Wars".
+La verite de difficulte fine est maintenant :
 
-- `completion_rate > 85 %` ET `streak >= 3` → niveau +1
-- `completion_rate < 50 %` ET `streak = 0` → niveau -1
+`age_group + pedagogical_band -> difficulty_tier`
 
----
+Le tier F42 resultant sert ensuite a calibrer :
+- la generation locale d'exercices
+- la personnalisation des defis IA
+- les recommandations
+- certaines lectures API enrichies
 
-## 3. Données — Table `diagnostic_results`
+Le detail technique transverse vit dans :
+- [../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md](../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)
 
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `user_id` | int | Utilisateur |
-| `completed_at` | timestamp | Date de fin du diagnostic |
-| `triggered_from` | str | "onboarding" \| "settings" |
-| `questions_asked` | int | Nombre de questions posées |
-| `duration_seconds` | int \| null | Durée totale |
-| `scores` | JSONB | `{"addition": {"level": 2, "difficulty": "CHEVALIER", "correct": 4, "total": 5}, ...}` |
-
-**Types évalués par l'IRT :** `addition`, `soustraction`, `multiplication`, `division`.
-
-**Validité :** 30 jours (`_IRT_MAX_AGE_DAYS`). Au-delà, la cascade passe au niveau 2 (progression) ou 3 (profil).
+Le guide simple equipe/produit vit dans :
+- [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)
 
 ---
 
-## 4. Mapping `preferred_difficulty`
+## 2. Modele actuel
 
-Le champ `users.preferred_difficulty` stocke **deux formats** (onboarding vs profil) :
+### 2.1 Axe 1 - age pedagogique
 
-| Valeur stockée | Origine | Mappé vers |
-|----------------|---------|------------|
-| `"adulte"`, `"9-11"`, `"12-14"`, `"15-17"`, `"6-8"` | Onboarding (age_group) | Ordinal 0–4 → `age_group` |
-| `"GRAND_MAITRE"`, `"MAITRE"`, etc. | Profil (DifficultyLevel) | Idem |
+Le systeme utilise un `age_group` canonique :
+- `6-8`
+- `9-11`
+- `12-14`
+- `15+`
 
-Voir `_PREF_DIFFICULTY_TO_ORDINAL` dans `adaptive_difficulty_service.py`.
+Resolution preferentielle :
+1. `users.age_group`
+2. `preferred_difficulty` comme compatibilite
+3. `grade_level`
+4. fallback explicite `9-11` si aucun meilleur signal n'existe
+
+Sources de verite :
+- `app/core/user_age_group.py`
+- `app/core/mastery_tier_bridge.py`
+
+### 2.2 Axe 2 - bande pedagogique
+
+La bande pedagogique est le second axe F42 :
+- `discovery`
+- `learning`
+- `consolidation`
+
+Elle provient principalement de signaux de progression et de diagnostic.
+
+Mapping canonique actuel cote progression exercices :
+- `mastery_level` 1-2 -> `discovery`
+- `mastery_level` 3 -> `learning`
+- `mastery_level` 4-5 -> `consolidation`
+
+Source unique :
+- `app/core/mastery_tier_bridge.py`
+
+### 2.3 Tier F42
+
+Le tier fin est calcule par la matrice F42 :
+
+`difficulty_tier = age_band_index * 3 + pedagogical_band_index + 1`
+
+Exemple :
+- `9-11 + discovery` -> `4`
+- `9-11 + learning` -> `5`
+- `9-11 + consolidation` -> `6`
+
+Source de verite :
+- `app/core/difficulty_tier.py`
 
 ---
 
-## 5. Proxys IRT — Types non évalués
+## 3. Flux runtime reel
 
-| Type | Proxy | Logique |
-|------|-------|---------|
-| `MIXTE` | Oui | Minimum des 4 scores de base (protection surcharge) |
-| `FRACTIONS` | Oui | Niveau **division** uniquement (conservateur) |
-| `GEOMETRIE`, `TEXTE`, `DIVERS` | Non | Cascade profil/fallback |
+### 3.1 Generation locale d'exercices
+
+Le flux F42 actuel passe par :
+- `app/services/exercises/exercise_generation_service.py`
+- `app/services/exercises/adaptive_difficulty_service.py`
+
+Le seam cle est `resolve_adaptive_context(...)`, qui retourne :
+- `age_group`
+- `pedagogical_band`
+- `mastery_source`
+
+Le comportement actuel est :
+1. age stable resolu depuis le profil/fallback
+2. bande resolue depuis `Progress.mastery_level` ou le diagnostic
+3. fallback de bande a `learning` quand aucun signal plus fort n'est disponible
+4. recalcul du `difficulty_tier` a partir de la vraie cellule `(age_group x band)`
+
+Important :
+- `resolve_adaptive_difficulty()` existe encore pour compatibilite legacy
+- ce n'est plus la voie canonique de generation F42
+
+### 3.2 Progression et evaluation
+
+La base stocke encore des champs legacy :
+- `Progress.mastery_level`
+- `Progress.difficulty`
+- `ChallengeProgress.mastery_level`
+- difficulte legacy du diagnostic
+
+Le bridge F42 projette ces champs vers :
+- `canonical_age_group`
+- `pedagogical_band`
+- `difficulty_tier`
+
+Source de verite :
+- `app/core/mastery_tier_bridge.py`
+
+### 3.3 Defis IA
+
+Les defis IA reutilisent le contexte utilisateur F42 via :
+- `app/services/challenges/challenge_generation_context.py`
+
+Regle actuelle :
+- si un age explicite est fourni, il gagne pour l'enveloppe
+- si aucun age n'est fourni, le profil utilisateur est utilise
+- la calibration pedagogique utilisateur reste injectee dans le prompt et la policy de difficulte
 
 ---
 
-## 6. Mode de réponse — QCM vs saisie libre
+## 4. Place du legacy
 
-**Règle :** Saisie libre uniquement si niveau IRT = **GRAND_MAITRE** pour ce type.
+Le legacy reste volontairement present, mais avec un role borne.
 
-| Où | Comment |
-|----|---------|
-| **Backend** | Génère **toujours** les `choices` (QCM). Le flag `is_open_answer` dans le JSON est un fallback legacy, **ignoré** par le frontend. |
-| **Frontend** | `useIrtScores()` → `resolveIsOpenAnswer(exercise_type)` décide d'afficher QCM ou input texte selon les scores IRT. |
+### 4.1 `difficulty`
 
-**Fichiers :**
+Le champ legacy `difficulty` (`INITIE`, `PADAWAN`, `CHEVALIER`, `MAITRE`, `GRAND_MAITRE`) reste :
+- en base
+- dans certains contrats
+- dans certains validateurs historiques
 
-- `frontend/hooks/useIrtScores.ts` — lit `/api/diagnostic/status`, expose `resolveIsOpenAnswer`, `getIrtLevel`, `isIrtCovered`
-- `frontend/components/exercises/ExerciseSolver.tsx` — `isOpenAnswer = resolveIsOpenAnswer(exercise.exercise_type)`
-- `frontend/components/exercises/ExerciseModal.tsx` — idem
+Il est acceptable comme couche de compatibilite.
+Il ne doit plus etre considere comme la seule verite pedagogique.
 
-**Types sans IRT :** Fallback sur `user.preferred_difficulty` (ex. `"adulte"` → saisie libre).
+### 4.2 `mastery_level`
+
+Le `mastery_level` reste le signal source de progression.
+Il n'est pas la verite finale de difficulte ; il est projete vers F42.
+
+### 4.3 Difficultes du diagnostic
+
+Le diagnostic IRT continue a stocker une difficulte legacy par type.
+Cette representation est ensuite enrichie en F42 a la lecture.
 
 ---
 
-## 7. Fichiers impliqués
+## 5. QCM vs saisie libre
+
+Le mode de reponse reste pilote par le diagnostic IRT par type.
+
+Le frontend lit :
+- `GET /api/diagnostic/status`
+
+Et decide ensuite si le type peut passer en saisie libre.
+
+Cette logique reste separee du tier F42 :
+- le tier calibre la difficulte du contenu
+- l'IRT par type calibre le mode de reponse
+
+---
+
+## 6. Ce qui est propre aujourd'hui
+
+Le modele est considere propre si l'equipe respecte ces regles :
+
+1. toute nouvelle logique fine part de `age_group`, `pedagogical_band` ou `difficulty_tier`
+2. les champs legacy restent des adaptateurs de compatibilite
+3. les libelles legacy ne sont pas exposes brut a l'utilisateur
+4. les rangs publics de progression ne pilotent jamais la difficulte pedagogique
+
+---
+
+## 7. Ce qui reste volontairement non fait
+
+Le systeme n'a pas encore cherche a :
+- migrer la DB pour supprimer les champs legacy
+- persister `pedagogical_band` partout comme champ canonique
+- renommer tous les enums/colonnes historiques
+
+Ce n'est pas un oubli : c'est un choix de transition maitrisee.
+
+Le modele actuel est :
+- viable en production
+- propre pour le moyen terme
+- evolutif tant que l'equipe ne recree pas une logique parallele
+
+---
+
+## 8. Fichiers de reference
 
 ### Backend
 
-| Fichier | Rôle |
-|---------|------|
-| `app/services/exercises/adaptive_difficulty_service.py` | Cascade, `resolve_adaptive_difficulty()`, `resolve_irt_level()`, proxys |
-| `app/services/diagnostic/diagnostic_service.py` | `get_latest_score()`, format scores IRT |
-| `server/handlers/exercise_handlers.py` | Branchement `?adaptive=true` (défaut), appelle `resolve_adaptive_difficulty` |
-| `app/utils/exercise_generator_helpers.py` | Distracteurs QCM calibrés par niveau (source de vérité) |
-| `app/models/diagnostic_result.py` | Modèle `DiagnosticResult` |
+- `app/services/exercises/adaptive_difficulty_service.py`
+- `app/core/mastery_tier_bridge.py`
+- `app/core/difficulty_tier.py`
+- `app/services/exercises/exercise_generation_service.py`
+- `app/services/challenges/challenge_generation_context.py`
+- `app/services/challenges/challenge_difficulty_policy.py`
 
 ### Frontend
 
-| Fichier | Rôle |
-|---------|------|
-| `frontend/hooks/useIrtScores.ts` | Hook — scores IRT, `resolveIsOpenAnswer`, `getIrtLevel` |
-| `frontend/components/exercises/ExerciseSolver.tsx` | Résolution exercice (page dédiée) |
-| `frontend/components/exercises/ExerciseModal.tsx` | Résolution exercice (modal) |
-| `frontend/components/dashboard/LevelEstablishedWidget.tsx` | Widget "Ton Profil Mathématique" (badges par type) |
+- `frontend/hooks/useIrtScores.ts`
+- `frontend/components/exercises/ExerciseSolver.tsx`
+- `frontend/components/exercises/ExerciseModal.tsx`
 
 ### API
 
-| Endpoint | Rôle |
-|----------|------|
-| `GET /api/diagnostic/status` | Retourne `{has_completed, latest: {scores, completed_at, ...}}` — consommé par `useIrtScores` |
-| `POST /api/exercises/generate` | Param `adaptive=true` (défaut) — résolution adaptative |
-| `POST /api/exercises/generate` | Param `age_group` explicite — désactive l'adaptation |
+- `GET /api/diagnostic/status`
+- `GET /api/users/me/progress`
+- `GET /api/users/me/challenges/detailed-progress`
 
 ---
 
-## 8. Backlog F05-suite
+## 9. Reste eventuel a surveiller
 
-| Item | Statut |
-|------|--------|
-| `/api/ai/generate` — adaptation IRT pour génération IA (SSE) | Backlog |
-| Seuils boost/descente configurables via admin | Backlog |
-| [F05-B1] Saisie libre par taux de réussite réel (≥ 90 % sur 5 tentatives) | Backlog |
+Pas de blocage F05 immediat a ce stade.
 
----
-
-## 9. Tests
-
-- `tests/unit/test_adaptive_difficulty_service.py` — 54 tests (cascade, proxys, mapping `preferred_difficulty`, `resolve_irt_level`)
+Points a surveiller plus tard si l'adaptatif s'etend fortement :
+- persistance plus large du canon F42
+- analytics pedagogiques plus fines
+- validation empirique des choix de fallback par tranche d'age

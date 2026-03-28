@@ -117,7 +117,7 @@ Contract note:
 
 **Exposé aux clients**
 
-- `GET /api/users/me` — champs persistants de compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank`, etc.
+- `GET /api/users/me` — champs compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank` (clé technique du bucket de rang public), etc.
 - `GET /api/badges/stats` — stats agrégées gamification pour l’utilisateur courant (`get_user_gamification_stats`).
 - `POST /api/challenges/{id}/attempt` — champ **`points_earned`** sur la réponse lorsque les points du défi sont attribués avec succès (voir section Challenges).
 
@@ -129,6 +129,7 @@ Contract note:
 |---|---|---|
 | GET | `/api/admin/health` | admin health |
 | GET | `/api/admin/overview` | overview |
+| GET | `/api/admin/observability/f43-account-progression` | F43-A1 read-only : répartition utilisateurs **actifs** par colonnes persistées ``users.current_level`` / ``users.jedi_rank`` (mises à jour lors des gains de points). Distinct du détail affiché sur `/me`, qui peut dériver niveau/rang depuis ``total_points``. |
 | GET | `/api/admin/users` | user list |
 | PATCH | `/api/admin/users/{user_id}` | mutate user |
 | POST | `/api/admin/users/{user_id}/send-reset-password` | send reset |

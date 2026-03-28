@@ -19,7 +19,7 @@ from app.models.user import UserRole
 
 
 class UserBase(BaseModel):
-    """Schéma de base pour les utilisateurs (Les bases d'un Padawan)"""
+    """Schéma de base pour les champs profil utilisateur exposés à l'API."""
 
     username: str = Field(
         ...,
@@ -32,7 +32,8 @@ class UserBase(BaseModel):
         None, min_length=2, max_length=100, description="Nom complet de l'utilisateur"
     )
     role: Optional[UserRole] = Field(
-        default="PADAWAN", description="Rôle dans l'Ordre Jedi des Mathématiques"
+        default="PADAWAN",
+        description="Rôle du compte (enum ``UserRole`` : droits d'accès applicatifs).",
     )
     grade_level: Optional[int] = Field(
         None, ge=1, le=12, description="Niveau scolaire (1-12)"
@@ -82,7 +83,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Schéma pour la création d'un utilisateur (Recrutement d'un Padawan)"""
+    """Schéma pour l'inscription (création de compte)."""
 
     password: str = Field(
         ..., min_length=8, description="Mot de passe (8 caractères minimum)"
@@ -193,8 +194,8 @@ class UserUpdate(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
-                "email": "luke@jedi.com",
-                "full_name": "Luke Skywalker",
+                "email": "nouveau.utilisateur@exemple.com",
+                "full_name": "Alex Martin",
                 "password": "NewPassword123!",
                 "is_active": True,
                 "grade_level": 5,
@@ -209,7 +210,7 @@ class UserUpdate(BaseModel):
 
 
 class User(UserBase):
-    """Schéma pour un utilisateur (Membre de l'Ordre Jedi)"""
+    """Schéma de réponse utilisateur (lecture)."""
 
     id: int
     is_active: bool
@@ -220,7 +221,7 @@ class User(UserBase):
 
 
 class UserInDB(UserBase):
-    """Schéma pour un utilisateur en base de données (Archives Jedi)"""
+    """Schéma aligné sur le modèle ORM utilisateur (usage interne / persistance)."""
 
     id: int
     is_active: bool
@@ -238,6 +239,8 @@ class UserLogin(BaseModel):
 
 
 class SchemaUserRole(str, Enum):
+    """Sous-ensemble historique des rôles ; les valeurs string restent le contrat API."""
+
     PADAWAN = "padawan"
     CHEVALIER = "chevalier"
     MAITRE = "maitre"

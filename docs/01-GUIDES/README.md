@@ -17,6 +17,12 @@ Ce dossier contient les guides pratiques : developpement, tests, deploiement, ex
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - [SENTRY_MONITORING.md](SENTRY_MONITORING.md)
 
+## Guides ops (runbooks)
+
+- [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) — Runbook Alembic : creer, appliquer, rollback migrations
+- [SCRIPTS_UTILITIES.md](SCRIPTS_UTILITIES.md) — Catalogue des 17 scripts de maintenance (`scripts/`)
+- [I18N_CONTRIBUTION.md](I18N_CONTRIBUTION.md) — Ajouter des traductions FR/EN, scripts de validation, namespaces
+
 ## Notes
 
 - `ENV_CHECK.md` est un aide-memoire, pas la source de verite ultime

@@ -73,6 +73,14 @@ Ce tier est ensuite utilisé pour :
 - les recommandations
 - certaines lectures API enrichies
 
+Quand aucun signal de maîtrise plus fort n'existe encore, le fallback runtime actuel
+reste volontairement neutre :
+
+- `band fallback = learning`
+
+Ce n'est pas une "vérité pédagogique absolue" ; c'est une décision de compatibilité
+et de transition pour éviter un durcissement implicite du cold start.
+
 ---
 
 ## Exemple Concret
@@ -216,4 +224,3 @@ Pour la vérité technique complète :
 - [../../app/core/mastery_tier_bridge.py](../../app/core/mastery_tier_bridge.py)
 - [../../app/services/exercises/adaptive_difficulty_service.py](../../app/services/exercises/adaptive_difficulty_service.py)
 - [../../app/services/challenges/challenge_generation_context.py](../../app/services/challenges/challenge_generation_context.py)
-

@@ -6,7 +6,13 @@ Ce dossier contient les artefacts non-Markdown utilises par la documentation.
 
 ## Structure actuelle
 
-- [prototypes/README.md](prototypes/README.md) : prototypes et maquettes non canoniques
+- `prototypes/` : prototypes et maquettes HTML non canoniques
+
+### Regles prototypes
+
+- un prototype ici n'est jamais la source de verite produit
+- la priorisation reste dans `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
+- si un prototype devient une vraie feature, la reference active doit migrer vers `02-FEATURES/` ou `04-FRONTEND/`
 
 ## Regles
 

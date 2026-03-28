@@ -5,6 +5,14 @@
 
 ---
 
+## Références
+
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) — catalogue des 41 hooks React (rôle, dépendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) — 125 composants React (catégories, rôles, conventions)
+- [API_ROUTES.md](API_ROUTES.md) — 7 routes API Next.js (proxy, auth, SSE)
+
+---
+
 ## Stack technique
 
 | Technologie | Usage | Version |

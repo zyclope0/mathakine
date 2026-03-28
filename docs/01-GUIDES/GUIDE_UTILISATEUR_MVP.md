@@ -122,7 +122,7 @@ Dans **Paramètres** ou via la barre d’accessibilité :
 ### 4.4 Fonctionnement des exercices
 
 1. Choisir une **catégorie** (ex. Addition)  
-2. Choisir un **niveau** (Padawan, Jedi, Maître)  
+2. Choisir un **niveau de difficulté** (Découverte, Apprenti, Confirmé, Avancé)  
 3. Lire l’énoncé et répondre dans le champ prévu  
 4. Valider → Feedback immédiat (correct / incorrect)  
 5. Possibilité de passer à l’exercice suivant  
@@ -160,7 +160,7 @@ Sur le **Dashboard** :
 → Menu **Exercices** ou bouton sur la page d’accueil.
 
 **Comment choisir la difficulté ?**  
-→ Lors du choix d’un exercice : Padawan (facile), Jedi (moyen), Maître (difficile).
+→ Lors du choix d’un exercice : Découverte, Apprenti, Confirmé ou Avancé selon le niveau proposé à l’écran.
 
 **Les défis sont-ils notés ?**  
 → Non. L’objectif est de s’entraîner et de progresser, pas d’être noté.

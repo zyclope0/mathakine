@@ -2,7 +2,7 @@
 
 Les workflows **inscription** (vérification email) et **mot de passe oublié** envoient des emails. Par défaut, sans configuration, ils sont **simulés** en développement (le flux fonctionne mais aucun mail n'est reçu).
 
-Les emails utilisent un **template thème Jedi** unifié (`app/utils/email_templates.py`), ergonomique et adapté à tous les clients email.
+Les emails utilisent un **template produit unifié** (`app/utils/email_templates.py`), ergonomique et adapté à tous les clients email.
 
 ---
 

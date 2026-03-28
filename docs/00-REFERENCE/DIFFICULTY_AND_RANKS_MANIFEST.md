@@ -1,7 +1,7 @@
 # Difficulty And Ranks Manifest
 
 > Cross-module reference for pedagogical difficulty and public progression ranks
-> Updated: 2026-03-27
+> Updated: 2026-03-28
 
 ## Purpose
 
@@ -85,24 +85,24 @@ It must **not** be used to:
 
 | Responsibility | Source of truth |
 |---|---|
-| Age-group normalization | [user_age_group.py](/D:/Mathakine/app/core/user_age_group.py) and [constants.py](/D:/Mathakine/app/core/constants.py) |
-| Tier formula and content-tier helpers | [difficulty_tier.py](/D:/Mathakine/app/core/difficulty_tier.py) |
-| Legacy progress/diagnostic -> F42 bridge | [mastery_tier_bridge.py](/D:/Mathakine/app/core/mastery_tier_bridge.py) |
-| Exercise runtime adaptive context | [adaptive_difficulty_service.py](/D:/Mathakine/app/services/exercises/adaptive_difficulty_service.py) |
-| Recommendation user context | [recommendation_user_context.py](/D:/Mathakine/app/services/recommendation/recommendation_user_context.py) |
-| Challenge AI personalization context | [challenge_generation_context.py](/D:/Mathakine/app/services/challenges/challenge_generation_context.py) |
-| Challenge public rating calibration | [challenge_difficulty_policy.py](/D:/Mathakine/app/services/challenges/challenge_difficulty_policy.py) |
+| Age-group normalization | [user_age_group.py](../../app/core/user_age_group.py) and [constants.py](../../app/core/constants.py) |
+| Tier formula and content-tier helpers | [difficulty_tier.py](../../app/core/difficulty_tier.py) |
+| Legacy progress/diagnostic -> F42 bridge | [mastery_tier_bridge.py](../../app/core/mastery_tier_bridge.py) |
+| Exercise runtime adaptive context | [adaptive_difficulty_service.py](../../app/services/exercises/adaptive_difficulty_service.py) |
+| Recommendation user context | [recommendation_user_context.py](../../app/services/recommendation/recommendation_user_context.py) |
+| Challenge AI personalization context | [challenge_generation_context.py](../../app/services/challenges/challenge_generation_context.py) |
+| Challenge public rating calibration | [challenge_difficulty_policy.py](../../app/services/challenges/challenge_difficulty_policy.py) |
 
 ### Public progression ranks
 
 | Responsibility | Source of truth |
 |---|---|
-| Points -> level -> rank bucket formula | [compute.py](/D:/Mathakine/app/services/gamification/compute.py) |
-| API level title | [level_titles.py](/D:/Mathakine/app/services/gamification/level_titles.py) |
-| Account payload builder | [gamification_service.py](/D:/Mathakine/app/services/gamification/gamification_service.py) |
-| Frontend bucket canonicalization | [progressionRankLabel.ts](/D:/Mathakine/frontend/lib/gamification/progressionRankLabel.ts) |
-| Frontend icons/colors | [leaderboard.ts](/D:/Mathakine/frontend/lib/constants/leaderboard.ts) |
-| Public translations | [fr.json](/D:/Mathakine/frontend/messages/fr.json) and [en.json](/D:/Mathakine/frontend/messages/en.json) |
+| Points -> level -> rank bucket formula | [compute.py](../../app/services/gamification/compute.py) |
+| Account progression payload (``current``, ``jedi_rank``, XP) | [gamification_service.py](../../app/services/gamification/gamification_service.py) |
+| Numeric level label (i18n) | [LevelIndicator.tsx](../../frontend/components/dashboard/LevelIndicator.tsx) + [fr.json](../../frontend/messages/fr.json) / [en.json](../../frontend/messages/en.json) |
+| Frontend bucket canonicalization | [progressionRankLabel.ts](../../frontend/lib/gamification/progressionRankLabel.ts) |
+| Frontend icons/colors | [leaderboard.ts](../../frontend/lib/constants/leaderboard.ts) |
+| Public translations | [fr.json](../../frontend/messages/fr.json) and [en.json](../../frontend/messages/en.json) |
 
 ---
 
@@ -122,8 +122,8 @@ Internal canonicalization still maps historical values such as:
 - `tous-ages`
 
 The normalization seam is:
-- [normalize_age_group(...)](/D:/Mathakine/app/core/constants.py)
-- [normalized_age_group_from_user_profile(...)](/D:/Mathakine/app/core/user_age_group.py)
+- [normalize_age_group(...)](../../app/core/constants.py)
+- [normalized_age_group_from_user_profile(...)](../../app/core/user_age_group.py)
 
 ### 2. Pedagogical bands
 
@@ -144,15 +144,15 @@ Range:
 - `1..12`
 
 Centralized in:
-- [compute_tier_from_bands(...)](/D:/Mathakine/app/core/difficulty_tier.py)
-- [compute_tier_from_age_group_and_band(...)](/D:/Mathakine/app/core/difficulty_tier.py)
+- [compute_tier_from_bands(...)](../../app/core/difficulty_tier.py)
+- [compute_tier_from_age_group_and_band(...)](../../app/core/difficulty_tier.py)
 
 ### 4. Legacy stored difficulty
 
 Exercises still persist a legacy `difficulty` string for compatibility.
 
 Current legacy buckets are still interpreted through:
-- [pedagogical_band_index_from_difficulty(...)](/D:/Mathakine/app/core/difficulty_tier.py)
+- [pedagogical_band_index_from_difficulty(...)](../../app/core/difficulty_tier.py)
 
 This legacy field is acceptable as a storage/input compatibility layer, but it is no longer the only pedagogical truth.
 
@@ -166,7 +166,7 @@ This scale is:
 - not equivalent to account rank
 
 Current calibration is centralized in:
-- [calibrate_challenge_difficulty(...)](/D:/Mathakine/app/services/challenges/challenge_difficulty_policy.py)
+- [calibrate_challenge_difficulty(...)](../../app/services/challenges/challenge_difficulty_policy.py)
 
 ---
 
@@ -179,9 +179,9 @@ Legacy storage:
 - `Progress.difficulty`
 
 Projection source:
-- [mastery_level_int_to_pedagogical_band(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [mastery_to_tier(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [project_exercise_progress_f42(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
+- [mastery_level_int_to_pedagogical_band(...)](../../app/core/mastery_tier_bridge.py)
+- [mastery_to_tier(...)](../../app/core/mastery_tier_bridge.py)
+- [project_exercise_progress_f42(...)](../../app/core/mastery_tier_bridge.py)
 
 Current canonical mapping:
 - `1`, `2` -> `discovery`
@@ -194,8 +194,8 @@ Legacy storage:
 - `ChallengeProgress.mastery_level` string
 
 Projection source:
-- [challenge_mastery_string_to_pedagogical_band(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [project_challenge_progress_row_f42(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
+- [challenge_mastery_string_to_pedagogical_band(...)](../../app/core/mastery_tier_bridge.py)
+- [project_challenge_progress_row_f42(...)](../../app/core/mastery_tier_bridge.py)
 
 Current canonical mapping:
 - `novice` -> `discovery`
@@ -209,8 +209,8 @@ Legacy storage:
 - diagnostic score `difficulty`
 
 Projection source:
-- [tier_from_diagnostic_difficulty(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [enrich_diagnostic_scores_f42(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
+- [tier_from_diagnostic_difficulty(...)](../../app/core/mastery_tier_bridge.py)
+- [enrich_diagnostic_scores_f42(...)](../../app/core/mastery_tier_bridge.py)
 
 ---
 
@@ -227,8 +227,8 @@ Current bridge default:
 - `GROUP_9_11`
 
 Current source:
-- [canonical_age_group_from_user(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [canonical_age_group_with_fallback(...)](/D:/Mathakine/app/core/mastery_tier_bridge.py)
+- [canonical_age_group_from_user(...)](../../app/core/mastery_tier_bridge.py)
+- [canonical_age_group_with_fallback(...)](../../app/core/mastery_tier_bridge.py)
 
 Important:
 - this fallback is acceptable for compatibility
@@ -241,19 +241,20 @@ Important:
 ### Exercise generation
 
 Main seams:
-- [exercise_generation_service.py](/D:/Mathakine/app/services/exercises/exercise_generation_service.py)
-- [adaptive_difficulty_service.py](/D:/Mathakine/app/services/exercises/adaptive_difficulty_service.py)
-- [difficulty_tier.py](/D:/Mathakine/app/core/difficulty_tier.py)
+- [exercise_generation_service.py](../../app/services/exercises/exercise_generation_service.py)
+- [adaptive_difficulty_service.py](../../app/services/exercises/adaptive_difficulty_service.py)
+- [difficulty_tier.py](../../app/core/difficulty_tier.py)
 
 Current rule:
 - generation may use a stable age-group + a second-axis pedagogical band
 - the resulting tier must be computed from the real `(age_group x band)` cell
 - if a runtime band override is used, `difficulty_tier` and calibration text must be recomputed accordingly
+- if no stronger mastery signal exists, the current neutral fallback band remains `learning`
 
 ### Recommendation
 
 Main seam:
-- [build_recommendation_user_context(...)](/D:/Mathakine/app/services/recommendation/recommendation_user_context.py)
+- [build_recommendation_user_context(...)](../../app/services/recommendation/recommendation_user_context.py)
 
 Current responsibility:
 - resolve user age group
@@ -265,7 +266,7 @@ This is the reusable seam for user-context personalization. New personalization 
 ### Challenge generation
 
 Main seam:
-- [challenge_generation_context.py](/D:/Mathakine/app/services/challenges/challenge_generation_context.py)
+- [challenge_generation_context.py](../../app/services/challenges/challenge_generation_context.py)
 
 Current rule:
 - explicit age input wins over implicit profile age for the envelope
@@ -292,19 +293,16 @@ It is not:
 ### Current level formula
 
 Centralized in:
-- [compute_state_from_total_points(...)](/D:/Mathakine/app/services/gamification/compute.py)
+- [compute_state_from_total_points(...)](../../app/services/gamification/compute.py)
 
-Current formula:
-- `current_level = max(1, total_points // POINTS_PER_LEVEL + 1)`
-- `experience_points = total_points % POINTS_PER_LEVEL`
+F42-P4 (piecewise curve): level and XP-in-bracket are derived from `total_points` using tiered per-level costs (`LEVEL_UP_COST_SEGMENTS` in `constants.py`), not a flat 100 points per level. See `cumulative_points_at_level_start`, `level_and_xp_from_total_points`, and `points_to_gain_next_level` in `compute.py`.
 
-Current constant:
-- `POINTS_PER_LEVEL = 100`
+Legacy reference: `POINTS_PER_LEVEL_LEGACY = 100` (old linear model); level math no longer uses it.
 
 ### Current rank buckets
 
 Current bucket computation is centralized in:
-- [jedi_rank_for_level(...)](/D:/Mathakine/app/services/gamification/compute.py)
+- [jedi_rank_for_level(...)](../../app/services/gamification/compute.py)
 
 Current canonical buckets:
 - `cadet`
@@ -326,16 +324,10 @@ Current thresholds:
 - `< 42` -> `stellar_archivist`
 - otherwise -> `cosmic_legend`
 
-### Current per-level titles
+### Account level display (F42-P5)
 
-Displayed account level titles are centralized in:
-- [LEVEL_TITLES](/D:/Mathakine/app/services/gamification/level_titles.py)
-
-Important distinction:
-- `jedi_rank` is the bucket key
-- `level.title` is the human title for the exact numeric level
-
-These are related but not identical concepts.
+- Public **rank** is the progression bucket: ``jedi_rank`` (canonical key) + UI translations.
+- The **numeric level** is ``gamification_level.current``; the visible label « Niveau n » / « Level n » is **client i18n** (no per-level narrative table in the API).
 
 ---
 
@@ -349,9 +341,9 @@ Current additive F42 boundaries include:
 - challenge detailed progress
 
 Reference seams:
-- [mastery_tier_bridge.py](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [user_service.py](/D:/Mathakine/app/services/users/user_service.py)
-- [challenge_progress.py](/D:/Mathakine/app/schemas/challenge_progress.py)
+- [mastery_tier_bridge.py](../../app/core/mastery_tier_bridge.py)
+- [user_service.py](../../app/services/users/user_service.py)
+- [challenge_progress.py](../../app/schemas/challenge_progress.py)
 
 ### Account progression / ranks
 
@@ -360,9 +352,19 @@ Current public read surfaces include:
 - `GET /api/users/leaderboard`
 - `GET /api/badges/stats`
 - `GET /api/badges/user`
+- `GET /api/admin/observability/f43-account-progression` (read-only admin cohort snapshot recomputed from `total_points`)
 
 Reference doc:
-- [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](/D:/Mathakine/docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
+- [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](../../docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
+
+### Observability (post-F42)
+
+Current minimal observability seams include:
+- structured log `f43_exercise_attempt` for exercise submit outcomes by `difficulty_tier`
+- structured log `f43_adaptive_context` for adaptive context resolution (`mastery_source`, `pedagogical_band`)
+- read-only admin cohort snapshot for account progression derived from `total_points`
+
+These seams are for measurement and validation only. They must not become a second source of pedagogical truth.
 
 ---
 
@@ -388,9 +390,9 @@ What is **not** acceptable:
 ### If you change pedagogical difficulty
 
 You must review together:
-- [difficulty_tier.py](/D:/Mathakine/app/core/difficulty_tier.py)
-- [mastery_tier_bridge.py](/D:/Mathakine/app/core/mastery_tier_bridge.py)
-- [recommendation_user_context.py](/D:/Mathakine/app/services/recommendation/recommendation_user_context.py)
+- [difficulty_tier.py](../../app/core/difficulty_tier.py)
+- [mastery_tier_bridge.py](../../app/core/mastery_tier_bridge.py)
+- [recommendation_user_context.py](../../app/services/recommendation/recommendation_user_context.py)
 - exercise/challenge runtime contexts that consume F42
 
 You must not:
@@ -401,20 +403,19 @@ You must not:
 ### If you change challenge difficulty calibration
 
 You must review together:
-- [challenge_generation_context.py](/D:/Mathakine/app/services/challenges/challenge_generation_context.py)
-- [challenge_difficulty_policy.py](/D:/Mathakine/app/services/challenges/challenge_difficulty_policy.py)
-- [challenge_ai_service.py](/D:/Mathakine/app/services/challenges/challenge_ai_service.py)
+- [challenge_generation_context.py](../../app/services/challenges/challenge_generation_context.py)
+- [challenge_difficulty_policy.py](../../app/services/challenges/challenge_difficulty_policy.py)
+- [challenge_ai_service.py](../../app/services/challenges/challenge_ai_service.py)
 
 ### If you change public ranks
 
 You must review together:
-- [compute.py](/D:/Mathakine/app/services/gamification/compute.py)
-- [level_titles.py](/D:/Mathakine/app/services/gamification/level_titles.py)
-- [gamification_service.py](/D:/Mathakine/app/services/gamification/gamification_service.py)
-- [progressionRankLabel.ts](/D:/Mathakine/frontend/lib/gamification/progressionRankLabel.ts)
-- [leaderboard.ts](/D:/Mathakine/frontend/lib/constants/leaderboard.ts)
-- [fr.json](/D:/Mathakine/frontend/messages/fr.json)
-- [en.json](/D:/Mathakine/frontend/messages/en.json)
+- [compute.py](../../app/services/gamification/compute.py)
+- [gamification_service.py](../../app/services/gamification/gamification_service.py)
+- [progressionRankLabel.ts](../../frontend/lib/gamification/progressionRankLabel.ts)
+- [leaderboard.ts](../../frontend/lib/constants/leaderboard.ts)
+- [fr.json](../../frontend/messages/fr.json)
+- [en.json](../../frontend/messages/en.json)
 
 You must not:
 - change only backend bucket values without updating frontend canonicalization
@@ -443,5 +444,5 @@ When touching ranks:
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
-- [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](/D:/Mathakine/docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
-- [ROADMAP_FONCTIONNALITES.md](/D:/Mathakine/docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md)
+- [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](../../docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
+- [ROADMAP_FONCTIONNALITES.md](../../docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md)

@@ -1,7 +1,7 @@
 # ADRs - Mathakine
 
 > Architecture Decision Records
-> Updated: 23/03/2026
+> Updated: 28/03/2026
 
 ## Purpose
 
@@ -17,13 +17,10 @@ Use ADRs when:
 
 | ADR | Status | Scope |
 |---|---|---|
-| [ADR-001-starlette-vs-fastapi.md](ADR-001-starlette-vs-fastapi.md) | Accepted | Backend web framework and runtime boundary |
-
-## Candidate Next ADRs
-
-- chat public + rate limiting as product boundary
-- gamification ledger concurrency strategy (`with_for_update` not used)
-- AI model policy layering and explicit ops overrides
+| [ADR-001](ADR-001-starlette-vs-fastapi.md) | Accepted | Backend web framework and runtime boundary |
+| [ADR-002](ADR-002-chat-assistant-public-boundary.md) | Accepted | Chat assistant - public access without authentication |
+| [ADR-003](ADR-003-gamification-concurrency-model.md) | Accepted | Gamification - SELECT FOR UPDATE conditional on dialect |
+| [ADR-004](ADR-004-ai-model-policy-architecture.md) | Accepted (documented debt) | AI model policy - exercises / challenges duality |
 
 ## Reading Rule
 
