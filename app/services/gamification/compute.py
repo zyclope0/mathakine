@@ -1,11 +1,19 @@
 """
-Calcul unique niveau / XP dans palier / rang de progression à partir du total persisté.
+Calculs déterministes de progression compte (niveau / XP / rang).
 
-La clé technique persistée reste ``jedi_rank`` (historique) ; les libellés publics sont neutralisés en UI.
-Toute évolution de la formule doit rester centralisée ici.
+F42-P4 : la progression n'est plus linéaire à 100 pts / niveau.
+``total_points`` reste la source de vérité ; ``current_level`` et
+``experience_points`` sont dérivés par une courbe à paliers de coût.
+
+La clé technique persistée reste ``jedi_rank`` (historique) ; les buckets
+publics canoniques (F42-C3C) sont dérivés du niveau synthétisé.
 """
 
-from app.services.gamification.constants import POINTS_PER_LEVEL
+from __future__ import annotations
+
+from typing import Optional, Tuple
+
+from app.services.gamification.constants import LEVEL_UP_COST_SEGMENTS
 
 _CANONICAL_PROGRESS_RANKS = frozenset(
     {
@@ -39,11 +47,60 @@ _LEGACY_TO_CANONICAL_FALLBACK = {
 }
 
 
+def cost_to_advance_from_level(level: int) -> int:
+    """
+    Coût en points pour passer du niveau ``level`` au niveau ``level + 1``.
+
+    ``level`` est le niveau courant (>= 1).
+    """
+    if level < 1:
+        level = 1
+    for level_max, cost in LEVEL_UP_COST_SEGMENTS:
+        if level <= level_max:
+            return int(cost)
+    return int(LEVEL_UP_COST_SEGMENTS[-1][1])
+
+
+def cumulative_points_at_level_start(level: int) -> int:
+    """
+    Points cumulés minimum pour *être* au niveau ``level`` (plancher inclus).
+
+    Niveau 1 : 0 point.
+    """
+    if level <= 1:
+        return 0
+    total = 0
+    for L in range(1, level):
+        total += cost_to_advance_from_level(L)
+    return int(total)
+
+
+def level_and_xp_from_total_points(total_points: int) -> Tuple[int, int]:
+    """Déduit (niveau, xp_dans_le_niveau) à partir de ``total_points`` (>= 0)."""
+    total = max(0, int(total_points))
+    level = 1
+    while cumulative_points_at_level_start(level + 1) <= total:
+        level += 1
+    xp = total - cumulative_points_at_level_start(level)
+    return int(level), int(xp)
+
+
+def experience_points_in_current_level(total_points: int) -> int:
+    """Alias explicite : XP accumulée dans le niveau courant."""
+    _, xp = level_and_xp_from_total_points(total_points)
+    return int(xp)
+
+
+def points_to_gain_next_level(current_level: int) -> int:
+    """Points nécessaires pour passer du niveau courant au suivant."""
+    return int(cost_to_advance_from_level(current_level))
+
+
 def jedi_rank_for_level(level: int) -> str:
     """
-    Identifiant de bucket de progression (8 paliers, F42-C3C) dérivé de ``current_level``.
+    Identifiant de bucket de progression (8 paliers, F42-C3C) dérivé du niveau synthétisé.
 
-    Seuils (niveau compte = total_points // POINTS_PER_LEVEL + 1) :
+    Seuils (``level`` issu de ``total_points`` via la courbe F42-P4) :
       cadet < 3 · scout < 6 · explorer < 10 · navigator < 15 ·
       cartographer < 22 · commander < 30 · stellar_archivist < 42 · cosmic_legend au-delà.
     """
@@ -96,17 +153,14 @@ def canonicalize_progression_rank_bucket(
     return "cadet"
 
 
-def compute_state_from_total_points(total_points: int) -> tuple[int, int, int, str]:
+def compute_state_from_total_points(total_points: int) -> Tuple[int, int, int, str]:
     """
     Retourne (total_points_clamped, current_level, experience_points, jedi_rank).
 
-    - current_level : max(1, total // POINTS_PER_LEVEL + 1)
-    - experience_points : total % POINTS_PER_LEVEL
+    Niveau et XP dans le palier sont dérivés de ``total_points`` par la courbe
+    à segments ``LEVEL_UP_COST_SEGMENTS``.
     """
     total = max(0, int(total_points))
-    if POINTS_PER_LEVEL <= 0:
-        raise ValueError("POINTS_PER_LEVEL doit être > 0")
-    level = max(1, total // POINTS_PER_LEVEL + 1)
-    xp_in_bracket = total % POINTS_PER_LEVEL
+    level, xp_in_bracket = level_and_xp_from_total_points(total)
     rank = jedi_rank_for_level(level)
     return total, level, xp_in_bracket, rank

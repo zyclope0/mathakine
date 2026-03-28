@@ -898,11 +898,13 @@
     },
     "levelIndicator": {
       "title": "Niveau actuel",
+      "numericLevel": "Niveau {n}",
       "level": "Niveau",
       "xp": "XP",
       "nextLevel": "Niveau suivant",
       "xpForNextLevel": "XP pour le niveau {level}",
-      "maxLevel": "Niveau maximum atteint ✨"
+      "maxLevel": "Niveau maximum atteint ✨",
+      "progressionRankColon": "Palier de progression :"
     },
     "profile": {
       "statsPeriodHint": "Les statistiques ci-dessous (exercices, taux, défis, activité) concernent la période « {period} ». Pour la modifier, ouvre l’onglet « Vue d’ensemble ».",
@@ -1866,6 +1868,17 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_4_0_alpha_1": {
+      "version": "v3.4.0-alpha.1",
+      "date": "27 mars 2026",
+      "items": [
+        "La difficulte pedagogique est maintenant plus fine : la plateforme combine la tranche d age et le niveau de maitrise pour mieux calibrer les exercices et les defis.",
+        "Le generateur IA de defis peut utiliser automatiquement ton profil quand tu choisis le mode recommande, tout en gardant la main si tu selectionnes un age precis.",
+        "La progression compte est maintenant plus lisible : le niveau numerique est separe du palier de progression, avec des rangs publics clarifies sur le profil, le tableau de bord, les badges et le classement.",
+        "La courbe de progression compte est moins inflationniste : les niveaux et les rangs montent de facon plus durable qu avec l ancien modele lineaire.",
+        "Les principales references visibles a l ancien univers narratif ont ete retirees des zones produit et admin les plus exposees."
+      ]
+    },
     "release_3_3_0_alpha_3": {
       "version": "v3.3.0-alpha.3",
       "date": "25 mars 2026",

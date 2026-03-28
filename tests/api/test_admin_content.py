@@ -3,7 +3,13 @@ Tests des endpoints API admin content (LOT 6).
 Exercises, challenges, export — preuve minimale pour les mutations.
 """
 
+import uuid
+
 import pytest
+
+from app.core.security import get_password_hash
+from app.models.user import User, UserRole
+from app.utils.db_helpers import get_enum_value
 
 # ── F42 boundary: exercises ────────────────────────────────────────────────
 
@@ -377,3 +383,47 @@ async def test_admin_export_overview(archiviste_client):
     assert "text/csv" in response.headers.get("content-type", "")
     content = response.text
     assert "metric" in content or "value" in content or "total" in content.lower()
+
+
+@pytest.mark.asyncio
+async def test_admin_f43_account_progression_observability(
+    archiviste_client, db_session
+):
+    """GET /api/admin/observability/f43-account-progression — F43-A1 read-only."""
+    client = archiviste_client["client"]
+    baseline = await client.get("/api/admin/observability/f43-account-progression")
+    assert baseline.status_code == 200
+    baseline_data = baseline.json()
+
+    unique = uuid.uuid4().hex[:8]
+    adapted_role = get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
+    user = User(
+        username=f"f43_api_{unique}",
+        email=f"f43_api_{unique}@test.com",
+        hashed_password=get_password_hash("secret"),
+        role=adapted_role,
+        is_active=True,
+        total_points=1000,
+        current_level=99,
+        jedi_rank="grand_master",
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    resp = await client.get("/api/admin/observability/f43-account-progression")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("schema") == "f43_account_progression_v1"
+    assert (
+        data.get("total_active_users") == baseline_data.get("total_active_users", 0) + 1
+    )
+    assert isinstance(data.get("by_current_level"), dict)
+    assert isinstance(data.get("by_jedi_rank"), dict)
+    assert (
+        data["by_current_level"].get("6", 0)
+        == baseline_data["by_current_level"].get("6", 0) + 1
+    )
+    assert (
+        data["by_jedi_rank"].get("explorer", 0)
+        == baseline_data["by_jedi_rank"].get("explorer", 0) + 1
+    )

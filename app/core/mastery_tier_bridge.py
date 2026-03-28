@@ -17,10 +17,15 @@ from typing import Any, Dict, Optional
 
 from app.core.constants import AgeGroups, DifficultyLevels
 from app.core.difficulty_tier import (
+    DIFFICULTY_TIER_MAX,
+    DIFFICULTY_TIER_MIN,
     compute_tier_from_age_group_and_band,
     pedagogical_band_index_from_difficulty,
 )
+from app.core.logging_config import get_logger
 from app.core.user_age_group import normalized_age_group_from_user_profile
+
+logger = get_logger(__name__)
 
 # Doit rester identique à l’ordre utilisé dans difficulty_tier (bandes 0/1/2).
 _PEDAGOGICAL_BANDS: tuple[str, ...] = ("discovery", "learning", "consolidation")
@@ -149,7 +154,21 @@ def mastery_to_tier(
     if not age_group:
         return None
     band = mastery_level_int_to_pedagogical_band(mastery_level)
-    return compute_tier_from_age_group_and_band(age_group, band)
+    raw = compute_tier_from_age_group_and_band(age_group, band)
+    if raw is None:
+        return None
+    if DIFFICULTY_TIER_MIN <= raw <= DIFFICULTY_TIER_MAX:
+        return raw
+    logger.warning(
+        "mastery_to_tier: tier out of bounds, clamping: raw=%s age_group=%s "
+        "mastery_level=%s (expected %s..%s)",
+        raw,
+        age_group,
+        mastery_level,
+        DIFFICULTY_TIER_MIN,
+        DIFFICULTY_TIER_MAX,
+    )
+    return max(DIFFICULTY_TIER_MIN, min(DIFFICULTY_TIER_MAX, int(raw)))
 
 
 def tier_from_diagnostic_difficulty(

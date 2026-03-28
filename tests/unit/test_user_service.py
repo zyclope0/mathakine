@@ -20,8 +20,7 @@ from app.models.progress import Progress
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.schemas.user import UserCreate, UserUpdate
-from app.services.gamification.constants import POINTS_PER_LEVEL
-from app.services.gamification.level_titles import LEVEL_TITLES
+from app.services.gamification.compute import points_to_gain_next_level
 from app.services.users.user_service import UserService
 from app.utils.db_helpers import (
     ENUM_MAPPING,
@@ -207,11 +206,12 @@ def test_serialize_user_profile_for_api():
     assert response_data["accessibility_settings"] == {"high_contrast": True}
     assert response_data["onboarding_completed_at"] == "2026-03-06T12:00:00"
     gl = response_data["gamification_level"]
-    assert gl["current"] == 3
-    assert gl["current_xp"] == 20
-    assert gl["next_level_xp"] == POINTS_PER_LEVEL
-    assert response_data["jedi_rank"] == "scout"
-    assert gl["jedi_rank"] == "scout"
+    assert response_data["current_level"] == 1
+    assert gl["current"] == 1
+    assert gl["current_xp"] == 120
+    assert gl["next_level_xp"] == points_to_gain_next_level(1)
+    assert response_data["jedi_rank"] == "cadet"
+    assert gl["jedi_rank"] == "cadet"
 
 
 def test_build_gamification_level_for_api_uses_persisted_fields():
@@ -223,11 +223,11 @@ def test_build_gamification_level_for_api_uses_persisted_fields():
 
     gl = UserService.build_gamification_level_for_api(user)
 
-    assert gl["current"] == 3
+    assert gl["current"] == 2
     assert gl["current_xp"] == 50
-    assert gl["next_level_xp"] == 100
-    assert gl["title"] == LEVEL_TITLES[3]
-    assert gl["jedi_rank"] == "scout"
+    assert gl["next_level_xp"] == points_to_gain_next_level(2)
+    assert "title" not in gl
+    assert gl["jedi_rank"] == "cadet"
 
 
 def test_build_gamification_level_for_api_xp_fallback_from_total_points():
@@ -239,11 +239,12 @@ def test_build_gamification_level_for_api_xp_fallback_from_total_points():
 
     gl = UserService.build_gamification_level_for_api(user)
 
-    assert gl["current_xp"] == 77
+    assert gl["current"] == 1
+    assert gl["current_xp"] == 177
     assert gl["jedi_rank"] == "cadet"
 
 
-def test_build_gamification_level_for_api_high_level_generic_title():
+def test_build_gamification_level_for_api_high_level_no_legacy_title():
     user = MagicMock(spec=User)
     user.total_points = 5000
     user.current_level = 42
@@ -252,9 +253,9 @@ def test_build_gamification_level_for_api_high_level_generic_title():
 
     gl = UserService.build_gamification_level_for_api(user)
 
-    assert gl["title"] == "Niveau 42"
-    assert gl["current"] == 42
-    assert gl["jedi_rank"] == "cosmic_legend"
+    assert "title" not in gl
+    assert gl["current"] == 17
+    assert gl["jedi_rank"] == "cartographer"
 
 
 def test_get_user_by_email():
@@ -1535,4 +1536,67 @@ def test_user_roles_adaptation_for_different_databases():
     assert (
         adapt_enum_for_db("UserRole", gardien_value, mock_postgres_session)
         == ENUM_MAPPING[("UserRole", gardien_value)]
+    )
+
+
+def test_get_f43_account_progression_distribution(db_session):
+    """F43-A1 — agrégats actifs recalculés depuis total_points."""
+    import uuid
+
+    from app.core.security import get_password_hash
+
+    baseline = UserService.get_f43_account_progression_distribution(db_session)
+    adapted = get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
+    uid = uuid.uuid4().hex[:8]
+    u1 = User(
+        username=f"f43a_{uid}_1",
+        email=f"f43a_{uid}_1@test.com",
+        hashed_password=get_password_hash("secret"),
+        role=adapted,
+        is_active=True,
+        total_points=0,
+        current_level=99,
+        jedi_rank="grand_master",
+    )
+    u2 = User(
+        username=f"f43a_{uid}_2",
+        email=f"f43a_{uid}_2@test.com",
+        hashed_password=get_password_hash("secret"),
+        role=adapted,
+        is_active=True,
+        total_points=1000,
+        current_level=1,
+        jedi_rank="youngling",
+    )
+    u3 = User(
+        username=f"f43a_{uid}_3",
+        email=f"f43a_{uid}_3@test.com",
+        hashed_password=get_password_hash("secret"),
+        role=adapted,
+        is_active=False,
+        total_points=5000,
+        current_level=99,
+        jedi_rank="master",
+    )
+    db_session.add_all([u1, u2, u3])
+    db_session.commit()
+
+    out = UserService.get_f43_account_progression_distribution(db_session)
+    assert out["schema"] == "f43_account_progression_v1"
+    assert out["total_active_users"] == baseline["total_active_users"] + 2
+    assert (
+        out["by_current_level"].get("1", 0)
+        == baseline["by_current_level"].get("1", 0) + 1
+    )
+    assert (
+        out["by_current_level"].get("6", 0)
+        == baseline["by_current_level"].get("6", 0) + 1
+    )
+    assert (
+        out["by_jedi_rank"].get("cadet", 0)
+        == baseline["by_jedi_rank"].get("cadet", 0) + 1
+    )
+    assert (
+        out["by_jedi_rank"].get("explorer", 0)
+        == baseline["by_jedi_rank"].get("explorer", 0) + 1
     )

@@ -42,10 +42,9 @@ describe("buildDashboardExportSnapshot", () => {
   it("expose account_xp_in_level depuis gamification_level.current_xp", () => {
     const gl: GamificationLevelIndicator = {
       current: 2,
-      title: "Padawan",
       current_xp: 37,
       next_level_xp: 100,
-      jedi_rank: "padawan",
+      jedi_rank: "explorer",
     };
     const snap = buildDashboardExportSnapshot({
       username: "carol",
@@ -94,10 +93,9 @@ describe("buildDashboardExportSnapshot", () => {
   it("propage gamification_level (persistant) dans l’export", () => {
     const gl: GamificationLevelIndicator = {
       current: 3,
-      title: "Chevalier Jedi",
       current_xp: 20,
       next_level_xp: 100,
-      jedi_rank: "padawan",
+      jedi_rank: "scout",
     };
     const snap = buildDashboardExportSnapshot({
       username: "gl_user",

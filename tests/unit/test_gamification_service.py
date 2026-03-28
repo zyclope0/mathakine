@@ -80,8 +80,8 @@ def test_apply_points_updates_user_columns_and_ledger(db_session):
     db_session.refresh(user)
 
     assert user.total_points == 150
-    assert user.current_level == 2
-    assert user.experience_points == 50
+    assert user.current_level == 1
+    assert user.experience_points == 150
     assert out["total_points"] == 150
     assert out["gamification_level"]["current"] == user.current_level
 
@@ -140,8 +140,8 @@ def test_apply_points_sequential_badges_accumulate(db_session):
     db_session.commit()
     db_session.refresh(user)
     assert user.total_points == 100
-    assert user.current_level == 2
-    assert user.experience_points == 0
+    assert user.current_level == 1
+    assert user.experience_points == 100
     assert (
         db_session.query(PointEvent).filter(PointEvent.user_id == user.id).count() == 2
     )

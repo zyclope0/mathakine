@@ -102,6 +102,22 @@ def submit_answer(
     logger.info("Tentative enregistrée avec succès")
 
     exercise_type = exercise.get("exercise_type", "")
+    tier_val = exercise.get("difficulty_tier")
+    tier_absent = 1 if tier_val is None else 0
+    tier_token = "none" if tier_val is None else str(int(tier_val))
+    outcome = "correct" if is_correct else "incorrect"
+    # F43-A1 — structured observability: grep ``f43_exercise_attempt`` ; aggregate by
+    # difficulty_tier / tier_absent / outcome (no schema change).
+    logger.info(
+        "f43_exercise_attempt: user_id=%s exercise_id=%s exercise_type=%s "
+        "difficulty_tier=%s tier_absent=%s outcome=%s",
+        user_id,
+        exercise_id,
+        exercise_type,
+        tier_token,
+        tier_absent,
+        outcome,
+    )
     difficulty = exercise.get("difficulty", "")
 
     user_for_progress = db.query(User).filter(User.id == user_id).first()

@@ -16,6 +16,7 @@ from app.schemas.admin import AdminError
 from app.services.admin.admin_service import AdminService
 from app.services.analytics.analytics_service import AnalyticsService
 from app.services.feedback.feedback_service import FeedbackService
+from app.services.users.user_service import UserService
 
 
 def get_config_for_api() -> List[Dict[str, Any]]:
@@ -28,6 +29,17 @@ def get_overview_for_api() -> Dict[str, int]:
     """GET /api/admin/overview — KPIs globaux."""
     with sync_db_session() as db:
         return AdminService.get_overview_for_api(db)
+
+
+def get_f43_account_progression_observability() -> Dict[str, Any]:
+    """
+    GET /api/admin/observability/f43-account-progression — F43-A1 read-only.
+
+    Distributions des utilisateurs actifs par ``current_level`` / ``jedi_rank``
+    recalculés depuis ``total_points`` (même vérité que ``/me``).
+    """
+    with sync_db_session() as db:
+        return UserService.get_f43_account_progression_distribution(db)
 
 
 def list_users_for_admin(

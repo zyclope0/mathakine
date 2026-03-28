@@ -35,9 +35,11 @@ Fondements scientifiques :
     prouvée par type (GRAND_MAITRE IRT), pas globalement.
 """
 
-from dataclasses import dataclass
+import threading
+import time
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -61,8 +63,8 @@ class AdaptiveGenerationContext:
     Attributes:
         age_group:          Canonical age_group (e.g. "GROUP_9_11").
         pedagogical_band:   "discovery" | "learning" | "consolidation".
-                            Falls back to "learning" when no mastery data is
-                            available (legacy-compatible default).
+                            Cold-start default is ``COLD_START_PEDAGOGICAL_BAND``
+                            (F42-P2a: currently ``learning``).
         mastery_source:     Human-readable description of what drove the band
                             (for debug / traceability).
     """
@@ -73,6 +75,39 @@ class AdaptiveGenerationContext:
 
 
 logger = get_logger(__name__)
+
+# ---------------------------------------------------------------------------
+# F42-P2a — cold-start pedagogical band (product decision, do not change casually)
+# ---------------------------------------------------------------------------
+# When there is no recent Progress (>= min attempts) and no valid IRT band mapping,
+# the second axis defaults to this band for all age groups. Unknown age still uses
+# GROUP_9_11 via _resolve_stable_age_group; band stays "learning" (not "discovery").
+COLD_START_PEDAGOGICAL_BAND: str = "learning"
+
+# F42-P2b — in-process cache for resolve_adaptive_context (no Redis)
+_ADAPTIVE_CONTEXT_CACHE_TTL_SEC: float = 300.0
+_adaptive_context_cache: Dict[
+    Tuple[int, str], Tuple[float, AdaptiveGenerationContext]
+] = {}
+_adaptive_context_cache_lock = threading.Lock()
+
+
+def clear_resolve_adaptive_context_cache() -> None:
+    """Clear the adaptive context cache (tests / rare admin use). TTL handles normal expiry."""
+    with _adaptive_context_cache_lock:
+        _adaptive_context_cache.clear()
+
+
+def invalidate_resolve_adaptive_context_cache(
+    user_id: Optional[int], exercise_type: Optional[str]
+) -> None:
+    """Invalidate one cached adaptive-context entry after a Progress write."""
+    if user_id is None or not exercise_type:
+        return
+    cache_key = (int(user_id), str(exercise_type).strip().lower())
+    with _adaptive_context_cache_lock:
+        _adaptive_context_cache.pop(cache_key, None)
+
 
 # ---------------------------------------------------------------------------
 # Mappings internes
@@ -569,41 +604,13 @@ def _resolve_band_from_irt(
 # ---------------------------------------------------------------------------
 
 
-def resolve_adaptive_context(
+def _resolve_adaptive_context_impl(
     db: Session,
     user,
     exercise_type: str,
 ) -> AdaptiveGenerationContext:
     """
-    Resolve a full :class:`AdaptiveGenerationContext` for F42 generation.
-
-    This is the **second-axis entry point**.  It separates two independent signals:
-
-    1. **Base age_group** — resolved from the user's *stable profile*
-       (``users.age_group`` → ``preferred_difficulty`` → ``grade_level`` → fallback).
-       This age does NOT change with mastery: two learners with the same profile
-       age always share the same base age_group in this path.
-
-    2. **Pedagogical band** — resolved from ``Progress.mastery_level`` for the
-       requested exercise type.  Two learners with the same profile age but
-       different mastery levels receive *different* bands, and therefore different
-       F42 tiers and different calibration bounds.
-
-    This separation is the key invariant of the F42 second axis:
-      ``same age_group, different mastery → different band → different tier``.
-
-    Cascade for the base age_group (stable, mastery-independent):
-      1. ``users.age_group`` if set
-      2. ``preferred_difficulty`` if set
-      3. ``grade_level`` if set
-      4. Fallback GROUP_9_11
-
-    Cascade for the pedagogical band:
-      1. ``Progress.mastery_level`` if >= 5 recent attempts
-      2. Latest valid IRT diagnostic (mapped to discovery / learning / consolidation)
-      3. Fallback "learning" (neutral legacy-compatible default)
-
-    This function does NOT modify the public HTTP contract.
+    Uncached resolution — see :func:`resolve_adaptive_context` for the contract.
     """
     user_id = getattr(user, "id", None)
 
@@ -636,17 +643,92 @@ def resolve_adaptive_context(
             )
 
     # ------------------------------------------------------------------
-    # Step 3: fallback — "learning" is the neutral/legacy-compatible band.
-    # This applies to ALL users with no mastery or IRT data, regardless of
-    # age group. Changing this fallback is a product decision (F42-P2), not
-    # a trivial fix — it affects exercise generation, challenge calibration,
-    # and all previously validated F42 lots.
+    # Step 3: cold-start band (F42-P2a) — see ``COLD_START_PEDAGOGICAL_BAND``.
+    # Applies when there is no qualifying Progress row and no IRT band.
     # ------------------------------------------------------------------
     return AdaptiveGenerationContext(
         age_group=age_group,
-        pedagogical_band="learning",
+        pedagogical_band=COLD_START_PEDAGOGICAL_BAND,
         mastery_source="fallback",
     )
+
+
+def resolve_adaptive_context(
+    db: Session,
+    user,
+    exercise_type: str,
+) -> AdaptiveGenerationContext:
+    """
+    Resolve a full :class:`AdaptiveGenerationContext` for F42 generation.
+
+    This is the **second-axis entry point**.  It separates two independent signals:
+
+    1. **Base age_group** — resolved from the user's *stable profile*
+       (``users.age_group`` → ``preferred_difficulty`` → ``grade_level`` → fallback).
+       This age does NOT change with mastery: two learners with the same profile
+       age always share the same base age_group in this path.
+
+    2. **Pedagogical band** — resolved from ``Progress.mastery_level`` for the
+       requested exercise type.  Two learners with the same profile age but
+       different mastery levels receive *different* bands, and therefore different
+       F42 tiers and different calibration bounds.
+
+    This separation is the key invariant of the F42 second axis:
+      ``same age_group, different mastery → different band → different tier``.
+
+    Cascade for the base age_group (stable, mastery-independent):
+      1. ``users.age_group`` if set
+      2. ``preferred_difficulty`` if set
+      3. ``grade_level`` if set
+      4. Fallback GROUP_9_11
+
+    Cascade for the pedagogical band:
+      1. ``Progress.mastery_level`` if >= 5 recent attempts
+      2. Latest valid IRT diagnostic (mapped to discovery / learning / consolidation)
+      3. Fallback ``COLD_START_PEDAGOGICAL_BAND`` (F42-P2a)
+
+    Results are cached in-process for ``_ADAPTIVE_CONTEXT_CACHE_TTL_SEC`` seconds
+    per (``user_id``, ``exercise_type``) — F42-P2b.
+
+    This function does NOT modify the public HTTP contract.
+    """
+    user_id = getattr(user, "id", None)
+    type_key = exercise_type.strip().lower()
+
+    if user_id is None:
+        ctx = replace(_resolve_adaptive_context_impl(db, user, exercise_type))
+        logger.info(
+            "f43_adaptive_context: user_id=null exercise_type=%s mastery_source=%s "
+            "pedagogical_band=%s",
+            type_key,
+            ctx.mastery_source,
+            ctx.pedagogical_band,
+        )
+        return ctx
+
+    cache_key = (int(user_id), type_key)
+    now = time.monotonic()
+    with _adaptive_context_cache_lock:
+        entry = _adaptive_context_cache.get(cache_key)
+        if entry is not None:
+            expires_at, ctx = entry
+            if now < expires_at:
+                return replace(ctx)
+        ctx = _resolve_adaptive_context_impl(db, user, exercise_type)
+        # F43-A1 — log once per cache fill (≈ at most once per TTL per user/type).
+        logger.info(
+            "f43_adaptive_context: user_id=%s exercise_type=%s mastery_source=%s "
+            "pedagogical_band=%s",
+            int(user_id),
+            type_key,
+            ctx.mastery_source,
+            ctx.pedagogical_band,
+        )
+        _adaptive_context_cache[cache_key] = (
+            now + _ADAPTIVE_CONTEXT_CACHE_TTL_SEC,
+            ctx,
+        )
+        return replace(ctx)
 
 
 def _resolve_stable_age_group(user) -> str:

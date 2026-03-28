@@ -26,6 +26,7 @@ from server.handlers.admin_handlers import (
     admin_exercises_post,
     admin_exercises_put,
     admin_export,
+    admin_f43_account_progression,
     admin_generation_metrics,
     admin_health,
     admin_moderation,
@@ -49,6 +50,11 @@ def get_admin_routes():
             routes=[
                 Route("/health", endpoint=admin_health, methods=["GET"]),
                 Route("/overview", endpoint=admin_overview, methods=["GET"]),
+                Route(
+                    "/observability/f43-account-progression",
+                    endpoint=admin_f43_account_progression,
+                    methods=["GET"],
+                ),
                 Route("/users", endpoint=admin_users, methods=["GET"]),
                 Route(
                     "/users/{user_id:int}",

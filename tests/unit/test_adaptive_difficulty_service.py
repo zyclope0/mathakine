@@ -14,8 +14,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import app.services.exercises.adaptive_difficulty_service as adaptive_difficulty_module
 from app.core.constants import AgeGroups, DifficultyLevels
 from app.services.exercises.adaptive_difficulty_service import (
+    COLD_START_PEDAGOGICAL_BAND,
     AdaptiveGenerationContext,
     _adjust_for_realtime_progress,
     _irt_ordinal_for_type,
@@ -728,3 +730,187 @@ class TestResolveIrtLevel:
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="MIXTE")
         assert result == DifficultyLevels.INITIE
+
+
+# ---------------------------------------------------------------------------
+# F42-P2 — cold-start decision, TTL cache
+# ---------------------------------------------------------------------------
+
+
+class TestF42P2ColdStartAndCache:
+    """P2a documented fallback ; P2b in-process cache (no product change)."""
+
+    def test_p2a_cold_start_age_6_8_stable_band_learning(self):
+        """Sans progression ni IRT : âge profil 6–8 + bande cold-start = learning."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=501, age_group="6-8")
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_6_8,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+        ):
+            ctx = resolve_adaptive_context(db, user, "ADDITION")
+
+        assert ctx.age_group == AgeGroups.GROUP_6_8
+        assert ctx.pedagogical_band == COLD_START_PEDAGOGICAL_BAND == "learning"
+        assert ctx.mastery_source == "fallback"
+
+    def test_p2b_resolve_adaptive_context_cache_hit_same_user_type(self, monkeypatch):
+        monkeypatch.setattr(adaptive_difficulty_module.time, "monotonic", lambda: 0.0)
+        db = _make_db(progress=None)
+        user = _make_user(user_id=502, age_group="9-11")
+        impl = adaptive_difficulty_module._resolve_adaptive_context_impl
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_9_11,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+            patch.object(
+                adaptive_difficulty_module,
+                "_resolve_adaptive_context_impl",
+                wraps=impl,
+            ) as spy,
+        ):
+            resolve_adaptive_context(db, user, "ADDITION")
+            resolve_adaptive_context(db, user, "ADDITION")
+
+        assert spy.call_count == 1
+
+    def test_p2b_cache_distinct_exercise_type(self, monkeypatch):
+        monkeypatch.setattr(adaptive_difficulty_module.time, "monotonic", lambda: 0.0)
+        db = _make_db(progress=None)
+        user = _make_user(user_id=503, age_group="9-11")
+        impl = adaptive_difficulty_module._resolve_adaptive_context_impl
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_9_11,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+            patch.object(
+                adaptive_difficulty_module,
+                "_resolve_adaptive_context_impl",
+                wraps=impl,
+            ) as spy,
+        ):
+            resolve_adaptive_context(db, user, "ADDITION")
+            resolve_adaptive_context(db, user, "DIVISION")
+
+        assert spy.call_count == 2
+
+    def test_p2b_cache_expires_after_ttl(self, monkeypatch):
+        times = iter([0.0, 400.0])
+
+        def _mono():
+            return next(times)
+
+        monkeypatch.setattr(adaptive_difficulty_module.time, "monotonic", _mono)
+        db = _make_db(progress=None)
+        user = _make_user(user_id=504, age_group="9-11")
+        impl = adaptive_difficulty_module._resolve_adaptive_context_impl
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_9_11,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+            patch.object(
+                adaptive_difficulty_module,
+                "_resolve_adaptive_context_impl",
+                wraps=impl,
+            ) as spy,
+        ):
+            resolve_adaptive_context(db, user, "ADDITION")
+            resolve_adaptive_context(db, user, "ADDITION")
+
+        assert spy.call_count == 2
+
+    def test_cache_bypassed_when_user_id_none(self, monkeypatch):
+        monkeypatch.setattr(adaptive_difficulty_module.time, "monotonic", lambda: 0.0)
+        db = _make_db(progress=None)
+        user = MagicMock(spec=["age_group", "preferred_difficulty", "grade_level"])
+        user.id = None
+        user.age_group = "9-11"
+        user.preferred_difficulty = None
+        user.grade_level = None
+        impl = adaptive_difficulty_module._resolve_adaptive_context_impl
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_9_11,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+            patch.object(
+                adaptive_difficulty_module,
+                "_resolve_adaptive_context_impl",
+                wraps=impl,
+            ) as spy,
+        ):
+            resolve_adaptive_context(db, user, "ADDITION")
+            resolve_adaptive_context(db, user, "ADDITION")
+
+        assert spy.call_count == 2
+
+
+class TestF43A1AdaptiveObservabilityLogs:
+    """F43-A1 — journalisation ``f43_adaptive_context`` au remplissage du cache."""
+
+    @patch.object(adaptive_difficulty_module, "logger")
+    def test_f43_adaptive_log_once_per_cache_fill(self, mock_log, monkeypatch):
+        adaptive_difficulty_module.clear_resolve_adaptive_context_cache()
+        monkeypatch.setattr(adaptive_difficulty_module.time, "monotonic", lambda: 0.0)
+        db = _make_db(progress=None)
+        user = _make_user(user_id=601, age_group="9-11")
+
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service."
+                "normalized_age_group_from_user_profile",
+                return_value=AgeGroups.GROUP_9_11,
+            ),
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+        ):
+            resolve_adaptive_context(db, user, "ADDITION")
+            resolve_adaptive_context(db, user, "ADDITION")
+
+        f43_calls = [
+            c
+            for c in mock_log.info.call_args_list
+            if c.args and "f43_adaptive_context" in c.args[0]
+        ]
+        assert len(f43_calls) == 1
+        assert f43_calls[0].args[1] == 601
+        assert f43_calls[0].args[2] == "addition"
+        assert f43_calls[0].args[3] == "fallback"
+        assert f43_calls[0].args[4] == "learning"

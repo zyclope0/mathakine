@@ -14,13 +14,13 @@ from app.models.user import User
 from app.services.gamification.compute import (
     canonicalize_progression_rank_bucket,
     compute_state_from_total_points,
+    level_and_xp_from_total_points,
+    points_to_gain_next_level,
 )
-from app.services.gamification.constants import POINTS_PER_LEVEL
 from app.services.gamification.exceptions import (
     GamificationUserNotFoundError,
     InvalidGamificationPointsDeltaError,
 )
-from app.services.gamification.level_titles import LEVEL_TITLES
 from app.services.gamification.point_source import PointEventSourceType
 
 logger = get_logger(__name__)
@@ -32,31 +32,21 @@ class GamificationService:
     @staticmethod
     def build_level_indicator_payload(user: User) -> Dict[str, Any]:
         """
-        Structure stable pour API (/me, profil) — alignée sur les colonnes persistées.
+        Structure stable pour API (/me, profil) — dérivée de ``total_points`` (vérité).
 
-        Ne dépend pas d'un filtre temporel du dashboard.
+        Les colonnes ORM sont mises à jour à chaque ``apply_points`` ; l'indicateur
+        recalcule niveau / XP palier / coût suivant pour éviter tout décalage lecture.
         """
         total = int(getattr(user, "total_points", None) or 0)
-        level = int(getattr(user, "current_level", None) or 1)
-        if level < 1:
-            level = 1
+        level, current_xp = level_and_xp_from_total_points(total)
+        next_cost = points_to_gain_next_level(level)
 
-        xp_raw = getattr(user, "experience_points", None)
-        if xp_raw is None:
-            _, _, computed_xp, _ = compute_state_from_total_points(total)
-            current_xp = computed_xp
-        else:
-            current_xp = max(0, int(xp_raw))
-            if POINTS_PER_LEVEL > 0:
-                current_xp = min(current_xp, POINTS_PER_LEVEL - 1)
-
-        title = LEVEL_TITLES.get(level) or f"Niveau {level}"
-
+        # F42-P5 : pas de ``title`` narratif (ancien LEVEL_TITLES) — le rang public est ``jedi_rank`` ;
+        # le libellé « Niveau n » est côté client (i18n).
         return {
             "current": level,
-            "title": title,
             "current_xp": current_xp,
-            "next_level_xp": POINTS_PER_LEVEL,
+            "next_level_xp": next_cost,
             "jedi_rank": canonicalize_progression_rank_bucket(
                 getattr(user, "jedi_rank", None), level
             ),

@@ -27,8 +27,8 @@ def get_exercise_for_submit_validation(
     Inclut correct_answer. Utilise cast() pour éviter les erreurs enum.
 
     Returns:
-        Dict avec id, exercise_type, difficulty, correct_answer, choices, question, explanation
-        ou None si non trouvé.
+        Dict avec id, exercise_type, difficulty, difficulty_tier (F42, nullable),
+        correct_answer, choices, question, explanation ou None si non trouvé.
     """
     try:
         exercise_row = (
@@ -38,6 +38,7 @@ def get_exercise_for_submit_validation(
                 Exercise.correct_answer,
                 Exercise.choices,
                 Exercise.explanation,
+                Exercise.difficulty_tier,
                 cast(Exercise.exercise_type, String).label("exercise_type_str"),
                 cast(Exercise.difficulty, String).label("difficulty_str"),
             )
@@ -72,6 +73,7 @@ def _row_to_submit_dict(row: Any) -> Dict[str, Any]:
         "question": getattr(row, "question", ""),
         "explanation": getattr(row, "explanation") or "",
         "correct_answer": getattr(row, "correct_answer", ""),
+        "difficulty_tier": getattr(row, "difficulty_tier", None),
     }
 
 
@@ -150,6 +152,12 @@ def update_progress_after_attempt(
         db.add(new_progress)
 
     db.flush()
+
+    from app.services.exercises.adaptive_difficulty_service import (
+        invalidate_resolve_adaptive_context_cache,
+    )
+
+    invalidate_resolve_adaptive_context_cache(user_id, exercise_type)
 
     if user is None:
         return None

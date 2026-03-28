@@ -1000,6 +1000,18 @@ def challenge_with_hints_id(logic_challenge_db):
 
 
 @pytest.fixture(autouse=True, scope="function")
+def _clear_adaptive_context_cache_between_tests():
+    """F42-P2b: évite la fuite du cache in-process ``resolve_adaptive_context`` entre tests."""
+    from app.services.exercises.adaptive_difficulty_service import (
+        clear_resolve_adaptive_context_cache,
+    )
+
+    clear_resolve_adaptive_context_cache()
+    yield
+    clear_resolve_adaptive_context_cache()
+
+
+@pytest.fixture(autouse=True, scope="function")
 def auto_cleanup_test_data(db_session):
     """Nettoyage automatique des donnees de test.
 

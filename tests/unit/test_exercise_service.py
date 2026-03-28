@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 from app.exceptions import ExerciseNotFoundError
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-from app.models.point_event import PointEvent
 from app.models.logic_challenge import LogicChallenge
+from app.models.point_event import PointEvent
 from app.models.user import User, UserRole
 from app.services.exercises.exercise_service import ExerciseService
 from app.services.gamification.point_source import PointEventSourceType
@@ -880,6 +880,112 @@ def test_submit_answer_result_correct(db_session):
     assert ex_events[0].points_delta == 10
     db_session.refresh(user)
     assert int(getattr(user, "total_points", 0) or 0) >= 10
+
+
+@patch("app.services.exercises.exercise_attempt_service.logger")
+def test_submit_answer_logs_exercise_attempt_tier_line(mock_logger, db_session):
+    """F43-A1 — ligne ``f43_exercise_attempt`` avec tier, tier_absent=0, outcome."""
+    from app.services.exercises.exercise_attempt_service import submit_answer
+
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"submit_tier_{unique_id}",
+        email=f"submit_tier_{unique_id}@test.com",
+        hashed_password="hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.flush()
+
+    exercise = Exercise(
+        title=f"Submit Tier {unique_id}",
+        exercise_type=get_enum_value(
+            ExerciseType, ExerciseType.ADDITION.value, db_session
+        ),
+        difficulty=get_enum_value(
+            DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+        ),
+        age_group="6-8",
+        question="2+2=?",
+        correct_answer="4",
+        choices=["2", "3", "4", "5"],
+        explanation="2+2=4",
+        difficulty_tier=7,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    submit_answer(
+        db_session,
+        exercise.id,
+        user.id,
+        selected_answer="4",
+        time_spent=1.0,
+    )
+
+    tier_calls = [
+        c
+        for c in mock_logger.info.call_args_list
+        if c.args and "f43_exercise_attempt" in c.args[0]
+    ]
+    assert len(tier_calls) == 1
+    assert tier_calls[0].args[4] == "7"
+    assert tier_calls[0].args[5] == 0
+    assert tier_calls[0].args[6] == "correct"
+
+
+@patch("app.services.exercises.exercise_attempt_service.logger")
+def test_submit_answer_logs_f43_tier_absent_when_no_tier(mock_logger, db_session):
+    """F43-A1 — ``tier_absent=1`` et ``difficulty_tier=none`` si colonne absente."""
+    from app.services.exercises.exercise_attempt_service import submit_answer
+
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"submit_notier_{unique_id}",
+        email=f"submit_notier_{unique_id}@test.com",
+        hashed_password="hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.flush()
+
+    exercise = Exercise(
+        title=f"Submit No Tier {unique_id}",
+        exercise_type=get_enum_value(
+            ExerciseType, ExerciseType.ADDITION.value, db_session
+        ),
+        difficulty=get_enum_value(
+            DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+        ),
+        age_group="6-8",
+        question="1+1=?",
+        correct_answer="2",
+        choices=["1", "2", "3", "4"],
+        explanation="",
+        difficulty_tier=None,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    submit_answer(
+        db_session,
+        exercise.id,
+        user.id,
+        selected_answer="wrong",
+        time_spent=1.0,
+    )
+
+    tier_calls = [
+        c
+        for c in mock_logger.info.call_args_list
+        if c.args and "f43_exercise_attempt" in c.args[0]
+    ]
+    assert len(tier_calls) == 1
+    assert tier_calls[0].args[4] == "none"
+    assert tier_calls[0].args[5] == 1
+    assert tier_calls[0].args[6] == "incorrect"
 
 
 def test_submit_answer_result_incorrect(db_session):

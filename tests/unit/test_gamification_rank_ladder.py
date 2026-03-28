@@ -7,7 +7,6 @@ from app.services.gamification.compute import (
     compute_state_from_total_points,
     jedi_rank_for_level,
 )
-from app.services.gamification.constants import POINTS_PER_LEVEL
 
 
 @pytest.mark.parametrize(
@@ -39,10 +38,10 @@ def test_compute_state_rank_aligns_with_level() -> None:
     """Même formule que le runtime : niveau dérivé des points puis bucket."""
     samples = [
         (0, 1, "cadet"),
-        (POINTS_PER_LEVEL * 2, 3, "scout"),
-        (POINTS_PER_LEVEL * 9, 10, "navigator"),
-        (POINTS_PER_LEVEL * 21, 22, "commander"),
-        (POINTS_PER_LEVEL * 41, 42, "cosmic_legend"),
+        (250, 2, "cadet"),
+        (1000, 6, "explorer"),
+        (2500, 11, "navigator"),
+        (5000, 17, "cartographer"),
     ]
     for total, exp_level, exp_rank in samples:
         _t, level, _xp, rank = compute_state_from_total_points(total)

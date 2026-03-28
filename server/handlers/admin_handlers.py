@@ -18,6 +18,7 @@ from app.services.admin.admin_read_service import (
     get_challenge_for_admin,
     get_config_for_api,
     get_exercise_for_admin,
+    get_f43_account_progression_observability,
     get_moderation_for_api,
     get_overview_for_api,
     get_reports_for_api,
@@ -87,6 +88,18 @@ async def admin_overview(request: Request) -> JSONResponse:
     KPIs globaux de la plateforme.
     """
     result = await run_db_bound(get_overview_for_api)
+    return JSONResponse(result)
+
+
+@require_auth
+@require_admin
+async def admin_f43_account_progression(request: Request) -> JSONResponse:
+    """
+    GET /api/admin/observability/f43-account-progression
+    F43-A1 — distributions read-only (niveau / rang recalculés depuis
+    ``total_points`` pour les utilisateurs actifs).
+    """
+    result = await run_db_bound(get_f43_account_progression_observability)
     return JSONResponse(result)
 
 

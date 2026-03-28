@@ -3,21 +3,38 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useTranslations } from "next-intl";
+import { PROGRESSION_RANK_ICONS, PROGRESSION_RANK_TEXT_CLASS } from "@/lib/constants/leaderboard";
+import {
+  canonicalProgressionRankBucket,
+  isKnownProgressionRankBucket,
+} from "@/lib/gamification/progressionRankLabel";
+import { cn } from "@/lib/utils";
 
 interface LevelIndicatorProps {
   level: {
     current: number;
-    title: string;
+    /** Legacy API ; ignoré par l’UI (F42-P3/P5). */
+    title?: string;
     current_xp: number;
     next_level_xp: number;
+    /** Bucket API (canonique ou legacy) — toujours présent si le backend est à jour. */
+    jedi_rank?: string;
   };
 }
 
 export function LevelIndicator({ level }: LevelIndicatorProps) {
   const t = useTranslations("dashboard.levelIndicator");
+  const tRank = useTranslations("progressionRanks");
 
   const denom = level.next_level_xp > 0 ? level.next_level_xp : 1;
   const progressPercent = Math.min((level.current_xp / denom) * 100, 100);
+
+  const rawRank = (level.jedi_rank ?? "").trim();
+  const rankCanon = rawRank ? canonicalProgressionRankBucket(rawRank) : "";
+  const rankLabel =
+    rawRank === "" ? null : isKnownProgressionRankBucket(rawRank) ? tRank(rankCanon) : rawRank;
+
+  const numericHeading = t("numericLevel", { n: level.current });
 
   return (
     <Card className="dashboard-card-surface overflow-hidden">
@@ -40,7 +57,25 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
               <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-0.5">
                 {t("title")}
               </p>
-              <h3 className="text-2xl font-bold text-foreground">{level.title}</h3>
+              <h3 className="text-2xl font-bold text-foreground" aria-label={numericHeading}>
+                {numericHeading}
+              </h3>
+              {rankLabel != null ? (
+                <p className="mt-2 text-sm text-muted-foreground text-center sm:text-left">
+                  <span>{t("progressionRankColon")}</span>{" "}
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 font-semibold text-foreground tabular-nums",
+                      PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-foreground"
+                    )}
+                  >
+                    <span aria-hidden className="text-base leading-none">
+                      {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
+                    </span>
+                    {rankLabel}
+                  </span>
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-1.5">

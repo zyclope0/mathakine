@@ -911,11 +911,13 @@
     },
     "levelIndicator": {
       "title": "Current level",
+      "numericLevel": "Level {n}",
       "level": "Level",
       "xp": "XP",
       "nextLevel": "Next level",
       "xpForNextLevel": "XP for level {level}",
-      "maxLevel": "Maximum level reached ✨"
+      "maxLevel": "Maximum level reached ✨",
+      "progressionRankColon": "Progression tier:"
     },
     "profile": {
       "statsPeriodHint": "The stats below (exercises, rate, challenges, activity) use the « {period} » period. To change it, open the « Overview » tab.",
@@ -1866,6 +1868,17 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_4_0_alpha_1": {
+      "version": "v3.4.0-alpha.1",
+      "date": "March 27, 2026",
+      "items": [
+        "Pedagogical difficulty is now more precise: the platform combines age band and mastery level to calibrate exercises and challenges more accurately.",
+        "The AI challenge generator can now use your profile automatically in the recommended mode, while still letting you choose a specific age when you want to.",
+        "Account progression is now clearer: numeric level is shown separately from the public progression rank across the profile, dashboard, badges, and leaderboard.",
+        "The account progression curve is less inflationary, so levels and ranks grow in a more durable way than with the old flat model.",
+        "The main visible references to the old licensed narrative have been removed from the most exposed product and admin surfaces."
+      ]
+    },
     "release_3_3_0_alpha_3": {
       "version": "v3.3.0-alpha.3",
       "date": "March 25, 2026",

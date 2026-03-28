@@ -11,15 +11,40 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import get_logger
 from app.models.achievement import Achievement, UserAchievement
 from app.services.badges.badge_format_helpers import format_requirements_to_text
-from app.services.gamification.compute import canonicalize_progression_rank_bucket
 from app.services.users.user_service import UserService
 
 logger = get_logger(__name__)
 
 
+def _build_badge_user_stats(user, pinned: List[int]) -> Dict[str, Any]:
+    """Derive la progression badges depuis `total_points`, comme `/me` et le profil."""
+    if user is None:
+        return {
+            "total_points": 0,
+            "current_level": 1,
+            "experience_points": 0,
+            "jedi_rank": "cadet",
+            "pinned_badge_ids": [],
+            "current_streak": 0,
+            "best_streak": 0,
+        }
+
+    level_payload = UserService.build_gamification_level_for_api(user)
+    return {
+        "total_points": int(getattr(user, "total_points", None) or 0),
+        "current_level": int(level_payload["current"]),
+        "experience_points": int(level_payload["current_xp"]),
+        "jedi_rank": level_payload["jedi_rank"],
+        "pinned_badge_ids": pinned,
+        "current_streak": int(getattr(user, "current_streak", None) or 0),
+        "best_streak": int(getattr(user, "best_streak", None) or 0),
+    }
+
+
 def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
-    """Récupérer tous les badges d'un utilisateur."""
+    """Recuperer tous les badges d'un utilisateur."""
     try:
+        user = UserService.get_user(db, user_id)
         earned_badges = db.execute(
             text("""
                 SELECT a.id, a.code, a.name, a.description, a.star_wars_title,
@@ -29,32 +54,22 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                 JOIN user_achievements ua ON a.id = ua.achievement_id
                 WHERE ua.user_id = :user_id
                 ORDER BY ua.earned_at DESC
-            """),
+                """),
             {"user_id": user_id},
         ).fetchall()
 
-        user_stats = db.execute(
-            text("""
-                SELECT total_points, current_level, experience_points, jedi_rank,
-                       COALESCE(current_streak, 0), COALESCE(best_streak, 0)
-                FROM users
-                WHERE id = :user_id
-            """),
-            {"user_id": user_id},
-        ).fetchone()
-
         pinned: List[int] = []
         try:
-            user = UserService.get_user(db, user_id)
             if user and hasattr(user, "pinned_badge_ids") and user.pinned_badge_ids:
                 pinned = [
                     int(x) for x in user.pinned_badge_ids if isinstance(x, (int, float))
                 ]
         except (SQLAlchemyError, TypeError, ValueError) as e:
             logger.warning(
-                f"Fallback pinned_badge_ids: impossible de récupérer pour user_id={user_id} — {e}"
+                "Fallback pinned_badge_ids impossible for user_id=%s: %s",
+                user_id,
+                e,
             )
-            # pinned reste [] (fallback explicite)
 
         return {
             "earned_badges": [
@@ -72,39 +87,14 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                 }
                 for badge in earned_badges
             ],
-            "user_stats": (
-                {
-                    "total_points": user_stats[0] if user_stats else 0,
-                    "current_level": user_stats[1] if user_stats else 1,
-                    "experience_points": user_stats[2] if user_stats else 0,
-                    "jedi_rank": canonicalize_progression_rank_bucket(
-                        user_stats[3] if user_stats else None,
-                        int(user_stats[1] if user_stats else 1),
-                    ),
-                    "pinned_badge_ids": pinned,
-                    "current_streak": (
-                        user_stats[4] if user_stats and len(user_stats) > 4 else 0
-                    ),
-                    "best_streak": (
-                        user_stats[5] if user_stats and len(user_stats) > 5 else 0
-                    ),
-                }
-                if user_stats
-                else {
-                    "total_points": 0,
-                    "current_level": 1,
-                    "experience_points": 0,
-                    "jedi_rank": "cadet",
-                    "pinned_badge_ids": [],
-                    "current_streak": 0,
-                    "best_streak": 0,
-                }
-            ),
+            "user_stats": _build_badge_user_stats(user, pinned),
         }
 
     except SQLAlchemyError as user_badges_error:
         logger.error(
-            f"Erreur récupération badges utilisateur {user_id}: {user_badges_error}"
+            "Erreur recuperation badges utilisateur %s: %s",
+            user_id,
+            user_badges_error,
         )
         return {"earned_badges": [], "user_stats": {}}
 
@@ -117,7 +107,7 @@ AVAILABLE_BADGES_MAX_LIMIT = 200
 def get_available_badges(
     db: Session, *, limit: int = AVAILABLE_BADGES_DEFAULT_LIMIT
 ) -> List[Dict[str, Any]]:
-    """Récupérer les badges disponibles, borné par limit (max AVAILABLE_BADGES_MAX_LIMIT)."""
+    """Recuperer les badges disponibles, borne par limit (max AVAILABLE_BADGES_MAX_LIMIT)."""
     effective_limit = min(AVAILABLE_BADGES_MAX_LIMIT, max(1, limit))
     try:
         badges = (
@@ -147,13 +137,14 @@ def get_available_badges(
 
     except SQLAlchemyError as available_badges_error:
         logger.error(
-            f"Erreur récupération badges disponibles: {available_badges_error}"
+            "Erreur recuperation badges disponibles: %s",
+            available_badges_error,
         )
         return []
 
 
 def get_user_gamification_stats(db: Session, user_id: int) -> Dict[str, Any]:
-    """Statistiques gamification (attempts, badges par catégorie, performance)."""
+    """Statistiques gamification (attempts, badges par categorie, performance)."""
     user_data = get_user_badges(db, user_id)
     earned_count = len(user_data.get("earned_badges", []))
 
@@ -165,7 +156,7 @@ def get_user_gamification_stats(db: Session, user_id: int) -> Dict[str, Any]:
                 AVG(time_spent) as avg_time_spent
             FROM attempts
             WHERE user_id = :user_id
-        """),
+            """),
         {"user_id": user_id},
     ).fetchone()
 
@@ -176,7 +167,7 @@ def get_user_gamification_stats(db: Session, user_id: int) -> Dict[str, Any]:
             JOIN user_achievements ua ON a.id = ua.achievement_id
             WHERE ua.user_id = :user_id
             GROUP BY a.category
-        """),
+            """),
         {"user_id": user_id},
     ).fetchall()
 
@@ -203,16 +194,16 @@ def get_user_gamification_stats(db: Session, user_id: int) -> Dict[str, Any]:
 def set_pinned_badges(
     db: Session, user_id: int, badge_ids: List[int], *, auto_commit: bool = True
 ) -> List[int]:
-    """Épingler 1-3 badges. Seuls les badges obtenus peuvent être épinglés."""
-    MAX_PINNED = 3
+    """Epingler 1-3 badges. Seuls les badges obtenus peuvent etre epingles."""
+    max_pinned = 3
     earned_ids = {
         r[0]
         for r in db.query(UserAchievement.achievement_id)
         .filter(UserAchievement.user_id == user_id)
         .all()
     }
-    valid = [bid for bid in badge_ids[:MAX_PINNED] if bid in earned_ids]
-    valid = list(dict.fromkeys(valid))[:MAX_PINNED]
+    valid = [bid for bid in badge_ids[:max_pinned] if bid in earned_ids]
+    valid = list(dict.fromkeys(valid))[:max_pinned]
     try:
         user = UserService.get_user(db, user_id)
         if user:
@@ -224,6 +215,6 @@ def set_pinned_badges(
     except SQLAlchemyError as e:
         if auto_commit:
             db.rollback()
-        logger.error(f"Erreur set_pinned_badges: {e}")
+        logger.error("Erreur set_pinned_badges: %s", e)
         return []
     return valid

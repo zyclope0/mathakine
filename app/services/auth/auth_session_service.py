@@ -20,7 +20,10 @@ from app.services.auth.auth_service import (
     recover_refresh_token_from_access_token,
     refresh_access_token,
 )
-from app.services.gamification.compute import canonicalize_progression_rank_bucket
+from app.services.gamification.compute import (
+    canonicalize_progression_rank_bucket,
+    compute_state_from_total_points,
+)
 
 logger = get_logger(__name__)
 
@@ -34,6 +37,8 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
     from app.utils.unverified_access import get_unverified_access_scope
 
     access_scope = get_unverified_access_scope(user)
+    total_pts = int(getattr(user, "total_points", None) or 0)
+    _, syn_level, syn_xp, _ = compute_state_from_total_points(total_pts)
     return {
         "id": user.id,
         "username": user.username,
@@ -55,12 +60,12 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
         "preferred_difficulty": getattr(user, "preferred_difficulty", None),
         "learning_goal": getattr(user, "learning_goal", None),
         "practice_rhythm": getattr(user, "practice_rhythm", None),
-        "total_points": int(getattr(user, "total_points", None) or 0),
-        "current_level": int(getattr(user, "current_level", None) or 1),
-        "experience_points": int(getattr(user, "experience_points", None) or 0),
+        "total_points": total_pts,
+        "current_level": syn_level,
+        "experience_points": syn_xp,
         "jedi_rank": canonicalize_progression_rank_bucket(
             getattr(user, "jedi_rank", None),
-            int(getattr(user, "current_level", None) or 1),
+            syn_level,
         ),
         "gamification_level": UserService.build_gamification_level_for_api(user),
     }
@@ -156,6 +161,8 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
 
         access_scope = get_unverified_access_scope(user)
         is_email_verified = getattr(user, "is_email_verified", True)
+        total_pts = int(getattr(user, "total_points", None) or 0)
+        _, syn_level, syn_xp, _ = compute_state_from_total_points(total_pts)
         return {
             "id": user.id,
             "username": user.username,
@@ -196,16 +203,12 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
                 if hasattr(user, "created_at") and user.created_at
                 else None
             ),
-            "total_points": (user.total_points if hasattr(user, "total_points") else 0),
-            "current_level": (
-                user.current_level if hasattr(user, "current_level") else 1
-            ),
-            "experience_points": (
-                user.experience_points if hasattr(user, "experience_points") else 0
-            ),
+            "total_points": total_pts,
+            "current_level": syn_level,
+            "experience_points": syn_xp,
             "jedi_rank": canonicalize_progression_rank_bucket(
                 user.jedi_rank if hasattr(user, "jedi_rank") else None,
-                int(user.current_level if hasattr(user, "current_level") else 1),
+                syn_level,
             ),
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }

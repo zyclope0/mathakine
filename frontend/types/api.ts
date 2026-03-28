@@ -7,7 +7,8 @@
  */
 export interface GamificationLevelIndicator {
   current: number;
-  title: string;
+  /** @deprecated F42-P5 — retiré du backend ; ne plus utiliser pour l’affichage. */
+  title?: string;
   current_xp: number;
   next_level_xp: number;
   jedi_rank?: string;

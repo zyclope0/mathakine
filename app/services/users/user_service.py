@@ -19,7 +19,10 @@ from app.core.types import (
     UserProgressDict,
 )
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
-from app.services.gamification.compute import canonicalize_progression_rank_bucket
+from app.services.gamification.compute import (
+    canonicalize_progression_rank_bucket,
+    compute_state_from_total_points,
+)
 
 logger = get_logger(__name__)
 
@@ -640,14 +643,16 @@ class UserService:
             if not UserService._is_visible_in_leaderboards(user):
                 continue
             score = int(score_fn(user))
+            account_total = int(getattr(user, "total_points", None) or 0)
+            _, syn_level, _, _ = compute_state_from_total_points(account_total)
             leaderboard.append(
                 {
                     "username": user.username,
                     "total_points": score,
-                    "current_level": user.current_level or 1,
+                    "current_level": syn_level,
                     "jedi_rank": canonicalize_progression_rank_bucket(
                         getattr(user, "jedi_rank", None),
-                        int(getattr(user, "current_level", None) or 1),
+                        syn_level,
                     ),
                     "is_current_user": user.id == current_user_id,
                     "avatar_url": user.avatar_url,
@@ -807,6 +812,37 @@ class UserService:
 
         ahead_int = int(ahead or 0)
         return {"rank": ahead_int + 1, "total_points": my_points}
+
+    @staticmethod
+    def get_f43_account_progression_distribution(db: Session) -> Dict[str, Any]:
+        """
+        F43-A1 read-only cohort snapshot for ops/admin.
+
+        Groups **active** users by the same progression truth as ``/me``:
+        ``total_points`` recomputed through the current progression curve.
+
+        This avoids stale cohort snapshots if persisted ``current_level`` /
+        ``jedi_rank`` lag behind the latest curve semantics.
+        """
+        active_rows = db.query(User.total_points).filter(User.is_active.is_(True)).all()
+        total_active = len(active_rows)
+
+        by_level: Dict[str, int] = {}
+        by_rank: Dict[str, int] = {}
+        for (total_points,) in active_rows:
+            _, current_level, _, jedi_rank = compute_state_from_total_points(
+                int(total_points or 0)
+            )
+            level_key = str(current_level)
+            by_level[level_key] = by_level.get(level_key, 0) + 1
+            by_rank[jedi_rank] = by_rank.get(jedi_rank, 0) + 1
+
+        return {
+            "schema": "f43_account_progression_v1",
+            "total_active_users": total_active,
+            "by_current_level": by_level,
+            "by_jedi_rank": by_rank,
+        }
 
     @staticmethod
     def get_user_progress_for_api(db: Session, user_id: int) -> UserProgressDict:
@@ -1208,6 +1244,8 @@ class UserService:
     @staticmethod
     def serialize_user_profile_for_api(user: User) -> Dict[str, Any]:
         """Construit la réponse API standard pour le profil utilisateur."""
+        total_pts = int(getattr(user, "total_points", None) or 0)
+        _, syn_level, _, _ = compute_state_from_total_points(total_pts)
         return {
             "id": user.id,
             "username": user.username,
@@ -1233,10 +1271,10 @@ class UserService:
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,
             "total_points": user.total_points,
-            "current_level": user.current_level,
+            "current_level": syn_level,
             "jedi_rank": canonicalize_progression_rank_bucket(
                 getattr(user, "jedi_rank", None),
-                int(getattr(user, "current_level", None) or 1),
+                syn_level,
             ),
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }
