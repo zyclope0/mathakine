@@ -20,10 +20,10 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 ## 2. Sequencage
 
 ```text
-[TODO] CC1-L1 : Bugs P0 + code mort P1 (lot atomique, 5 fichiers)
-[TODO] CC1-L2 : DRY P2 - exercise_ai_service aligne sur sse_utils (1 fichier)
-[DIFF] CC1-L3 : DRY P2 - challenge dispatch extracted (effort > valeur court terme, differe)
-[TODO] CC1-L4 : CLAUDE.md - supprimer P1 challenge_service deja resolu
+[DONE] CC1-L1 : Bugs P0 + code mort P1 (lot atomique, 5 fichiers)
+[DONE] CC1-L2 : DRY P2 - exercise_ai_service aligne sur sse_utils (1 fichier)
+[DONE] CC1-L3 : DRY P2 - challenge dispatch extracted (scope borne, helper dedie)
+[DONE] CC1-L4 : CLAUDE.md - supprimer P1 challenge_service deja resolu
 ```
 
 ---
@@ -98,7 +98,7 @@ docstring "DRY pour generation IA en streaming". `challenge_ai_service.py` l'uti
 
 ---
 
-### CC1-L3 - DRY : challenge dispatch model (differe)
+### CC1-L3 - DRY : challenge dispatch model (realise)
 
 **Contexte :** `challenge_ai_service.py:329-367` a sa propre logique de dispatch modele
 (o1/o3/gpt5/fallback) inline dans `create_stream_with_retry()`. `ai_generation_policy.py`
@@ -107,7 +107,49 @@ a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
 **Recommandation :** creer `build_challenge_ai_stream_kwargs()` dans
 `challenge_ai_model_policy.py` symetriquement a `build_exercise_ai_stream_kwargs()`.
 
-**Decision :** differe - scope plus large (fallback o3 + alignement `AIConfig.get_openai_params()`).
+**Decision initiale :** differe - scope plus large (fallback o3 + alignement `AIConfig.get_openai_params()`).
+**Statut final :** realise avec helper borne, sans elargir le scope ni toucher au fallback non-stream.
+
+**Analyse precise du differe :**
+- c'est le **seul vrai differe** du plan CC1
+- le lot ne doit pas devenir une refonte de toute la policy IA defis
+- la source de verite actuelle des params reste `AIConfig.get_openai_params(challenge_type)`
+- le helper a extraire doit seulement construire les kwargs OpenAI du **stream principal**
+- le fallback stream vide (`resolve_challenge_ai_fallback_model`) reste hors lot
+
+**Scope max effort applicable si le lot est reactive plus tard :**
+1. **Fichiers autorises (stricts)**
+   - `app/services/challenges/challenge_ai_service.py`
+   - `app/services/challenges/challenge_ai_model_policy.py`
+   - `tests/unit/test_challenge_ia4_prompt_and_model_policy.py`
+   - `tests/unit/test_challenge_ai_usage_tracking.py`
+   - `tests/unit/test_challenge_ai_safe_errors.py`
+2. **Nouveau helper attendu**
+   - `build_challenge_ai_stream_kwargs(*, model, system_content, user_content, ai_params) -> Dict[str, Any]`
+   - emplacement : `challenge_ai_model_policy.py`
+3. **Comportement a preserver strictement**
+   - `response_format` absent pour `o1`
+   - `max_completion_tokens` pour `o1`, `o3`, `gpt5`
+   - `reasoning_effort` pour `o3` / `gpt5`
+   - `verbosity` seulement pour `gpt5`
+   - `temperature` seulement pour branche `gpt5` avec `reasoning_effort == "none"`
+   - branche chat classique : `max_tokens` + `temperature`
+   - log de diagnostic inchange dans son intention (`model`, `o1`, `o3`, `reasoning`)
+4. **Hors scope explicite du lot**
+   - ne pas remplacer `AIConfig.get_openai_params()`
+   - ne pas deplacer `resolve_challenge_ai_model()`
+   - ne pas toucher au fallback non-stream o3 vide
+   - ne pas toucher au tracking tokens / metrics / circuit breaker
+   - ne pas nettoyer les docstrings ou l'encoding de `challenge_ai_service.py` hors logique de dispatch
+5. **Gate ciblee si reactive**
+   - `pytest tests/unit/test_challenge_ia4_prompt_and_model_policy.py tests/unit/test_challenge_ai_usage_tracking.py tests/unit/test_challenge_ai_safe_errors.py tests/unit/test_challenge_ia5c_validation_hard_stop.py -q --tb=short --no-cov`
+   - `black` / `isort` / `flake8` sur les fichiers touches
+
+**Condition de GO future :**
+- helper introduit sans changer le contrat OpenAI effectif
+- `challenge_ai_service.py` ne porte plus de branchement inline famille/parms
+- fallback o3 vide inchange
+- tests de policy et de tracking verts
 
 ---
 
@@ -132,7 +174,10 @@ Supprimer la ligne P1 challenge_service double filtrage : deja resolu
 | `DIFFICULTY_RANGES` dans exercise_ai_service.py | Utilise activement pour prompts |
 | `jedi_rank_for_level()` naming | F43-A3 migration contractuelle additive |
 | `_LEGACY_PROGRESS_RANKS` dans compute.py | Necessaire pour migration buckets legacy |
-| CC1-L3 dispatch challenge DRY | Differe - scope plus large que l'utilite immediate |
+**Clarification importante :**
+- `resolve_exercise_ai_model_for_user()` n'est **pas** un differe du plan ; il reste hors scope assume
+- `DIFFICULTY_RANGES`, `jedi_rank_for_level()` et `_LEGACY_PROGRESS_RANKS` ne sont **pas** des nettoyages a programmer ici
+- le rapport initial mentionnait plusieurs dettes legitimes ; `CC1-L3` a depuis ete traite et le plan CC1 est maintenant integralement consomme
 
 ---
 
@@ -152,6 +197,7 @@ Supprimer la ligne P1 challenge_service double filtrage : deja resolu
 1. CC1-L1 : lire les 5 fichiers -> appliquer les 5 corrections -> gate -> commit
 2. CC1-L4 : CLAUDE.md -> commit rapide
 3. CC1-L2 : aligner sse_utils (optionnel, independant) -> gate -> commit
+4. CC1-L3 : extraire build_challenge_ai_stream_kwargs() -> gate -> commit
 ```
 
 ---
@@ -160,5 +206,4 @@ Supprimer la ligne P1 challenge_service double filtrage : deja resolu
 
 | Item | Reference |
 |------|-----------|
-| Dispatch modele defis DRY (CC1-L3) | Creer `build_challenge_ai_stream_kwargs()` dans `challenge_ai_model_policy.py` |
 | Double systeme policy IA (ai_config + ai_generation_policy) | Architecture CLAUDE.md - dette assumee |
