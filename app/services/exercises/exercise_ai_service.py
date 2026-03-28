@@ -39,6 +39,7 @@ from app.utils.error_handler import get_safe_error_message
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
 from app.utils.latex_utils import sanitize_exercise_text_fields
+from app.utils.sse_utils import sse_error_message, sse_status_message
 from app.utils.token_tracker import token_tracker
 
 logger = get_logger(__name__)
@@ -234,7 +235,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="openai_import_error",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': 'Bibliothèque OpenAI non installée'})}\n\n"
+            yield sse_error_message("Bibliothèque OpenAI non installée")
             return
 
         if not settings.OPENAI_API_KEY:
@@ -245,7 +246,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="openai_api_key_missing",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': 'OpenAI API key non configurée'})}\n\n"
+            yield sse_error_message("OpenAI API key non configurée")
             return
 
         client = AsyncOpenAI(
@@ -300,7 +301,7 @@ async def generate_exercise_stream(
                 policy_error,
                 default=EXERCISE_AI_POLICY_ERROR_MESSAGE,
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            yield sse_error_message(safe_message)
             return
 
         if not openai_workload_circuit_breaker.check_allow():
@@ -311,10 +312,10 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="openai_circuit_open",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': OPENAI_CIRCUIT_OPEN_USER_MESSAGE})}\n\n"
+            yield sse_error_message(OPENAI_CIRCUIT_OPEN_USER_MESSAGE)
             return
 
-        yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
+        yield sse_status_message("Génération en cours...")
 
         @retry(
             stop=stop_after_attempt(AIConfig.MAX_RETRIES),
@@ -350,7 +351,7 @@ async def generate_exercise_stream(
                 api_error,
                 default=EXERCISE_AI_TRANSIENT_ERROR_MESSAGE,
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            yield sse_error_message(safe_message)
             return
         except Exception as stream_error:
             if is_countable_openai_failure(stream_error):
@@ -371,7 +372,7 @@ async def generate_exercise_stream(
                 stream_error,
                 default=EXERCISE_AI_GENERIC_ERROR_MESSAGE,
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            yield sse_error_message(safe_message)
             return
 
         full_response = ""
@@ -409,7 +410,7 @@ async def generate_exercise_stream(
                 stream_api_error,
                 default=EXERCISE_AI_TRANSIENT_ERROR_MESSAGE,
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            yield sse_error_message(safe_message)
             return
         except Exception as stream_other:
             if is_countable_openai_failure(stream_other):
@@ -430,7 +431,7 @@ async def generate_exercise_stream(
                 stream_other,
                 default=EXERCISE_AI_GENERIC_ERROR_MESSAGE,
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+            yield sse_error_message(safe_message)
             return
 
         openai_workload_circuit_breaker.record_success()
@@ -456,7 +457,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="json_decode_error",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': EXERCISE_AI_INVALID_JSON_MESSAGE})}\n\n"
+            yield sse_error_message(EXERCISE_AI_INVALID_JSON_MESSAGE)
             return
 
         q, expl, h = sanitize_exercise_text_fields(
@@ -491,7 +492,7 @@ async def generate_exercise_stream(
                 error_type="exercise_ai_validation_failed",
             )
             msg = format_validation_error_message(reasons)
-            yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
+            yield sse_error_message(msg)
             yield _SSE_DONE
             return
 
@@ -541,7 +542,7 @@ async def generate_exercise_stream(
                 duration_seconds=_duration_s(),
                 error_type="persistence_error",
             )
-            yield f"data: {json.dumps({'type': 'error', 'message': EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE})}\n\n"
+            yield sse_error_message(EXERCISE_AI_PERSISTENCE_ERROR_MESSAGE)
             yield _SSE_DONE
             return
 
@@ -570,4 +571,4 @@ async def generate_exercise_stream(
             gen_error,
             default=EXERCISE_AI_GENERIC_ERROR_MESSAGE,
         )
-        yield f"data: {json.dumps({'type': 'error', 'message': safe_message})}\n\n"
+        yield sse_error_message(safe_message)
