@@ -19,6 +19,7 @@ import {
 import {
   canonicalProgressionRankBucket,
   isKnownProgressionRankBucket,
+  readPublicProgressionRankRaw,
 } from "@/lib/gamification/progressionRankLabel";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -96,9 +97,10 @@ export function LeaderboardWidget() {
           ) : (
             <ul role="list" className="list-none m-0 p-0">
               {leaderboard.map((entry: LeaderboardEntry, idx: number) => {
-                const rankCanon = canonicalProgressionRankBucket(entry.jedi_rank);
+                const bucketRaw = readPublicProgressionRankRaw(entry);
+                const rankCanon = canonicalProgressionRankBucket(bucketRaw);
                 const rankClass = PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-muted-foreground";
-                const rankReadable = progressionRankLabel(entry.jedi_rank);
+                const rankReadable = progressionRankLabel(bucketRaw);
                 return (
                   <motion.li
                     key={`${entry.rank}-${entry.username}`}

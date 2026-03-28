@@ -33,6 +33,22 @@ describe("LevelIndicator (F42-P3)", () => {
     expect(screen.getByText("Explorateur")).toBeInTheDocument();
   });
 
+  it("priorise progression_rank sur jedi_rank (F43-A3)", () => {
+    renderWithFr(
+      <LevelIndicator
+        level={{
+          current: 6,
+          title: "X",
+          current_xp: 10,
+          next_level_xp: 100,
+          jedi_rank: "cadet",
+          progression_rank: "explorer",
+        }}
+      />
+    );
+    expect(screen.getByText("Explorateur")).toBeInTheDocument();
+  });
+
   it("n'affiche pas le palier si jedi_rank est absent", () => {
     renderWithFr(
       <LevelIndicator

@@ -7,6 +7,7 @@ import { PROGRESSION_RANK_ICONS, PROGRESSION_RANK_TEXT_CLASS } from "@/lib/const
 import {
   canonicalProgressionRankBucket,
   isKnownProgressionRankBucket,
+  readPublicProgressionRankRaw,
 } from "@/lib/gamification/progressionRankLabel";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,9 @@ interface LevelIndicatorProps {
     title?: string;
     current_xp: number;
     next_level_xp: number;
-    /** Bucket API (canonique ou legacy) — toujours présent si le backend est à jour. */
+    /** F43-A3 — bucket public préféré. */
+    progression_rank?: string;
+    /** @deprecated Alias legacy ; même sémantique que `progression_rank`. */
     jedi_rank?: string;
   };
 }
@@ -29,7 +32,7 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
   const denom = level.next_level_xp > 0 ? level.next_level_xp : 1;
   const progressPercent = Math.min((level.current_xp / denom) * 100, 100);
 
-  const rawRank = (level.jedi_rank ?? "").trim();
+  const rawRank = readPublicProgressionRankRaw(level);
   const rankCanon = rawRank ? canonicalProgressionRankBucket(rawRank) : "";
   const rankLabel =
     rawRank === "" ? null : isKnownProgressionRankBucket(rawRank) ? tRank(rankCanon) : rawRank;

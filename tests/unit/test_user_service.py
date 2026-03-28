@@ -211,7 +211,9 @@ def test_serialize_user_profile_for_api():
     assert gl["current_xp"] == 120
     assert gl["next_level_xp"] == points_to_gain_next_level(1)
     assert response_data["jedi_rank"] == "cadet"
+    assert response_data["progression_rank"] == response_data["jedi_rank"]
     assert gl["jedi_rank"] == "cadet"
+    assert gl["progression_rank"] == gl["jedi_rank"]
 
 
 def test_build_gamification_level_for_api_uses_persisted_fields():
@@ -228,6 +230,7 @@ def test_build_gamification_level_for_api_uses_persisted_fields():
     assert gl["next_level_xp"] == points_to_gain_next_level(2)
     assert "title" not in gl
     assert gl["jedi_rank"] == "cadet"
+    assert gl["progression_rank"] == gl["jedi_rank"]
 
 
 def test_build_gamification_level_for_api_xp_fallback_from_total_points():
@@ -242,6 +245,7 @@ def test_build_gamification_level_for_api_xp_fallback_from_total_points():
     assert gl["current"] == 1
     assert gl["current_xp"] == 177
     assert gl["jedi_rank"] == "cadet"
+    assert gl["progression_rank"] == gl["jedi_rank"]
 
 
 def test_build_gamification_level_for_api_high_level_no_legacy_title():
@@ -256,6 +260,7 @@ def test_build_gamification_level_for_api_high_level_no_legacy_title():
     assert "title" not in gl
     assert gl["current"] == 17
     assert gl["jedi_rank"] == "cartographer"
+    assert gl["progression_rank"] == gl["jedi_rank"]
 
 
 def test_get_user_by_email():
@@ -1600,3 +1605,42 @@ def test_get_f43_account_progression_distribution(db_session):
         out["by_jedi_rank"].get("explorer", 0)
         == baseline["by_jedi_rank"].get("explorer", 0) + 1
     )
+
+
+def test_get_user_stats_for_api_missing_user_id_returns_400():
+    """Facade API stats : sans id dans le payload décorateur -> 400."""
+    from app.services.users.user_application_service import get_user_stats_for_api
+
+    result = get_user_stats_for_api({"username": "nobody"}, "30")
+    assert result.payload is None
+    assert result.error_message == "ID utilisateur manquant"
+    assert result.status_code == 400
+
+
+def test_get_user_stats_for_api_invalid_time_range_defaults_to_30():
+    """timeRange inconnu -> fallback 30 (même sémantique que l'ancien handler)."""
+    from app.services.users.user_application_service import get_user_stats_for_api
+
+    with patch(
+        "app.services.users.user_application_service.get_dashboard_stats",
+        return_value={"stats": True},
+    ) as mock_gds:
+        result = get_user_stats_for_api({"id": 1, "username": "u"}, "invalid-range")
+    assert result.error_message is None
+    assert result.status_code == 200
+    assert result.payload == {"stats": True}
+    mock_gds.assert_called_once_with(1, time_range="30")
+
+
+def test_get_user_stats_for_api_valid_time_range_passed_through():
+    from app.services.users.user_application_service import get_user_stats_for_api
+
+    with patch(
+        "app.services.users.user_application_service.get_dashboard_stats",
+        return_value={},
+    ) as mock_gds:
+        result = get_user_stats_for_api({"id": 99, "username": "u"}, "7")
+    assert result.error_message is None
+    assert result.status_code == 200
+    assert result.payload == {}
+    mock_gds.assert_called_once_with(99, time_range="7")

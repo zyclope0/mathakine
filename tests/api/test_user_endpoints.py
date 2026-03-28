@@ -31,6 +31,7 @@ async def test_get_current_user(padawan_client):
     assert isinstance(data["current_level"], int)
     assert isinstance(data["experience_points"], int)
     assert isinstance(data["jedi_rank"], str)
+    assert data.get("progression_rank") == data["jedi_rank"]
     assert data["experience_points"] >= 0
     assert data["gamification_level"]["current_xp"] == data["experience_points"]
 

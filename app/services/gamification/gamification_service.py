@@ -41,15 +41,17 @@ class GamificationService:
         level, current_xp = level_and_xp_from_total_points(total)
         next_cost = points_to_gain_next_level(level)
 
-        # F42-P5 : pas de ``title`` narratif (ancien LEVEL_TITLES) — le rang public est ``jedi_rank`` ;
-        # le libellé « Niveau n » est côté client (i18n).
+        # F42-P5 : pas de ``title`` narratif (ancien LEVEL_TITLES).
+        # F43-A3 : ``progression_rank`` = clé publique préférée ; ``jedi_rank`` = alias legacy (même valeur).
+        rank_bucket = canonicalize_progression_rank_bucket(
+            getattr(user, "jedi_rank", None), level
+        )
         return {
             "current": level,
             "current_xp": current_xp,
             "next_level_xp": next_cost,
-            "jedi_rank": canonicalize_progression_rank_bucket(
-                getattr(user, "jedi_rank", None), level
-            ),
+            "jedi_rank": rank_bucket,
+            "progression_rank": rank_bucket,
         }
 
     @staticmethod
@@ -66,8 +68,9 @@ class GamificationService:
         Applique un gain de points, recalcule niveau / XP palier / rang, écrit le ledger.
 
         Returns:
-            Snapshot dict (total_points, current_level, experience_points, jedi_rank,
-            gamification_level) pour réponses API éventuelles.
+            Snapshot dict (total_points, current_level, experience_points,
+            jedi_rank + progression_rank alias F43-A3, gamification_level)
+            pour réponses API éventuelles.
 
         Raises:
             InvalidGamificationPointsDeltaError: si delta <= 0
@@ -125,5 +128,6 @@ class GamificationService:
             "current_level": new_level,
             "experience_points": new_xp,
             "jedi_rank": new_rank,
+            "progression_rank": new_rank,
             "gamification_level": payload,
         }

@@ -645,15 +645,17 @@ class UserService:
             score = int(score_fn(user))
             account_total = int(getattr(user, "total_points", None) or 0)
             _, syn_level, _, _ = compute_state_from_total_points(account_total)
+            rank_bucket = canonicalize_progression_rank_bucket(
+                getattr(user, "jedi_rank", None),
+                syn_level,
+            )
             leaderboard.append(
                 {
                     "username": user.username,
                     "total_points": score,
                     "current_level": syn_level,
-                    "jedi_rank": canonicalize_progression_rank_bucket(
-                        getattr(user, "jedi_rank", None),
-                        syn_level,
-                    ),
+                    "jedi_rank": rank_bucket,
+                    "progression_rank": rank_bucket,
                     "is_current_user": user.id == current_user_id,
                     "avatar_url": user.avatar_url,
                     "current_streak": user.current_streak or 0,
@@ -1246,6 +1248,10 @@ class UserService:
         """Construit la réponse API standard pour le profil utilisateur."""
         total_pts = int(getattr(user, "total_points", None) or 0)
         _, syn_level, _, _ = compute_state_from_total_points(total_pts)
+        rank_bucket = canonicalize_progression_rank_bucket(
+            getattr(user, "jedi_rank", None),
+            syn_level,
+        )
         return {
             "id": user.id,
             "username": user.username,
@@ -1272,10 +1278,8 @@ class UserService:
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,
             "total_points": user.total_points,
             "current_level": syn_level,
-            "jedi_rank": canonicalize_progression_rank_bucket(
-                getattr(user, "jedi_rank", None),
-                syn_level,
-            ),
+            "jedi_rank": rank_bucket,
+            "progression_rank": rank_bucket,
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }
 
@@ -1432,6 +1436,7 @@ class UserService:
                 user.experience_points if hasattr(user, "experience_points") else 0
             ),
             "jedi_rank": user.jedi_rank,
+            "progression_rank": user.jedi_rank,
             "avatar_url": user.avatar_url if hasattr(user, "avatar_url") else None,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,

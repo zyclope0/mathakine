@@ -124,6 +124,7 @@ async def test_get_badges_stats_recomputes_progress_from_total_points(
     assert stats["current_level"] == 6
     assert stats["experience_points"] == 0
     assert stats["jedi_rank"] == "explorer"
+    assert stats.get("progression_rank") == stats["jedi_rank"]
 
 
 @pytest.mark.asyncio

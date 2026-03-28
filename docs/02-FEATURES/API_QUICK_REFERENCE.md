@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 25/03/2026
+> Updated: 28/03/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -33,7 +33,7 @@
 |---|---|---|
 | POST | `/api/users/` | registration, rate limited |
 | GET | `/api/users/` | placeholder / in development |
-| GET | `/api/users/me` | current user (+ `gamification_level`, `total_points`, `current_level`, `jedi_rank`, `age_group` nullable : tranche pédagogique `6-8` \| `9-11` \| `12-14` \| `15+` si système unifié ; NULL si Harmos / non renseigné) |
+| GET | `/api/users/me` | current user (+ `gamification_level`, `total_points`, `current_level`, **`progression_rank`** (bucket public préféré, F43-A3), **`jedi_rank`** (alias legacy, même valeur), `age_group` nullable : tranche pédagogique `6-8` \| `9-11` \| `12-14` \| `15+` si système unifié ; NULL si Harmos / non renseigné) |
 | PUT | `/api/users/me` | profile update (incl. `age_group` ; invalide → 400 ; `grade_system` = `suisse` → `age_group` forcé à NULL) |
 | PUT | `/api/users/me/password` | password change + revocation |
 | DELETE | `/api/users/me` | delete current account |
@@ -46,7 +46,7 @@
 | GET | `/api/users/me/challenges/progress` | progression défis (agrégat + liste par défi) |
 | GET | `/api/users/me/challenges/detailed-progress` | maîtrise **par type** de défi (`challenge_progress`) : `items[]` avec `challenge_type`, `total_attempts`, `correct_attempts`, `completion_rate`, `mastery_level`, etc. — alimente le radar défis et le breakdown du widget dashboard |
 | GET | `/api/users/stats` | stats **filtre temporel** (tentatives, réussite, séries, graphiques…) — **sans** XP ni niveau compte ; gamification persistante → `/me` (`gamification_level`, `total_points`, …) |
-| GET | `/api/users/leaderboard` | classement : param `limit` (défaut 50, max 100), `period` = `all` \| `week` \| `month` (défaut `all`). `total_points` dans chaque entrée = cumul historique (`users.total_points`) si `all`, sinon somme des gains sur la fenêtre (`point_events`, 7j / 30j glissant UTC). Champs entrée : `rank`, `username`, `total_points`, `current_level`, `jedi_rank`, `is_current_user`, `avatar_url` (nullable), `current_streak`, `badges_count`. Filtre confidentialité `show_in_leaderboards`. `period` invalide → 400. |
+| GET | `/api/users/leaderboard` | classement : param `limit` (défaut 50, max 100), `period` = `all` \| `week` \| `month` (défaut `all`). `total_points` dans chaque entrée = cumul historique (`users.total_points`) si `all`, sinon somme des gains sur la fenêtre (`point_events`, 7j / 30j glissant UTC). Champs entrée : `rank`, `username`, `total_points`, `current_level`, **`progression_rank`** (F43-A3) + **`jedi_rank`** (alias legacy, même valeur), `is_current_user`, `avatar_url` (nullable), `current_streak`, `badges_count`. Filtre confidentialité `show_in_leaderboards`. `period` invalide → 400. |
 | DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
 
 ## Daily Challenge
@@ -117,7 +117,7 @@ Contract note:
 
 **Exposé aux clients**
 
-- `GET /api/users/me` — champs compte : `gamification_level`, `total_points`, `current_level`, `jedi_rank` (clé technique du bucket de rang public), etc.
+- `GET /api/users/me` — champs compte : `gamification_level`, `total_points`, `current_level`, **`progression_rank`** (bucket de rang public préféré, F43-A3), **`jedi_rank`** (alias legacy, même valeur), etc.
 - `GET /api/badges/stats` — stats agrégées gamification pour l’utilisateur courant (`get_user_gamification_stats`).
 - `POST /api/challenges/{id}/attempt` — champ **`points_earned`** sur la réponse lorsque les points du défi sont attribués avec succès (voir section Challenges).
 

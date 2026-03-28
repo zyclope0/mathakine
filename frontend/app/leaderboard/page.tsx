@@ -28,6 +28,7 @@ import {
 import {
   canonicalProgressionRankBucket,
   isKnownProgressionRankBucket,
+  readPublicProgressionRankRaw,
 } from "@/lib/gamification/progressionRankLabel";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import Link from "next/link";
@@ -78,9 +79,10 @@ function LeaderboardRow({
   shouldReduceMotion,
   progressionRankLabel,
 }: LeaderboardRowProps) {
-  const rankCanon = canonicalProgressionRankBucket(entry.jedi_rank);
+  const bucketRaw = readPublicProgressionRankRaw(entry);
+  const rankCanon = canonicalProgressionRankBucket(bucketRaw);
   const rankClass = PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-muted-foreground";
-  const rankReadable = progressionRankLabel(entry.jedi_rank);
+  const rankReadable = progressionRankLabel(bucketRaw);
 
   return (
     <motion.li
@@ -183,6 +185,8 @@ export default function LeaderboardPage() {
 
   const showMyRankFooter =
     fetchMyRankEnabled && Boolean(user) && Boolean(myRank) && !myRankLoading && !myRankError;
+
+  const myRankBucketRaw = user ? readPublicProgressionRankRaw(user) : "";
 
   const listVariants: Variants = shouldReduceMotion
     ? { hidden: {}, show: {} }
@@ -316,19 +320,19 @@ export default function LeaderboardPage() {
                           <span className="font-semibold truncate max-w-[40vw] sm:max-w-none text-foreground">
                             {user.username}
                           </span>
-                          {user.jedi_rank ? (
+                          {myRankBucketRaw ? (
                             <span
                               className={cn(
                                 "flex-shrink-0 text-base leading-none",
                                 PROGRESSION_RANK_TEXT_CLASS[
-                                  canonicalProgressionRankBucket(user.jedi_rank)
+                                  canonicalProgressionRankBucket(myRankBucketRaw)
                                 ] ?? "text-muted-foreground"
                               )}
-                              title={progressionRankLabel(user.jedi_rank)}
-                              aria-label={progressionRankLabel(user.jedi_rank)}
+                              title={progressionRankLabel(myRankBucketRaw)}
+                              aria-label={progressionRankLabel(myRankBucketRaw)}
                             >
                               {PROGRESSION_RANK_ICONS[
-                                canonicalProgressionRankBucket(user.jedi_rank)
+                                canonicalProgressionRankBucket(myRankBucketRaw)
                               ] ?? "🌟"}
                             </span>
                           ) : null}

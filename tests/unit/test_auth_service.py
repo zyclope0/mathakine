@@ -1116,3 +1116,29 @@ def test_reset_password_with_token_expired(db_session, mock_user):
     assert result.user is not None
     assert result.error_code == "expired"
     assert authenticate_user(db_session, user.username, "OldPass123") is not None
+
+
+def test_build_authenticated_user_payload_f43_progression_rank_alias():
+    """F43-A3 : login/me payload expose progression_rank == jedi_rank (additive)."""
+    from unittest.mock import MagicMock
+
+    from app.services.auth.auth_session_service import build_authenticated_user_payload
+
+    user = MagicMock()
+    user.id = 1
+    user.username = "t"
+    user.email = "t@e.com"
+    user.full_name = None
+    user.role = MagicMock(value="padawan")
+    user.is_email_verified = True
+    user.onboarding_completed_at = None
+    user.grade_level = None
+    user.grade_system = None
+    user.age_group = None
+    user.preferred_difficulty = None
+    user.learning_goal = None
+    user.practice_rhythm = None
+    user.total_points = 100
+    user.jedi_rank = "padawan"
+    payload = build_authenticated_user_payload(user)
+    assert payload["jedi_rank"] == payload["progression_rank"]

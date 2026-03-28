@@ -11,6 +11,9 @@ export interface LeaderboardEntry {
   username: string;
   total_points: number;
   current_level: number;
+  /** F43-A3 — préféré si présent. */
+  progression_rank?: string;
+  /** @deprecated Alias legacy (toujours renvoyé par l’API pour compat). */
   jedi_rank: string;
   is_current_user: boolean;
   avatar_url: string | null;

@@ -11,6 +11,9 @@ export interface GamificationLevelIndicator {
   title?: string;
   current_xp: number;
   next_level_xp: number;
+  /** Bucket de rang public (F43-A3) — préféré côté contrat. */
+  progression_rank?: string;
+  /** @deprecated F43-A3 — alias legacy, même valeur que `progression_rank`. */
   jedi_rank?: string;
 }
 
@@ -43,6 +46,9 @@ export interface User {
   total_points?: number;
   current_level?: number;
   experience_points?: number;
+  /** Bucket de rang public (F43-A3) — préféré. */
+  progression_rank?: string;
+  /** @deprecated F43-A3 — alias legacy. */
   jedi_rank?: string;
   /** Structure stable pour le widget « Niveau actuel » (hors filtre temporel dashboard) */
   gamification_level?: GamificationLevelIndicator;
@@ -265,6 +271,8 @@ export interface UserBadgesResponse {
       total_points: number;
       current_level?: number;
       experience_points?: number;
+      progression_rank?: string;
+      /** @deprecated F43-A3 — alias legacy. */
       jedi_rank?: string;
       pinned_badge_ids?: number[];
     };
@@ -277,6 +285,8 @@ export interface UserBadgesResponse {
 export interface GamificationStats {
   total_badges: number;
   total_points: number;
+  progression_rank?: string;
+  /** @deprecated F43-A3 — alias legacy. */
   jedi_rank?: string;
   badges_by_category?: Record<string, number>;
   badges_by_difficulty?: Record<string, number>;

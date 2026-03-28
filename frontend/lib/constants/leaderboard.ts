@@ -9,7 +9,7 @@ export const RANK_MEDALS: Record<number, string> = {
   3: "🥉",
 };
 
-/** Icônes par bucket — clés canoniques API ``jedi_rank`` (F42-C3C, 8 paliers). */
+/** Icônes par bucket — clés canoniques API ``progression_rank`` / alias ``jedi_rank`` (F42-C3C, F43-A3). */
 export const PROGRESSION_RANK_ICONS: Record<string, string> = {
   cadet: "🌟",
   scout: "🔭",

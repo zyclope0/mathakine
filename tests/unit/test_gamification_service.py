@@ -83,7 +83,12 @@ def test_apply_points_updates_user_columns_and_ledger(db_session):
     assert user.current_level == 1
     assert user.experience_points == 150
     assert out["total_points"] == 150
+    assert out.get("progression_rank") == out["jedi_rank"]
     assert out["gamification_level"]["current"] == user.current_level
+    assert (
+        out["gamification_level"]["progression_rank"]
+        == out["gamification_level"]["jedi_rank"]
+    )
 
     events = (
         db_session.query(PointEvent)

@@ -1,4 +1,4 @@
-﻿# Backlog & Priorisation des Features â€” Mathakine
+# Backlog & Priorisation des Features â€” Mathakine
 
 > **Document vivant** - Derniere MAJ : 28/03/2026 (F42 clos, F43 aligne sur le runtime, et la dette contractuelle legacy est maintenant sequencee explicitement dans la roadmap)  
 > **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
@@ -756,7 +756,7 @@ Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
    - suppression de la cle legacy seulement apres verification qu'aucun client n'en depend encore
 
 **Lots recommandes dans la roadmap** :
-- **F43-A3** - migration contractuelle additive `jedi_rank` -> `progression_rank`
+- ~~**F43-A3** - migration contractuelle additive `jedi_rank` -> `progression_rank`~~ **FAIT** (2026-03-28) : cle `progression_rank` ajoutee cote API publique + consumers frontend prioritaires ; `jedi_rank` conserve (alias).
 - **F43-A4** - migration contractuelle additive `star_wars_title` -> `thematic_title`
 
 **Ce que ces lots doivent faire** :

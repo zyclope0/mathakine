@@ -39,6 +39,10 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
     access_scope = get_unverified_access_scope(user)
     total_pts = int(getattr(user, "total_points", None) or 0)
     _, syn_level, syn_xp, _ = compute_state_from_total_points(total_pts)
+    rank_bucket = canonicalize_progression_rank_bucket(
+        getattr(user, "jedi_rank", None),
+        syn_level,
+    )
     return {
         "id": user.id,
         "username": user.username,
@@ -63,10 +67,8 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
         "total_points": total_pts,
         "current_level": syn_level,
         "experience_points": syn_xp,
-        "jedi_rank": canonicalize_progression_rank_bucket(
-            getattr(user, "jedi_rank", None),
-            syn_level,
-        ),
+        "jedi_rank": rank_bucket,
+        "progression_rank": rank_bucket,
         "gamification_level": UserService.build_gamification_level_for_api(user),
     }
 
@@ -163,6 +165,10 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
         is_email_verified = getattr(user, "is_email_verified", True)
         total_pts = int(getattr(user, "total_points", None) or 0)
         _, syn_level, syn_xp, _ = compute_state_from_total_points(total_pts)
+        rank_bucket = canonicalize_progression_rank_bucket(
+            user.jedi_rank if hasattr(user, "jedi_rank") else None,
+            syn_level,
+        )
         return {
             "id": user.id,
             "username": user.username,
@@ -206,9 +212,7 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
             "total_points": total_pts,
             "current_level": syn_level,
             "experience_points": syn_xp,
-            "jedi_rank": canonicalize_progression_rank_bucket(
-                user.jedi_rank if hasattr(user, "jedi_rank") else None,
-                syn_level,
-            ),
+            "jedi_rank": rank_bucket,
+            "progression_rank": rank_bucket,
             "gamification_level": UserService.build_gamification_level_for_api(user),
         }

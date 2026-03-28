@@ -24,17 +24,20 @@ def _build_badge_user_stats(user, pinned: List[int]) -> Dict[str, Any]:
             "current_level": 1,
             "experience_points": 0,
             "jedi_rank": "cadet",
+            "progression_rank": "cadet",
             "pinned_badge_ids": [],
             "current_streak": 0,
             "best_streak": 0,
         }
 
     level_payload = UserService.build_gamification_level_for_api(user)
+    rank_bucket = level_payload["jedi_rank"]
     return {
         "total_points": int(getattr(user, "total_points", None) or 0),
         "current_level": int(level_payload["current"]),
         "experience_points": int(level_payload["current_xp"]),
-        "jedi_rank": level_payload["jedi_rank"],
+        "jedi_rank": rank_bucket,
+        "progression_rank": rank_bucket,
         "pinned_badge_ids": pinned,
         "current_streak": int(getattr(user, "current_streak", None) or 0),
         "best_streak": int(getattr(user, "best_streak", None) or 0),

@@ -89,7 +89,7 @@ export default function BadgesPage() {
     await checkBadges();
   };
 
-  const progressionRankBucket = userStats?.jedi_rank || "cadet";
+  const progressionRankBucket = userStats?.progression_rank ?? userStats?.jedi_rank ?? "cadet";
   const rankInfo = getProgressionRankInfo(progressionRankBucket, tProgRank);
   const earnedCount = earnedBadges.length;
   const earnedBadgeIds = new Set(earnedBadges.map((ub) => ub.id));
