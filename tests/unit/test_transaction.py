@@ -3,7 +3,7 @@ Tests unitaires pour le module transaction.py.
 Ce module teste les fonctionnalités de gestion des transactions.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
@@ -176,57 +176,22 @@ def test_safe_delete_success():
 
 
 def test_safe_delete_with_commit_error():
-    """Teste la méthode safe_delete avec erreur lors du commit"""
-    # Créer un mock pour la session
+    """Échec au commit après delete → rollback, pas de SQL brut, DatabaseOperationError."""
     mock_session = MagicMock(spec=Session)
-
-    # Configurer le mock pour lever une exception lors du commit
-    mock_session.commit.side_effect = [SQLAlchemyError("Test exception"), None]
-
-    # Créer un mock pour l'objet à supprimer
-    mock_obj = MagicMock(spec=Exercise)
-    mock_obj.id = 1
-    mock_obj.__class__.__name__ = "Exercise"
-    mock_obj.__tablename__ = "exercises"
-
-    # L'objet doit être considéré comme attaché à la session (sinon safe_delete requête la DB)
-    mock_session.__contains__ = MagicMock(return_value=True)
-
-    # Patcher la méthode execute pour simuler une suppression directe
-    with patch.object(mock_session, "execute") as mock_execute:
-        # Appeler la méthode
-        TransactionManager.safe_delete(mock_session, mock_obj)
-
-        # Vérifier que delete a été appelé, puis un rollback, puis execute pour la suppression alternative
-        mock_session.delete.assert_called_once_with(mock_obj)
-        assert mock_session.rollback.call_count >= 1
-        mock_execute.assert_called_once()
-
-
-def test_safe_delete_with_alternative_error():
-    """Teste la méthode safe_delete avec échec de la méthode alternative"""
-    # Créer un mock pour la session
-    mock_session = MagicMock(spec=Session)
-
-    # Configurer le mock pour lever une exception lors du commit
     mock_session.commit.side_effect = SQLAlchemyError("Test exception")
 
-    # Créer un mock pour l'objet à supprimer
     mock_obj = MagicMock(spec=Exercise)
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.__tablename__ = "exercises"
+    mock_session.__contains__ = MagicMock(return_value=True)
 
-    # Patcher la méthode execute pour simuler une erreur lors de la suppression directe
-    with patch.object(
-        mock_session, "execute", side_effect=SQLAlchemyError("Another exception")
-    ):
-        # Les deux tentatives échouent → DatabaseOperationError
-        with pytest.raises(DatabaseOperationError):
-            TransactionManager.safe_delete(mock_session, mock_obj)
+    with pytest.raises(DatabaseOperationError):
+        TransactionManager.safe_delete(mock_session, mock_obj)
 
-        # Vérifier que rollback a été appelé deux fois
-        assert mock_session.rollback.call_count == 2
+    mock_session.delete.assert_called_once_with(mock_obj)
+    mock_session.rollback.assert_called()
+    mock_session.execute.assert_not_called()
 
 
 def test_safe_delete_without_auto_commit():

@@ -8,6 +8,7 @@ LOT A6 : appels via run_db_bound() vers facades sync.
 import traceback
 
 from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -22,12 +23,12 @@ from app.services.users.user_application_service import (
     export_user_data,
     get_challenges_detailed_progress_data,
     get_challenges_progress_data,
-    get_dashboard_stats,
     get_leaderboard,
     get_progress_timeline_data,
     get_user_progress_data,
     get_user_rank_by_points_data,
     get_user_sessions_list,
+    get_user_stats_for_api,
     register_user,
     revoke_session,
     update_password,
@@ -45,8 +46,6 @@ from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access
 
 logger = get_logger(__name__)
-
-VALID_TIME_RANGES = frozenset({"7", "30", "90", "all"})
 
 
 def _first_validation_error_message(ve: ValidationError) -> str:
@@ -70,27 +69,26 @@ async def get_user_stats(request: Request) -> JSONResponse:
     Paramètres de requête: timeRange: "7", "30", "90", "all"
     """
     try:
-        current_user = request.state.user
-        user_id = current_user.get("id")
-        username = current_user.get("username")
-
-        if not user_id:
-            logger.warning(f"ID utilisateur manquant pour {username}")
-            return api_error_response(400, "ID utilisateur manquant")
-
-        time_range = request.query_params.get("timeRange", "30")
-        if time_range not in VALID_TIME_RANGES:
-            time_range = "30"
-
-        logger.debug(
-            f"Récupération des statistiques pour {username} (ID: {user_id}), période: {time_range}"
+        result = await run_db_bound(
+            get_user_stats_for_api,
+            request.state.user,
+            request.query_params.get("timeRange"),
         )
+        if result.error_message is not None:
+            return api_error_response(result.status_code, result.error_message)
+        return JSONResponse(result.payload)
 
-        response_data = await run_db_bound(
-            get_dashboard_stats, user_id, time_range=time_range
+    except SQLAlchemyError as stats_db_error:
+        logger.error(
+            "users.get_user_stats: erreur base de données: %s",
+            stats_db_error,
+            exc_info=True,
         )
-        return JSONResponse(response_data)
-
+        return capture_internal_error_response(
+            stats_db_error,
+            "Erreur lors de la récupération des statistiques",
+            tags={"handler": "users.get_user_stats", "error_class": "SQLAlchemyError"},
+        )
     except Exception as stats_retrieval_error:
         logger.error(
             f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}"

@@ -142,35 +142,15 @@ class TransactionManager:
                 except Exception as delete_commit_error:
                     db_session.rollback()
                     logger.error(
-                        f"{log_prefix}: Échec de la suppression lors du commit:"
-                        f" {delete_commit_error}"
+                        "%s: Échec de la suppression lors du commit: %s",
+                        log_prefix,
+                        delete_commit_error,
                     )
-
-                    # Fallback : suppression directe par ID via SQL brut.
-                    # Garde : __tablename__ doit être un identifiant Python valide
-                    # (alphanumérique + underscore) pour éviter toute injection.
-                    try:
-                        from sqlalchemy import text
-
-                        table_name = obj.__tablename__
-                        if not table_name.replace("_", "").isalnum():
-                            msg = f"{log_prefix}: Nom de table suspect refusé: '{table_name}'"
-                            logger.error(msg)
-                            raise DatabaseOperationError(msg)
-                        stmt = f"DELETE FROM {table_name} WHERE id = :id"
-                        db_session.execute(text(stmt), {"id": obj.id})
-                        db_session.commit()
-                        logger.info(
-                            f"{log_prefix}: Suppression alternative réussie pour"
-                            f" {obj.__class__.__name__}(id={obj.id})"
-                        )
-                    except DatabaseOperationError:
-                        raise
-                    except Exception as e2:
-                        db_session.rollback()
-                        msg = f"{log_prefix}: Échec de la suppression alternative: {e2}"
-                        logger.error(msg)
-                        raise DatabaseOperationError(msg) from e2
+                    # Pas de fallback SQL brut (A44-S1) : évite DELETE ad hoc hors ORM
+                    # et comportements imprevisibles (FK, cascades, audit).
+                    raise DatabaseOperationError(
+                        f"{log_prefix}: Échec de la suppression lors du commit"
+                    ) from delete_commit_error
 
         except DatabaseOperationError:
             raise

@@ -101,3 +101,14 @@ Rejected because:
 - chat public without auth but rate-limited
 - gamification ledger transaction strategy without `with_for_update`
 - AI model policy layering and ops override doctrine
+
+---
+
+## Implementation boundary (A44-S5, 28/03/2026)
+
+- **Transport errors in the auth stack** (`decode_token`, auth middleware) use
+  `starlette.exceptions.HTTPException`, not FastAPI’s re-export, so the codebase
+  does not imply an in-flight FastAPI migration.
+- **`fastapi` is not a declared runtime dependency** in `requirements.txt` as
+  long as no module imports it; re-adding it requires an explicit decision
+  (amend this ADR or supersede it).

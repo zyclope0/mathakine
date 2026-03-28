@@ -1,6 +1,14 @@
 """
 Configuration de l'application via pydantic-settings.
 Charge les variables depuis l'environnement (.env en dev, vars injectées en prod).
+
+Source de vérité (lot A44-S4) :
+- champs typés et validés : classe ``Settings`` dans ce module ;
+- modèle local commenté : ``.env.example`` à la racine du dépôt.
+
+Variables lues ailleurs via ``os.getenv`` (non déclarées dans ``Settings``) :
+email SMTP/SendGrid → ``app/services/communication/email_service.py`` ;
+Sentry → ``app/core/monitoring.py``.
 """
 
 import os
@@ -48,7 +56,11 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
 
     SECRET_KEY: str = Field(default="", description="Clé secrète JWT")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=15,
+        ge=1,
+        description="JWT access token lifetime in minutes (nominal 15; align .env.example).",
+    )
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     UNVERIFIED_GRACE_PERIOD_MINUTES: int = Field(default=45, ge=0)
     ALGORITHM: str = "HS256"

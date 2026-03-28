@@ -12,6 +12,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.exceptions import ExerciseNotFoundError
 from app.models.user import UserRole
@@ -296,6 +297,92 @@ async def test_submit_answer_internal_error(db_session):
         _patch_auth(mock_user),
     ):
         response = await submit_answer(mock_request)
+
+    result = json.loads(response.body.decode("utf-8"))
+    assert response.status_code == 500
+    assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_submit_answer_invalid_exercise_id_returns_400(db_session):
+    """Handler : exercise_id non numérique -> 400 (ValueError/TypeError)."""
+    mock_user = _mock_user(db_session)
+    mock_request = create_mock_request(
+        json_data={"selected_answer": "8", "time_spent": 10.0},
+        path_params={"exercise_id": "not-a-number"},
+    )
+    mock_request.headers = {"Accept-Language": "fr"}
+
+    with _patch_auth(mock_user):
+        response = await submit_answer(mock_request)
+
+    result = json.loads(response.body.decode("utf-8"))
+    assert response.status_code == 400
+    assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_submit_answer_sqlalchemy_error_returns_500(db_session):
+    """Handler : erreur DB du service -> 500 (ne pas masquer en 404)."""
+    mock_user = _mock_user(db_session)
+    mock_request = create_mock_request(
+        json_data={"selected_answer": "8", "time_spent": 10.0},
+        path_params={"exercise_id": "1"},
+    )
+    mock_request.headers = {"Accept-Language": "fr"}
+
+    with (
+        patch(
+            "server.handlers.exercise_handlers.run_db_bound",
+            side_effect=_run_db_bound_direct,
+        ),
+        patch(
+            "app.utils.db_utils.sync_db_session",
+            new=_mock_sync_db_session,
+        ),
+        patch(
+            "server.handlers.exercise_handlers.submit_answer_sync",
+            side_effect=SQLAlchemyError("connection reset"),
+        ),
+        _patch_auth(mock_user),
+    ):
+        response = await submit_answer(mock_request)
+
+    result = json.loads(response.body.decode("utf-8"))
+    assert response.status_code == 500
+    assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_submit_challenge_sqlalchemy_error_returns_500(db_session):
+    """Handler défi : erreur DB -> 500 via capture_internal_error_response."""
+    from server.handlers.challenge_handlers import submit_challenge_answer
+
+    mock_user = {
+        **_mock_user(db_session),
+        "access_scope": "full",
+    }
+    mock_request = create_mock_request(
+        json_data={
+            "user_solution": "42",
+            "time_spent": 1.0,
+            "hints_used_count": 0,
+        },
+        path_params={"challenge_id": "1"},
+    )
+
+    with (
+        patch("server.auth.get_current_user", AsyncMock(return_value=mock_user)),
+        patch(
+            "server.handlers.challenge_handlers.run_db_bound",
+            side_effect=_run_db_bound_direct,
+        ),
+        patch(
+            "server.handlers.challenge_handlers.submit_challenge_attempt",
+            side_effect=SQLAlchemyError("db fail"),
+        ),
+    ):
+        response = await submit_challenge_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 500

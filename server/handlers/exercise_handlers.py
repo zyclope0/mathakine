@@ -6,6 +6,7 @@ import json
 import traceback
 
 from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import (
     JSONResponse,
@@ -41,7 +42,11 @@ from app.services.exercises.exercise_query_service import (
     get_interleaved_plan_for_api_sync,
 )
 from app.services.exercises.exercise_stream_service import prepare_stream_context
-from app.utils.error_handler import ErrorHandler, api_error_response
+from app.utils.error_handler import (
+    ErrorHandler,
+    api_error_response,
+    capture_internal_error_response,
+)
 from app.utils.request_utils import parse_json_body_any, parse_json_body_as_model
 from app.utils.translation import parse_accept_language
 from server.auth import optional_auth, require_auth, require_auth_sse
@@ -173,6 +178,22 @@ async def submit_answer(request: Request) -> JSONResponse:
 
     except (ExerciseNotFoundError, ExerciseSubmitError) as e:
         return api_error_response(e.status_code, e.message)
+    except (ValueError, TypeError):
+        return api_error_response(400, "Identifiant d'exercice invalide")
+    except SQLAlchemyError as submit_db_error:
+        logger.error(
+            "exercise.submit_answer: erreur base de données: %s",
+            submit_db_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            submit_db_error,
+            "Erreur lors du traitement de la réponse",
+            tags={
+                "handler": "exercise.submit_answer",
+                "error_class": "SQLAlchemyError",
+            },
+        )
     except Exception as response_processing_error:
         logger.error(
             f"❌ ERREUR lors du traitement de la réponse: "

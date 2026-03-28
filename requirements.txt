@@ -1,6 +1,5 @@
 # Serveur et API REST
-fastapi==0.133.1  # Version compatible Pydantic 2.x et Python 3.12+
-starlette==0.52.1  # Compatible FastAPI 0.133.1
+starlette==0.52.1  # HTTP runtime (ADR-001; FastAPI not a declared dependency)
 uvicorn==0.41.0
 
 # Moteur de templates et fichiers statiques

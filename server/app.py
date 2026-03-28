@@ -3,6 +3,11 @@ App initialization for Mathakine.
 
 This module centralizes Starlette application creation and configuration.
 It ties together routes, middleware, exception handlers, and other components.
+
+Runtime boundary: the live ASGI app is ``Starlette`` (see ``create_app``).
+Do not add FastAPI as a runtime dependency or import path without revisiting
+ADR-001; use Starlette APIs and ``starlette.exceptions.HTTPException`` where
+HTTP-shaped errors are needed in shared auth/security code.
 """
 
 import os

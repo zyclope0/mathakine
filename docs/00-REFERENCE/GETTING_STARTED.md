@@ -16,6 +16,7 @@ Important:
 - backend development and backend tests rely on a local PostgreSQL instance
 - visible release truth comes from `CHANGELOG.md` and `frontend/package.json`
 - `pyproject.toml` is not the visible product release source
+- backend env truth for typed settings: `app/core/config.py` (`Settings`) and root `.env.example`
 
 ## Quick Install
 
@@ -44,10 +45,15 @@ Useful backend variables in `.env`:
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mathakine
 SECRET_KEY=<secret>
-BACKEND_CORS_ORIGINS=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
 # optional in local dev, mandatory in production for distributed rate limiting
 REDIS_URL=
 ```
+
+Notes:
+
+- `BACKEND_CORS_ORIGINS` must be a **JSON list** if set (e.g. `["http://localhost:3000"]`). A bare URL string will fail parsing. In local dev you can usually omit it: defaults in `config.py` already include common localhost origins and `FRONTEND_URL`.
+- Email (SMTP/SendGrid) and Sentry DSN are read via `os.getenv` in dedicated modules, not via `Settings`; see comments in `.env.example`.
 
 ### 3. Frontend
 

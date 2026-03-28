@@ -8,6 +8,8 @@ import traceback
 from typing import Optional
 
 from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -366,6 +368,17 @@ async def api_login(request: Request) -> JSONResponse:
         )
         return _build_login_response(result.user_payload, result.token_data)
 
+    except SQLAlchemyError as login_db_error:
+        logger.error(
+            "auth.login: erreur base de données: %s",
+            login_db_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            login_db_error,
+            "Erreur lors de la connexion",
+            tags={"handler": "auth.login", "error_class": "SQLAlchemyError"},
+        )
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
         logger.debug(traceback.format_exc())
@@ -397,8 +410,22 @@ async def api_validate_token(request: Request) -> JSONResponse:
             return api_error_response(400, "Token invalide")
         result = await run_db_bound(svc_validate_access_token, token)
         return JSONResponse(result)
-    except Exception:
-        return api_error_response(401, "Token invalide ou expire")
+    except HTTPException as http_exc:
+        return api_error_response(
+            http_exc.status_code,
+            str(http_exc.detail) if http_exc.detail else "Token invalide ou expire",
+        )
+    except Exception as validate_err:
+        logger.error(
+            "auth.validate_token: erreur inattendue: %s",
+            validate_err,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            validate_err,
+            "Erreur lors de la validation du token",
+            tags={"handler": "auth.validate_token"},
+        )
 
 
 async def api_refresh_token(request: Request) -> JSONResponse:
@@ -438,10 +465,28 @@ async def api_refresh_token(request: Request) -> JSONResponse:
             had_refresh_cookie="refresh_token" in request.cookies,
         )
 
+    except SQLAlchemyError as token_refresh_db_error:
+        logger.error(
+            "auth.refresh_token: erreur base de données: %s",
+            token_refresh_db_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            token_refresh_db_error,
+            "Erreur serveur lors du rafraichissement du token",
+            tags={"handler": "auth.refresh_token", "error_class": "SQLAlchemyError"},
+        )
     except Exception as token_refresh_error:
-        logger.error(f"Erreur lors du rafraichissement du token: {token_refresh_error}")
-        logger.debug(traceback.format_exc())
-        return api_error_response(401, "Refresh token invalide ou expire")
+        logger.error(
+            "auth.refresh_token: erreur inattendue: %s",
+            token_refresh_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            token_refresh_error,
+            "Erreur serveur lors du rafraichissement du token",
+            tags={"handler": "auth.refresh_token"},
+        )
 
 
 @require_auth
@@ -455,13 +500,25 @@ async def api_get_current_user(request: Request) -> JSONResponse:
         current_user = request.state.user
         return JSONResponse(current_user, status_code=200)
 
-    except Exception as user_retrieval_error:
+    except (TypeError, ValueError) as user_retrieval_error:
         logger.error(
-            f"Erreur lors de la recuperation de l'utilisateur: {user_retrieval_error}"
+            "auth.get_current_user: sérialisation / payload invalide: %s",
+            user_retrieval_error,
+            exc_info=True,
         )
-        logger.debug(traceback.format_exc())
         return api_error_response(
             500, "Erreur lors de la recuperation de l'utilisateur"
+        )
+    except Exception as user_retrieval_error:
+        logger.error(
+            "auth.get_current_user: erreur inattendue: %s",
+            user_retrieval_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            user_retrieval_error,
+            "Erreur lors de la recuperation de l'utilisateur",
+            tags={"handler": "auth.get_current_user"},
         )
 
 

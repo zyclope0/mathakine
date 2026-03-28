@@ -9,7 +9,7 @@ import re
 import uuid
 from typing import Callable, List, Set, Tuple
 
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware

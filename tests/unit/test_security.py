@@ -23,7 +23,7 @@ def test_decode_token_accepts_access_token():
 
 def test_decode_token_rejects_refresh_token():
     """decode_token rejette un refresh token (type != access)."""
-    from fastapi import HTTPException
+    from starlette.exceptions import HTTPException
 
     refresh_token = jwt.encode(
         {
@@ -42,7 +42,7 @@ def test_decode_token_rejects_refresh_token():
 
 def test_decode_token_rejects_token_without_type():
     """decode_token rejette un token sans claim type (legacy ou malformé)."""
-    from fastapi import HTTPException
+    from starlette.exceptions import HTTPException
 
     token = jwt.encode(
         {

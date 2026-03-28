@@ -24,6 +24,7 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 
 ## Read First
 
+- **Backend env (typed settings)** : `app/core/config.py` + root `.env.example` (aligned with `Settings`; SMTP/SendGrid and Sentry use `os.getenv` in their modules — see `.env.example` comments)
 - [README_TECH.md](README_TECH.md): living technical reference
 - [docs/INDEX.md](docs/INDEX.md): documentation entry point
 - [docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md): setup guide
@@ -90,6 +91,7 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env   # or Copy-Item .env.example .env on Windows; then edit secrets
 alembic upgrade head
 python enhanced_server.py
 ```

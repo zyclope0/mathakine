@@ -50,7 +50,7 @@ async def get_current_user(request):  # noqa: C901
         if not access_token:
             return None
 
-        from fastapi import HTTPException
+        from starlette.exceptions import HTTPException
 
         from app.core.security import decode_token
 

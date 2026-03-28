@@ -8,6 +8,7 @@ Pas d'accès DB direct dans les handlers — tout passe par ce service via run_d
 LOT A6 : sync + sync_db_session, exécuté via run_db_bound() depuis les handlers.
 """
 
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.config import settings
@@ -27,9 +28,22 @@ from app.services.users.user_service import UserService
 logger = get_logger(__name__)
 
 
+@dataclass(frozen=True)
+class UserStatsApiResult:
+    """Résultat applicatif borné pour GET /api/users/stats."""
+
+    payload: Optional[Dict[str, Any]]
+    error_message: Optional[str]
+    status_code: int
+
+
+# Aligné sur GET /api/users/stats (query timeRange).
+USER_STATS_TIME_RANGES = frozenset({"7", "30", "90", "all"})
+
+
 def register_user(
     user_create: UserCreate,
-) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+) -> UserStatsApiResult:
     """
     Inscription utilisateur : création + envoi email de vérification.
 
@@ -90,6 +104,41 @@ def get_dashboard_stats(
         return UserService.get_user_stats_for_dashboard(
             db, user_id, time_range=time_range
         )
+
+
+def get_user_stats_for_api(
+    current_user: Dict[str, Any],
+    time_range_raw: Optional[str],
+) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+    """
+    Orchestre stats dashboard pour l'API (hors couche HTTP).
+
+    Valide l'identité issue du décorateur, normalise timeRange, délègue à
+    get_dashboard_stats.
+
+    Returns:
+        (payload, None, 200) si succès.
+        (None, message, code) si erreur fonctionnelle (ex. 400).
+    """
+    user_id = current_user.get("id")
+    username = current_user.get("username")
+    if not user_id:
+        logger.warning("ID utilisateur manquant pour %s", username)
+        return UserStatsApiResult(
+            payload=None,
+            error_message="ID utilisateur manquant",
+            status_code=400,
+        )
+
+    time_range = time_range_raw if time_range_raw in USER_STATS_TIME_RANGES else "30"
+    logger.debug(
+        "Dashboard stats pour %s (ID: %s), période: %s",
+        username,
+        user_id,
+        time_range,
+    )
+    stats = get_dashboard_stats(user_id, time_range=time_range)
+    return UserStatsApiResult(payload=stats, error_message=None, status_code=200)
 
 
 def get_leaderboard(

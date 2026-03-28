@@ -6,6 +6,7 @@ LOT A6 : appels via run_db_bound() vers facades sync.
 """
 
 from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
@@ -32,6 +33,7 @@ from app.services.challenges.challenge_stream_service import prepare_stream_cont
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,
+    capture_internal_error_response,
     get_safe_error_message,
 )
 from app.utils.request_utils import parse_json_body_any, parse_json_body_as_model
@@ -181,8 +183,22 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
     except ChallengeAttemptRecordError as record_err:
         logger.error(f"Erreur enregistrement tentative: {record_err}")
         return api_error_response(500, record_err.message)
-    except ValueError:
+    except (ValueError, TypeError):
         return api_error_response(400, "ID de defi invalide")
+    except SQLAlchemyError as submission_db_error:
+        logger.error(
+            "challenge.submit_attempt: erreur base de données: %s",
+            submission_db_error,
+            exc_info=True,
+        )
+        return capture_internal_error_response(
+            submission_db_error,
+            "Erreur lors de la soumission de la reponse",
+            tags={
+                "handler": "challenge.submit_attempt",
+                "error_class": "SQLAlchemyError",
+            },
+        )
     except Exception as submission_error:
         return ErrorHandler.create_error_response(
             submission_error,

@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 
 import bcrypt
-from fastapi import HTTPException
 from jose import JWTError, jwt
+from starlette.exceptions import HTTPException
 
 from app.core.config import settings
 from app.core.constants import SecurityConfig
