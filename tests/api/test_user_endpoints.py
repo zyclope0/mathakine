@@ -323,7 +323,8 @@ async def test_get_leaderboard_age_group_query_param_ignored(
     suffix = uuid.uuid4().hex[:6]
     u1 = User(
         username=f"lb_age_a_{suffix}",
-        email=f"lb_age_a_{suffix}@test.com",
+        # Avoid TEST_PATTERNS email "%@test.com" (cleanup + expire_on_commit + async).
+        email=f"lb_age_a_{suffix}@example.com",
         hashed_password=get_password_hash("Test123!"),
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
         preferred_difficulty="9-11",
@@ -331,7 +332,7 @@ async def test_get_leaderboard_age_group_query_param_ignored(
     )
     u2 = User(
         username=f"lb_age_b_{suffix}",
-        email=f"lb_age_b_{suffix}@test.com",
+        email=f"lb_age_b_{suffix}@example.com",
         hashed_password=get_password_hash("Test123!"),
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
         preferred_difficulty="6-8",
@@ -339,14 +340,16 @@ async def test_get_leaderboard_age_group_query_param_ignored(
     )
     db_session.add_all([u1, u2])
     db_session.commit()
+    expected_a = u1.username
+    expected_b = u2.username
 
     response = await client.get("/api/users/leaderboard?age_group=9-11")
     assert response.status_code == 200
     data = response.json()
     leaderboard = data.get("leaderboard", [])
     usernames = [e["username"] for e in leaderboard]
-    assert u1.username in usernames
-    assert u2.username in usernames
+    assert expected_a in usernames
+    assert expected_b in usernames
 
 
 async def test_update_user_password_wrong_current(padawan_client):
@@ -384,6 +387,29 @@ async def test_get_user_export_returns_rgpd_data(padawan_client):
     assert "total_challenge_attempts" in stats
     assert "total_badges" in stats
     assert data["profile"]["username"] == padawan_client["user_data"]["username"]
+
+
+async def test_get_user_export_progression_rank_is_canonical_alias(
+    padawan_client, db_session
+):
+    """F43-A3 : progression_rank exporte le bucket canonique, jedi_rank reste legacy."""
+    client = padawan_client["client"]
+    user = (
+        db_session.query(User)
+        .filter(User.username == padawan_client["user_data"]["username"])
+        .one()
+    )
+    user.total_points = 1000
+    user.current_level = 6
+    user.jedi_rank = "padawan"
+    db_session.commit()
+
+    response = await client.get("/api/users/me/export")
+    assert response.status_code == 200
+
+    profile = response.json()["profile"]
+    assert profile["jedi_rank"] == "padawan"
+    assert profile["progression_rank"] == "explorer"
 
 
 async def test_get_user_sessions_returns_current_session(padawan_client):

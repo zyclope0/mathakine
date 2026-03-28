@@ -1416,6 +1416,13 @@ class UserService:
         if not user:
             return None
 
+        total_pts = int(getattr(user, "total_points", None) or 0)
+        _, syn_level, _, _ = compute_state_from_total_points(total_pts)
+        progression_rank = canonicalize_progression_rank_bucket(
+            getattr(user, "jedi_rank", None),
+            syn_level,
+        )
+
         profile = {
             "id": user.id,
             "username": user.username,
@@ -1430,13 +1437,13 @@ class UserService:
             "preferred_difficulty": user.preferred_difficulty,
             "preferred_theme": user.preferred_theme,
             "accessibility_settings": user.accessibility_settings,
-            "total_points": user.total_points,
+            "total_points": total_pts,
             "current_level": user.current_level,
             "experience_points": (
                 user.experience_points if hasattr(user, "experience_points") else 0
             ),
             "jedi_rank": user.jedi_rank,
-            "progression_rank": user.jedi_rank,
+            "progression_rank": progression_rank,
             "avatar_url": user.avatar_url if hasattr(user, "avatar_url") else None,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,
