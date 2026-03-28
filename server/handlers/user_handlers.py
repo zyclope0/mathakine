@@ -132,10 +132,16 @@ async def create_user_account(request: Request) -> JSONResponse:
         return api_error_response(400, _first_validation_error_message(ve))
 
     try:
-        payload, error, status_code = await run_db_bound(register_user, user_create)
-        if error:
-            return api_error_response(status_code, error)
-        return JSONResponse(payload, status_code=201)
+        result = await run_db_bound(register_user, user_create)
+        if result.error_message is not None:
+            return api_error_response(result.status_code, result.error_message)
+        if result.payload is None:
+            return capture_internal_error_response(
+                ValueError("Payload inscription manquant"),
+                "Erreur lors de la création du compte",
+                tags={"handler": "users.create_user_account"},
+            )
+        return JSONResponse(result.payload, status_code=201)
     except Exception as user_creation_error:
         logger.error(
             f"Erreur lors de la création de l'utilisateur: {user_creation_error}"

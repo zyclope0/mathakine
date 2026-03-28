@@ -38,12 +38,19 @@ class UserStatsApiResult:
 
 
 # Aligné sur GET /api/users/stats (query timeRange).
+@dataclass(frozen=True)
+class UserRegistrationApiResult:
+    payload: Optional[Dict[str, Any]]
+    error_message: Optional[str]
+    status_code: int
+
+
 USER_STATS_TIME_RANGES = frozenset({"7", "30", "90", "all"})
 
 
 def register_user(
     user_create: UserCreate,
-) -> UserStatsApiResult:
+) -> UserRegistrationApiResult:
     """
     Inscription utilisateur : création + envoi email de vérification.
 
@@ -61,7 +68,11 @@ def register_user(
             verification_token,
         )
         if not result.is_success:
-            return None, result.error_message, result.status_code
+            return UserRegistrationApiResult(
+                payload=None,
+                error_message=result.error_message,
+                status_code=result.status_code,
+            )
 
         user = result.user
         try:
@@ -92,7 +103,11 @@ def register_user(
 
         payload = UserService.serialize_registered_user_for_api(user)
         logger.info(f"Nouvel utilisateur créé: {user.username} ({user.email})")
-        return payload, None, 201
+        return UserRegistrationApiResult(
+            payload=payload,
+            error_message=None,
+            status_code=201,
+        )
 
 
 def get_dashboard_stats(
@@ -109,7 +124,7 @@ def get_dashboard_stats(
 def get_user_stats_for_api(
     current_user: Dict[str, Any],
     time_range_raw: Optional[str],
-) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+) -> UserStatsApiResult:
     """
     Orchestre stats dashboard pour l'API (hors couche HTTP).
 
