@@ -23,6 +23,7 @@ from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.challenges import challenge_service
 from app.services.challenges.challenge_ai_model_policy import (
+    build_challenge_ai_stream_kwargs,
     resolve_challenge_ai_fallback_model,
 )
 from app.services.challenges.challenge_contract_policy import (
@@ -328,38 +329,12 @@ async def generate_challenge_stream(
         async def create_stream_with_retry():
             use_o1 = AIConfig.is_o1_model(ai_params["model"])
             use_o3 = AIConfig.is_o3_model(ai_params["model"])
-            api_kwargs = {
-                "model": ai_params["model"],
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                "stream": True,
-            }
-            if not use_o1:
-                api_kwargs["response_format"] = {"type": "json_object"}
-
-            if use_o1:
-                api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
-            elif use_o3:
-                api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
-                api_kwargs["reasoning_effort"] = ai_params.get(
-                    "reasoning_effort", "medium"
-                )
-            elif AIConfig.is_gpt5_model(ai_params["model"]):
-                api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
-                api_kwargs["reasoning_effort"] = ai_params.get(
-                    "reasoning_effort", "medium"
-                )
-                api_kwargs["verbosity"] = ai_params.get("verbosity", "low")
-                if (
-                    ai_params.get("reasoning_effort") == "none"
-                    and "temperature" in ai_params
-                ):
-                    api_kwargs["temperature"] = ai_params["temperature"]
-            else:
-                api_kwargs["max_tokens"] = ai_params["max_tokens"]
-                api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
+            api_kwargs = build_challenge_ai_stream_kwargs(
+                model=ai_params["model"],
+                system_content=system_prompt,
+                user_content=user_prompt,
+                ai_params=ai_params,
+            )
             logger.info(
                 f"Appel API: model={ai_params['model']}, o1={use_o1}, o3={use_o3}, reasoning={ai_params.get('reasoning_effort', 'N/A')}"
             )

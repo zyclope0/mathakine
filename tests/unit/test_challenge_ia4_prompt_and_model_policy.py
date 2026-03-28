@@ -12,6 +12,7 @@ from app.core.ai_generation_policy import ExerciseAIModelNotAllowedError
 from app.core.config import settings
 from app.services.challenges.challenge_ai_model_policy import (
     DEFAULT_CHALLENGE_STREAM_FALLBACK_MODEL,
+    build_challenge_ai_stream_kwargs,
     resolve_challenge_ai_fallback_model,
     resolve_challenge_ai_model,
 )
@@ -141,3 +142,83 @@ def test_generate_challenge_stream_uses_fallback_policy_not_advanced_model() -> 
     src = inspect.getsource(challenge_ai_service.generate_challenge_stream)
     assert "resolve_challenge_ai_fallback_model" in src
     assert "ADVANCED_MODEL" not in src
+
+
+def test_build_challenge_ai_stream_kwargs_o1_no_json_format() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="o1-mini",
+        system_content="S",
+        user_content="U",
+        ai_params={"model": "o1-mini", "max_tokens": 1234},
+    )
+    assert kw["model"] == "o1-mini"
+    assert kw["stream"] is True
+    assert "response_format" not in kw
+    assert kw["max_completion_tokens"] == 1234
+
+
+def test_build_challenge_ai_stream_kwargs_o3_json_and_reasoning() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="o3",
+        system_content="S",
+        user_content="U",
+        ai_params={
+            "model": "o3",
+            "max_tokens": 5000,
+            "reasoning_effort": "low",
+        },
+    )
+    assert kw["response_format"] == {"type": "json_object"}
+    assert kw["max_completion_tokens"] == 5000
+    assert kw["reasoning_effort"] == "low"
+
+
+def test_build_challenge_ai_stream_kwargs_gpt5_verbosity_and_temp_when_none() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="gpt-5-mini",
+        system_content="S",
+        user_content="U",
+        ai_params={
+            "model": "gpt-5-mini",
+            "max_tokens": 4000,
+            "reasoning_effort": "none",
+            "verbosity": "medium",
+            "temperature": 0.42,
+        },
+    )
+    assert kw["max_completion_tokens"] == 4000
+    assert kw["reasoning_effort"] == "none"
+    assert kw["verbosity"] == "medium"
+    assert kw["temperature"] == 0.42
+
+
+def test_build_challenge_ai_stream_kwargs_gpt5_no_temp_when_reasoning_active() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="gpt-5",
+        system_content="S",
+        user_content="U",
+        ai_params={
+            "model": "gpt-5",
+            "max_tokens": 4000,
+            "reasoning_effort": "medium",
+            "verbosity": "low",
+            "temperature": 0.9,
+        },
+    )
+    assert "temperature" not in kw
+
+
+def test_build_challenge_ai_stream_kwargs_chat_classic_max_tokens() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="gpt-4o-mini",
+        system_content="S",
+        user_content="U",
+        ai_params={
+            "model": "gpt-4o-mini",
+            "max_tokens": 2000,
+            "temperature": 0.35,
+        },
+    )
+    assert kw["max_tokens"] == 2000
+    assert kw["temperature"] == 0.35
+    assert kw["response_format"] == {"type": "json_object"}

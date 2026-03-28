@@ -27,8 +27,9 @@ La matrice de **capacités** par famille (o1 / o3 / gpt-5.x / chat) reste dans
 
 from __future__ import annotations
 
-from typing import Dict, Final
+from typing import Any, Dict, Final
 
+from app.core.ai_config import AIConfig
 from app.core.ai_generation_policy import (
     EXERCISES_AI_ALLOWED_MODEL_IDS,
     ExerciseAIModelNotAllowedError,
@@ -91,6 +92,54 @@ def resolve_challenge_ai_model(challenge_type: str) -> str:
     chosen = normalize_exercise_ai_model_id(chosen)
     assert_challenge_ai_model_allowed(chosen)
     return chosen
+
+
+def build_challenge_ai_stream_kwargs(
+    *,
+    model: str,
+    system_content: str,
+    user_content: str,
+    ai_params: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Construit les kwargs pour ``AsyncOpenAI.chat.completions.create`` (stream défis).
+
+    Aligné sur la matrice historique du service : ``response_format`` absent pour o1 ;
+    ``max_completion_tokens`` pour o1 / o3 / GPT-5 ; ``reasoning_effort`` pour o3 et GPT-5 ;
+    ``verbosity`` pour GPT-5 ; ``temperature`` pour GPT-5 uniquement si
+    ``reasoning_effort == "none"`` et présent dans ``ai_params`` ; branche chat classique
+    avec ``max_tokens`` + ``temperature``.
+    """
+    use_o1 = AIConfig.is_o1_model(model)
+    use_o3 = AIConfig.is_o3_model(model)
+
+    api_kwargs: Dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ],
+        "stream": True,
+    }
+    if not use_o1:
+        api_kwargs["response_format"] = {"type": "json_object"}
+
+    if use_o1:
+        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+    elif use_o3:
+        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+        api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
+    elif AIConfig.is_gpt5_model(model):
+        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+        api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
+        api_kwargs["verbosity"] = ai_params.get("verbosity", "low")
+        if ai_params.get("reasoning_effort") == "none" and "temperature" in ai_params:
+            api_kwargs["temperature"] = ai_params["temperature"]
+    else:
+        api_kwargs["max_tokens"] = ai_params["max_tokens"]
+        api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
+
+    return api_kwargs
 
 
 def resolve_challenge_ai_fallback_model(challenge_type: str) -> str:
