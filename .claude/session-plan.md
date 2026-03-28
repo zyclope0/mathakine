@@ -1,143 +1,164 @@
-# Plan F42-Completion - Refonte difficulte globale Mathakine
+# Plan CC1 - Clean Code Pass post-F42/F43
 
-**Date initiale :** 2026-03-26
-**Derniere mise a jour :** 2026-03-28 (F42 clos + F43-A1/F43-A2 livres ; suites contractuelles legacy sequencees)
-**Source :** audit code consolide + debat 4 agents + revue croisee
+**Date :** 2026-03-28
+**Source :** rapport /octo:review working tree (Correctness + Architecture, AI-assisted)
 **Execution :** Cursor Composer
-**Validation :** `/octo:review` apres chaque lot
+**Validation :** `pytest -q --maxfail=20 --no-cov` + `black` + `isort` + `flake8` apres chaque lot
 
 ---
 
-## 1. Etat reel (verite terrain 2026-03-28)
+## 1. Contexte
 
-| Couche | Etat initial | Etat reel apres lots |
-|--------|-------------|----------------------|
-| BDD / persistance | OK | **DONE** - `users.age_group`, `difficulty_tier` sur exercises + logic_challenges |
-| Recommandation | OK | **DONE** - filtre tier +-1 exercices, score-penalty defis (design choice documente) |
-| Types frontend API | OK | **DONE** - `difficulty_tier` type Exercise + Challenge |
-| Generation exercices (local) | PARTIEL | **DONE** - `build_exercise_generation_profile()` + `pedagogical_band_override` + tier recalcule |
-| Generation exercices (OpenAI) | PARTIEL | **DONE** - `calibration_desc` injecte dans le prompt |
-| Adaptive second axe exercices | PARTIEL | **DONE** - `AdaptiveGenerationContext`, `resolve_adaptive_context()`, separation age / bande |
-| Fallback band cold-start | ANALYSE | **STABLE** - fallback reste `learning` ; tout changement demande une decision produit explicite |
-| Generation defis / contexte user | PARTIEL | **DONE** - `challenge_generation_context.py` lit le contexte user F42 via `build_recommendation_user_context()` |
-| SSE defis difficulty_tier (chemin normal) | MANQUANT | **DONE** - `_persist_challenge_sync()` retourne `difficulty_tier` |
-| SSE defis difficulty_tier (chemin erreur) | MANQUANT | **DONE** - `normalize_generated_challenge()` accepte et retourne `difficulty_tier` |
-| Evaluation / progression (bridge) | NON | **DONE** - `mastery_tier_bridge.py` : `mastery_to_tier()`, `enrich_diagnostic_scores_f42()`, `canonical_age_group_with_fallback()` |
-| Admin list exercices + defis | NON | **DONE** - `admin_content_service.py` expose `difficulty_tier` + `difficulty_rating` |
-| Schema GenerateExerciseResult | INCOMPLET | **DONE** - `difficulty_tier: Optional[int]` |
-| Destarwarisation exercices backend | PARTIEL | **DONE** - `SpatialNarratives`, tags IA neutralises |
-| Destarwarisation schemas (docstrings) | NON | **DONE** - docstrings cibles neutralisees ; dette `star_wars_title` documentee |
-| Destarwarisation i18n (exercise copy) | NON | **DONE** - copy exercice-facing neutralisee |
-| Gamification cleanup labels publics | NON | **DONE** - labels publics neutralises sur profil/dashboard/leaderboard/badges |
-| Extension ladder 5 -> 8 buckets | NON | **DONE** - backend + frontend + i18n alignes sur 8 buckets canoniques |
-| Cleanup final Star Wars visible | NON | **DONE** - surfaces visibles principales nettoyees ; dettes techniques legacy assumees |
+Passe de nettoyage post-F42/F43 sur le projet Mathakine.
+7 findings identifies, classes en 3 categories :
+- **Bugs** (P0) : encoding corruption + clamp manquant
+- **Code mort** (P1) : 2 suppressions sures
+- **DRY** (P2) : 2 violations de coherence, differables
 
 ---
 
-## 2. Regles non negociables
-
-1. **Lire avant d'ecrire** - auditer les fichiers reels avant toute modification.
-2. **Un lot = un commit.**
-3. **Diff strictement borne** - aucun changement hors scope.
-4. **RGPD mineurs (critique)** : les libelles de rang du classement public doivent rester bases sur la progression (`XP/points`), jamais sur `age_group`.
-5. **`preferred_difficulty`** : ne pas supprimer brutalement. Introduire un helper de normalisation (`canonical_age_group(user)`) puis deprecier progressivement.
-6. **`DifficultyLevels`** (`INITIE/PADAWAN/...`) : ne pas renommer tant que la boucle evaluation/progression n'est pas stabilisee.
-7. **Champ technique legacy** : `jedi_rank` peut rester un identifiant technique temporaire si les labels publics sont neutralises cote affichage.
-
----
-
-## 3. Sequencage reel
+## 2. Sequencage
 
 ```text
-[DONE] F42-C1A         : Generation exercices (local + OpenAI + diagnostic feeder)
-[DONE] F42-C1B         : Destarwarisation UI/i18n exercices hors gamification publique
-[DONE] F42-C2          : Evaluation / progression (bridge mastery -> tier)
-[DONE] F42-C3A         : Defis personnalises par contexte utilisateur
-[DONE] F42-C3B         : Gamification/theme cleanup + surfaces stales + labels publics
-[DONE] F42-C3C         : Extension ladder publique 5 -> 8 buckets (backend + UI + i18n)
-[DONE] F42-C4          : Cleanup final des traces Star Wars encore visibles
-[DONE] F42-ADMIN-CHECK : Controle end-to-end admin
-[DONE] F42-P1          : Fix SSE `difficulty_tier` sur les chemins erreur challenge
-[DONE] F42-P3          : UI coherence niveau/rang sur profile + dashboard progression
-[DONE] F42-P4          : Recalibrage progression points -> level -> rank (best effort)
-[DONE] F42-P5          : Analyse et suppression progressive de `LEVEL_TITLES`
-[DONE] F42-P2          : Dette technique post-debat (fallback decision, cache, safeguard, instrumentation)
-[DONE] F43-A1          : Observabilite post-F42 (logs tier/source + endpoint admin cohortes)
-[DONE] F43-A2          : Cleanup residuel legacy wording / Swagger / user schema
+[TODO] CC1-L1 : Bugs P0 + code mort P1 (lot atomique, 5 fichiers)
+[TODO] CC1-L2 : DRY P2 - exercise_ai_service aligne sur sse_utils (1 fichier)
+[DIFF] CC1-L3 : DRY P2 - challenge dispatch extracted (effort > valeur court terme, differe)
+[TODO] CC1-L4 : CLAUDE.md - supprimer P1 challenge_service deja resolu
 ```
 
 ---
 
-## 4. Statut restant
+## 3. Detail des lots
 
-Le bloc F42 est maintenant **termine**.
-Les premiers suivis post-F42 sont egalement **livres** :
-- `F43-A1` : observabilite empirique (logs structures + endpoint admin read-only)
-- `F43-A2` : cleanup residuel legacy wording / Swagger / user schema
+### CC1-L1 - Bugs + suppressions (priorite haute)
 
-Les suites logiques sont maintenant hors perimetre F42 :
-- `F43-A3` : migration contractuelle additive `jedi_rank` -> `progression_rank`
-- `F43-A4` : migration contractuelle additive `star_wars_title` -> `thematic_title`
-- instrumentation / analytics plus large
-- nouveaux chantiers fonctionnels
+**Fichiers :** 5 fichiers backend
 
----
+#### BUG-1 : Encoding `exercise_ai_service.py`
+- **Fichier :** `app/services/exercises/exercise_ai_service.py`
+- **Probleme :** le fichier contient une corruption UTF-8 -> Latin-1 sur des chaines francaises
+  (`generation`, `evenements SSE`, `Bibliotheque`, etc.)
+- **Action :** re-encoder le fichier proprement et corriger les chaines corrompues dans
+  docstrings, messages d'erreur et prompts IA
+- **Impact :** prompts IA degrades ; messages d'erreur illisibles
 
-## 5. Dette technique assumee (hors perimetre)
+#### BUG-1b : Encoding `challenge_ai_service.py:84`
+- **Fichier :** `app/services/challenges/challenge_ai_service.py`
+- **Ligne :** 84
+- **Action :** corriger la chaine du log (`Groupe d'age`, `non trouve`)
 
-| Item | Raison du report |
-|------|------------------|
-| `star_wars_title: Optional[str]` dans `ChallengeBadgeEarned` | Champ nullable ; migration de contrat optionnelle |
-| Cache mastery (P2b) | Pas urgent < quelques centaines users simultanes |
-| Migration DB `difficulty_tier` sur tentatives/progress | Seulement apres validation couche service |
-| Filtre dur reco defis (vs score penalty) | Design choice documente - asymetrie intentionnelle |
-| Dashboard parent/enseignant labels age dedies | Produit payant, lot separe |
-| Filtre leaderboard par groupe d'age (`F40-v2`) | Depend clarification produit post-F42 et validation UX/RGPD |
-| Renommage physique champs API legacy (`jedi_rank`, `star_wars_title`, etc.) | A traiter uniquement via migration contractuelle additive dediee (`F43-A3` / `F43-A4`) |
-| Extension matrice F42 (5eme groupe age, 4eme bande) | Pas avant besoin utilisateur reel valide |
-| `LEVEL_TITLES` | **Traite** via F42-P5 - retire du payload public ; reliquats doc/historiques acceptables |
+#### BUG-2 : Clamp manquant `mastery_tier_bridge.py`
+- **Fichier :** `app/core/mastery_tier_bridge.py`
+- **Fonction :** `project_challenge_progress_row_f42()` ligne 230
+- **Probleme :** `compute_tier_from_age_group_and_band()` est appele sans clamp alors que
+  `mastery_to_tier()` dans le meme fichier clamp + warn explicitement
+- **Action :** ajouter clamp `max(DIFFICULTY_TIER_MIN, min(DIFFICULTY_TIER_MAX, raw))` +
+  warning logger si out-of-bounds, en miroir de `mastery_to_tier()`
+- **Risque si non corrige :** tier hors [1-12] silencieux cote defis
 
----
+#### D1 : Dead attrs `AIConfig.ADVANCED_MODEL / BASIC_MODEL`
+- **Fichier :** `app/core/ai_config.py` lignes 21-23
+- **Preuve :** `test_challenge_ia4_prompt_and_model_policy.py:143` asserte
+  `"ADVANCED_MODEL" not in src`
+- **Action :** supprimer les 3 lignes (commentaire + 2 attributs)
+- **Risque :** zero - aucun caller en dehors du test de non-utilisation
 
-## 6. Points de vigilance post-debat
+#### D2 : Dead function `experience_points_in_current_level()`
+- **Fichier :** `app/services/gamification/compute.py` lignes 88-91
+- **Preuve :** jamais importe ni appele (grep exhaustif, 0 resultat hors definition)
+- **Corps :** alias d'une ligne de `level_and_xp_from_total_points()`
+- **Action :** supprimer la fonction entiere
+- **Risque :** zero - aucun caller
 
-### Risques identifies par le debat 4 agents (2026-03-27)
-
-| Risque | Priorite | Action |
-|--------|----------|--------|
-| Fallback band `learning` en cold-start | Decision produit ouverte | Etat reel actuel : fallback neutre = `learning` ; ne changer que via F42-P2 |
-| `difficulty_tier` absent chemins erreur SSE challenge | **CORRIGE** P1b | `normalize_generated_challenge()` |
-| Double affichage niveau/rang (`LEVEL_TITLES` vs bucket) | **CORRIGE** P3 | bucket = seule verite publique de rang |
-| Progression compte trop lineaire | **CORRIGE** P4 | courbe points -> niveau par paliers ; badges realignes sur `total_points` |
-| Cache mastery absent | **CORRIGE** P2 | cache TTL + invalidation sur ecriture Progress |
-| Safeguard bridge silencieux | **CORRIGE** P2 | clamp + warning dans `mastery_to_tier()` |
-| Seuils bandes pedagogiques non valides empiriquement | Moyen terme | instrumenter taux de reussite / tier |
-| Double query Progress chemin IRT | Acceptable | faible risque multi-worker, surveiller |
-| Observabilite runtime tiers / progression | **CORRIGE** F43-A1 | logs `f43_exercise_attempt`, `f43_adaptive_context`, endpoint admin read-only |
-
-### Validite pedagogique
-
-Le debat scientifique (Hattie, Vygotsky, Sweller, Deci & Ryan, Siegler) confirme :
-- la matrice 4x3 est **approximative mais viable**
-- les seuils `mastery -> bande` sont des **stipulations pragmatiques**, pas une calibration empirique
-- l'age comme premier axe simplifie la variabilite intra-age, mais reste acceptable pour un MVP
-- l'action cle restante est d'instrumenter les taux de reussite par tier en production
-
----
-
-## 7. Gate standard
-
-### Backend
+**Gate CC1-L1 :**
 ```powershell
 D:\Mathakine\.venv\Scripts\python.exe -m pytest tests\ -q --tb=short --maxfail=20 --no-cov --ignore=tests\api\test_admin_auth_stability.py
-D:\Mathakine\.venv\Scripts\python.exe -m black <fichiers touches> --check
-D:\Mathakine\.venv\Scripts\python.exe -m isort <fichiers touches> --check-only
-D:\Mathakine\.venv\Scripts\python.exe -m flake8 --select=E9,F63,F7,F82 <fichiers touches>
+D:\Mathakine\.venv\Scripts\python.exe -m black app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check
+D:\Mathakine\.venv\Scripts\python.exe -m isort app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check-only
+D:\Mathakine\.venv\Scripts\python.exe -m flake8 --select=E9,F63,F7,F82 app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py
 ```
 
-### Frontend
-```powershell
-cd D:\Mathakine\frontend && npm run lint
-cd D:\Mathakine\frontend && npx tsc --noEmit
-cd D:\Mathakine\frontend && npx prettier --check <fichiers touches>
+---
+
+### CC1-L2 - DRY : aligner exercise_ai_service sur sse_utils (priorite moyenne)
+
+**Fichier :** `app/services/exercises/exercise_ai_service.py`
+
+`app/utils/sse_utils.py` expose `sse_error_message()` et `sse_status_message()` avec
+docstring "DRY pour generation IA en streaming". `challenge_ai_service.py` l'utilise.
+`exercise_ai_service.py` utilise des f-strings inline identiques partout.
+
+**Action :**
+1. Ajouter l'import `from app.utils.sse_utils import sse_error_message, sse_status_message`
+2. Remplacer tous les `f"data: {json.dumps({'type': 'error', ...})}\n\n"` par `sse_error_message(...)`
+3. Remplacer `f"data: {json.dumps({'type': 'status', ...})}\n\n"` par `sse_status_message(...)`
+4. Laisser `_SSE_DONE` inline
+
+**Benefice :** coherence maintenance - une seule definition du format SSE
+
+---
+
+### CC1-L3 - DRY : challenge dispatch model (differe)
+
+**Contexte :** `challenge_ai_service.py:329-367` a sa propre logique de dispatch modele
+(o1/o3/gpt5/fallback) inline dans `create_stream_with_retry()`. `ai_generation_policy.py`
+a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
+
+**Recommandation :** creer `build_challenge_ai_stream_kwargs()` dans
+`challenge_ai_model_policy.py` symetriquement a `build_exercise_ai_stream_kwargs()`.
+
+**Decision :** differe - scope plus large (fallback o3 + alignement `AIConfig.get_openai_params()`).
+
+---
+
+### CC1-L4 - CLAUDE.md cleanup (5 min)
+
+**Fichier :** `CLAUDE.md`
+
+Supprimer la ligne P1 challenge_service double filtrage : deja resolu
+(`_apply_challenge_filters()` utilise `is_active.is_(True)` + `is_archived.is_(False)`).
+
 ```
+| ~~P1~~ | ~~`app/services/challenges/challenge_service.py:353`~~ | ~~Double filtrage...~~ - **RESOLU** |
+```
+
+---
+
+## 4. Findings hors scope
+
+| Finding | Raison |
+|---------|--------|
+| `resolve_exercise_ai_model_for_user()` wrapper | Extension future documentee + testee, pas du code mort accidentel |
+| `DIFFICULTY_RANGES` dans exercise_ai_service.py | Utilise activement pour prompts |
+| `jedi_rank_for_level()` naming | F43-A3 migration contractuelle additive |
+| `_LEGACY_PROGRESS_RANKS` dans compute.py | Necessaire pour migration buckets legacy |
+| CC1-L3 dispatch challenge DRY | Differe - scope plus large que l'utilite immediate |
+
+---
+
+## 5. Regles non negociables
+
+1. **Lire avant d'ecrire** - verifier les lignes exactes avant modification.
+2. **Un lot = un commit** atomique.
+3. **Diff strictement borne** - aucun changement hors findings documentes.
+4. **Gate tests verts** avant chaque commit.
+5. **Pas de refactoring opportuniste** hors scope du rapport.
+
+---
+
+## 6. Ordre d'execution recommande dans Cursor
+
+```text
+1. CC1-L1 : lire les 5 fichiers -> appliquer les 5 corrections -> gate -> commit
+2. CC1-L4 : CLAUDE.md -> commit rapide
+3. CC1-L2 : aligner sse_utils (optionnel, independant) -> gate -> commit
+```
+
+---
+
+## 7. Dette documentee pour F43
+
+| Item | Reference |
+|------|-----------|
+| Dispatch modele defis DRY (CC1-L3) | Creer `build_challenge_ai_stream_kwargs()` dans `challenge_ai_model_policy.py` |
+| Double systeme policy IA (ai_config + ai_generation_policy) | Architecture CLAUDE.md - dette assumee |
