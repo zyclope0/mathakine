@@ -32,6 +32,7 @@ import { AverageTimeWidget } from "@/components/dashboard/AverageTimeWidget";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
 import { Recommendations } from "@/components/dashboard/Recommendations";
 import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
+import { SpacedRepetitionSummaryWidget } from "@/components/dashboard/SpacedRepetitionSummaryWidget";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StreakWidget } from "@/components/dashboard/StreakWidget";
 import { DailyChallengesWidget } from "@/components/dashboard/DailyChallengesWidget";
@@ -258,6 +259,7 @@ export default function DashboardPage() {
               <PageSection>
                 <div className="space-y-3">
                   <QuickStartActions />
+                  <SpacedRepetitionSummaryWidget summary={stats.spaced_repetition} />
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
                     <div className="md:col-span-8 flex flex-col min-h-0">
                       <DailyChallengesWidget />

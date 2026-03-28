@@ -3,7 +3,7 @@ import {
   buildDashboardExportSnapshot,
   deriveIncorrectAnswersForExport,
 } from "@/lib/dashboard/buildDashboardExportSnapshot";
-import type { UserStats } from "@/lib/validation/dashboard";
+import { type UserStats, parseSpacedRepetitionUserSummary } from "@/lib/validation/dashboard";
 import type { ProgressStats } from "@/hooks/useProgressStats";
 import type { GamificationLevelIndicator } from "@/types/api";
 
@@ -12,6 +12,7 @@ function baseStats(over: Partial<UserStats> = {}): UserStats {
     total_exercises: 10,
     correct_answers: 8,
     success_rate: 80,
+    spaced_repetition: parseSpacedRepetitionUserSummary(null),
     ...over,
   };
 }

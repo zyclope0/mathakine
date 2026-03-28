@@ -765,6 +765,19 @@
       "expiresAt": "Expires at midnight",
       "cta": "Train now"
     },
+    "spacedRepetition": {
+      "title": "Today's reviews",
+      "notInitialized": "Reviews will appear after you've practiced a few exercises.",
+      "noneToday": "No reviews scheduled for today.",
+      "dueToday": "{count, plural, one {# review due today} other {# reviews due today}}",
+      "overdue": "{count, plural, one {# overdue card} other {# overdue cards}}",
+      "activeCards": "{count, plural, one {# card in your review deck} other {# cards in your review deck}}",
+      "nextReview": "Next review: {date}",
+      "loadError": "Review summary could not be loaded.",
+      "a11y": {
+        "regionLabel": "Spaced repetition summary"
+      }
+    },
     "stats": {
       "totalExercises": "Total exercises",
       "totalAttempts": "Total attempts",

@@ -116,6 +116,7 @@ frontend/
 │   │   └── BadgeGrid.tsx
 │   ├── dashboard/                # Composants dashboard
 │   │   ├── StatsCard.tsx
+│   │   ├── SpacedRepetitionSummaryWidget.tsx  # F04 — résumé révisions (lecture /api/users/stats)
 │   │   ├── ProgressChart.tsx
 │   │   ├── Recommendations.tsx
 │   │   └── ...

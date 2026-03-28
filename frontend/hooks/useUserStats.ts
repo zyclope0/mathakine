@@ -2,9 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
-import { safeValidateUserStats, type UserStats } from "@/lib/validation/dashboard";
+import {
+  safeValidateUserStats,
+  type SpacedRepetitionUserSummary,
+  type UserStats,
+} from "@/lib/validation/dashboard";
 
-export type { UserStats };
+export type { UserStats, SpacedRepetitionUserSummary };
 
 export type TimeRange = "7" | "30" | "90" | "all";
 

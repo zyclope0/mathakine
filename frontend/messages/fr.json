@@ -752,6 +752,19 @@
       "expiresAt": "Expire à minuit",
       "cta": "S'entraîner maintenant"
     },
+    "spacedRepetition": {
+      "title": "Révisions du jour",
+      "notInitialized": "Les révisions apparaîtront après quelques exercices.",
+      "noneToday": "Aucune révision prévue aujourd'hui.",
+      "dueToday": "{count, plural, one {# révision aujourd'hui} other {# révisions aujourd'hui}}",
+      "overdue": "{count, plural, one {# carte en retard} other {# cartes en retard}}",
+      "activeCards": "{count, plural, one {# carte suivie} other {# cartes suivies}}",
+      "nextReview": "Prochaine révision : {date}",
+      "loadError": "Impossible d'afficher le résumé des révisions.",
+      "a11y": {
+        "regionLabel": "Résumé des révisions espacées"
+      }
+    },
     "stats": {
       "totalExercises": "Total exercices",
       "totalAttempts": "Total tentatives",

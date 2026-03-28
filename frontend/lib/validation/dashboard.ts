@@ -3,6 +3,58 @@
  * Pas de pseudo-XP période ni de niveau temporel — gamification compte via /me.
  */
 
+/** Agrégat F04 (révisions espacées) — GET /api/users/stats → spaced_repetition */
+export interface SpacedRepetitionUserSummary {
+  f04_initialized: boolean;
+  active_cards_count: number;
+  due_today_count: number;
+  overdue_count: number;
+  /** ISO date YYYY-MM-DD ou null */
+  next_review_date: string | null;
+}
+
+const DEFAULT_SPACED_REPETITION: SpacedRepetitionUserSummary = {
+  f04_initialized: false,
+  active_cards_count: 0,
+  due_today_count: 0,
+  overdue_count: 0,
+  next_review_date: null,
+};
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Parse le bloc API ``spaced_repetition`` sans lever — fallback sur valeurs sûres.
+ */
+export function parseSpacedRepetitionUserSummary(data: unknown): SpacedRepetitionUserSummary {
+  if (data === null || data === undefined || typeof data !== "object" || Array.isArray(data)) {
+    return { ...DEFAULT_SPACED_REPETITION };
+  }
+  const o = data as Record<string, unknown>;
+  const bool = (k: string, d: boolean): boolean => (typeof o[k] === "boolean" ? o[k] : d);
+  const int0 = (k: string, d: number): number => {
+    const v = o[k];
+    if (typeof v === "number" && Number.isFinite(v) && v >= 0) {
+      return Math.floor(v);
+    }
+    return d;
+  };
+  let next: string | null = DEFAULT_SPACED_REPETITION.next_review_date;
+  const nr = o.next_review_date;
+  if (nr === null) {
+    next = null;
+  } else if (typeof nr === "string" && ISO_DATE_RE.test(nr)) {
+    next = nr;
+  }
+  return {
+    f04_initialized: bool("f04_initialized", DEFAULT_SPACED_REPETITION.f04_initialized),
+    active_cards_count: int0("active_cards_count", DEFAULT_SPACED_REPETITION.active_cards_count),
+    due_today_count: int0("due_today_count", DEFAULT_SPACED_REPETITION.due_today_count),
+    overdue_count: int0("overdue_count", DEFAULT_SPACED_REPETITION.overdue_count),
+    next_review_date: next,
+  };
+}
+
 export interface UserStats {
   total_exercises: number;
   total_challenges?: number;
@@ -43,6 +95,7 @@ export interface UserStats {
     is_correct?: boolean;
   }>;
   lastUpdated?: string;
+  spaced_repetition: SpacedRepetitionUserSummary;
 }
 
 /**
@@ -58,6 +111,7 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
   const validated: UserStats = {
     total_exercises: typeof stats.total_exercises === "number" ? stats.total_exercises : 0,
     correct_answers: typeof stats.correct_answers === "number" ? stats.correct_answers : 0,
+    spaced_repetition: parseSpacedRepetitionUserSummary(stats.spaced_repetition),
   };
 
   if (typeof stats.total_challenges === "number") {
