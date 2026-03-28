@@ -13,8 +13,14 @@ Ce dossier contient les references transversales vivantes : architecture, gouver
 2. [DIFFICULTY_AND_RANKS_MANIFEST.md](DIFFICULTY_AND_RANKS_MANIFEST.md)
 3. [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
 4. [GETTING_STARTED.md](GETTING_STARTED.md)
+5. [DATA_MODEL.md](DATA_MODEL.md) — ERD 20 entités ORM (tables, colonnes clés, relations)
+
+## Architecture Decision Records (ADR)
+
+Les ADRs vivent dans [`docs/05-ADR/`](../05-ADR/README.md).
 
 ## Regle
 
 - si une reference devient la source de verite multi-workloads ou multi-modules, elle doit vivre ici
 - chaque claim technique stable doit pointer vers le code actif
+- toute decision architecturale non reversible doit avoir un ADR dans ce dossier

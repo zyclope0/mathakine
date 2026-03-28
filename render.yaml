@@ -29,6 +29,8 @@ services:
         value: https://mathakine-frontend.onrender.com
       - key: OPENAI_API_KEY
         sync: false  # À définir manuellement dans le dashboard Render
+      - key: REDIS_URL
+        sync: false  # Obligatoire en production — voir docs/01-GUIDES/DEPLOYMENT_ENV.md
       - key: SENTRY_DSN
         sync: false  # DSN backend dédié (préféré à NEXT_PUBLIC_SENTRY_DSN)
       - key: SENTRY_RELEASE

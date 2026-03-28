@@ -37,6 +37,8 @@ Active references:
 
 ## [Unreleased]
 
+## [3.4.0-alpha.1] - 2026-03-27
+
 ### Changed
 - Frontend proxy routes now resolve the Python backend through a shared `frontend/lib/api/backendUrl.ts` helper instead of four divergent local implementations.
 - Exercise AI SSE now emits an explicit terminal `done` event on controlled success, validation failure and persistence failure paths, aligning the contract more closely with challenges.
@@ -45,6 +47,13 @@ Active references:
 - Dashboard recommendations now render an initial capped slice with local `show more / show less` toggles instead of rendering the whole list unbounded.
 - OpenAI workloads now share a process-local circuit breaker for recurrent upstream failures on exercises and challenges, reducing useless timeout pressure during provider incidents.
 - AI generation request failures on the frontend are now mapped explicitly between missing CSRF, expired session, forbidden access and generic backend failures before the hooks show user-facing toasts.
+- Pedagogical difficulty is now centered on the F42 model: `age_group + pedagogical_band -> difficulty_tier`, with legacy difficulty fields kept as compatibility layers instead of sole truth.
+- Local exercise generation, challenge AI personalization, recommendation targeting, progress bridges, diagnostic enrichments, and admin/API boundaries are now aligned on the same F42 calibration seams.
+- Public progression ranks are now neutralized and extended to eight buckets across profile, dashboard, leaderboard, badges, and backend level titles.
+- Profile and dashboard progression now show a single public rank model: numeric level is displayed separately from the progression rank bucket.
+- Account progression no longer uses a flat 100-points-per-level model; the level curve now grows by segments so ranks stay more meaningful over time.
+- Legacy per-level titles (`LEVEL_TITLES`) are no longer part of the public progression payload.
+- Visible Star Wars references have been removed from the main product surfaces that still exposed them (chat, emails, admin labels, recommendations, targeted schema wording).
 
 ### Added
 - Frontend tests now cover `LocaleInitializer` (`html[lang]` synchronization) and `CategoryAccuracyChart` (i18n rerender of radar labels).
@@ -53,6 +62,9 @@ Active references:
 - Backend tests now cover:
   - `auto_correct_challenge` when pattern analysis returns `None`
   - the OpenAI circuit breaker state machine and SSE refusal when it is open
+- Active documentation now includes a dedicated technical manifest and a simpler product guide for the post-F42 difficulty model and public progression ranks.
+- Public/API progress surfaces now expose additive F42 projections where relevant (`canonical_age_group`, `pedagogical_band`, `difficulty_tier`) without breaking legacy contracts.
+- Post-F42 observability now includes structured logs for exercise attempts and adaptive-context resolution, plus a read-only admin cohort endpoint for account progression.
 
 ### Fixed
 - Production proxy configuration now fails fast on malformed or loopback backend URLs instead of silently drifting to unusable values.
@@ -60,6 +72,14 @@ Active references:
 - `auto_correct_challenge` no longer risks calling `.upper()` on `None` when pattern auto-correction cannot infer an answer.
 - The dead `generation_success` branch in challenge AI generation has been removed.
 - Exercise AI request hooks no longer keep a dead `!response.ok` branch after `postAiGenerationSse()` started throwing typed request errors on non-OK HTTP responses.
+- Challenge AI SSE payloads now return `difficulty_tier`, including persistence/error paths that already computed the F42 target tier.
+- Adaptive exercise fallback behavior is explicitly documented and tested as a neutral legacy-compatible band (`learning`) when no stronger mastery signal exists.
+- Admin difficulty boundaries now expose the intended difficulty fields consistently in list/detail flows.
+- Account progression cohort observability now derives level/rank from `total_points`, avoiding stale snapshots when persisted gamification columns lag behind the current curve semantics.
+
+### Notes
+- This opens a new visible minor prerelease train because F42 changed user-visible pedagogical calibration, challenge personalization behavior, public rank identity, and documentation truth in a material way.
+- Legacy backend fields such as `difficulty`, `mastery_level`, `difficulty_rating`, and `jedi_rank` remain intentionally in place as compatibility/storage layers; they are no longer the canonical pedagogical or public-display model by themselves.
 
 ## [3.3.0-alpha.3] - 2026-03-25
 
