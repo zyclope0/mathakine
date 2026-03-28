@@ -525,6 +525,10 @@ class TestDataManager:
                 self.db.execute(
                     text(f"DELETE FROM recommendations WHERE user_id IN ({ids_str})")
                 )
+                self._execute_if_table_exists(
+                    "spaced_repetition_items",
+                    f"DELETE FROM spaced_repetition_items WHERE user_id IN ({ids_str})",
+                )
                 self.db.execute(
                     text(f"DELETE FROM attempts WHERE user_id IN ({ids_str})")
                 )

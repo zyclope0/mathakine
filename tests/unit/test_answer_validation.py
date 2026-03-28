@@ -93,6 +93,7 @@ def test_service_submit_correct_answer(db_session):
         MagicMock(is_active=True),
         MagicMock(is_active=True),
         MagicMock(is_active=True),
+        MagicMock(is_active=True),
     ]
     mock_attempt = _mock_attempt(attempt_id=42)
 
@@ -104,6 +105,9 @@ def test_service_submit_correct_answer(db_session):
         patch(
             "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
+        ),
+        patch(
+            "app.services.exercises.exercise_attempt_service.record_exercise_attempt_for_spaced_repetition",
         ),
         patch(
             "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
@@ -141,6 +145,7 @@ def test_service_submit_incorrect_answer(db_session):
         MagicMock(is_active=True),
         MagicMock(is_active=True),
         MagicMock(is_active=True),
+        MagicMock(is_active=True),
     ]
     mock_attempt = _mock_attempt(attempt_id=1)
 
@@ -152,6 +157,9 @@ def test_service_submit_incorrect_answer(db_session):
         patch(
             "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
+        ),
+        patch(
+            "app.services.exercises.exercise_attempt_service.record_exercise_attempt_for_spaced_repetition",
         ),
         patch(
             "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"

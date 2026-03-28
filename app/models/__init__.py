@@ -24,6 +24,7 @@ from app.models.point_event import PointEvent
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.setting import Setting
+from app.models.spaced_repetition_item import SpacedRepetitionItem
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 
@@ -44,6 +45,7 @@ __all__ = [
     "ChallengeProgress",
     "Progress",
     "Setting",
+    "SpacedRepetitionItem",
     "LogicChallenge",
     "LogicChallengeAttempt",
     "LogicChallengeType",

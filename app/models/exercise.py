@@ -94,6 +94,9 @@ class Exercise(Base):
     attempts = relationship(
         "Attempt", back_populates="exercise", cascade="all, delete-orphan"
     )
+    spaced_repetition_items = relationship(
+        "SpacedRepetitionItem", back_populates="exercise"
+    )
 
     def __repr__(self):
         return f"<Exercise {self.id}: {self.title} ({self.difficulty})>"

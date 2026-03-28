@@ -104,6 +104,7 @@ from app.models.logic_challenge import (
 from app.models.point_event import PointEvent
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
+from app.models.spaced_repetition_item import SpacedRepetitionItem
 from app.models.user import User, UserRole
 from app.utils.db_helpers import (
     adapt_enum_for_db,
@@ -201,6 +202,9 @@ def setup_test_environment():
     # IA8 : tables harness eval (même principe que daily_challenges — base de test sans alembic à jour).
     AiEvalHarnessRun.__table__.create(bind=imported_engine, checkfirst=True)
     AiEvalHarnessCaseResult.__table__.create(bind=imported_engine, checkfirst=True)
+    # SR F04 : recréer pour suivre le modèle ORM (ex. exercise_id NOT NULL + CASCADE)
+    SpacedRepetitionItem.__table__.drop(bind=imported_engine, checkfirst=True)
+    SpacedRepetitionItem.__table__.create(bind=imported_engine, checkfirst=True)
 
     engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)
     if engine_db_match:

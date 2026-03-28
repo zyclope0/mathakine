@@ -58,3 +58,11 @@ class InterleavedNotEnoughVariety(Exception):
     def __init__(self, message: str = "Pas assez de types pratiques récemment"):
         self.message = message
         super().__init__(message)
+
+
+class SpacedRepetitionInputError(ValueError):
+    """Données invalides pour le moteur SM-2 (qualité hors plage, etc.)."""
+
+    def __init__(self, message: str = "Entrée spaced repetition invalide"):
+        self.message = message
+        super().__init__(message)

@@ -1087,12 +1087,15 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     mock_db = MagicMock()
     progress_savepoint = MagicMock()
     progress_savepoint.is_active = True
+    sr_savepoint = MagicMock()
+    sr_savepoint.is_active = True
     streak_savepoint = MagicMock()
     streak_savepoint.is_active = True
     daily_savepoint = MagicMock()
     daily_savepoint.is_active = True
     mock_db.begin_nested.side_effect = [
         progress_savepoint,
+        sr_savepoint,
         streak_savepoint,
         daily_savepoint,
     ]
@@ -1121,6 +1124,9 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "app.services.exercises.exercise_attempt_service.update_progress_after_attempt",
         ) as update_progress_mock,
         patch(
+            "app.services.exercises.exercise_attempt_service.record_exercise_attempt_for_spaced_repetition",
+        ) as sr_mock,
+        patch(
             "app.services.exercises.exercise_attempt_service.GamificationService.apply_points"
         ) as apply_points_mock,
         patch(
@@ -1142,6 +1148,10 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             time_spent=3.5,
         )
 
+    sr_mock.assert_called_once()
+    assert sr_mock.call_args.kwargs["user_id"] == 7
+    assert sr_mock.call_args.kwargs["exercise_id"] == 42
+    assert sr_mock.call_args.kwargs["attempt_id"] == 321
     create_attempt_mock.assert_called_once_with(
         mock_db,
         {
@@ -1159,6 +1169,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     streak_mock.assert_called_once_with(mock_db, 7, auto_commit=False)
     daily_mock.assert_called_once_with(mock_db, 7, ExerciseType.ADDITION.value, True)
     progress_savepoint.commit.assert_called_once()
+    sr_savepoint.commit.assert_called_once()
     streak_savepoint.commit.assert_called_once()
     daily_savepoint.commit.assert_called_once()
     mock_db.commit.assert_called_once()
@@ -1174,12 +1185,15 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
     mock_db = MagicMock()
     progress_savepoint = MagicMock()
     progress_savepoint.is_active = True
+    sr_savepoint = MagicMock()
+    sr_savepoint.is_active = True
     streak_savepoint = MagicMock()
     streak_savepoint.is_active = True
     daily_savepoint = MagicMock()
     daily_savepoint.is_active = True
     mock_db.begin_nested.side_effect = [
         progress_savepoint,
+        sr_savepoint,
         streak_savepoint,
         daily_savepoint,
     ]
@@ -1209,6 +1223,9 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
             side_effect=SQLAlchemyError("DB error on progress"),
         ) as update_progress_mock,
         patch(
+            "app.services.exercises.exercise_attempt_service.record_exercise_attempt_for_spaced_repetition",
+        ),
+        patch(
             "app.services.exercises.exercise_attempt_service.GamificationService.apply_points"
         ) as apply_points_mock,
         patch(
@@ -1231,6 +1248,7 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
     update_progress_mock.assert_called_once()
     progress_savepoint.rollback.assert_called_once()
     progress_savepoint.commit.assert_not_called()
+    sr_savepoint.commit.assert_called_once()
     apply_points_mock.assert_called_once()
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once_with(mock_attempt)

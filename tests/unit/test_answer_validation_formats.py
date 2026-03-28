@@ -46,6 +46,7 @@ def _run_submit(exercise_type, correct_answer, selected_answer, expected_result)
         MagicMock(is_active=True),
         MagicMock(is_active=True),
         MagicMock(is_active=True),
+        MagicMock(is_active=True),
     ]
     mock_attempt = _mock_attempt()
 
@@ -60,6 +61,11 @@ def _run_submit(exercise_type, correct_answer, selected_answer, expected_result)
             patch(
                 "app.services.exercises.exercise_attempt_service.create_attempt",
                 return_value=mock_attempt,
+            )
+        )
+        stack.enter_context(
+            patch(
+                "app.services.exercises.exercise_attempt_service.record_exercise_attempt_for_spaced_repetition",
             )
         )
         stack.enter_context(

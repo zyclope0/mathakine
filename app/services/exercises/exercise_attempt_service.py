@@ -24,6 +24,9 @@ from app.schemas.exercise import SubmitAnswerResponse
 from app.services.gamification.gamification_service import GamificationService
 from app.services.gamification.point_source import PointEventSourceType
 from app.services.progress.streak_service import update_user_streak
+from app.services.spaced_repetition.spaced_repetition_service import (
+    record_exercise_attempt_for_spaced_repetition,
+)
 from app.utils.exercise_answer_compare import answers_equivalent_numeric_tolerant
 from app.utils.json_utils import make_json_serializable
 
@@ -143,6 +146,28 @@ def submit_answer(
             progress_savepoint.rollback()
         logger.error(
             f"Erreur de données lors de la mise à jour des statistiques: {stats_err}"
+        )
+
+    try:
+        sr_savepoint = db.begin_nested()
+        record_exercise_attempt_for_spaced_repetition(
+            db,
+            user_id=user_id,
+            exercise_id=exercise_id,
+            is_correct=is_correct,
+            time_spent_seconds=float(time_spent or 0),
+            attempt_id=int(attempt_obj.id),
+        )
+        sr_savepoint.commit()
+    except SQLAlchemyError as sr_err:
+        if "sr_savepoint" in locals() and sr_savepoint.is_active:
+            sr_savepoint.rollback()
+        logger.error("Erreur DB lors de la mise à jour spaced repetition: %s", sr_err)
+    except (TypeError, ValueError) as sr_err:
+        if "sr_savepoint" in locals() and sr_savepoint.is_active:
+            sr_savepoint.rollback()
+        logger.error(
+            "Erreur de données lors de la mise à jour spaced repetition: %s", sr_err
         )
 
     if is_correct:
