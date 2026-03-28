@@ -64,7 +64,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 | ~~P0~~ | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU** |
 | P1 | `frontend/app/api/chat/route.ts` | Routes chat sans authentification (cout OpenAI non controle) |
 | P1 | `.env.example` | `REDIS_URL` absente -> crash demarrage prod |
-| P1 | `app/services/challenges/challenge_service.py:353` | Double filtrage `is_active`/`is_archived` incoherent |
+| ~~P1~~ | ~~`app/services/challenges/challenge_service.py:353`~~ | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU** |
 | ~~P1~~ | ~~`app/services/exercises/exercise_attempt_service.py`~~ | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU** |
 
 ---
