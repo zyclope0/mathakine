@@ -17,7 +17,7 @@ import { EXERCISE_TYPES, AGE_GROUPS, EXERCISE_PROMPT_SUGGESTIONS } from "@/lib/c
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useAIExerciseGenerator } from "@/hooks/useAIExerciseGenerator";
 import { validateExerciseParams } from "@/lib/validation/exercise";
-import { Loader2, Zap, Sparkles, X, HelpCircle } from "lucide-react";
+import { Loader2, Zap, Sparkles, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/types/api";
 import { normalizeCreatedResourceId } from "@/lib/ai/generation/normalizeResourceId";
+import {
+  AIGeneratorStreamingRow,
+  AIGeneratorSuccessRowCompact,
+} from "@/components/shared/aiGeneratorSharedUi";
 
 const PROMPT_SUGGESTIONS = EXERCISE_PROMPT_SUGGESTIONS;
 
@@ -205,38 +209,19 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
       </div>
 
       {!isIAEnabled && quickGeneratedExercise && !isQuickGenerating && (
-        <div className="mt-4 p-2.5 rounded-lg bg-success/10 border border-success/20 flex items-center justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-success mb-0.5">
-              {t("aiGenerator.exerciseGenerated")}
-            </p>
-            <p className="text-sm text-foreground truncate">{quickGeneratedExercise.title}</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {normalizeCreatedResourceId(quickGeneratedExercise.id) !== undefined ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const id = normalizeCreatedResourceId(quickGeneratedExercise.id);
-                  if (id) router.push(`/exercises/${id}`);
-                }}
-                className="h-7 text-xs"
-              >
-                {t("aiGenerator.viewExercise")}
-              </Button>
-            ) : null}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setQuickGeneratedExercise(null)}
-              className="h-7 w-7 p-0"
-              aria-label={t("aiGenerator.close")}
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
+        <AIGeneratorSuccessRowCompact
+          successLabel={t("aiGenerator.exerciseGenerated")}
+          title={quickGeneratedExercise.title}
+          viewItemLabel={t("aiGenerator.viewExercise")}
+          onViewItem={() => {
+            const id = normalizeCreatedResourceId(quickGeneratedExercise.id);
+            if (id) router.push(`/exercises/${id}`);
+          }}
+          showViewButton={normalizeCreatedResourceId(quickGeneratedExercise.id) !== undefined}
+          onDismiss={() => setQuickGeneratedExercise(null)}
+          closeAriaLabel={t("aiGenerator.close")}
+          rootClassName="mt-4 p-2.5"
+        />
       )}
 
       {/* Zone IA — affichage conditionnel (mobile + desktop quand activé) */}
@@ -283,56 +268,31 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
               </div>
 
               {isAIGenerating && (
-                <div className="p-2.5 rounded-lg bg-card/60 border border-border/50 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
-                  <p className="flex-1 text-xs text-muted-foreground truncate">
-                    {streamedText || t("aiGenerator.generating")}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={cancelAI}
-                    className="h-6 w-6 p-0 flex-shrink-0"
-                    aria-label={t("aiGenerator.cancel")}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
+                <AIGeneratorStreamingRow
+                  streamedText={streamedText}
+                  fallbackLabel={t("aiGenerator.generating")}
+                  cancelLabel={t("aiGenerator.cancel")}
+                  onCancel={cancelAI}
+                  rootClassName="p-2.5"
+                  streamParagraphClassName="truncate"
+                  cancelButtonClassName="flex-shrink-0"
+                />
               )}
 
               {generatedExercise && !isAIGenerating && (
-                <div className="p-2.5 rounded-lg bg-success/10 border border-success/20 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-success mb-0.5">
-                      {t("aiGenerator.exerciseGenerated")}
-                    </p>
-                    <p className="text-sm text-foreground truncate">{generatedExercise.title}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {normalizeCreatedResourceId(generatedExercise.id) !== undefined ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          const id = normalizeCreatedResourceId(generatedExercise.id);
-                          if (id) router.push(`/exercises/${id}`);
-                        }}
-                        className="h-7 text-xs"
-                      >
-                        {t("aiGenerator.viewExercise")}
-                      </Button>
-                    ) : null}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setGeneratedExercise(null)}
-                      className="h-7 w-7 p-0"
-                      aria-label={t("aiGenerator.close")}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
+                <AIGeneratorSuccessRowCompact
+                  successLabel={t("aiGenerator.exerciseGenerated")}
+                  title={generatedExercise.title}
+                  viewItemLabel={t("aiGenerator.viewExercise")}
+                  onViewItem={() => {
+                    const id = normalizeCreatedResourceId(generatedExercise.id);
+                    if (id) router.push(`/exercises/${id}`);
+                  }}
+                  showViewButton={normalizeCreatedResourceId(generatedExercise.id) !== undefined}
+                  onDismiss={() => setGeneratedExercise(null)}
+                  closeAriaLabel={t("aiGenerator.close")}
+                  rootClassName="p-2.5"
+                />
               )}
             </div>
           </motion.div>

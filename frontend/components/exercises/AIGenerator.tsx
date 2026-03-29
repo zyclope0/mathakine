@@ -7,12 +7,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useAIExerciseGenerator } from "@/hooks/useAIExerciseGenerator";
-import { normalizeCreatedResourceId } from "@/lib/ai/generation/normalizeResourceId";
-import {
-  AIGeneratorBase,
-  type AIGeneratedItem,
-  type AISelectOption,
-} from "@/components/shared/AIGeneratorBase";
+import { exerciseToAIGeneratedItem } from "@/lib/ai/generation/toAIGeneratedItem";
+import { AIGeneratorBase, type AISelectOption } from "@/components/shared/AIGeneratorBase";
 
 interface AIGeneratorProps {
   onExerciseGenerated?: (exercise: Exercise) => void;
@@ -37,16 +33,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
     label: getAgeDisplay(v),
   }));
 
-  const persistedId = generatedExercise
-    ? normalizeCreatedResourceId(generatedExercise.id)
-    : undefined;
-  const generatedItem: AIGeneratedItem | null = generatedExercise
-    ? {
-        ...(persistedId !== undefined ? { id: persistedId } : {}),
-        title: generatedExercise.title,
-        subtitle: generatedExercise.question,
-      }
-    : null;
+  const generatedItem = exerciseToAIGeneratedItem(generatedExercise);
 
   return (
     <AIGeneratorBase
@@ -75,8 +62,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
       onGenerate={generate}
       onCancel={cancel}
       onViewItem={() => {
-        const id = generatedExercise ? normalizeCreatedResourceId(generatedExercise.id) : undefined;
-        if (id) router.push(`/exercises/${id}`);
+        if (generatedItem?.id) router.push(`/exercises/${generatedItem.id}`);
       }}
       onDismissResult={() => setGeneratedExercise(null)}
       isAuthenticated={!!user}

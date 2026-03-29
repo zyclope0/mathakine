@@ -12,6 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AIGeneratorStreamingRow,
+  AIGeneratorSuccessRowCompact,
+} from "@/components/shared/aiGeneratorSharedUi";
 
 export interface AISelectOption {
   value: string;
@@ -229,46 +233,28 @@ export function AIGeneratorBase({
         )}
 
         {isGenerating && (
-          <div className="mt-3 p-2.5 rounded-lg bg-card/60 border border-border/50 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
-            <p className="flex-1 text-xs text-muted-foreground truncate">
-              {streamedText || generatingLabel}
-            </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
-              className="h-6 w-6 p-0 flex-shrink-0"
-              aria-label={cancelLabel}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
+          <AIGeneratorStreamingRow
+            streamedText={streamedText}
+            fallbackLabel={generatingLabel}
+            cancelLabel={cancelLabel}
+            onCancel={onCancel}
+            rootClassName="mt-3 p-2.5"
+            streamParagraphClassName="truncate"
+            cancelButtonClassName="flex-shrink-0"
+          />
         )}
 
         {generatedItem && !isGenerating && (
-          <div className="mt-3 p-2.5 rounded-lg bg-success/10 border border-success/20 flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-success mb-0.5">{successLabel}</p>
-              <p className="text-sm text-foreground truncate">{generatedItem.title}</p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {generatedItem.id && (
-                <Button size="sm" variant="outline" onClick={onViewItem} className="h-7 text-xs">
-                  {viewItemLabel}
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDismissResult}
-                className="h-7 w-7 p-0"
-                aria-label={closeAriaLabel}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
+          <AIGeneratorSuccessRowCompact
+            successLabel={successLabel}
+            title={generatedItem.title}
+            viewItemLabel={viewItemLabel}
+            onViewItem={onViewItem}
+            showViewButton={!!generatedItem.id}
+            onDismiss={onDismissResult}
+            closeAriaLabel={closeAriaLabel}
+            rootClassName="mt-3 p-2.5"
+          />
         )}
       </div>
     );
@@ -366,21 +352,13 @@ export function AIGeneratorBase({
           </div>
 
           {isGenerating && (
-            <div className="p-3 rounded-lg bg-card/60 border border-border/50 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
-              <p className="flex-1 text-xs text-muted-foreground">
-                {streamedText || generatingLabel}
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onCancel}
-                className="h-6 w-6 p-0"
-                aria-label={cancelLabel}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
+            <AIGeneratorStreamingRow
+              streamedText={streamedText}
+              fallbackLabel={generatingLabel}
+              cancelLabel={cancelLabel}
+              onCancel={onCancel}
+              rootClassName="p-3"
+            />
           )}
 
           {generatedItem && !isGenerating && (

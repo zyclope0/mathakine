@@ -12,12 +12,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useAIChallengeGenerator } from "@/hooks/useAIChallengeGenerator";
-import { normalizeCreatedResourceId } from "@/lib/ai/generation/normalizeResourceId";
-import {
-  AIGeneratorBase,
-  type AIGeneratedItem,
-  type AISelectOption,
-} from "@/components/shared/AIGeneratorBase";
+import { challengeToAIGeneratedItem } from "@/lib/ai/generation/toAIGeneratedItem";
+import { AIGeneratorBase, type AISelectOption } from "@/components/shared/AIGeneratorBase";
 
 interface AIGeneratorProps {
   onChallengeGenerated?: (challenge: Challenge) => void;
@@ -40,11 +36,6 @@ export function AIGenerator({ onChallengeGenerated, compact = false }: AIGenerat
     cancel,
   } = useAIChallengeGenerator({ onChallengeGenerated });
 
-  const handleViewChallenge = () => {
-    const id = generatedChallenge ? normalizeCreatedResourceId(generatedChallenge.id) : undefined;
-    if (id) router.push(`/challenge/${id}`);
-  };
-
   const typeOptions: AISelectOption[] = Object.values(CHALLENGE_TYPES).map((v) => ({
     value: v,
     label: getTypeDisplay(v),
@@ -58,15 +49,7 @@ export function AIGenerator({ onChallengeGenerated, compact = false }: AIGenerat
     })),
   ];
 
-  const persistedId = generatedChallenge
-    ? normalizeCreatedResourceId(generatedChallenge.id)
-    : undefined;
-  const generatedItem: AIGeneratedItem | null = generatedChallenge
-    ? {
-        ...(persistedId !== undefined ? { id: persistedId } : {}),
-        title: generatedChallenge.title,
-      }
-    : null;
+  const generatedItem = challengeToAIGeneratedItem(generatedChallenge);
 
   return (
     <AIGeneratorBase
@@ -96,7 +79,9 @@ export function AIGenerator({ onChallengeGenerated, compact = false }: AIGenerat
       generatedItem={generatedItem}
       onGenerate={generate}
       onCancel={cancel}
-      onViewItem={handleViewChallenge}
+      onViewItem={() => {
+        if (generatedItem?.id) router.push(`/challenge/${generatedItem.id}`);
+      }}
       onDismissResult={() => setGeneratedChallenge(null)}
       isAuthenticated={!!user}
       isAuthLoading={isAuthLoading}
