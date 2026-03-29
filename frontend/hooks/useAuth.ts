@@ -5,6 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api, ApiClientError } from "@/lib/api/client";
+import {
+  clearFrontendAuthSyncCookie,
+  syncAccessTokenToFrontend,
+  syncCsrfTokenToFrontend,
+} from "@/lib/auth/auth-session-sync";
 import { useTranslations } from "next-intl";
 import type { User } from "@/types/api";
 
@@ -81,7 +86,6 @@ export function useAuth() {
       // Sync access_token sur le domaine frontend (cross-domain prod : backend cookie pas envoyé aux routes Next.js)
       // IMPORTANT : attendre la sync avant de naviguer, sinon le cookie peut manquer pour les flux SSE
       if (data.access_token && typeof window !== "undefined") {
-        const { syncAccessTokenToFrontend } = await import("@/lib/api/client");
         await syncAccessTokenToFrontend(data.access_token);
       }
 
@@ -89,8 +93,7 @@ export function useAuth() {
       // Le cookie est posé par le backend sur son domaine — inaccessible via document.cookie ici.
       // On le reçoit dans le body JSON et on le fixe sur window.location.hostname.
       if (data.csrf_token && typeof window !== "undefined") {
-        const isSecure = window.location.protocol === "https:";
-        document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
+        syncCsrfTokenToFrontend(data.csrf_token);
       }
 
       // Mettre à jour le cache directement avec les données utilisateur reçues
@@ -169,12 +172,7 @@ export function useAuth() {
         await api.post("/api/auth/logout");
         // Effacer le cookie access_token du domaine frontend (cross-domain prod)
         if (typeof window !== "undefined") {
-          await fetch("/api/auth/sync-cookie", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ clear: true }),
-            credentials: "include",
-          }).catch(() => {});
+          await clearFrontendAuthSyncCookie();
         }
       } catch {
         // Même en cas d'erreur, on déconnecte côté client

@@ -3,25 +3,13 @@
  * Gère l'authentification via cookies HTTP-only avec refresh automatique
  */
 
-// URL du backend API
-// En développement: peut utiliser localhost par défaut
-// En production: DOIT être définie via NEXT_PUBLIC_API_BASE_URL
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
+import {
+  getApiBaseUrl,
+  refreshSessionViaHttpOnlyCookie,
+  syncCsrfTokenToFrontend,
+} from "@/lib/auth/auth-session-sync";
 
-function getApiBaseUrl(): string {
-  if (
-    process.env.NODE_ENV === "production" &&
-    (!API_BASE_URL || API_BASE_URL.includes("localhost"))
-  ) {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost"
-    );
-  }
-  return API_BASE_URL || "http://localhost:10000";
-}
+export { syncAccessTokenToFrontend } from "@/lib/auth/auth-session-sync";
 
 export interface ApiError {
   message: string;
@@ -55,10 +43,6 @@ export function notifyAccessScopeLimited(): void {
   }
 }
 
-// État global pour gérer le refresh en cours
-let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
-
 /**
  * Lit le cookie csrf_token (httponly=false, pattern double-submit).
  * Utilisé automatiquement par apiRequest() sur les requêtes mutantes.
@@ -86,31 +70,8 @@ export async function getCsrfToken(): Promise<string> {
   if (!data?.csrf_token) {
     throw new ApiClientError("Token CSRF invalide", 0);
   }
-  // En cross-domain prod, le cookie backend n'est pas lisible côté frontend.
-  // On le pose manuellement sur le domaine frontend pour que getCsrfTokenFromCookie() fonctionne.
-  if (typeof document !== "undefined") {
-    const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
-    document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
-  }
+  syncCsrfTokenToFrontend(data.csrf_token);
   return data.csrf_token;
-}
-
-/**
- * Sync access_token sur le domaine frontend (pour prod cross-domain).
- * Exporté pour usage au chargement de l'app (utilisateurs revenant avec session).
- */
-export async function syncAccessTokenToFrontend(accessToken: string): Promise<void> {
-  if (typeof window === "undefined") return;
-  try {
-    await fetch("/api/auth/sync-cookie", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: accessToken }),
-      credentials: "include",
-    });
-  } catch {
-    // Non bloquant
-  }
 }
 
 /**
@@ -124,53 +85,8 @@ export async function ensureFrontendAuthCookie(): Promise<void> {
   await refreshAccessToken();
 }
 
-/**
- * Rafraîchit le token via le cookie refresh_token (HttpOnly).
- * Pas de body : le cookie est envoyé automatiquement avec credentials: 'include'.
- * Sécurité : refresh_token jamais exposé à JavaScript (pas de localStorage).
- */
 async function refreshAccessToken(): Promise<boolean> {
-  if (isRefreshing && refreshPromise) {
-    return refreshPromise;
-  }
-
-  isRefreshing = true;
-  refreshPromise = (async () => {
-    try {
-      const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // Cookie refresh_token (HttpOnly) envoyé automatiquement
-        body: JSON.stringify({}), // Body vide ; le cookie suffit
-      });
-
-      if (response.ok) {
-        try {
-          const data = await response.json();
-          if (data.access_token) {
-            await syncAccessTokenToFrontend(data.access_token);
-          }
-          // Sync csrf_token renouvelé sur le domaine frontend (cross-domain prod)
-          if (data.csrf_token && typeof document !== "undefined") {
-            const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
-            document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
-          }
-        } catch {
-          // Réponse non-JSON non critique
-        }
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("[API Client] Erreur lors du refresh du token:", error);
-      return false;
-    } finally {
-      isRefreshing = false;
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
+  return refreshSessionViaHttpOnlyCookie({ syncCsrfFromResponse: true });
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
