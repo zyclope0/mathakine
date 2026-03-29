@@ -2,7 +2,7 @@
 
 > Reference technique - implementation roadmap
 > Date : 2026-03-29
-> Statut : [PARTIAL] `F04-P1` backend livre ; `F04-P2` read-model user-level a venir
+> Statut : [PARTIAL] `F04-P1`..`F04-P3` livres ; `F04-P4` = surface « prochaine révision » (GET read-only)
 > Source : [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
 
 ---
@@ -30,11 +30,18 @@ Fondements scientifiques retenus :
 - branchement sur `exercise_attempt_service.submit_answer(...)`
 - idempotence par `last_attempt_id`
 
+### Livre dans `F04-P2` / `F04-P3`
+
+- read-model user-level (agregat) consomme via `/api/users/stats` → `spaced_repetition`
+- widget dashboard « revisions du jour » (frontend)
+
+### Livre dans `F04-P4`
+
+- `GET /api/users/me/reviews/next` : prochaine carte SR **actionnable** (exercice actif, non archivé), payload review-safe, aucune ecriture SR sur cette route
+
 ### Non livre a ce stade
 
-- read-model user-level F04
-- endpoint public ou user-level pour exposer l'etat F04
-- widget dashboard "revisions du jour"
+- session SR complete / bouton « reviser maintenant » (frontend + submit)
 - integration defis
 - integration F23 (SR + IA)
 
@@ -122,11 +129,9 @@ Regle runtime :
 
 ---
 
-## 7. Read-model cible pour `F04-P2`
+## 7. Read-model user-level (`F04-P2`)
 
-Le prochain lot backend doit exposer un etat user-level derive, sans champ stocke sur `users`.
-
-Payload cible :
+Expose dans `/api/users/stats` sous la cle `spaced_repetition` :
 
 ```json
 {
@@ -145,7 +150,21 @@ Interpretation produit :
 
 ---
 
-## 8. Documentation a realigner
+## 8. Prochaine revision due (`F04-P4`)
+
+Endpoint : `GET /api/users/me/reviews/next` (auth + acces complet).
+
+Reponse :
+
+- `has_due_review` : `true` uniquement si une carte **actionnable** existe (`next_review_date` <= aujourd'hui UTC, exercice actif et non archive)
+- `summary` : meme objet que le bloc `spaced_repetition` de `/api/users/stats`
+- `next_review` : `null` si aucune carte actionnable ; sinon un seul item avec `review_item_id`, `exercise_id`, `due_status` (`overdue` \| `due_today`), `next_review_date` (ISO), `exercise` (champs strictement necessaires a l'enonce — **pas** de correction ni d'explication ni d'indice)
+
+Ordre de selection : retard avant « du jour » ; puis `next_review_date` croissante ; puis `review_item_id` croissant.
+
+---
+
+## 9. Documentation a realigner
 
 ### Mise a jour immediate apres `F04-P1`
 
@@ -158,16 +177,13 @@ Interpretation produit :
 - `docs/05-ADR/`
   - ADR dedie sur la granularite SR, l'idempotence et la derive user-level
 
-### Mise a jour a faire quand `F04-P2` existera
+### Reference API
 
-- `docs/02-FEATURES/API_QUICK_REFERENCE.md`
-  - documenter l'endpoint ou la surface API exposee pour le read-model F04
-- toute doc technique qui decrit les handlers/services users si un nouveau handler ou endpoint est ajoute
-- toute doc dashboard si le payload F04 est consomme ensuite par une UI
+- `docs/02-FEATURES/API_QUICK_REFERENCE.md` — agregat F04 dans `/stats` + `GET /api/users/me/reviews/next`
 
 ---
 
-## 9. References
+## 10. References
 
 - [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)

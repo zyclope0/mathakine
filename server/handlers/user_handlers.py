@@ -18,6 +18,9 @@ from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
 from app.exceptions import UserNotFoundError
 from app.schemas.user import UserCreate, UserPasswordUpdate
+from app.services.spaced_repetition.spaced_repetition_next_review_service import (
+    get_next_review_api_payload,
+)
 from app.services.users.user_application_service import (
     delete_user_account,
     export_user_data,
@@ -79,11 +82,7 @@ async def get_user_stats(request: Request) -> JSONResponse:
         return JSONResponse(result.payload)
 
     except SQLAlchemyError as stats_db_error:
-        logger.error(
-            "users.get_user_stats: erreur base de données: %s",
-            stats_db_error,
-            exc_info=True,
-        )
+        logger.exception("users.get_user_stats: erreur base de données")
         return capture_internal_error_response(
             stats_db_error,
             "Erreur lors de la récupération des statistiques",
@@ -351,6 +350,28 @@ async def get_challenges_detailed_progress(request: Request) -> JSONResponse:
     except Exception as e:
         logger.error(
             "Erreur lors de la récupération du challenge_progress détaillé: %s",
+            e,
+            exc_info=True,
+        )
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_full_access
+async def get_user_me_reviews_next(request: Request) -> JSONResponse:
+    """
+    F04-P4 : prochaine carte SR due (lecture seule, exercice sans correction).
+    Route: GET /api/users/me/reviews/next
+    """
+    try:
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        logger.info("F04 next review fetch for user %s", user_id)
+        response_data = await run_db_bound(get_next_review_api_payload, user_id)
+        return JSONResponse(response_data, status_code=200)
+    except Exception as e:
+        logger.error(
+            "Erreur lors de la récupération de la prochaine révision SR: %s",
             e,
             exc_info=True,
         )

@@ -29,7 +29,7 @@ def _user(db_session):
     return u
 
 
-def _exercise(db_session, suffix: str):
+def _exercise(db_session, suffix: str, **kwargs):
     ex = Exercise(
         title=f"SR read {suffix}",
         exercise_type=get_enum_value(
@@ -43,6 +43,7 @@ def _exercise(db_session, suffix: str):
         correct_answer="2",
         choices=["1", "2"],
         explanation="",
+        **kwargs,
     )
     db_session.add(ex)
     db_session.flush()
@@ -112,3 +113,26 @@ def test_get_user_stats_for_dashboard_includes_spaced_repetition(db_session):
     assert sr["due_today_count"] == 0
     assert sr["overdue_count"] == 0
     assert sr["next_review_date"] is None
+
+
+def test_read_model_excludes_archived_exercise_cards(db_session):
+    u = _user(db_session)
+    ex = _exercise(db_session, "archived", is_archived=True)
+    today = date(2026, 6, 15)
+    db_session.add(_sr_row(u.id, ex.id, today))
+    db_session.commit()
+
+    n, overdue, due_today, next_f = aggregate_spaced_repetition_for_user(
+        db_session, u.id, today
+    )
+    assert n == 0
+    assert overdue == 0
+    assert due_today == 0
+    assert next_f is None
+
+    payload = get_spaced_repetition_user_summary(db_session, u.id, today=today)
+    assert payload["f04_initialized"] is False
+    assert payload["active_cards_count"] == 0
+    assert payload["due_today_count"] == 0
+    assert payload["overdue_count"] == 0
+    assert payload["next_review_date"] is None
