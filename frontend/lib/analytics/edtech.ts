@@ -8,21 +8,38 @@
  * - Plafond 24h : si > 24h entre clic et submit, on envoie null (session trop ancienne).
  */
 
-const KEY_QUICK_START_CLICKED = "mathakine_quick_start_clicked_at";
-const KEY_DASHBOARD_VIEWED = "mathakine_dashboard_viewed_at"; // conservé pour compat
-const KEY_INTERLEAVED_SESSION = "interleaved_session";
+import {
+  getSessionString,
+  isSessionStorageAvailable,
+  readSessionJson,
+  removeSessionKey,
+  setSessionString,
+  STORAGE_KEYS,
+  writeSessionJson,
+} from "@/lib/storage";
+
 const EVENT_NAME = "mathakine-edtech";
 const MAX_TIME_MS = 24 * 60 * 60 * 1000; // 24h
 
-function isClient(): boolean {
-  return typeof window !== "undefined" && typeof sessionStorage !== "undefined";
+interface InterleavedSessionPayload {
+  analytics?: { firstAttemptTracked?: boolean };
+  plan?: string[];
+  completedCount?: number;
+  length?: number;
+}
+
+function asInterleavedSessionPayload(raw: unknown): InterleavedSessionPayload | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
+  return raw as InterleavedSessionPayload;
 }
 
 /**
  * Envoie l'événement au backend (fire-and-forget).
  */
 function sendToBackend(event: string, payload: Record<string, unknown>): void {
-  if (!isClient()) return;
+  if (!isSessionStorageAvailable()) return;
   import("@/lib/api/client")
     .then(({ api }) => {
       api.post("/api/analytics/event", { event, payload }).catch(() => {});
@@ -34,7 +51,7 @@ function sendToBackend(event: string, payload: Record<string, unknown>): void {
  * Dispatch CustomEvent pour intégrations externes (GA, Plausible, etc.).
  */
 function dispatchEvent(event: string, payload: Record<string, unknown>): void {
-  if (!isClient()) return;
+  if (!isSessionStorageAvailable()) return;
   window.dispatchEvent(
     new CustomEvent(EVENT_NAME, {
       detail: { event, payload },
@@ -47,12 +64,8 @@ function dispatchEvent(event: string, payload: Record<string, unknown>): void {
  * Conservé pour compatibilité ; le temps vers 1er attempt utilise désormais le clic Quick Start.
  */
 export function trackDashboardView(): void {
-  if (!isClient()) return;
-  try {
-    sessionStorage.setItem(KEY_DASHBOARD_VIEWED, String(Date.now()));
-  } catch {
-    // sessionStorage désactivé, ignorer
-  }
+  if (!isSessionStorageAvailable()) return;
+  setSessionString(STORAGE_KEYS.edtechDashboardViewedAt, String(Date.now()));
 }
 
 export interface QuickStartClickPayload {
@@ -66,12 +79,8 @@ export interface QuickStartClickPayload {
  * Stocke le timestamp pour le calcul du temps vers 1er attempt.
  */
 export function trackQuickStartClick(payload: QuickStartClickPayload): void {
-  if (isClient()) {
-    try {
-      sessionStorage.setItem(KEY_QUICK_START_CLICKED, String(Date.now()));
-    } catch {
-      // ignorer
-    }
+  if (isSessionStorageAvailable()) {
+    setSessionString(STORAGE_KEYS.edtechQuickStartClickedAt, String(Date.now()));
   }
   const p: Record<string, unknown> = { ...payload };
   dispatchEvent("quick_start_click", p);
@@ -96,42 +105,27 @@ export function trackFirstAttempt(
   type: "exercise" | "challenge" | "interleaved",
   targetId: number
 ): void {
-  if (type === "interleaved" && isClient()) {
-    try {
-      const raw = sessionStorage.getItem(KEY_INTERLEAVED_SESSION);
-      if (raw) {
-        const data = JSON.parse(raw) as {
-          analytics?: { firstAttemptTracked?: boolean };
-          plan?: string[];
-          completedCount?: number;
-          length?: number;
-        };
-        if (data.analytics?.firstAttemptTracked) {
-          return;
-        }
-      }
-    } catch {
-      // ignorer
+  if (type === "interleaved" && isSessionStorageAvailable()) {
+    const data = asInterleavedSessionPayload(
+      readSessionJson(STORAGE_KEYS.edtechInterleavedSession)
+    );
+    if (data?.analytics?.firstAttemptTracked) {
+      return;
     }
   }
 
   let timeToFirstAttemptMs: number | null = null;
-  if (isClient()) {
-    try {
-      const stored = sessionStorage.getItem(KEY_QUICK_START_CLICKED);
-      if (stored) {
-        const clickedAt = parseInt(stored, 10);
-        if (!isNaN(clickedAt)) {
-          const ms = Date.now() - clickedAt;
-          // Valide : >= 0 (pas de temps négatif), <= 24h (session fraîche)
-          if (ms >= 0 && ms <= MAX_TIME_MS) {
-            timeToFirstAttemptMs = ms;
-          }
+  if (isSessionStorageAvailable()) {
+    const stored = getSessionString(STORAGE_KEYS.edtechQuickStartClickedAt);
+    if (stored) {
+      const clickedAt = parseInt(stored, 10);
+      if (!isNaN(clickedAt)) {
+        const ms = Date.now() - clickedAt;
+        if (ms >= 0 && ms <= MAX_TIME_MS) {
+          timeToFirstAttemptMs = ms;
         }
-        sessionStorage.removeItem(KEY_QUICK_START_CLICKED);
       }
-    } catch {
-      // ignorer
+      removeSessionKey(STORAGE_KEYS.edtechQuickStartClickedAt);
     }
   }
 
@@ -140,26 +134,15 @@ export function trackFirstAttempt(
   dispatchEvent("first_attempt", p);
   sendToBackend("first_attempt", p);
 
-  if (type === "interleaved" && isClient()) {
-    try {
-      const raw = sessionStorage.getItem(KEY_INTERLEAVED_SESSION);
-      if (raw) {
-        const data = JSON.parse(raw) as {
-          analytics?: { firstAttemptTracked?: boolean };
-          plan?: string[];
-          completedCount?: number;
-          length?: number;
-        };
-        sessionStorage.setItem(
-          KEY_INTERLEAVED_SESSION,
-          JSON.stringify({
-            ...data,
-            analytics: { ...data.analytics, firstAttemptTracked: true },
-          })
-        );
-      }
-    } catch {
-      // ignorer
+  if (type === "interleaved" && isSessionStorageAvailable()) {
+    const data = asInterleavedSessionPayload(
+      readSessionJson(STORAGE_KEYS.edtechInterleavedSession)
+    );
+    if (data) {
+      writeSessionJson(STORAGE_KEYS.edtechInterleavedSession, {
+        ...data,
+        analytics: { ...data.analytics, firstAttemptTracked: true },
+      });
     }
   }
 }

@@ -39,10 +39,9 @@ import { ContentListSkeleton } from "@/components/shared/ContentListSkeleton";
 import { ExercisesListLoadingShell } from "@/components/shared/ListLoadingShells";
 import { ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
+import { getLocalString, removeLocalKey, setLocalString, STORAGE_KEYS } from "@/lib/storage";
 
 const ITEMS_PER_PAGE = 15;
-
-const EXERCISE_ORDER_STORAGE_KEY = "pref_exercise_order";
 
 function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
   return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
@@ -67,28 +66,17 @@ function ExercisesPageContent() {
   const { isCompleted } = useCompletedExercises();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem(EXERCISE_ORDER_STORAGE_KEY);
-      if (isValidStoredContentListOrder(raw)) {
-        // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
-        setOrderFilter(raw);
-      }
-    } catch {
-      /* ignore corrupted / disabled storage */
+    const raw = getLocalString(STORAGE_KEYS.prefExerciseOrder);
+    if (isValidStoredContentListOrder(raw)) {
+      // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
+      setOrderFilter(raw);
     }
   }, []);
 
   const handleOrderChange = (value: ContentListOrder) => {
     setOrderFilter(value);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(EXERCISE_ORDER_STORAGE_KEY, value);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
+    setLocalString(STORAGE_KEYS.prefExerciseOrder, value);
   };
 
   // Réinitialiser à la page 1 quand les filtres changent
@@ -172,13 +160,7 @@ function ExercisesPageContent() {
     setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
     setHideCompleted(false);
     setCurrentPage(1);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(EXERCISE_ORDER_STORAGE_KEY);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
+    removeLocalKey(STORAGE_KEYS.prefExerciseOrder);
   };
 
   const handlePageChange = (page: number) => {

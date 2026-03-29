@@ -9,6 +9,7 @@ import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { NextIntlProvider } from "./NextIntlProvider";
 import { AuthSyncProvider } from "./AuthSyncProvider";
 import { AccessScopeSync } from "./AccessScopeSync";
+import { getLocalString, STORAGE_KEYS } from "@/lib/storage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,8 +21,6 @@ const queryClient = new QueryClient({
   },
 });
 
-const THEME_STORAGE_KEY = "theme-preferences";
-
 export function Providers({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useThemeStore();
   const { highContrast, largeText, reducedMotion, dyslexiaMode, focusMode } =
@@ -30,7 +29,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Premier chargement : appliquer prefers-color-scheme si l'utilisateur n'a jamais choisi de thème
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = getLocalString(STORAGE_KEYS.themePreferences);
     if (!stored) {
       const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
       setTheme(prefersLight ? "minimalist" : "spatial");
@@ -43,7 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       document.documentElement.setAttribute("data-theme", theme);
 
       // Réappliquer le dark mode si activé (pour synchroniser avec les variantes dark: du thème)
-      const stored = localStorage.getItem("dark-mode");
+      const stored = getLocalString(STORAGE_KEYS.darkMode);
       const isDarkMode = stored === "true";
       if (isDarkMode) {
         document.documentElement.classList.add("dark");

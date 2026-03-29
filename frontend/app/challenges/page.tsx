@@ -33,6 +33,7 @@ import {
   type ContentListFilterToolbarLabels,
 } from "@/components/shared/ContentListProgressiveFilterToolbar";
 import { CONTENT_LIST_ORDER, type ContentListOrder } from "@/lib/constants/contentListOrder";
+import { getLocalString, removeLocalKey, setLocalString, STORAGE_KEYS } from "@/lib/storage";
 
 // Lazy load modal pour la vue liste
 const ChallengeModal = dynamic(
@@ -46,8 +47,6 @@ const ChallengeModal = dynamic(
 );
 
 const ITEMS_PER_PAGE = 15;
-
-const CHALLENGE_ORDER_STORAGE_KEY = "pref_challenge_order";
 
 function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
   return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
@@ -70,28 +69,17 @@ function ChallengesPageContent() {
   const { isCompleted } = useCompletedChallenges();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem(CHALLENGE_ORDER_STORAGE_KEY);
-      if (isValidStoredContentListOrder(raw)) {
-        // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
-        setOrderFilter(raw);
-      }
-    } catch {
-      /* ignore corrupted / disabled storage */
+    const raw = getLocalString(STORAGE_KEYS.prefChallengeOrder);
+    if (isValidStoredContentListOrder(raw)) {
+      // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
+      setOrderFilter(raw);
     }
   }, []);
 
   const handleOrderChange = (value: ContentListOrder) => {
     setOrderFilter(value);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(CHALLENGE_ORDER_STORAGE_KEY, value);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
+    setLocalString(STORAGE_KEYS.prefChallengeOrder, value);
   };
 
   // Optimiser les filtres avec useMemo
@@ -143,13 +131,7 @@ function ChallengesPageContent() {
     setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
     setHideCompleted(false);
     setCurrentPage(1);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(CHALLENGE_ORDER_STORAGE_KEY);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
+    removeLocalKey(STORAGE_KEYS.prefChallengeOrder);
   };
 
   const handlePageChange = (page: number) => {
