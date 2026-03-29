@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
+import { RecommendationsSkeleton } from "@/components/dashboard/DashboardSkeletons";
 
 const INITIAL_RECOMMENDATIONS_VISIBLE = 6;
 
@@ -59,22 +60,9 @@ export function Recommendations() {
         </div>
       </CardHeader>
 
-      <CardContent>
-        {/* Skeleton */}
+      <CardContent aria-busy={isLoading}>
         {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 2 }).map((_, index) => (
-              <div key={index} className="p-5 rounded-xl border border-border/50 animate-pulse">
-                <div className="flex gap-2 mb-4">
-                  <div className="h-5 w-20 bg-muted-foreground/20 rounded-full" />
-                  <div className="h-5 w-16 bg-muted-foreground/20 rounded-full" />
-                </div>
-                <div className="h-4 w-3/4 bg-muted-foreground/20 rounded mb-3" />
-                <div className="h-3 w-full bg-muted-foreground/20 rounded mb-2" />
-                <div className="h-12 w-full bg-muted-foreground/10 rounded-lg" />
-              </div>
-            ))}
-          </div>
+          <RecommendationsSkeleton />
         ) : recommendations && recommendations.length > 0 ? (
           <div className="space-y-3">
             {visibleRecommendations.map((recommendation: Recommendation, index) => {

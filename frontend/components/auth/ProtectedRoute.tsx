@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { LoadingState } from "@/components/layout/LoadingState";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -84,11 +84,8 @@ export function ProtectedRoute({
 
   if (isLoading && user === null && !hasCheckedAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <LoadingState className="min-h-0 py-8" />
       </div>
     );
   }

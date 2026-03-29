@@ -2,7 +2,7 @@
 
 import { BadgeCard } from "./BadgeCard";
 import type { Badge, UserBadge } from "@/types/api";
-import { Loader2 } from "lucide-react";
+import { LoadingState } from "@/components/layout/LoadingState";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
@@ -66,11 +66,7 @@ export function BadgeGrid({
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingState className="min-h-0 py-12" />;
   }
 
   // Filtrer les badges invalides (sans nom ou code)

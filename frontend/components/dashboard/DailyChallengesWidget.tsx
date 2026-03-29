@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Calendar, ChevronRight, CheckCircle2, Calculator, Puzzle, Target } from "lucide-react";
 import type { DailyChallenge } from "@/types/api";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DailyChallengesSkeleton } from "@/components/dashboard/DashboardSkeletons";
 
 /** Icônes par type de défi — défini au niveau module pour éviter "component created during render" */
 const CHALLENGE_ICONS = {
@@ -29,32 +29,7 @@ export function DailyChallengesWidget() {
 
   if (isLoading) {
     return (
-      <div
-        className="dashboard-card-surface--calm p-4 md:p-5"
-        role="region"
-        aria-busy="true"
-        aria-label={t("title")}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <Skeleton className="h-10 w-10 rounded-full shrink-0" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-48" />
-          </div>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg border border-border p-3">
-              <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
-              <div className="flex-1 space-y-1">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-              <Skeleton className="h-5 w-12 shrink-0" />
-            </div>
-          ))}
-        </div>
-      </div>
+      <DailyChallengesSkeleton className="flex-1 min-h-0 flex flex-col" aria-label={t("title")} />
     );
   }
 
