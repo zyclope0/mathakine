@@ -108,4 +108,31 @@ describe("ExerciseSolver - session spaced-review", () => {
     expect(mockUseExercise).toHaveBeenCalledWith(1, { enabled: false });
     expect(mockFetchNextReviewApi).toHaveBeenCalled();
   });
+
+  it("keeps the first choice keyboard-reachable before any selection", async () => {
+    mockFetchNextReviewApi.mockResolvedValue({
+      has_due_review: true,
+      summary: {
+        f04_initialized: true,
+        active_cards_count: 2,
+        due_today_count: 1,
+        overdue_count: 0,
+        next_review_date: "2026-03-30",
+      },
+      next_review: {
+        review_item_id: 43,
+        exercise_id: 1,
+        due_status: "due_today",
+        next_review_date: "2026-03-29",
+        exercise: reviewSafeExerciseFixture,
+      },
+    });
+
+    render(<ExerciseSolver exerciseId={1} />, { wrapper: Wrapper });
+
+    const choices = await screen.findAllByRole("radio");
+    expect(choices).toHaveLength(2);
+    expect(choices[0]).toHaveAttribute("tabindex", "0");
+    expect(choices[1]).toHaveAttribute("tabindex", "-1");
+  });
 });

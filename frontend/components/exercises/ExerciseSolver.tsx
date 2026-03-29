@@ -572,7 +572,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
                 role="radio"
                 aria-checked={isSelected ? "true" : "false"}
                 aria-label={`${t("option", { index: index + 1 })}: ${choice}${hasSubmitted ? (isCorrectChoice(choice) ? ` - ${t("answerCorrect")}` : showIncorrect ? ` - ${t("answerIncorrect")}` : "") : ""}`}
-                tabIndex={hasSubmitted ? -1 : isSelected ? 0 : -1}
+                tabIndex={hasSubmitted ? -1 : isSelected || index === 0 ? 0 : -1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();

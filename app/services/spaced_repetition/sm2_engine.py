@@ -56,7 +56,7 @@ def derive_quality_from_attempt(is_correct: bool, time_spent_seconds: float) -> 
     Map exercise attempt outcome to SM-2 quality 0–5.
 
     Incorrect -> 0. Correct: fast -> 5, slow -> 3, otherwise -> 4.
-    Negative or NaN time is treated as slow path (quality 3 if correct).
+    Missing, zero, negative or NaN time is treated as slow path (quality 3 if correct).
     """
     if not is_correct:
         return QUALITY_INCORRECT
@@ -64,7 +64,7 @@ def derive_quality_from_attempt(is_correct: bool, time_spent_seconds: float) -> 
         t = float(time_spent_seconds)
     except (TypeError, ValueError):
         t = QUALITY_SLOW_CORRECT_THRESHOLD_SEC
-    if t < 0 or math.isnan(t):
+    if t <= 0 or math.isnan(t):
         t = QUALITY_SLOW_CORRECT_THRESHOLD_SEC
     if t <= QUALITY_FAST_CORRECT_THRESHOLD_SEC:
         return 5

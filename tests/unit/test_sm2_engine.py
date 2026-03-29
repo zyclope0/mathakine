@@ -94,6 +94,13 @@ def test_derive_quality_fast_slow_incorrect():
     assert derive_quality_from_attempt(True, 150.0) == 3
 
 
+def test_derive_quality_zero_or_invalid_time_falls_back_to_slow_path():
+    assert derive_quality_from_attempt(True, 0.0) == 3
+    assert derive_quality_from_attempt(True, -1.0) == 3
+    assert derive_quality_from_attempt(True, float("nan")) == 3
+    assert derive_quality_from_attempt(True, None) == 3
+
+
 def test_invalid_quality_raises():
     with pytest.raises(SpacedRepetitionInputError):
         apply_sm2_transition(None, 6, date(2026, 1, 1))
