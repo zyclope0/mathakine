@@ -112,6 +112,7 @@ export function Starfield() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-[-10]"
+      data-spatial-layer="starfield"
       aria-hidden="true"
     />
   );

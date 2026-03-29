@@ -6,16 +6,21 @@ import type { Exercise } from "@/types/api";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 import { useEffect } from "react";
 
-export function useExercise(exerciseId: number) {
+interface UseExerciseOptions {
+  enabled?: boolean;
+}
+
+export function useExercise(exerciseId: number, options?: UseExerciseOptions) {
   const queryClient = useQueryClient();
   const { locale } = useLocaleStore();
+  const enabled = options?.enabled ?? true;
 
   // Invalider les queries quand la locale change
   useEffect(() => {
-    if (exerciseId > 0) {
+    if (enabled && exerciseId > 0) {
       queryClient.invalidateQueries({ queryKey: ["exercise", exerciseId] });
     }
-  }, [locale, exerciseId, queryClient]);
+  }, [locale, exerciseId, queryClient, enabled]);
 
   const {
     data: exercise,
@@ -26,7 +31,7 @@ export function useExercise(exerciseId: number) {
     queryFn: async () => {
       return await api.get<Exercise>(`/api/exercises/${exerciseId}`);
     },
-    enabled: !!exerciseId && exerciseId > 0,
+    enabled: enabled && !!exerciseId && exerciseId > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

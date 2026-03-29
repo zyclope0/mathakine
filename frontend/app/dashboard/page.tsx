@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }
   } catch {
     displayTime = time;
   }
-  return <p className="text-xs text-muted-foreground">{t("lastUpdate", { time: displayTime })}</p>;
+  return <p className="text-sm text-muted-foreground">{t("lastUpdate", { time: displayTime })}</p>;
 }
 
 export default function DashboardPage() {
@@ -135,6 +135,14 @@ export default function DashboardPage() {
     }
   }, [refetch, isRefreshing, queryClient, tToasts, t]);
 
+  /** Atténuation du décor spatial : attribut document, ciblé par globals.css (route dashboard uniquement). */
+  useEffect(() => {
+    document.documentElement.setAttribute("data-mathakine-dashboard", "");
+    return () => {
+      document.documentElement.removeAttribute("data-mathakine-dashboard");
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <ProtectedRoute requireFullAccess requireOnboardingCompleted>
@@ -210,11 +218,7 @@ export default function DashboardPage() {
 
         {/* Contenu organisé par onglets pour réduire la densité */}
         {stats && (
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-4 animate-fade-in-up-delay-1"
-          >
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList
               className="grid w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
               aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}

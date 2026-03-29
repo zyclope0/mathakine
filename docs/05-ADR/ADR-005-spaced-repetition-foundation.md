@@ -83,15 +83,18 @@ Ce choix privilegie la robustesse du flux d'apprentissage principal.
 
 ---
 
-## Suite attendue
+## Etat actuel
 
-Le prochain lot `F04-P2` doit exposer un read-model user-level derive avec au minimum :
-- `f04_initialized`
-- `active_cards_count`
-- `due_today_count`
-- `overdue_count`
-- `next_review_date`
+Depuis cette ADR, les livrables suivants ont ete poses :
+- `F04-P2` : read-model user-level derive (`f04_initialized`, `active_cards_count`, `due_today_count`, `overdue_count`, `next_review_date`) expose via `/api/users/stats`
+- `F04-P3` : widget dashboard `Revisions du jour`
+- `F04-P4` : `GET /api/users/me/reviews/next` (lecture seule, prochaine carte actionnable, payload review-safe)
+- `F04-P5` : flux frontend `Reviser maintenant` -> solver existant en mode `?session=spaced-review`
 
-Quand ce read-model sera expose via endpoint ou payload existant, il faudra realigner :
+Les documents actifs realignes sont :
 - `docs/02-FEATURES/API_QUICK_REFERENCE.md`
-- les docs techniques des handlers/services users concernes
+- `docs/02-FEATURES/F04_REVISIONS_ESPACEES.md`
+
+Extensions encore hors de cette ADR de fondation :
+- integration defis
+- couplage futur avec F23 (SR + IA)

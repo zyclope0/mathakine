@@ -61,6 +61,7 @@ export function Planet() {
       <div
         ref={containerRef}
         className="fixed bottom-8 right-8 z-[-5] pointer-events-none"
+        data-spatial-layer="planet"
         aria-hidden="true"
       >
         <div
@@ -107,6 +108,7 @@ export function Planet() {
     <div
       ref={containerRef}
       className="fixed bottom-8 right-8 z-[-5] pointer-events-none"
+      data-spatial-layer="planet"
       aria-hidden="true"
     >
       {/* Planète avec cratères 3D */}

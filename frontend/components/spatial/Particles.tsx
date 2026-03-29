@@ -96,6 +96,7 @@ export function Particles() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-[-8]"
+      data-spatial-layer="particles"
       aria-hidden="true"
     />
   );

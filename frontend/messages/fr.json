@@ -444,7 +444,22 @@
       "answerIncorrect": "Pas encore",
       "option": "Option {index}",
       "openAnswerLabel": "Votre réponse",
-      "openAnswerPlaceholder": "Entrez votre réponse…"
+      "openAnswerPlaceholder": "Entrez votre réponse…",
+      "reviewContextBadge": "Révision",
+      "reviewBackDashboard": "Tableau de bord",
+      "reviewAllExercises": "Tous les exercices",
+      "reviewNavLabel": "Navigation pendant une révision",
+      "reviewPreparing": "Préparation de la révision…",
+      "reviewUnavailableTitle": "Aucune révision disponible",
+      "reviewUnavailableBody": "Aucune carte actionnable n’est disponible pour le moment. Tu peux revenir au tableau de bord ou continuer tes exercices.",
+      "reviewNoChoicesFallback": "Ce format d’exercice ne peut pas être complété ici sans aide. Passe à un autre exercice ou reviens au tableau de bord.",
+      "reviewCheckingNext": "Vérification des prochaines révisions…",
+      "reviewFetchNextError": "Impossible de vérifier la suite pour le moment.",
+      "reviewRetry": "Réessayer",
+      "reviewSessionCompleteTitle": "Révisions à jour",
+      "reviewSessionCompleteBody": "Tu as terminé les révisions prévues pour aujourd’hui. Tu peux revenir demain ou continuer depuis le tableau de bord.",
+      "reviewNext": "Révision suivante",
+      "reviewFollowUpLabel": "Suite de la session de révision"
     },
     "error": {
       "invalidId": "ID d'exercice invalide",
@@ -761,8 +776,13 @@
       "activeCards": "{count, plural, one {# carte suivie} other {# cartes suivies}}",
       "nextReview": "Prochaine révision : {date}",
       "loadError": "Impossible d'afficher le résumé des révisions.",
+      "reviewNow": "Réviser maintenant",
+      "reviewNowLoading": "Préparation…",
+      "reviewFetchError": "Impossible de lancer la révision pour le moment. Réessayez dans un instant.",
+      "noReviewAvailable": "Aucune carte due pour l’instant. Vous pouvez actualiser le tableau de bord.",
       "a11y": {
-        "regionLabel": "Résumé des révisions espacées"
+        "regionLabel": "Résumé des révisions espacées",
+        "ctaSection": "Actions de révision"
       }
     },
     "stats": {

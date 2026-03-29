@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
@@ -16,6 +16,13 @@ import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 import { api, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
+import { fetchNextReviewApi } from "@/hooks/useNextReview";
+import {
+  clearSpacedReviewNext,
+  readSpacedReviewNext,
+  storeSpacedReviewNext,
+} from "@/lib/spacedReviewSession";
+import type { ReviewSafeExercisePayload } from "@/lib/validation/spacedRepetitionNextReview";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -23,14 +30,29 @@ interface ExerciseSolverProps {
 
 const INTERLEAVED_STORAGE_KEY = "interleaved_session";
 
+type SessionMode = "interleaved" | "spaced-review" | null;
+
+function readSessionMode(searchParams: URLSearchParams | null): SessionMode {
+  const v = searchParams?.get("session");
+  if (v === "interleaved") {
+    return "interleaved";
+  }
+  if (v === "spaced-review") {
+    return "spaced-review";
+  }
+  return null;
+}
+
 export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionMode = searchParams.get("session") === "interleaved" ? "interleaved" : null;
+  const sessionMode = readSessionMode(searchParams);
   const t = useTranslations("exercises.solver");
   const tToasts = useTranslations("toasts.exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
-  const { exercise, isLoading, error } = useExercise(exerciseId);
+  const { exercise, isLoading, error } = useExercise(exerciseId, {
+    enabled: sessionMode !== "spaced-review",
+  });
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
   const { resolveIsOpenAnswer } = useIrtScores();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -45,6 +67,115 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   } | null>(null);
   const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const startTimeRef = useRef<number>(0);
+  const [spacedReviewPhase, setSpacedReviewPhase] = useState<
+    "idle" | "loading" | "error" | "has_next" | "complete"
+  >("idle");
+  const [nextSpacedExerciseId, setNextSpacedExerciseId] = useState<number | null>(null);
+  const [reviewExercise, setReviewExercise] = useState<ReviewSafeExercisePayload | null>(null);
+  const [isReviewExerciseLoading, setIsReviewExerciseLoading] = useState(false);
+  const [reviewExerciseError, setReviewExerciseError] = useState<string | null>(null);
+
+  const applySpacedReviewFetchResult = useCallback(
+    (parsed: Awaited<ReturnType<typeof fetchNextReviewApi>>) => {
+      if (!parsed) {
+        setSpacedReviewPhase("error");
+        setNextSpacedExerciseId(null);
+        return;
+      }
+      if (parsed.has_due_review && parsed.next_review) {
+        storeSpacedReviewNext(parsed.next_review);
+        setNextSpacedExerciseId(parsed.next_review.exercise_id);
+        setSpacedReviewPhase("has_next");
+      } else {
+        clearSpacedReviewNext();
+        setNextSpacedExerciseId(null);
+        setSpacedReviewPhase("complete");
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (sessionMode !== "spaced-review") {
+      setSpacedReviewPhase("idle");
+      setNextSpacedExerciseId(null);
+      setReviewExercise(null);
+      setIsReviewExerciseLoading(false);
+      setReviewExerciseError(null);
+      return;
+    }
+    setSpacedReviewPhase("idle");
+    setNextSpacedExerciseId(null);
+    setReviewExercise(null);
+    setReviewExerciseError(null);
+    const stored = readSpacedReviewNext(exerciseId);
+    if (stored) {
+      setReviewExercise(stored.exercise);
+      setIsReviewExerciseLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsReviewExerciseLoading(true);
+    void (async () => {
+      try {
+        const parsed = await fetchNextReviewApi();
+        if (cancelled) {
+          return;
+        }
+        if (!parsed || !parsed.has_due_review || !parsed.next_review) {
+          clearSpacedReviewNext();
+          setReviewExercise(null);
+          setReviewExerciseError("no_review");
+          return;
+        }
+        storeSpacedReviewNext(parsed.next_review);
+        if (parsed.next_review.exercise_id !== exerciseId) {
+          router.replace(`/exercises/${parsed.next_review.exercise_id}?session=spaced-review`);
+          return;
+        }
+        setReviewExercise(parsed.next_review.exercise);
+        setReviewExerciseError(null);
+      } catch {
+        if (!cancelled) {
+          setReviewExercise(null);
+          setReviewExerciseError("request_failed");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsReviewExerciseLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [exerciseId, router, sessionMode]);
+
+  useEffect(() => {
+    if (sessionMode !== "spaced-review" || !hasSubmitted || !submitResult) {
+      return;
+    }
+    let cancelled = false;
+    setSpacedReviewPhase("loading");
+    void (async () => {
+      try {
+        const parsed = await fetchNextReviewApi();
+        if (cancelled) {
+          return;
+        }
+        applySpacedReviewFetchResult(parsed);
+      } catch {
+        if (!cancelled) {
+          setSpacedReviewPhase("error");
+          setNextSpacedExerciseId(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionMode, hasSubmitted, submitResult, exerciseId, applySpacedReviewFetchResult]);
 
   useEffect(() => {
     if (sessionMode === "interleaved" && typeof window !== "undefined") {
@@ -91,27 +222,31 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   useEffect(() => {
     if (submitResult) {
       setHasSubmitted(true);
-      setShowExplanation(true);
+      setShowExplanation(sessionMode !== "spaced-review");
     }
-  }, [submitResult]);
+  }, [sessionMode, submitResult]);
 
   // Réinitialiser l'état quand l'exercice change
   useEffect(() => {
-    if (exercise) {
+    const displayExerciseAvailable =
+      sessionMode === "spaced-review" ? reviewExercise != null : exercise != null;
+    if (displayExerciseAvailable) {
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setShowExplanation(false);
+      setShowHint(false);
       startTimeRef.current = Date.now();
     }
-    // exhaustive-deps: id seul — éviter reset si l’objet exercise est recréé à contenu identique.
+    // exhaustive-deps: reset seulement si l'exercice courant change de réalité visible.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exercise?.id]);
+  }, [exercise?.id, reviewExercise?.id, sessionMode]);
 
   // Le mode de réponse est résolu depuis les scores IRT de l'utilisateur (F03+F05),
   // pas depuis le flag is_open_answer du générateur. Cela permet au backend de
   // toujours générer les choices, et au frontend de décider selon le niveau réel
   // par type (QCM pour les niveaux inférieurs, saisie libre à GRAND_MAITRE IRT).
-  const isOpenAnswer = exercise ? resolveIsOpenAnswer(exercise.exercise_type) : false;
+  const displayExercise = sessionMode === "spaced-review" ? reviewExercise : exercise;
+  const isOpenAnswer = displayExercise ? resolveIsOpenAnswer(displayExercise.exercise_type) : false;
 
   const handleSelectAnswer = (answer: string) => {
     if (hasSubmitted) return;
@@ -119,13 +254,13 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   };
 
   const handleSubmit = async () => {
-    if (!selectedAnswer || !exercise || hasSubmitted) return;
+    if (!selectedAnswer || !displayExercise || hasSubmitted) return;
 
     const timeSpent = (Date.now() - startTimeRef.current) / 1000; // en secondes
 
     try {
       await submitAnswer({
-        exercise_id: exercise.id,
+        exercise_id: displayExercise.id,
         answer: selectedAnswer,
         time_spent: timeSpent,
         analytics_type: sessionMode === "interleaved" ? "interleaved" : "exercise",
@@ -191,12 +326,23 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     }
   };
 
+  const handleRetrySpacedReviewFetch = useCallback(async () => {
+    setSpacedReviewPhase("loading");
+    try {
+      const parsed = await fetchNextReviewApi();
+      applySpacedReviewFetchResult(parsed);
+    } catch {
+      setSpacedReviewPhase("error");
+      setNextSpacedExerciseId(null);
+    }
+  }, [applySpacedReviewFetchResult]);
+
   // Conteneur Focus Board (glassmorphism) — utilisé pour loading, error et contenu
   const FocusBoard = ({
     children,
     className = "",
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
   }) => (
     <div
@@ -244,16 +390,57 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     );
   }
 
-  if (!exercise) {
+  if (sessionMode === "spaced-review" && isReviewExerciseLoading) {
+    return (
+      <FocusBoard>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto motion-reduce:animate-none" />
+            <p className="text-muted-foreground">{t("reviewPreparing")}</p>
+          </div>
+        </div>
+      </FocusBoard>
+    );
+  }
+
+  if (sessionMode === "spaced-review" && reviewExerciseError) {
+    return (
+      <FocusBoard>
+        <div className="text-center space-y-4" role="status" aria-live="polite">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{t("reviewUnavailableTitle")}</h3>
+            <p className="text-muted-foreground mt-2">
+              {reviewExerciseError === "no_review"
+                ? t("reviewUnavailableBody")
+                : t("reviewFetchNextError")}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild variant="default" className="min-h-11">
+              <Link href="/dashboard">{t("reviewBackDashboard")}</Link>
+            </Button>
+            <Button asChild variant="outline" className="min-h-11">
+              <Link href="/exercises">{t("backToExercises")}</Link>
+            </Button>
+          </div>
+        </div>
+      </FocusBoard>
+    );
+  }
+
+  if (!displayExercise) {
     return null;
   }
 
-  const typeDisplay = getTypeDisplay(exercise.exercise_type);
-  const ageGroupDisplay = getAgeDisplay(exercise.age_group);
+  const typeDisplay = getTypeDisplay(displayExercise.exercise_type);
+  const ageGroupDisplay = getAgeDisplay(displayExercise.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
-  const choices = exercise.choices && exercise.choices.length > 0 ? exercise.choices : [];
+  const choices = Array.isArray(displayExercise.choices)
+    ? displayExercise.choices.filter((choice): choice is string => typeof choice === "string")
+    : [];
   const isCorrectChoice = (choice: string) =>
     hasSubmitted && submitResult?.correct_answer ? choice === submitResult.correct_answer : false;
+  const explanationText = submitResult?.explanation || exercise?.explanation || "";
 
   return (
     <FocusBoard>
@@ -267,29 +454,55 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         </p>
       )}
 
-      {/* Bouton Retour — en haut à gauche, discret */}
-      <Link
-        href="/exercises"
-        className="text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("back")}
-      </Link>
+      {/* Navigation — contexte révision : sortie vers tableau de bord + exercices */}
+      {sessionMode === "spaced-review" ? (
+        <nav
+          className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm"
+          aria-label={t("reviewNavLabel")}
+        >
+          <Link
+            href="/dashboard"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 min-h-11 py-2"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+            {t("reviewBackDashboard")}
+          </Link>
+          <Link
+            href="/exercises"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 min-h-11 py-2"
+          >
+            {t("reviewAllExercises")}
+          </Link>
+        </nav>
+      ) : (
+        <Link
+          href="/exercises"
+          className="text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-2 min-h-11 py-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("back")}
+        </Link>
+      )}
 
       {/* Tags centrés au-dessus du titre */}
-      <div className="flex justify-center gap-2 mb-4">
+      <div className="flex justify-center flex-wrap gap-2 mb-4">
+        {sessionMode === "spaced-review" ? (
+          <Badge variant="secondary" className="border-border text-foreground/90">
+            {t("reviewContextBadge")}
+          </Badge>
+        ) : null}
         {ageGroupDisplay && <Badge variant="outline">{ageGroupDisplay}</Badge>}
         <Badge variant="outline">{typeDisplay}</Badge>
       </div>
 
       {/* Titre centré */}
       <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-        {exercise.title}
+        {displayExercise.title}
       </h1>
 
       {/* Énoncé — la star de la page */}
       <div className="text-xl md:text-2xl font-medium text-foreground text-center mb-12 leading-relaxed">
-        <MathText size="xl">{exercise.question}</MathText>
+        <MathText size="xl">{displayExercise.question}</MathText>
       </div>
 
       {/* Zone de réponse — QCM ou saisie libre selon is_open_answer */}
@@ -382,11 +595,17 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             );
           })}
         </div>
+      ) : sessionMode === "spaced-review" && !hasSubmitted ? (
+        <div className="p-6 border rounded-xl bg-muted/40 border-border mb-8">
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {t("reviewNoChoicesFallback")}
+          </p>
+        </div>
       ) : (
         <div className="p-4 border rounded-lg bg-muted/50 mb-8">
           <p className="text-muted-foreground text-sm">
             {t("noChoices")}{" "}
-            <strong>{submitResult?.correct_answer ?? exercise.correct_answer}</strong>
+            <strong>{submitResult?.correct_answer ?? exercise?.correct_answer ?? ""}</strong>
           </p>
         </div>
       )}
@@ -449,22 +668,22 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       )}
 
       {/* Explication — Fiche de savoir */}
-      {showExplanation && (exercise.explanation || submitResult?.explanation) && (
+      {showExplanation && explanationText && (
         <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mt-6">
           <div className="flex items-start gap-3">
             <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
               <MathText size="lg" className="text-foreground">
-                {submitResult?.explanation || exercise.explanation || ""}
+                {explanationText}
               </MathText>
             </div>
           </div>
         </div>
       )}
 
-      {/* Indice (si disponible et pas encore soumis) */}
-      {!hasSubmitted && exercise.hint && !showHint && (
+      {/* Indice — masqué en session révision (pas d’indice avant réponse) */}
+      {!hasSubmitted && exercise?.hint && !showHint && sessionMode !== "spaced-review" && (
         <Button
           variant="outline"
           size="sm"
@@ -476,7 +695,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           {t("hint")}
         </Button>
       )}
-      {showHint && exercise.hint && (
+      {showHint && exercise?.hint && sessionMode !== "spaced-review" && (
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mt-6">
           <div className="flex items-start gap-3">
             <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
@@ -533,28 +752,96 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           )}
         </>
       )}
-      {hasSubmitted && !(sessionMode === "interleaved" && sessionData) && (
-        <div className="flex gap-3 pt-8 mt-8 border-t border-border">
-          <Button
-            variant="outline"
-            asChild
-            className="flex-1 bg-transparent border border-border text-muted-foreground hover:bg-accent hover:text-foreground px-6 py-3 rounded-xl transition-colors"
-          >
-            <Link href="/exercises">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("backToExercises")}
-            </Link>
-          </Button>
-          <Button
-            onClick={() => router.push("/exercises")}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
-            aria-label={t("newExercise")}
-          >
-            <ArrowRight className="mr-2 h-4 w-4" />
-            {t("newExercise")}
-          </Button>
-        </div>
+      {hasSubmitted && sessionMode === "spaced-review" && (
+        <section
+          className="pt-8 mt-8 border-t border-border space-y-4"
+          aria-label={t("reviewFollowUpLabel")}
+        >
+          {spacedReviewPhase === "loading" || spacedReviewPhase === "idle" ? (
+            <p className="text-muted-foreground text-sm flex items-center gap-2 min-h-11">
+              <Loader2
+                className="h-4 w-4 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none"
+                aria-hidden
+              />
+              {t("reviewCheckingNext")}
+            </p>
+          ) : null}
+          {spacedReviewPhase === "error" ? (
+            <div className="space-y-3">
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {t("reviewFetchNextError")}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                onClick={() => void handleRetrySpacedReviewFetch()}
+              >
+                {t("reviewRetry")}
+              </Button>
+            </div>
+          ) : null}
+          {spacedReviewPhase === "complete" ? (
+            <div className="space-y-4 p-6 rounded-xl bg-muted/30 border border-border">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t("reviewSessionCompleteTitle")}
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {t("reviewSessionCompleteBody")}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <Button asChild variant="default" className="min-h-11 w-full sm:w-auto">
+                  <Link href="/dashboard">{t("reviewBackDashboard")}</Link>
+                </Button>
+                <Button asChild variant="outline" className="min-h-11 w-full sm:w-auto">
+                  <Link href="/exercises">{t("backToExercises")}</Link>
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {spacedReviewPhase === "has_next" && nextSpacedExerciseId !== null ? (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline" className="min-h-11 flex-1">
+                <Link href="/dashboard">{t("reviewBackDashboard")}</Link>
+              </Button>
+              <Button
+                type="button"
+                className="min-h-11 flex-1"
+                onClick={() =>
+                  router.push(`/exercises/${nextSpacedExerciseId}?session=spaced-review`)
+                }
+              >
+                <ArrowRight className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                {t("reviewNext")}
+              </Button>
+            </div>
+          ) : null}
+        </section>
       )}
+      {hasSubmitted &&
+        !(sessionMode === "interleaved" && sessionData) &&
+        sessionMode !== "spaced-review" && (
+          <div className="flex gap-3 pt-8 mt-8 border-t border-border">
+            <Button
+              variant="outline"
+              asChild
+              className="flex-1 bg-transparent border border-border text-muted-foreground hover:bg-accent hover:text-foreground px-6 py-3 rounded-xl transition-colors"
+            >
+              <Link href="/exercises">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("backToExercises")}
+              </Link>
+            </Button>
+            <Button
+              onClick={() => router.push("/exercises")}
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+              aria-label={t("newExercise")}
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              {t("newExercise")}
+            </Button>
+          </div>
+        )}
     </FocusBoard>
   );
 }

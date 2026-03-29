@@ -72,89 +72,107 @@ export function QuickStartActions() {
     });
   };
 
+  const footerRowClass =
+    "mt-auto flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary group-hover:underline underline-offset-4";
+
   return (
     <section
-      className="dashboard-card-surface p-4 sm:p-5"
+      className="dashboard-card-surface--calm p-4 sm:p-5"
       aria-label={t("title")}
       data-quick-start-block="true"
     >
-      <h2 className="text-base font-semibold text-foreground mb-4">{t("title")}</h2>
+      <h2 className="text-base font-semibold text-foreground mb-3">{t("title")}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Link
           href={exerciseHref}
           onClick={handleExerciseClick}
-          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
-            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="dashboard-card-surface-interactive--calm group flex min-h-[5.5rem] flex-col gap-2 p-4 sm:p-5"
           data-quick-start="exercise"
           data-quick-start-guided={!!bestExercise?.exercise_id}
         >
-          <div className="flex items-start gap-4">
-            <div className="dashboard-card-icon-chip">
+          <div className="flex items-start gap-3">
+            <div className="dashboard-card-icon-chip--calm">
               <Calculator className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground">{t("exerciseCta")}</p>
               {bestExercise ? (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2 leading-snug">
                   {bestExercise.exercise_title || bestExercise.exercise_type}
                 </p>
               ) : (
-                <p className="text-xs text-muted-foreground mt-0.5">{t("browseAll")}</p>
+                <p className="text-sm text-muted-foreground mt-0.5 leading-snug">
+                  {t("browseAll")}
+                </p>
               )}
             </div>
           </div>
-          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
-            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-          </span>
+          <div className={footerRowClass}>
+            <span>{t("startCta")}</span>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </div>
         </Link>
 
         <Link
           href={challengeHref}
           onClick={handleChallengeClick}
-          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
-            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="dashboard-card-surface-interactive--calm group flex min-h-[5.5rem] flex-col gap-2 p-4 sm:p-5"
           data-quick-start="challenge"
           data-quick-start-guided={!!bestChallenge?.challenge_id}
         >
-          <div className="flex items-start gap-4">
-            <div className="dashboard-card-icon-chip">
+          <div className="flex items-start gap-3">
+            <div className="dashboard-card-icon-chip--calm">
               <Puzzle className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground">{t("challengeCta")}</p>
               {bestChallenge ? (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2 leading-snug">
                   {bestChallenge.challenge_title || t("challengeDefault")}
                 </p>
               ) : (
-                <p className="text-xs text-muted-foreground mt-0.5">{t("browseAll")}</p>
+                <p className="text-sm text-muted-foreground mt-0.5 leading-snug">
+                  {t("browseAll")}
+                </p>
               )}
             </div>
           </div>
-          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
-            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-          </span>
+          <div className={footerRowClass}>
+            <span>{t("startCta")}</span>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </div>
         </Link>
 
         <Link
           href="/exercises/interleaved"
           onClick={handleInterleavedClick}
-          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
-            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="dashboard-card-surface-interactive--calm group flex min-h-[5.5rem] flex-col gap-2 p-4 sm:p-5"
           data-quick-start="interleaved"
         >
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="dashboard-card-icon-chip--calm">
               <Layers className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground">{t("interleavedCta")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("interleavedSubtext")}</p>
+              <p className="text-sm text-muted-foreground mt-0.5 leading-snug">
+                {t("interleavedSubtext")}
+              </p>
             </div>
           </div>
-          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
-            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-          </span>
+          <div className={footerRowClass}>
+            <span>{t("startCta")}</span>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </div>
         </Link>
       </div>
     </section>

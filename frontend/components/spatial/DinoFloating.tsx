@@ -18,6 +18,7 @@ export function DinoFloating() {
   return (
     <div
       className="fixed top-20 left-8 z-[-5] pointer-events-none opacity-40"
+      data-spatial-layer="dino-floating"
       aria-hidden="true"
       style={{
         animation: "dino-bob 5s ease-in-out infinite",

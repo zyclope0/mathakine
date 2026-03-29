@@ -1,15 +1,32 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
 import fr from "@/messages/fr.json";
 import { SpacedRepetitionSummaryWidget } from "@/components/dashboard/SpacedRepetitionSummaryWidget";
 import type { SpacedRepetitionUserSummary } from "@/lib/validation/dashboard";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useNextReview", () => ({
+  useNextReview: () => ({
+    fetchNextReview: vi.fn(),
+    isLoading: false,
+    error: null,
+    clearError: vi.fn(),
+  }),
+}));
+
 function wrapper({ children }: { children: React.ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
-    <NextIntlClientProvider locale="fr" messages={fr}>
-      {children}
-    </NextIntlClientProvider>
+    <QueryClientProvider client={client}>
+      <NextIntlClientProvider locale="fr" messages={fr}>
+        {children}
+      </NextIntlClientProvider>
+    </QueryClientProvider>
   );
 }
 

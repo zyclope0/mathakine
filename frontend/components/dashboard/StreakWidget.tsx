@@ -46,13 +46,12 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
       initial="initial"
       animate="animate"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="flex-1 min-h-0 flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
       <Card
         className={cn(
-          "border flex-1 min-h-0 flex flex-col backdrop-blur-md",
-          currentStreak > 0 ? "border-warning/40 bg-warning/10" : "border-border/50 bg-card/40"
+          "flex-1 min-h-0 flex flex-col rounded-2xl border shadow-sm",
+          currentStreak > 0 ? "border-warning/40 bg-warning/10" : "dashboard-card-surface--calm"
         )}
       >
         <CardHeader className="pb-3 flex-shrink-0">
@@ -110,7 +109,7 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
           </div>
 
           {currentStreak > 0 && (
-            <div className="mt-4 pt-4 pb-2 border-t border-border text-xs text-muted-foreground">
+            <div className="mt-4 pt-4 pb-2 border-t border-border text-sm text-muted-foreground leading-snug">
               {t("keepGoing")}
             </div>
           )}

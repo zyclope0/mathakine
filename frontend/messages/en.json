@@ -444,7 +444,22 @@
       "answerIncorrect": "Not yet",
       "option": "Option {index}",
       "openAnswerLabel": "Your answer",
-      "openAnswerPlaceholder": "Enter your answer…"
+      "openAnswerPlaceholder": "Enter your answer…",
+      "reviewContextBadge": "Review",
+      "reviewBackDashboard": "Dashboard",
+      "reviewAllExercises": "All exercises",
+      "reviewNavLabel": "Navigation during a review",
+      "reviewPreparing": "Preparing your review…",
+      "reviewUnavailableTitle": "No review available",
+      "reviewUnavailableBody": "There is no actionable review card right now. You can go back to the dashboard or continue with regular exercises.",
+      "reviewNoChoicesFallback": "This exercise format can’t be completed here without help. Try another exercise or go back to the dashboard.",
+      "reviewCheckingNext": "Checking for more reviews…",
+      "reviewFetchNextError": "We couldn’t check what’s next right now.",
+      "reviewRetry": "Try again",
+      "reviewSessionCompleteTitle": "You’re caught up",
+      "reviewSessionCompleteBody": "You’ve finished today’s scheduled reviews. Come back tomorrow or continue from the dashboard.",
+      "reviewNext": "Next review",
+      "reviewFollowUpLabel": "Next steps in your review session"
     },
     "error": {
       "invalidId": "Invalid exercise ID",
@@ -774,8 +789,13 @@
       "activeCards": "{count, plural, one {# card in your review deck} other {# cards in your review deck}}",
       "nextReview": "Next review: {date}",
       "loadError": "Review summary could not be loaded.",
+      "reviewNow": "Review now",
+      "reviewNowLoading": "Getting ready…",
+      "reviewFetchError": "We couldn’t start the review just now. Please try again in a moment.",
+      "noReviewAvailable": "No card is due right now. You can refresh the dashboard.",
       "a11y": {
-        "regionLabel": "Spaced repetition summary"
+        "regionLabel": "Spaced repetition summary",
+        "ctaSection": "Review actions"
       }
     },
     "stats": {

@@ -1,16 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseISO } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { format } from "date-fns";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Loader2 } from "lucide-react";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { cn } from "@/lib/utils";
+import { useNextReview } from "@/hooks/useNextReview";
+import { storeSpacedReviewNext } from "@/lib/spacedReviewSession";
 import type { SpacedRepetitionUserSummary } from "@/lib/validation/dashboard";
 
 export interface SpacedRepetitionSummaryWidgetProps {
@@ -38,6 +43,15 @@ export function SpacedRepetitionSummaryWidget({
   hasError = false,
 }: SpacedRepetitionSummaryWidgetProps) {
   const t = useTranslations("dashboard.spacedRepetition");
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const {
+    fetchNextReview,
+    isLoading: isReviewNavLoading,
+    error: reviewNavError,
+    clearError,
+  } = useNextReview();
+  const [neutralNoCard, setNeutralNoCard] = useState(false);
   const { locale } = useLocaleStore();
   const dateLocale = locale === "en" ? enUS : fr;
   const todayUtc = useMemo(() => utcTodayIsoDate(), []);
@@ -68,18 +82,18 @@ export function SpacedRepetitionSummaryWidget({
   if (hasError) {
     return (
       <Card
-        className="dashboard-card-surface border-dashed"
+        className="dashboard-card-surface--calm border-dashed"
         role="region"
         aria-label={t("a11y.regionLabel")}
       >
-        <CardHeader className="pb-2">
+        <CardHeader className="space-y-0 px-4 pb-2 pt-4">
           <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
             <CalendarDays className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden />
             {t("title")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">{t("loadError")}</p>
+        <CardContent className="px-4 pb-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">{t("loadError")}</p>
         </CardContent>
       </Card>
     );
@@ -87,54 +101,106 @@ export function SpacedRepetitionSummaryWidget({
 
   const { f04_initialized, active_cards_count, due_today_count, overdue_count } = summary;
 
+  const showReviewCta = f04_initialized && (due_today_count > 0 || overdue_count > 0);
+
+  const handleReviewNow = async () => {
+    clearError();
+    setNeutralNoCard(false);
+    const data = await fetchNextReview();
+    if (!data) {
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+    if (data.has_due_review && data.next_review) {
+      storeSpacedReviewNext(data.next_review);
+      router.push(`/exercises/${data.next_review.exercise_id}?session=spaced-review`);
+      return;
+    }
+    setNeutralNoCard(true);
+  };
+
   const primaryTone =
     due_today_count > 0
-      ? "border-primary/25 bg-primary/5"
+      ? "border-primary/30 bg-primary/[0.07]"
       : overdue_count > 0 && f04_initialized
-        ? "border-amber-500/30 bg-amber-500/5"
-        : "border-border";
+        ? "border-warning/35 bg-warning/[0.08]"
+        : "";
 
   return (
     <Card
-      className={cn("dashboard-card-surface", primaryTone)}
+      className={cn("dashboard-card-surface--calm", primaryTone)}
       role="region"
       aria-label={t("a11y.regionLabel")}
     >
-      <CardHeader className="pb-2">
+      <CardHeader className="space-y-0 px-4 pb-2 pt-4">
         <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
           <CalendarDays className="h-5 w-5 text-primary shrink-0" aria-hidden />
           {t("title")}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-3 px-4 pb-4 pt-1 text-sm">
         {!f04_initialized ? (
           <p className="text-muted-foreground leading-relaxed">{t("notInitialized")}</p>
         ) : (
           <>
-            {due_today_count > 0 ? (
-              <p className="text-base font-semibold text-foreground" role="status">
-                {t("dueToday", { count: due_today_count })}
-              </p>
-            ) : (
-              <p className="text-foreground/90 leading-relaxed" role="status">
-                {t("noneToday")}
-              </p>
-            )}
+            <div className="space-y-2">
+              {due_today_count > 0 ? (
+                <p className="text-base font-semibold text-foreground leading-snug" role="status">
+                  {t("dueToday", { count: due_today_count })}
+                </p>
+              ) : (
+                <p className="text-base text-foreground leading-snug" role="status">
+                  {t("noneToday")}
+                </p>
+              )}
 
-            {overdue_count > 0 ? (
-              <p className="text-sm text-amber-800 dark:text-amber-200/90">
-                {t("overdue", { count: overdue_count })}
-              </p>
-            ) : null}
+              {overdue_count > 0 ? (
+                <p className="text-sm font-medium text-warning leading-snug">
+                  {t("overdue", { count: overdue_count })}
+                </p>
+              ) : null}
+            </div>
 
-            <p className="text-xs text-muted-foreground">
-              {t("activeCards", { count: active_cards_count })}
-            </p>
+            <div className="text-sm text-muted-foreground leading-snug space-y-1">
+              <p>{t("activeCards", { count: active_cards_count })}</p>
+              {nextReviewFormatted ? <p>{t("nextReview", { date: nextReviewFormatted })}</p> : null}
+            </div>
 
-            {nextReviewFormatted ? (
-              <p className="text-xs text-muted-foreground">
-                {t("nextReview", { date: nextReviewFormatted })}
-              </p>
+            {showReviewCta ? (
+              <section
+                className="pt-3 border-t border-border space-y-2"
+                aria-label={t("a11y.ctaSection")}
+              >
+                <Button
+                  type="button"
+                  onClick={() => void handleReviewNow()}
+                  disabled={isReviewNavLoading}
+                  className="w-full min-h-11 min-w-[44px] justify-center px-6 py-3 text-base motion-reduce:transition-none"
+                  aria-busy={isReviewNavLoading}
+                >
+                  {isReviewNavLoading ? (
+                    <>
+                      <Loader2
+                        className="mr-2 h-5 w-5 shrink-0 animate-spin motion-reduce:animate-none"
+                        aria-hidden
+                      />
+                      {t("reviewNowLoading")}
+                    </>
+                  ) : (
+                    t("reviewNow")
+                  )}
+                </Button>
+                {reviewNavError ? (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    {t("reviewFetchError")}
+                  </p>
+                ) : null}
+                {neutralNoCard && !reviewNavError ? (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    {t("noReviewAvailable")}
+                  </p>
+                ) : null}
+              </section>
             ) : null}
           </>
         )}

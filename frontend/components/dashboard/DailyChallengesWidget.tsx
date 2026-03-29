@@ -30,7 +30,7 @@ export function DailyChallengesWidget() {
   if (isLoading) {
     return (
       <div
-        className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-md shadow-sm p-4 md:p-5"
+        className="dashboard-card-surface--calm p-4 md:p-5"
         role="region"
         aria-busy="true"
         aria-label={t("title")}
@@ -63,7 +63,7 @@ export function DailyChallengesWidget() {
 
   return (
     <div
-      className="flex-1 min-h-0 flex flex-col rounded-xl border border-border/50 bg-card/40 backdrop-blur-md shadow-sm p-4 md:p-5"
+      className="dashboard-card-surface--calm flex-1 min-h-0 flex flex-col p-4 md:p-5"
       role="region"
       aria-label={t("title")}
     >
@@ -74,7 +74,7 @@ export function DailyChallengesWidget() {
           </div>
           <div>
             <h3 className="text-base font-semibold text-foreground">{t("title")}</h3>
-            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
+            <p className="text-sm text-muted-foreground leading-snug">{t("subtitle")}</p>
           </div>
         </div>
         {completedCount > 0 && (

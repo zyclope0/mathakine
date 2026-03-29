@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features â€” Mathakine
 
-> **Document vivant** - Derniere MAJ : 28/03/2026 (F42 clos, A44 clos, F43-A3 livre ; priorisation operationnelle re-evaluee avant F43-A4)  
+> **Document vivant** - Derniere MAJ : 29/03/2026 (F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5)  
 > **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -88,7 +88,7 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F01 | Rendu Markdown/KaTeX explications | [DONE] | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
 | F02 | Defis quotidiens (defi du jour) | [DONE] | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
 | F03 | Test de diagnostic initial | [DONE] | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
-| F04 | Revisions espacees (SM-2) | [BACKLOG] | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
+| F04 | Revisions espacees (SM-2) | [PARTIAL] | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
 | F30 | [PROP] Effet Protege (corriger erreur IA) | [BACKLOG] | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
 | F31 | [PROP] Exemples resolus progressifs (Fading) | [BACKLOG] | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
 | F32 | [PROP] Mode Pratique Entrelacee (Interleaving) | [DONE] | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |

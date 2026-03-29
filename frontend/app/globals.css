@@ -1526,6 +1526,59 @@ select:focus {
   .dashboard-card-icon-chip {
     @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm shadow-primary/10;
   }
+
+  /**
+   * Variante « calme » (overview dashboard) : moins de transparence / blur / lift,
+   * uniquement tokens sémantiques — compatible multi-thème.
+   */
+  .dashboard-card-surface--calm {
+    @apply rounded-2xl border border-border shadow-sm;
+    background-color: color-mix(in oklab, var(--card) 94%, var(--background) 6%) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .dashboard-card-surface-interactive--calm {
+    @apply rounded-2xl border border-border shadow-sm transition-colors duration-200 motion-reduce:transition-none;
+    background-color: color-mix(in oklab, var(--card) 94%, var(--background) 6%) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .dashboard-card-surface-interactive--calm:hover {
+    @apply border-primary/30 bg-accent/20;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 6%, transparent);
+  }
+
+  .dashboard-card-surface-interactive--calm:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  .dashboard-card-icon-chip--calm {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary;
+  }
+}
+
+/* Atténuation décor spatial sur la route dashboard uniquement (contexte page, pas par thème) */
+html[data-mathakine-dashboard] [data-spatial-layer="starfield"],
+html[data-mathakine-dashboard] [data-spatial-layer="particles"] {
+  opacity: 0.18;
+  transition: opacity 0.3s ease;
+}
+
+html[data-mathakine-dashboard] [data-spatial-layer="planet"] {
+  opacity: 0.28;
+}
+
+html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
+  opacity: 0.12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-mathakine-dashboard] [data-spatial-layer="starfield"],
+  html[data-mathakine-dashboard] [data-spatial-layer="particles"] {
+    transition: none;
+  }
 }
 
 .badge-sweep::before {
