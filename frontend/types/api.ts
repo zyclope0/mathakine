@@ -1,5 +1,8 @@
 /**
  * Types pour les réponses API standardisées.
+ *
+ * Compat legacy (encore servie par le backend) : `jedi_rank`, `star_wars_title`.
+ * Le frontend préfère `progression_rank` et `thematic_title` — voir `progressionRankLabel`, `badgeThematicTitle`.
  */
 
 /**

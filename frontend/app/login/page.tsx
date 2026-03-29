@@ -12,6 +12,7 @@ import { Loader2, Rocket, Sparkles, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
+import { DEMO_LOGIN_PASSWORD, DEMO_LOGIN_USERNAME } from "@/lib/constants/demoLogin";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -61,8 +62,8 @@ function LoginForm() {
   };
 
   const fillDemoCredentials = () => {
-    setUsername("ObiWan");
-    setPassword("HelloThere123!");
+    setUsername(DEMO_LOGIN_USERNAME);
+    setPassword(DEMO_LOGIN_PASSWORD);
   };
 
   return (
@@ -146,11 +147,11 @@ function LoginForm() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t("userLabel")}</span>
-                <span className="font-mono font-medium">ObiWan</span>
+                <span className="font-mono font-medium">{DEMO_LOGIN_USERNAME}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t("passwordLabel")}</span>
-                <span className="font-mono font-medium">HelloThere123!</span>
+                <span className="font-mono font-medium">{DEMO_LOGIN_PASSWORD}</span>
               </div>
             </div>
             <Button

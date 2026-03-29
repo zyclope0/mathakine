@@ -1,6 +1,9 @@
 /**
  * Icônes badges — SVG uniquement (s'adapte au thème via currentColor).
  * Priorité : SVG local → icon_url DB (http) → emoji catégorie.
+ *
+ * Les clés de `CODE_TO_SVG` reflètent les `code` badges persistés côté API/DB — ne pas renommer
+ * sans migration données (même si le libellé métier a été neutralisé).
  */
 
 /** Mapping code API → nom fichier SVG (si différent) */

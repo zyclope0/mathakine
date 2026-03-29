@@ -13,7 +13,10 @@ export function readPublicProgressionRankRaw(source: PublicRankBucketSource): st
   return String(source.progression_rank ?? source.jedi_rank ?? "").trim();
 }
 
-/** Anciens buckets (pré C3C) → identifiant canonique F42-C3C (affichage / icônes). */
+/**
+ * Anciens identifiants publics (pré C3C), encore possibles via API / données historiques.
+ * Clés = slugs tels qu’exposés ou stockés — ne pas renommer sans migration.
+ */
 const LEGACY_TO_CANONICAL: Record<string, string> = {
   youngling: "cadet",
   padawan: "explorer",

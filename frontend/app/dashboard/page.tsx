@@ -280,7 +280,7 @@ export default function DashboardPage() {
               </PageSection>
             </TabsContent>
 
-            {/* Onglet Recommandations — conseils du Maître Jedi */}
+            {/* Onglet Recommandations */}
             <TabsContent value="recommendations" className="space-y-6">
               <PageSection>
                 <Recommendations />

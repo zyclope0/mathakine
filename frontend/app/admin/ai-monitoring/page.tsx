@@ -118,7 +118,7 @@ export default function AdminAiMonitoringPage() {
               <p className="font-medium">Limites a connaitre (IA12)</p>
               <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
                 <li>
-                  Le chat Maître Kine est <strong>public</strong> (pas d&apos;auth sur{" "}
+                  Le chat d&apos;assistance est <strong>public</strong> (pas d&apos;auth sur{" "}
                   <code className="rounded bg-muted px-1">/api/chat</code>) mais{" "}
                   <strong>rate-limité</strong> — son poids apparaît dans les workloads ci-dessous.
                 </li>

@@ -9,7 +9,7 @@ export const RANK_MEDALS: Record<number, string> = {
   3: "🥉",
 };
 
-/** Icônes par bucket — clés canoniques API ``progression_rank`` / alias ``jedi_rank`` (F42-C3C, F43-A3). */
+/** Icônes par bucket — clés canoniques API `progression_rank` (F42-C3C) ; `jedi_rank` = alias legacy même sémantique (F43-A3). */
 export const PROGRESSION_RANK_ICONS: Record<string, string> = {
   cadet: "🌟",
   scout: "🔭",
@@ -36,7 +36,7 @@ export const PROGRESSION_RANK_TEXT_CLASS: Record<string, string> = {
   cosmic_legend: "text-amber-300",
 };
 
-/** @deprecated Utiliser ``PROGRESSION_RANK_TEXT_CLASS``. */
+/** @deprecated Utiliser `PROGRESSION_RANK_TEXT_CLASS` — export conservé uniquement pour compat imports historiques. */
 export const JEDI_RANK_TEXT_CLASS = PROGRESSION_RANK_TEXT_CLASS;
 
 /** Fond + contour discret pour le podium (rangs 1–3) — couleurs via tokens CSS par thème. */
