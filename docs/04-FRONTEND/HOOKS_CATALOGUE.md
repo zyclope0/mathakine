@@ -1,7 +1,7 @@
 # Catalogue des hooks React — Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-03-27
+> Updated : 2026-03-29
 > Total : 41 fichiers hooks + 1 dossier `chat/`
 
 ---
@@ -46,7 +46,8 @@
 | Hook | Rôle | Test | RQ | Dépendances clés |
 |------|------|------|----|-----------------|
 | `useProfile.ts` | Profil complet de l'utilisateur connecté | ❌ | Query | `GET /api/users/me` |
-| `useUserStats.ts` | Stats globales (points, niveau, streak) | ❌ | Query | `GET /api/users/me/stats` |
+| `useUserStats.ts` | Stats globales dashboard, incluant le bloc F04 `spaced_repetition` | ❌ | Query | `GET /api/users/stats` |
+| `useNextReview.ts` | Lecture one-shot de la prochaine revision F04 et du resume associe | ❌ | Aucun | `GET /api/users/me/reviews/next` |
 | `useProgressStats.ts` | Stats de progression par période | ❌ | Query | `GET /api/progress/stats` |
 | `useProgressTimeline.ts` | Timeline de progression historique | ✅ | Query | `GET /api/progress/timeline` |
 | `usePaginatedContent.ts` | Pagination générique réutilisable | ✅ | Aucun | abstraction interne |
@@ -148,4 +149,4 @@
 Tout nouveau hook doit :
 1. Figurer dans ce catalogue avec sa catégorie, son rôle et ses dépendances.
 2. Avoir un fichier de test dans `frontend/__tests__/unit/hooks/`.
-3. Utiliser React Query (`useQuery` / `useMutation`) pour tout appel réseau — pas de `fetch` direct dans un hook.
+3. Preferer React Query (`useQuery` / `useMutation`) pour tout appel reseau partage/cache ; une exception one-shot sans cache est acceptable si elle est documentee (ex: `useNextReview.ts` pour la session F04).

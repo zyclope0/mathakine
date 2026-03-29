@@ -1901,6 +1901,17 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_5_0_alpha_1": {
+      "version": "v3.5.0-alpha.1",
+      "date": "29 mars 2026",
+      "items": [
+        "Les revisions espacees sont maintenant visibles et actionnables dans le tableau de bord, avec un resume du jour clair.",
+        "Le bouton Reviser maintenant ouvre directement la prochaine carte due, sans lancer un second parcours parallele.",
+        "La session de revision reutilise le solveur d exercices, puis propose sobrement la carte suivante ou une fin de session calme.",
+        "Les indices et explications restent caches avant ta reponse, puis l explication apparait apres soumission pour renforcer l apprentissage.",
+        "Le tableau de bord a ete rendu plus calme et plus lisible autour de la zone revisions, avec moins de bruit visuel et une meilleure hierarchie."
+      ]
+    },
     "release_3_4_0_alpha_1": {
       "version": "v3.4.0-alpha.1",
       "date": "27 mars 2026",

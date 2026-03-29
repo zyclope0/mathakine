@@ -1,14 +1,14 @@
 # Catalogue des composants React — Mathakine
 
 > Scope : `frontend/components/`
-> Updated : 2026-03-27
+> Updated : 2026-03-29
 > Source : audit répertoire + ARCHITECTURE.md
 
 ---
 
 ## Vue d'ensemble
 
-**125 composants TSX** répartis en 21 catégories.
+**126 composants TSX** répartis en 21 catégories.
 Tous les composants sont `"use client"` sauf indication contraire.
 
 ---
@@ -18,7 +18,7 @@ Tous les composants sont `"use client"` sauf indication contraire.
 | Catégorie | Dossier | Composants | Rôle |
 |-----------|---------|-----------|------|
 | UI de base | `ui/` | 21 | Primitives shadcn/ui (Radix) |
-| Dashboard | `dashboard/` | 26 | Widgets stats et visualisations |
+| Dashboard | `dashboard/` | 27 | Widgets stats et visualisations |
 | Défis | `challenges/` | 16 | Interface défis logiques |
 | Layout | `layout/` | 12 | Structure de page |
 | Admin | `admin/` | 7 | Modales CRUD backoffice |
@@ -71,7 +71,7 @@ Composants Radix UI wrappés avec Tailwind. Ne pas modifier directement — rég
 
 ---
 
-## `dashboard/` — Widgets (26)
+## `dashboard/` — Widgets (27)
 
 | Composant | Rôle |
 |-----------|------|
@@ -94,6 +94,7 @@ Composants Radix UI wrappés avec Tailwind. Ne pas modifier directement — rég
 | `Recommendations` | Recommandations exercices et défis |
 | `QuickStartActions` | Actions rapides (page accueil) |
 | `RecentActivity` | Flux d'activité récente |
+| `SpacedRepetitionSummaryWidget` | Resume F04 + CTA `Reviser maintenant` |
 | `ExportButton` | Export PDF / Excel |
 | `TimeRangeSelector` | Filtre temporel (7j / 30j / 90j) |
 | `DashboardDataScopeBadge` | Badge scope des données affichées |
@@ -161,7 +162,7 @@ Composants Radix UI wrappés avec Tailwind. Ne pas modifier directement — rég
 | Composant | Rôle |
 |-----------|------|
 | `ExerciseCard` | Carte exercice (liste) |
-| `ExerciseSolver` | Interface de résolution d'un exercice |
+| `ExerciseSolver` | Interface de résolution d'un exercice, y compris `interleaved` et `spaced-review` |
 | `ExerciseModal` | Modale d'affichage exercice |
 | `AIGenerator` | Génération IA d'exercices via SSE |
 | `UnifiedExerciseGenerator` | Génération unifiée exercices (wrapper) |

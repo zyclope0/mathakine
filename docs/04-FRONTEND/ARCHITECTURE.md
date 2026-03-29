@@ -1,6 +1,6 @@
 # Architecture Frontend — Mathakine
 
-> Dernière mise à jour : 06/03/2026  
+> Dernière mise à jour : 29/03/2026  
 > Validé contre le code source réel (post-audit industrialisation)
 
 ---
@@ -8,7 +8,7 @@
 ## Références
 
 - [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) — catalogue des 41 hooks React (rôle, dépendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) — 125 composants React (catégories, rôles, conventions)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) — 126 composants React (catégories, rôles, conventions)
 - [API_ROUTES.md](API_ROUTES.md) — 7 routes API Next.js (proxy, auth, SSE)
 
 ---
@@ -95,13 +95,13 @@ frontend/
 │   ├── theme/                    # ThemeSelector, ThemeSelectorCompact
 │   └── ui/                       # shadcn/ui (Button, Card, Dialog, Input, Select…)
 │
-├── hooks/                        # 35+ hooks React Query
+├── hooks/                        # 41 hooks React (majoritairement React Query)
 │   ├── chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 │   ├── useAuth.ts                # Authentification (login, logout, register)
 │   ├── useExercise(s).ts         # Exercices (liste, détail, pagination)
 │   ├── useChallenge(s).ts        # Défis logiques
 │   ├── useBadges.ts / useBadgesProgress.ts
-│   ├── useUserStats.ts / useProgressStats.ts
+│   ├── useUserStats.ts / useProgressStats.ts / useNextReview.ts
 │   ├── useRecommendations.ts
 │   ├── useLeaderboard.ts
 │   ├── useChat.ts
@@ -120,12 +120,13 @@ frontend/
 │   ├── api/client.ts             # Client HTTP (fetch + CSRF + auth)
 │   ├── constants/                # Constantes centralisées (exercises, challenges, badges)
 │   ├── stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
+│   ├── spacedReviewSession.ts    # handoff review-safe entre dashboard F04 et solver
 │   ├── hooks/                    # Hooks utilitaires (useAccessibleAnimation, useKeyboardNavigation)
 │   ├── utils/
 │   │   ├── cn.ts                 # clsx + tailwind-merge (source de vérité interne)
 │   │   └── format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
 │   ├── utils.ts                  # Re-export de cn — TOUJOURS importer depuis @/lib/utils
-│   └── validation/               # Schémas de validation (dashboard, exercise…)
+│   └── validation/               # Schémas de validation (dashboard, exercise, next review F04…)
 │
 ├── messages/
 │   ├── fr.json                   # Traductions françaises
@@ -220,6 +221,18 @@ Le client partage `frontend/lib/ai/generation/postAiGenerationSse.ts` execute ma
 
 Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ces erreurs en toasts i18n explicites sans exposer de details techniques bruts.
 
+### F04 review flow
+
+Le flow F04 n'introduit pas de second solver. Il recompose des seams existants :
+- `SpacedRepetitionSummaryWidget` expose le CTA `Reviser maintenant`
+- `useNextReview.ts` lit `GET /api/users/me/reviews/next`
+- `spacedReviewSession.ts` conserve temporairement la prochaine carte review-safe
+- `ExerciseSolver.tsx` rehydrate ce payload en `?session=spaced-review`
+
+Contrainte produit importante :
+- avant soumission, le flow F04 ne doit jamais recharger un payload exercice classique contenant `correct_answer`, `hint` ou `explanation`
+- apres soumission, l'explication peut etre affichee comme feedback pedagogique
+
 ---
 
 ## Configuration TypeScript (strict)
@@ -245,7 +258,7 @@ npm start                # Serveur production
 npm run lint             # ESLint
 npm run format           # Prettier --write
 npm run format:check     # Prettier --check (CI)
-npm run type-check       # tsc --noEmit
+npx tsc --noEmit         # verification TypeScript stricte
 
 # Tests
 npm run test             # Vitest (unitaires)

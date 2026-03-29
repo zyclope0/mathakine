@@ -37,6 +37,32 @@ Active references:
 
 ## [Unreleased]
 
+## [3.5.0-alpha.1] - 2026-03-29
+
+### Added
+- F04 spaced repetition is now shipped end-to-end for exercises:
+  - SM-2 persistence on `submit_answer`
+  - derived user summary in `GET /api/users/stats`
+  - read-only `GET /api/users/me/reviews/next`
+  - dashboard visibility with a dedicated `Revisions du jour` widget
+  - frontend `Review now` flow reusing the existing exercise solver
+- The dashboard now exposes a calm multi-theme review summary with a direct CTA when due or overdue reviews exist.
+- The exercise solver now supports `?session=spaced-review` with a review-safe handoff and post-submit continuation to the next due card.
+
+### Changed
+- `GET /api/users/stats` now includes an actionable spaced-repetition summary aligned with active, non-archived exercises only.
+- The product now surfaces explanatory feedback after a spaced review submission while still hiding hints and explanations before the learner answers.
+- The dashboard overview review surfaces were simplified for lower cognitive load: calmer background treatment, reduced hover noise, denser F04 layout, and clearer Quick Start affordances.
+
+### Fixed
+- Multiple-choice exercise options are now keyboard reachable even before any choice is selected.
+- Spaced repetition timing edge cases (`0`, `None`, `NaN`, negative values) no longer risk over-rewarding a submission as a "fast correct" answer.
+- The frontend spaced-review flow now stays review-safe end-to-end instead of reloading a spoiler-bearing standard exercise payload.
+
+### Notes
+- This opens a new visible minor alpha train because F04 is now materially available to end users, not only as backend groundwork.
+- Remaining F04 follow-ups are documented as bounded reserves, not blockers: challenge integration, richer review analytics separation, optional remaining-card session meter, and future F23 coupling.
+
 ## [3.4.0-alpha.1] - 2026-03-27
 
 ### Changed

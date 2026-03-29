@@ -153,6 +153,11 @@ Interpretation produit :
 - `due_today_count > 0` -> revisions a afficher
 - `overdue_count > 0` -> utilisateur en retard
 
+Important :
+- les compteurs F04 user-level restent alignes sur les cartes **actionnables**
+- un exercice inactif ou archive ne doit plus gonfler `due_today_count` / `overdue_count`
+- `/api/users/stats` et `GET /api/users/me/reviews/next` racontent donc la meme verite produit
+
 ---
 
 ## 8. Prochaine revision due (`F04-P4`)
@@ -169,7 +174,38 @@ Ordre de selection : retard avant « du jour » ; puis `next_review_date` croiss
 
 ---
 
-## 9. Documentation a realigner
+## 9. Experience frontend livree (`F04-P5`)
+
+Point d'entree :
+- widget dashboard `Revisions du jour`
+- CTA `Reviser maintenant` seulement si une action immediate existe
+
+Comportement :
+- fetch `GET /api/users/me/reviews/next`
+- stockage temporaire review-safe via `spacedReviewSession`
+- redirection `/exercises/{id}?session=spaced-review`
+- `ExerciseSolver` reste le solver unique
+
+Decision produit explicite :
+- avant soumission : aucun `hint`, aucune `explanation`, aucune correction
+- apres soumission : explication affichee pour fournir un feedback pedagogique utile
+- suite de session : prochaine carte due si elle existe, sinon fin de session sobre
+
+---
+
+## 10. Reserves documentees (non bloquantes)
+
+Reserves conservees volontairement hors du scope livre :
+- analytics : le flux `spaced-review` n'est pas encore distingue partout comme type analytics dedie ; une partie du tracking reste agregee avec `exercise`
+- UX : pas encore de compteur `X revisions restantes` dans la session SR
+- perimetre : pas d'integration defis dans la file SR
+- strategie avancee : pas encore de couplage F23 (`SR + IA`)
+
+Ces points restent des suites bornees, pas des blockers du lot F04 exercice deja livre.
+
+---
+
+## 11. Documentation a realigner
 
 ### Mise a jour immediate apres `F04-P1`
 
@@ -188,7 +224,7 @@ Ordre de selection : retard avant « du jour » ; puis `next_review_date` croiss
 
 ---
 
-## 10. References
+## 12. References
 
 - [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)

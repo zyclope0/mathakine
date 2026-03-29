@@ -1,7 +1,7 @@
 # Modèle de données — Mathakine
 
 > Scope : `app/models/`
-> Updated : 2026-03-27
+> Updated : 2026-03-29
 > Source : code ORM SQLAlchemy — 22 entités actives
 
 ---
@@ -183,6 +183,10 @@ Index notable :
 - unique `(user_id, exercise_id)`
 - composite `(user_id, next_review_date)`
 
+Runtime usage note :
+- this table now powers both the derived dashboard summary (`/api/users/stats -> spaced_repetition`)
+- and the next actionable review selection (`GET /api/users/me/reviews/next`)
+
 ---
 
 ## Relations principales
@@ -240,6 +244,6 @@ logic_challenges
 
 ## Migrations
 
-33 versions Alembic dans `migrations/versions/`. Migration la plus récente : `20260327_add_content_difficulty_tier.py`.
+34 versions Alembic dans `migrations/versions/`. Latest F04 migration train includes `20260327_f04_spaced_repetition_items.py`.
 
 Voir `docs/01-GUIDES/DATABASE_MIGRATIONS.md` pour le runbook complet.

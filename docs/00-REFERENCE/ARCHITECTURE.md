@@ -1,7 +1,7 @@
 # Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 22/03/2026
+> Updated: 29/03/2026
 
 ## 1. System Overview
 
@@ -94,7 +94,7 @@ Services are grouped by bounded context. No business logic file remains at root 
 | **exercises** | `app/services/exercises/` | exercise_service, exercise_attempt_service, exercise_* (9 files) |
 | **challenges** | `app/services/challenges/` | challenge_service, logic_challenge_service, maze_validator, etc. (11 files) |
 | **progress** | `app/services/progress/` | progress_timeline_service, streak_service, daily_challenge_service |
-| **spaced_repetition** | `app/services/spaced_repetition/` | sm2_engine, spaced_repetition_service |
+| **spaced_repetition** | `app/services/spaced_repetition/` | sm2_engine, spaced_repetition_service, spaced_repetition_read_service, spaced_repetition_next_review_service |
 | **admin** | `app/services/admin/` | admin_service, admin_read_service, admin_content_service, etc. (14 files) |
 | **analytics** | `app/services/analytics/` | analytics_service |
 | **communication** | `app/services/communication/` | email_service, chat_service |
@@ -107,9 +107,14 @@ Services are grouped by bounded context. No business logic file remains at root 
 
 ### Learning-state foundations
 
-- F04-P1 now persists spaced repetition cards in `spaced_repetition_items`
-- the current write seam is `app/services/exercises/exercise_attempt_service.py`
+- F04 exercise scope is now shipped from `P1` to `P5`
+- spaced repetition cards persist in `spaced_repetition_items`
+- the write seam remains `app/services/exercises/exercise_attempt_service.py`
 - user-level F04 state remains derived; no boolean flag is stored on `users`
+- actionable read surfaces are:
+  - `GET /api/users/stats` -> `spaced_repetition`
+  - `GET /api/users/me/reviews/next`
+- the frontend reuses the existing exercise solver in `?session=spaced-review`
 
 ### AI runtime governance
 

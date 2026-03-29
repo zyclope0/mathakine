@@ -1901,6 +1901,17 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_5_0_alpha_1": {
+      "version": "v3.5.0-alpha.1",
+      "date": "March 29, 2026",
+      "items": [
+        "Spaced repetition is now visible and actionable from the dashboard, with a clear daily summary.",
+        "The Review now button opens the next due card directly, without creating a second parallel learning flow.",
+        "The review session reuses the exercise solver, then gently offers the next due card or a calm end-of-session state.",
+        "Hints and explanations stay hidden before you answer, then the explanation appears after submission to reinforce learning.",
+        "The dashboard has been made calmer and easier to scan around the review area, with less visual noise and clearer hierarchy."
+      ]
+    },
     "release_3_4_0_alpha_1": {
       "version": "v3.4.0-alpha.1",
       "date": "March 27, 2026",

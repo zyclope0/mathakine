@@ -14,7 +14,11 @@ Le lot `F04-P1` a livre :
 - un moteur SM-2 pur
 - un write path branche uniquement sur `submit_answer(...)` pour les exercices
 
-Le systeme n'expose pas encore de read-model user-level ni de widget frontend.
+Depuis, l'exercice scope complet `F04-P2` a `F04-P5` a ete livre :
+- read-model user-level derive
+- widget dashboard `Revisions du jour`
+- endpoint read-only `GET /api/users/me/reviews/next`
+- flux frontend `Reviser maintenant` dans le solver existant
 
 ---
 
@@ -64,6 +68,22 @@ Le write path SR est non bloquant pour le flux principal de tentative.
 
 Ce choix privilegie la robustesse du flux d'apprentissage principal.
 
+### 6. Actionable read truth
+
+Les lectures user-level F04 doivent rester alignees sur des cartes **actionnables** seulement.
+
+Concretement :
+- les compteurs user-level ignorent les exercices inactifs ou archives
+- `GET /api/users/stats` et `GET /api/users/me/reviews/next` doivent rester coherents entre eux
+
+### 7. Retrieval-first with post-answer feedback
+
+La session `spaced-review` suit la regle produit suivante :
+- avant reponse : pas de spoiler (`correct_answer`, `hint`, `explanation`)
+- apres reponse : feedback explicatif autorise
+
+Cette decision vise a proteger l'effort de rappel tout en gardant une boucle pedagogique utile apres soumission.
+
 ---
 
 ## Consequences
@@ -77,9 +97,10 @@ Ce choix privilegie la robustesse du flux d'apprentissage principal.
 
 ### Negatives / compromis
 
-- pas encore de read-model user-level dans `F04-P1`
 - pas encore d'integration defis
 - suppression d'un exercice = perte des cartes SR associees
+- analytics du mode `spaced-review` pas encore totalement distingues d'un exercice standard
+- pas encore de compteur de session `X revisions restantes`
 
 ---
 

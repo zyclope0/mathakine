@@ -1,8 +1,8 @@
 # GETTING STARTED - MATHAKINE
 
 > Quick start
-> Updated: 27/03/2026
-> Visible product release: `3.4.0-alpha.1`
+> Updated: 29/03/2026
+> Visible product release: `3.5.0-alpha.1`
 
 ## Prerequisites
 

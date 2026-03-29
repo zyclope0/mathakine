@@ -1,6 +1,6 @@
 # 🚀 Frontend Mathakine - Next.js
 
-**Version produit visible** : 3.4.0-alpha.1 (alignée sur `frontend/package.json`)  
+**Version produit visible** : 3.5.0-alpha.1 (alignée sur `frontend/package.json`)  
 **Statut** : **alpha** — fonctionnel en démo / préprod ; l’appellation « production ready » n’est pas utilisée tant que la release n’est pas sortie d’alpha.  
 **Framework** : Next.js 16.1.6 avec App Router  
 **Language** : TypeScript (strict mode)
@@ -223,6 +223,14 @@ npm run i18n:all         # Toutes les vérifications i18n
 ```
 
 ---
+
+### **F04 livré**
+
+- résumé dérivé des révisions espacées dans le dashboard
+- CTA `Réviser maintenant`
+- endpoint `GET /api/users/me/reviews/next`
+- handoff review-safe vers `ExerciseSolver`
+- explication affichée après soumission en mode `spaced-review`
 
 ## ⚙️ **Configuration**
 

@@ -88,7 +88,7 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F01 | Rendu Markdown/KaTeX explications | [DONE] | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
 | F02 | Defis quotidiens (defi du jour) | [DONE] | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
 | F03 | Test de diagnostic initial | [DONE] | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
-| F04 | Revisions espacees (SM-2) | [PARTIAL] | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
+| F04 | Revisions espacees (SM-2) | [PARTIAL] exercice livre end-to-end ; defis + F23 restent hors scope | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
 | F30 | [PROP] Effet Protege (corriger erreur IA) | [BACKLOG] | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
 | F31 | [PROP] Exemples resolus progressifs (Fading) | [BACKLOG] | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
 | F32 | [PROP] Mode Pratique Entrelacee (Interleaving) | [DONE] | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
@@ -123,13 +123,13 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 | F28 | Mode aventure / histoire narrative | [BACKLOG] | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
 | F29 | Personnalisation avatar / profil | [BACKLOG] | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
 | F34 | Module Sciences - Curiosites (Vrai/Faux, format court) | [BACKLOG] prototype seulement | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
-| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [PARTIAL] visible neutralise ; `progression_rank` livre ; `thematic_title` restant | 4 | 3 | 1 | 3 | 5 | **6.2** | P1* |
+| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars | [PARTIAL] visible neutralise ; `progression_rank` + `thematic_title` livres ; aliases legacy encore servis | 4 | 3 | 1 | 3 | 5 | **6.2** | P1* |
 | F40 | Leaderboard â€” position de l'utilisateur hors top 50 | [DONE] | 2 | 4 | 2 | 1 | 3 | **10.7** | P2 |
 | F41 | Leaderboard â€” filtre temporel (semaine / mois / tout) | [DONE] | 3 | 4 | 1 | 2 | 3 | **7.2** | P2 |
 | F42 | Architecture difficultÃ© â€” sÃ©paration Ã¢ge et niveau sur 2 axes | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite | 4 | 3 | 3 | 3 | 4 | **9.2** | P2 |
 
 > *F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04.*
-> *F39 : le visible produit est maintenant neutralise. `F43-A3` a livre `progression_rank`. La suite propre n'est pas un "big bang rename", mais la fin de la migration contractuelle additive avec `thematic_title`.*
+> *F39 : le visible produit est maintenant neutralise. Les migrations additives `progression_rank` et `thematic_title` sont livrees ; les aliases legacy restent intentionnellement servis pendant la transition.*
 
 ### 2.1 Vue d'avancement - visible, sans effacer le travail livre
 
@@ -137,15 +137,16 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 - F01, F02, F03, F05, F06, F07, F12, F13, F22, F26, F32, F33, F35, F40, F41, F42
 
 **[PARTIAL] Fondations deja posees**
+- F04 : exercice scope livre (`P1`..`P5`) avec write path SM-2, resume dashboard, endpoint `reviews/next` et session `spaced-review` ; defis + F23 restent hors scope
 - F14 : monitoring IA runtime + admin read-only + runs harness persistes, mais pas encore de persistance DB complete des metriques runtime
 - F20 : normalisation visible de la difficulte livree, mais legacy backend/DB volontairement conserve
 - F38 : moteur gamification persistant + ledger `point_events` + calcul niveau/XP/rang recales, mais pas encore d'historique utilisateur dedie ni de lecture produit complete du ledger
-- F39 : rangs publics et surfaces visibles neutralises ; `F43-A3` livre, prochaine etape propre = migration additive `star_wars_title` -> `thematic_title`
+- F39 : rangs publics et surfaces visibles neutralises ; migrations additives `progression_rank` et `thematic_title` livrees ; aliases legacy encore servis
 
 **[BACKLOG] Encore a livrer**
 - le reste de la matrice, avec priorite conservee
 
-### 2.2 Priorite operationnelle reelle (post-F43-A3)
+### 2.2 Priorite operationnelle reelle (post-F04-P5)
 
 Les scores `D/G/E/R/B` restent la base de reference. En revanche, l'ordre d'execution reel doit tenir compte :
 - de l'etat deja livre dans le code
@@ -155,28 +156,25 @@ Les scores `D/G/E/R/B` restent la base de reference. En revanche, l'ordre d'exec
 
 Ordre recommande maintenant :
 
-1. **F39 / F43-A4** - finir la migration contractuelle additive `star_wars_title` -> `thematic_title`
-2. **CC1-L1** - corriger les bugs/code mort du clean code pass local (encoding, clamp, suppressions sures)
-3. **F04** - revisions espacees (SM-2), plus gros levier EdTech encore absent
-4. **F38** - historique des gains et lecture produit coherente du ledger compte
-5. **F37** - coherence dashboard / temporalite / charge cognitive
-6. **F14** - persistance DB complete des metriques runtime IA
-7. **F36** - suppression du flash auth au refresh
-8. **F09** - dashboard parent
-9. **F08** - objectifs personnalises
-10. **F10** - mode focus / session ciblee
-11. **F30** - effet protege
-12. **F31** - exemples resolus progressifs
-13. **F23** - exercices adaptatifs SR+IA (a ouvrir seulement apres F04)
-14. **F11** - partage progression vers parents
-15. **F16 / F17 / F18 / F19 / F21** - confort, engagement et croissance
-16. **F24 / F25 / F27** - chantiers plus lourds ou structurels
-17. **F28 / F29 / F34** - backlog lointain / produit
+1. **F38** - historique des gains et lecture produit coherente du ledger compte
+2. **F37** - coherence dashboard / temporalite / charge cognitive
+3. **F14** - persistance DB complete des metriques runtime IA
+4. **F36** - suppression du flash auth au refresh
+5. **F09** - dashboard parent
+6. **F08** - objectifs personnalises
+7. **F10** - mode focus / session ciblee
+8. **F23** - exercices adaptatifs SR+IA, maintenant debloques par F04
+9. **F30** - effet protege
+10. **F31** - exemples resolus progressifs
+11. **F11** - partage progression vers parents
+12. **F16 / F17 / F18 / F19 / F21** - confort, engagement et croissance
+13. **F24 / F25 / F27** - chantiers plus lourds ou structurels
+14. **F28 / F29 / F34** - backlog lointain / produit
 
 Lecture simple :
-- **P0 operationnel** : F39-A4, CC1-L1, F04
-- **P1 operationnel** : F38, F37, F14, F36, F09, F08, F10
-- **P2 operationnel** : F30, F31, F23, F11, F16, F17, F18, F19, F21
+- **P0 operationnel** : F38, F37, F14
+- **P1 operationnel** : F36, F09, F08, F10, F23
+- **P2 operationnel** : F30, F31, F11, F16, F17, F18, F19, F21
 - **P3 operationnel** : F24, F25, F27
 - **P4 operationnel** : F28, F29, F34
 
@@ -287,6 +285,12 @@ Ces quatre features combinent un score composite Ã©levÃ© ET un bÃ©nÃ©fic
 
 **Source** : [ROADMAP Ã‚Â§3.3](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 14.8 | D=4, G=4, E=5, R=2, B=4
+
+**Statut actuel** : [PARTIAL] exercice livre end-to-end (`F04-P1`..`F04-P5`) ; restent hors scope de ce train :
+- integration defis
+- compteur `X revisions restantes`
+- distinction analytics plus fine pour `spaced-review`
+- couplage futur F23 (`SR + IA`)
 
 **Valeur pÃ©dagogique (E=5) â€” La preuve la plus robuste en Ã©ducation** :
 - Ebbinghaus (1885, rÃ©pliquÃ© 100+ fois) â€” Courbe de l'oubli : sans rÃ©vision, 70% d'une connaissance est oubliÃ©e en 24h, 90% en une semaine.

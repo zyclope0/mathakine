@@ -1,8 +1,8 @@
 ﻿# Features Docs - Scope and Truth
 
 > Folder status index for `docs/02-FEATURES`
-> Updated: 2026-03-28
-> Truth review: F42 difficulty/ranks docs plus feature-note rationalization realigned with code and project archives on 2026-03-28
+> Updated: 2026-03-29
+> Truth review: F42/F43 references plus F04 shipped exercise flow realigned with code and project archives on 2026-03-29
 
 ## Purpose
 
@@ -42,7 +42,7 @@ This file defines which document should be trusted for what.
 | [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md) | Implemented feature note | Active reference | Diagnostic is implemented; remaining gaps should also appear in roadmap/backlog |
 | [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md) | Implemented feature note | Active reference | Post-F42 runtime truth for adaptive difficulty and legacy compatibility |
 | [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md) | Implemented admin analytics note | Active reference | Quick Start analytics instrumentation is implemented |
-| [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md) | Future feature spec | Active backlog spec | Not implemented |
+| [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md) | Spaced repetition implementation note + remaining reserves | Active reference | Exercise scope shipped (`F04-P1`..`F04-P5`); challenge integration and F23 coupling remain out of scope |
 | ~~NIVEAUX_DIFFICULTE_NORMALISATION.md~~ | Compatibility note | **Archivé** 2026-03-27 | Contenu couvert par DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md + DIFFICULTY_AND_RANKS_MANIFEST.md |
 | [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) | Admin security constraints | Active reference | Use before extending admin endpoints |
 | [THEMES.md](THEMES.md) | Frontend/theme reference | Reference | Keep as supporting design/system note |
