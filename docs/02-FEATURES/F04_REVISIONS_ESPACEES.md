@@ -2,7 +2,7 @@
 
 > Reference technique - implementation roadmap
 > Date : 2026-03-29
-> Statut : [PARTIAL] `F04-P1`..`F04-P4` livres ; `F04-P5` = flux « Réviser maintenant » (dashboard + solver, `?session=spaced-review`)
+> Statut : [PARTIAL] `F04-P1`..`F04-P5` livres ; extensions hors scope = defis + F23
 > Source : [ROADMAP_FONCTIONNALITES §F04](ROADMAP_FONCTIONNALITES.md)
 
 ---
@@ -42,7 +42,7 @@ Fondements scientifiques retenus :
 ### Livre dans `F04-P5`
 
 - widget dashboard : CTA **Réviser maintenant** si `due_today_count > 0` ou `overdue_count > 0` → fetch `reviews/next` → redirection `/exercises/{id}?session=spaced-review`
-- `ExerciseSolver` : mode `session=spaced-review` (badge contexte, pas d’indice avant réponse, après soumission : prochaine carte due ou fin de session sobre)
+- `ExerciseSolver` : mode `session=spaced-review` (badge contexte, pas d’indice avant réponse, explication affichée après soumission, puis prochaine carte due ou fin de session sobre)
 - pas de nouvelle route API ; pas de second solver
 
 ### Non livre a ce stade

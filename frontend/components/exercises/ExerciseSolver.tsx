@@ -222,9 +222,10 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   useEffect(() => {
     if (submitResult) {
       setHasSubmitted(true);
-      setShowExplanation(sessionMode !== "spaced-review");
+      // Retrieval-first before submit, explanatory feedback after the learner answers.
+      setShowExplanation(true);
     }
-  }, [sessionMode, submitResult]);
+  }, [submitResult]);
 
   // Réinitialiser l'état quand l'exercice change
   useEffect(() => {
