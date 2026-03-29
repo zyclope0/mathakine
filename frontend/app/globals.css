@@ -496,6 +496,10 @@ select:focus {
   --primary-light: #a78bfa;
   /* Primary-text-on-dark : pour texte primary sur fonds sombres (#171226 et similaires) */
   --primary-text-on-dark: #a78bfa;
+  /* Podium leaderboard — métaux lisibles sur chaque thème */
+  --rank-gold: #f59e0b;
+  --rank-silver: #64748b;
+  --rank-bronze: #b45309;
   --secondary: #6366f1;
   --secondary-foreground: #ffffff;
   --muted: #1a1a24;
@@ -520,6 +524,9 @@ select:focus {
   --primary: #7c3aed;
   --secondary: #818cf8;
   --accent: #f472b6;
+  --rank-gold: #fbbf24;
+  --rank-silver: #94a3b8;
+  --rank-bronze: #d97706;
 }
 
 /* Thème Minimaliste (Priorité 2) */
@@ -544,6 +551,10 @@ select:focus {
   --input: #f5f5f5;
   --ring: #000000;
   --radius: 0;
+  --primary-text-on-dark: #171717;
+  --rank-gold: #ca8a04;
+  --rank-silver: #737373;
+  --rank-bronze: #92400e;
 }
 
 /* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
@@ -565,6 +576,10 @@ select:focus {
   --border: #ffffff;
   --input: #1a1a1a;
   --ring: #ffffff;
+  --primary-text-on-dark: #fafafa;
+  --rank-gold: #eab308;
+  --rank-silver: #a3a3a3;
+  --rank-bronze: #d97706;
 }
 
 /* Thème Océan (Priorité 3) */
@@ -591,6 +606,10 @@ select:focus {
   --border: rgba(3, 105, 161, 0.2);
   --input: rgba(3, 105, 161, 0.1);
   --ring: #0369a1;
+  --primary-text-on-dark: #7dd3fc;
+  --rank-gold: #fbbf24;
+  --rank-silver: #94a3b8;
+  --rank-bronze: #d97706;
 }
 
 /* Thème Océan - Mode Dark (profondeur océanique plus sombre) */
@@ -598,7 +617,6 @@ select:focus {
   --background: #050810;
   --card: #0f172a;
   --muted: #0f172a;
-  --primary-text-on-dark: #7dd3fc;
   --border: rgba(3, 105, 161, 0.4);
   --input: rgba(3, 105, 161, 0.2);
   /* WCAG AA : sky-700 #0369a1 (5.5:1), cyan-600 #0891b2 (4.6:1), teal-600 #0d9488 (4.7:1) */
@@ -606,6 +624,9 @@ select:focus {
   --secondary: #0891b2;
   --accent: #0d9488;
   --muted-foreground: #e2e8f0; /* Plus clair pour meilleur contraste */
+  --rank-gold: #fde047;
+  --rank-silver: #cbd5e1;
+  --rank-bronze: #f59e0b;
 }
 
 /* Thème Dune (Sable) — clair + chaud, réduction fatigue visuelle */
@@ -629,6 +650,10 @@ select:focus {
   --border: #fcd34d;
   --input: #fef3c7;
   --ring: #b45309;
+  --primary-text-on-dark: #b45309;
+  --rank-gold: #d97706;
+  --rank-silver: #78716c;
+  --rank-bronze: #92400e;
 }
 
 .dark[data-theme="dune"] {
@@ -649,6 +674,10 @@ select:focus {
   --border: #57534e;
   --input: #44403c;
   --ring: #fbbf24;
+  --primary-text-on-dark: #fef3c7;
+  --rank-gold: #fbbf24;
+  --rank-silver: #a8a29e;
+  --rank-bronze: #f59e0b;
 }
 
 /* Thème Forêt (Nature) — verts doux, calme et focus */
@@ -672,6 +701,10 @@ select:focus {
   --border: #6ee7b7;
   --input: #d1fae5;
   --ring: #047857;
+  --primary-text-on-dark: #6ee7b7;
+  --rank-gold: #ca8a04;
+  --rank-silver: #64748b;
+  --rank-bronze: #92400e;
 }
 
 .dark[data-theme="forest"] {
@@ -692,6 +725,10 @@ select:focus {
   --border: #166534;
   --input: #14532d;
   --ring: #34d399;
+  --primary-text-on-dark: #86efac;
+  --rank-gold: #facc15;
+  --rank-silver: #94a3b8;
+  --rank-bronze: #d97706;
 }
 
 /* Thème Lumière (Pêche) — tons chauds, énergie douce */
@@ -715,6 +752,10 @@ select:focus {
   --border: #fdba74;
   --input: #fed7aa;
   --ring: #ea580c;
+  --primary-text-on-dark: #fdba74;
+  --rank-gold: #ea580c;
+  --rank-silver: #78716c;
+  --rank-bronze: #9a3412;
 }
 
 .dark[data-theme="peach"] {
@@ -735,6 +776,10 @@ select:focus {
   --border: #57534e;
   --input: #44403c;
   --ring: #fb923c;
+  --primary-text-on-dark: #ffedd5;
+  --rank-gold: #fb923c;
+  --rank-silver: #a8a29e;
+  --rank-bronze: #fdba74;
 }
 
 /* Thème Dinosaures 🦖 — jungle préhistorique, verts lime + ambre fossil */
@@ -758,6 +803,10 @@ select:focus {
   --border: #a16207;
   --input: #fef08a;
   --ring: #65a30d;
+  --primary-text-on-dark: #65a30d;
+  --rank-gold: #ca8a04;
+  --rank-silver: #78716c;
+  --rank-bronze: #a16207;
 }
 
 /* Thème Dino dark : fond plus neutre/frais pour réduire le voile jaune (ex‑#1a2e05 trop chaud) */
@@ -769,7 +818,7 @@ select:focus {
   --popover: #1a2e0a;
   --popover-foreground: #d1fae5;
   --primary: #65a30d;
-  --primary-text-on-dark: #84cc16;
+  --primary-text-on-dark: #86efac;
   --primary-foreground: #0d1b04;
   --secondary: #84cc16;
   --secondary-foreground: #0d1b04;
@@ -780,6 +829,9 @@ select:focus {
   --border: #2d4a0f;
   --input: #1a2e0a;
   --ring: #65a30d;
+  --rank-gold: #eab308;
+  --rank-silver: #94a3b8;
+  --rank-bronze: #ca8a04;
 }
 
 /* ─── Tokens sidebar — miroir des variables du thème actif ─────────────────── */
@@ -1031,6 +1083,23 @@ select:focus {
 @layer utilities {
   .text-primary-on-dark {
     color: var(--primary-text-on-dark);
+  }
+
+  /* Podium leaderboard — surfaces dérivées des tokens --rank-* par thème */
+  .leaderboard-podium-surface--rank-1 {
+    background-color: color-mix(in srgb, var(--rank-gold) 10%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rank-gold) 25%, transparent);
+  }
+  .leaderboard-podium-surface--rank-2 {
+    background-color: color-mix(in srgb, var(--rank-silver) 10%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rank-silver) 25%, transparent);
+  }
+  .leaderboard-podium-surface--rank-3 {
+    background-color: color-mix(in srgb, var(--rank-bronze) 10%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rank-bronze) 25%, transparent);
+  }
+  .leaderboard-podium-surface--rank-default {
+    background-color: color-mix(in srgb, var(--muted) 25%, transparent);
   }
 
   /* Scrollbar discrète pour zones scrollables (modals, etc.) */
