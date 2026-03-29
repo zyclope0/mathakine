@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
+import { useContentListOrderPreference } from "@/hooks/useContentListOrderPreference";
+import { useContentListViewControls } from "@/hooks/useContentListViewControls";
 import { useChallenges } from "@/hooks/useChallenges";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { AIGenerator } from "@/components/challenges/AIGenerator";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import {
   CHALLENGE_TYPE_STYLES,
@@ -16,7 +17,8 @@ import {
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
-import { Puzzle, LayoutGrid, List } from "lucide-react";
+import { Puzzle } from "lucide-react";
+import { ContentListViewModeToggle } from "@/components/shared/ContentListViewModeToggle";
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
@@ -32,8 +34,12 @@ import {
   ContentListProgressiveFilterToolbar,
   type ContentListFilterToolbarLabels,
 } from "@/components/shared/ContentListProgressiveFilterToolbar";
-import { CONTENT_LIST_ORDER, type ContentListOrder } from "@/lib/constants/contentListOrder";
-import { getLocalString, removeLocalKey, setLocalString, STORAGE_KEYS } from "@/lib/storage";
+import {
+  contentListAdvancedFilterActiveCount,
+  contentListTotalPages,
+  hasActiveContentListFilters,
+} from "@/lib/contentList/pageHelpers";
+import { STORAGE_KEYS } from "@/lib/storage";
 
 // Lazy load modal pour la vue liste
 const ChallengeModal = dynamic(
@@ -48,10 +54,6 @@ const ChallengeModal = dynamic(
 
 const ITEMS_PER_PAGE = 15;
 
-function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
-  return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
-}
-
 function ChallengesPageContent() {
   const t = useTranslations("challenges");
   const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
@@ -59,28 +61,22 @@ function ChallengesPageContent() {
   const [challengeTypeFilter, setChallengeTypeFilter] = useState<string>("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [orderFilter, setOrderFilter] = useState<ContentListOrder>(CONTENT_LIST_ORDER.RANDOM);
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const {
+    currentPage,
+    setCurrentPage,
+    viewMode,
+    setViewMode,
+    handleFilterChange,
+    handlePageChange,
+  } = useContentListViewControls();
+  const { orderFilter, handleOrderChange, resetOrderPreference } = useContentListOrderPreference(
+    STORAGE_KEYS.prefChallengeOrder
+  );
   const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
   const { isCompleted } = useCompletedChallenges();
-
-  useEffect(() => {
-    const raw = getLocalString(STORAGE_KEYS.prefChallengeOrder);
-    if (isValidStoredContentListOrder(raw)) {
-      // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
-      setOrderFilter(raw);
-    }
-  }, []);
-
-  const handleOrderChange = (value: ContentListOrder) => {
-    setOrderFilter(value);
-    setLocalString(STORAGE_KEYS.prefChallengeOrder, value);
-  };
 
   // Optimiser les filtres avec useMemo
   const filters: ChallengeFilters = useMemo(() => {
@@ -111,37 +107,29 @@ function ChallengesPageContent() {
   const { challenges, total, isLoading, error } = useChallenges(filters);
 
   // Calculer le nombre total de pages à partir du total réel
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
+  const totalPages = contentListTotalPages(total, ITEMS_PER_PAGE);
 
-  const hasActiveFilters =
-    challengeTypeFilter !== "all" ||
-    ageGroupFilter !== "all" ||
-    searchQuery.trim() !== "" ||
-    orderFilter !== CONTENT_LIST_ORDER.RANDOM ||
-    hideCompleted;
-
-  const handleFilterChange = () => {
-    setCurrentPage(1);
-  };
+  const hasActiveFilters = hasActiveContentListFilters({
+    typeFilter: challengeTypeFilter,
+    ageFilter: ageGroupFilter,
+    searchQuery,
+    orderFilter,
+    hideCompleted,
+  });
 
   const clearFilters = () => {
     setChallengeTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
-    setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
+    resetOrderPreference();
     setHideCompleted(false);
     setCurrentPage(1);
-    removeLocalKey(STORAGE_KEYS.prefChallengeOrder);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll vers le haut de la liste
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const advancedActiveCount =
-    (challengeTypeFilter !== "all" ? 1 : 0) + (ageGroupFilter !== "all" ? 1 : 0);
+  const advancedActiveCount = contentListAdvancedFilterActiveCount(
+    challengeTypeFilter,
+    ageGroupFilter
+  );
 
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
@@ -234,29 +222,12 @@ function ChallengesPageContent() {
               </h2>
             )}
 
-            {/* Toggle Vue Grille / Liste — cibles tactiles 44px */}
-            <div className="flex items-center gap-1 border rounded-lg p-1 shrink-0">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
-                aria-label={t("viewGrid")}
-                aria-pressed={viewMode === "grid"}
-              >
-                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
-                aria-label={t("viewList")}
-                aria-pressed={viewMode === "list"}
-              >
-                <List className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </div>
+            <ContentListViewModeToggle
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              ariaLabelGrid={t("viewGrid")}
+              ariaLabelList={t("viewList")}
+            />
           </div>
 
           {error ? (

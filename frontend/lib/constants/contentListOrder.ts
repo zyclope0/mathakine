@@ -8,3 +8,7 @@ export const CONTENT_LIST_ORDER = {
 } as const;
 
 export type ContentListOrder = (typeof CONTENT_LIST_ORDER)[keyof typeof CONTENT_LIST_ORDER];
+
+export function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
+  return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
+}

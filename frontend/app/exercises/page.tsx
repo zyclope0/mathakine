@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, Suspense } from "react";
+import { useContentListOrderPreference } from "@/hooks/useContentListOrderPreference";
+import { useContentListViewControls } from "@/hooks/useContentListViewControls";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useExercises } from "@/hooks/useExercises";
@@ -10,12 +12,15 @@ import { UnifiedExerciseGenerator } from "@/components/exercises/UnifiedExercise
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
-import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
-import { CONTENT_LIST_ORDER, type ContentListOrder } from "@/lib/constants/contentListOrder";
+import {
+  contentListAdvancedFilterActiveCount,
+  contentListTotalPages,
+  hasActiveContentListFilters,
+} from "@/lib/contentList/pageHelpers";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import { LayoutGrid, List } from "lucide-react";
+import { ContentListViewModeToggle } from "@/components/shared/ContentListViewModeToggle";
 import {
   ContentListProgressiveFilterToolbar,
   type ContentListFilterToolbarLabels,
@@ -39,13 +44,9 @@ import { ContentListSkeleton } from "@/components/shared/ContentListSkeleton";
 import { ExercisesListLoadingShell } from "@/components/shared/ListLoadingShells";
 import { ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
-import { getLocalString, removeLocalKey, setLocalString, STORAGE_KEYS } from "@/lib/storage";
+import { STORAGE_KEYS } from "@/lib/storage";
 
 const ITEMS_PER_PAGE = 15;
-
-function isValidStoredContentListOrder(value: string | null): value is ContentListOrder {
-  return value === CONTENT_LIST_ORDER.RANDOM || value === CONTENT_LIST_ORDER.RECENT;
-}
 
 function ExercisesPageContent() {
   const t = useTranslations("exercises");
@@ -56,30 +57,23 @@ function ExercisesPageContent() {
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<string>("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const {
+    currentPage,
+    setCurrentPage,
+    viewMode,
+    setViewMode,
+    handleFilterChange,
+    handlePageChange,
+  } = useContentListViewControls();
+  const { orderFilter, handleOrderChange, resetOrderPreference } = useContentListOrderPreference(
+    STORAGE_KEYS.prefExerciseOrder
+  );
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
-  const [orderFilter, setOrderFilter] = useState<ContentListOrder>(CONTENT_LIST_ORDER.RANDOM);
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
   const { isCompleted } = useCompletedExercises();
 
-  useEffect(() => {
-    const raw = getLocalString(STORAGE_KEYS.prefExerciseOrder);
-    if (isValidStoredContentListOrder(raw)) {
-      // Restauration post-hydratation uniquement (pas de lecture storage dans l’initializer useState).
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync exigée pour appliquer la préférence au plus tôt après montage client
-      setOrderFilter(raw);
-    }
-  }, []);
-
-  const handleOrderChange = (value: ContentListOrder) => {
-    setOrderFilter(value);
-    setLocalString(STORAGE_KEYS.prefExerciseOrder, value);
-  };
-
-  // Réinitialiser à la page 1 quand les filtres changent
   const filters: ExerciseFilters = useMemo(() => {
     const f: ExerciseFilters = {
       limit: ITEMS_PER_PAGE,
@@ -139,38 +133,29 @@ function ExercisesPageContent() {
   }, [exercises, total, hasMore, isLoading, error, filters, currentPage]);
 
   // Calculer le nombre total de pages à partir du total réel
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
+  const totalPages = contentListTotalPages(total, ITEMS_PER_PAGE);
 
-  // Réinitialiser à la page 1 quand les filtres changent
-  const handleFilterChange = () => {
-    setCurrentPage(1);
-  };
-
-  const hasActiveFilters =
-    exerciseTypeFilter !== "all" ||
-    ageGroupFilter !== "all" ||
-    searchQuery.trim() !== "" ||
-    orderFilter !== CONTENT_LIST_ORDER.RANDOM ||
-    hideCompleted;
+  const hasActiveFilters = hasActiveContentListFilters({
+    typeFilter: exerciseTypeFilter,
+    ageFilter: ageGroupFilter,
+    searchQuery,
+    orderFilter,
+    hideCompleted,
+  });
 
   const clearFilters = () => {
     setExerciseTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
-    setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
+    resetOrderPreference();
     setHideCompleted(false);
     setCurrentPage(1);
-    removeLocalKey(STORAGE_KEYS.prefExerciseOrder);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll vers le haut de la liste
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const advancedActiveCount =
-    (exerciseTypeFilter !== "all" ? 1 : 0) + (ageGroupFilter !== "all" ? 1 : 0);
+  const advancedActiveCount = contentListAdvancedFilterActiveCount(
+    exerciseTypeFilter,
+    ageGroupFilter
+  );
 
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
@@ -265,29 +250,12 @@ function ExercisesPageContent() {
               </h2>
             )}
 
-            {/* Toggle Vue Grille / Liste — cibles tactiles 44px */}
-            <div className="flex items-center gap-1 border rounded-lg p-1 shrink-0">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
-                aria-label={t("viewGrid")}
-                aria-pressed={viewMode === "grid"}
-              >
-                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
-                aria-label={t("viewList")}
-                aria-pressed={viewMode === "list"}
-              >
-                <List className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </div>
+            <ContentListViewModeToggle
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              ariaLabelGrid={t("viewGrid")}
+              ariaLabelList={t("viewList")}
+            />
           </div>
 
           {error ? (
