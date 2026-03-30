@@ -36,29 +36,11 @@ import {
   parsePositionsFromLayout,
 } from "@/lib/utils/visualChallengeUtils";
 import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
+import { SolverFocusBoard } from "@/components/shared/SolverFocusBoard";
 
 interface ChallengeSolverProps {
   challengeId: number;
   onChallengeCompleted?: () => void;
-}
-
-function FocusBoard({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-card/90 backdrop-blur-xl border border-border shadow-2xl rounded-t-3xl p-6 md:p-10 w-full max-w-5xl mx-auto mt-6",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
 }
 
 export function ChallengeSolver({ challengeId, onChallengeCompleted }: ChallengeSolverProps) {
@@ -256,20 +238,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   if (isLoading) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="challenge">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (error) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="challenge">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <XCircle className="h-12 w-12 text-destructive mx-auto" />
           <div>
@@ -285,13 +267,13 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Link>
           </Button>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (!challenge && !isLoading && !error) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="challenge">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <AlertCircle className="h-12 w-12 text-warning mx-auto" />
           <div>
@@ -307,20 +289,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Link>
           </Button>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (!challenge) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="challenge">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
@@ -368,7 +350,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   return (
     <>
-      <FocusBoard>
+      <SolverFocusBoard variant="challenge">
         {/* Bouton Retour */}
         <Link
           href="/challenges"
@@ -572,7 +554,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Button>
           )}
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
 
       {/* Command Bar — Zone de réponse et d'action */}
       {!hasSubmitted && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
@@ -23,24 +23,16 @@ import {
   storeSpacedReviewNext,
 } from "@/lib/spacedReviewSession";
 import type { ReviewSafeExercisePayload } from "@/lib/validation/spacedRepetitionNextReview";
+import { SolverFocusBoard } from "@/components/shared/SolverFocusBoard";
+import {
+  INTERLEAVED_STORAGE_KEY,
+  parseInterleavedSessionFromStorage,
+  readSessionMode,
+  type InterleavedSessionStored,
+} from "@/lib/exercises/exerciseSolverSession";
 
 interface ExerciseSolverProps {
   exerciseId: number;
-}
-
-const INTERLEAVED_STORAGE_KEY = "interleaved_session";
-
-type SessionMode = "interleaved" | "spaced-review" | null;
-
-function readSessionMode(searchParams: URLSearchParams | null): SessionMode {
-  const v = searchParams?.get("session");
-  if (v === "interleaved") {
-    return "interleaved";
-  }
-  if (v === "spaced-review") {
-    return "spaced-review";
-  }
-  return null;
 }
 
 export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
@@ -59,12 +51,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [sessionData, setSessionData] = useState<{
-    plan: string[];
-    completedCount: number;
-    length: number;
-    analytics?: { firstAttemptTracked?: boolean };
-  } | null>(null);
+  const [sessionData, setSessionData] = useState<InterleavedSessionStored | null>(null);
   const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const startTimeRef = useRef<number>(0);
   const [spacedReviewPhase, setSpacedReviewPhase] = useState<
@@ -182,19 +169,9 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       try {
         const raw = sessionStorage.getItem(INTERLEAVED_STORAGE_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw) as {
-            plan?: string[];
-            completedCount?: number;
-            length?: number;
-            analytics?: { firstAttemptTracked?: boolean };
-          };
-          if (parsed.plan && Array.isArray(parsed.plan)) {
-            setSessionData({
-              plan: parsed.plan,
-              completedCount: parsed.completedCount ?? 0,
-              length: parsed.length ?? parsed.plan.length,
-              ...(parsed.analytics && { analytics: parsed.analytics }),
-            });
+          const parsed = parseInterleavedSessionFromStorage(raw);
+          if (parsed) {
+            setSessionData(parsed);
           }
         }
       } catch {
@@ -289,18 +266,10 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       });
       if (exercise?.id) {
         let analytics = sessionData.analytics ?? { firstAttemptTracked: false };
-        try {
-          const currentRaw = sessionStorage.getItem(INTERLEAVED_STORAGE_KEY);
-          if (currentRaw) {
-            const current = JSON.parse(currentRaw) as {
-              analytics?: { firstAttemptTracked?: boolean };
-            };
-            if (current.analytics?.firstAttemptTracked) {
-              analytics = { ...analytics, firstAttemptTracked: true };
-            }
-          }
-        } catch {
-          // ignorer
+        const currentRaw = sessionStorage.getItem(INTERLEAVED_STORAGE_KEY);
+        const current = currentRaw ? parseInterleavedSessionFromStorage(currentRaw) : null;
+        if (current?.analytics?.firstAttemptTracked) {
+          analytics = { ...analytics, firstAttemptTracked: true };
         }
         sessionStorage.setItem(
           INTERLEAVED_STORAGE_KEY,
@@ -338,40 +307,22 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     }
   }, [applySpacedReviewFetchResult]);
 
-  // Conteneur Focus Board (glassmorphism) — utilisé pour loading, error et contenu
-  const FocusBoard = ({
-    children,
-    className = "",
-  }: {
-    children: ReactNode;
-    className?: string;
-  }) => (
-    <div
-      className={cn(
-        "bg-card/90 backdrop-blur-xl border border-border shadow-[0_0_40px_rgba(0,0,0,0.15)] rounded-3xl p-8 md:p-12 w-full max-w-4xl mx-auto mt-8 md:mt-12",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-
   if (isLoading) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="exercise">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (error) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="exercise">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <XCircle className="h-12 w-12 text-destructive mx-auto" />
           <div>
@@ -387,26 +338,26 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Link>
           </Button>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (sessionMode === "spaced-review" && isReviewExerciseLoading) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="exercise">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto motion-reduce:animate-none" />
             <p className="text-muted-foreground">{t("reviewPreparing")}</p>
           </div>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
   if (sessionMode === "spaced-review" && reviewExerciseError) {
     return (
-      <FocusBoard>
+      <SolverFocusBoard variant="exercise">
         <div className="text-center space-y-4" role="status" aria-live="polite">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{t("reviewUnavailableTitle")}</h3>
@@ -425,7 +376,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Button>
           </div>
         </div>
-      </FocusBoard>
+      </SolverFocusBoard>
     );
   }
 
@@ -444,7 +395,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const explanationText = submitResult?.explanation || exercise?.explanation || "";
 
   return (
-    <FocusBoard>
+    <SolverFocusBoard variant="exercise">
       {/* Progression session entrelacée */}
       {sessionMode === "interleaved" && sessionData && (
         <p className="text-sm text-muted-foreground mb-4" aria-live="polite">
@@ -843,6 +794,6 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Button>
           </div>
         )}
-    </FocusBoard>
+    </SolverFocusBoard>
   );
 }
