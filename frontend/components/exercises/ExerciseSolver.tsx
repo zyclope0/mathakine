@@ -2,18 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useIrtScores } from "@/hooks/useIrtScores";
-import { Loader2, CheckCircle2, XCircle, Lightbulb, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { MathText } from "@/components/ui/MathText";
-import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 import { api, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { fetchNextReviewApi } from "@/hooks/useNextReview";
@@ -30,6 +27,9 @@ import {
   readSessionMode,
   type InterleavedSessionStored,
 } from "@/lib/exercises/exerciseSolverSession";
+import { ExerciseSolverHeader } from "@/components/exercises/ExerciseSolverHeader";
+import { ExerciseSolverChoices } from "@/components/exercises/ExerciseSolverChoices";
+import { ExerciseSolverFeedback } from "@/components/exercises/ExerciseSolverFeedback";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -406,161 +406,41 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         </p>
       )}
 
-      {/* Navigation — contexte révision : sortie vers tableau de bord + exercices */}
-      {sessionMode === "spaced-review" ? (
-        <nav
-          className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm"
-          aria-label={t("reviewNavLabel")}
-        >
-          <Link
-            href="/dashboard"
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 min-h-11 py-2"
-          >
-            <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
-            {t("reviewBackDashboard")}
-          </Link>
-          <Link
-            href="/exercises"
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 min-h-11 py-2"
-          >
-            {t("reviewAllExercises")}
-          </Link>
-        </nav>
-      ) : (
-        <Link
-          href="/exercises"
-          className="text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-2 min-h-11 py-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t("back")}
-        </Link>
-      )}
+      <ExerciseSolverHeader
+        sessionMode={sessionMode}
+        typeDisplay={typeDisplay}
+        ageGroupDisplay={ageGroupDisplay}
+        title={displayExercise.title}
+        question={displayExercise.question}
+        labels={{
+          reviewNavLabel: t("reviewNavLabel"),
+          reviewBackDashboard: t("reviewBackDashboard"),
+          reviewAllExercises: t("reviewAllExercises"),
+          reviewContextBadge: t("reviewContextBadge"),
+          back: t("back"),
+        }}
+      />
 
-      {/* Tags centrés au-dessus du titre */}
-      <div className="flex justify-center flex-wrap gap-2 mb-4">
-        {sessionMode === "spaced-review" ? (
-          <Badge variant="secondary" className="border-border text-foreground/90">
-            {t("reviewContextBadge")}
-          </Badge>
-        ) : null}
-        {ageGroupDisplay && <Badge variant="outline">{ageGroupDisplay}</Badge>}
-        <Badge variant="outline">{typeDisplay}</Badge>
-      </div>
-
-      {/* Titre centré */}
-      <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-        {displayExercise.title}
-      </h1>
-
-      {/* Énoncé — la star de la page */}
-      <div className="text-xl md:text-2xl font-medium text-foreground text-center mb-12 leading-relaxed">
-        <MathText size="xl">{displayExercise.question}</MathText>
-      </div>
-
-      {/* Zone de réponse — QCM ou saisie libre selon is_open_answer */}
-      {isOpenAnswer ? (
-        <div className="mb-8 space-y-3">
-          <label
-            htmlFor="open-answer-input"
-            className="block text-sm font-medium text-muted-foreground"
-          >
-            {t("openAnswerLabel", { default: "Votre réponse" })}
-          </label>
-          <input
-            id="open-answer-input"
-            type="text"
-            value={selectedAnswer ?? ""}
-            onChange={(e) => !hasSubmitted && setSelectedAnswer(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && selectedAnswer && !hasSubmitted) handleSubmit();
-            }}
-            disabled={hasSubmitted}
-            autoFocus
-            className={cn(
-              "w-full rounded-2xl py-5 px-6 text-2xl font-medium text-foreground bg-secondary/50 border-2 border-border",
-              "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all",
-              hasSubmitted && "opacity-70 cursor-not-allowed",
-              hasSubmitted &&
-                submitResult?.is_correct &&
-                "border-emerald-500 bg-emerald-500/10 text-emerald-400",
-              hasSubmitted &&
-                !submitResult?.is_correct &&
-                "border-red-500 bg-red-500/10 text-red-400"
-            )}
-            placeholder={t("openAnswerPlaceholder", { default: "Entrez votre réponse…" })}
-            aria-label={t("openAnswerLabel", { default: "Votre réponse" })}
-          />
-        </div>
-      ) : choices.length > 0 ? (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8"
-          role="radiogroup"
-          aria-label="Choix de réponses pour l'exercice"
-        >
-          {choices.map((choice, index) => {
-            const isSelected = selectedAnswer === choice;
-            const showCorrect = hasSubmitted && isCorrectChoice(choice);
-            const showIncorrect = hasSubmitted && isSelected && !isCorrectChoice(choice);
-
-            return (
-              <button
-                key={index}
-                type="button"
-                className={cn(
-                  "rounded-2xl py-6 md:py-8 text-2xl font-medium text-foreground cursor-pointer transition-all text-center border-2",
-                  !hasSubmitted &&
-                    !showCorrect &&
-                    !showIncorrect &&
-                    (isSelected
-                      ? "border-primary bg-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
-                      : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
-                  showCorrect &&
-                    "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-500/20",
-                  showIncorrect && "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
-                  hasSubmitted && !isSelected && !isCorrectChoice(choice) && "opacity-50"
-                )}
-                onClick={() => handleSelectAnswer(choice)}
-                disabled={hasSubmitted}
-                role="radio"
-                aria-checked={isSelected ? "true" : "false"}
-                aria-label={`${t("option", { index: index + 1 })}: ${choice}${hasSubmitted ? (isCorrectChoice(choice) ? ` - ${t("answerCorrect")}` : showIncorrect ? ` - ${t("answerIncorrect")}` : "") : ""}`}
-                tabIndex={hasSubmitted ? -1 : isSelected || index === 0 ? 0 : -1}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleSelectAnswer(choice);
-                  }
-                  if (e.key === "ArrowRight" && index < choices.length - 1) {
-                    e.preventDefault();
-                    const next = e.currentTarget.parentElement?.children[index + 1] as HTMLElement;
-                    next?.focus();
-                  }
-                  if (e.key === "ArrowLeft" && index > 0) {
-                    e.preventDefault();
-                    const prev = e.currentTarget.parentElement?.children[index - 1] as HTMLElement;
-                    prev?.focus();
-                  }
-                }}
-              >
-                {choice}
-              </button>
-            );
-          })}
-        </div>
-      ) : sessionMode === "spaced-review" && !hasSubmitted ? (
-        <div className="p-6 border rounded-xl bg-muted/40 border-border mb-8">
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            {t("reviewNoChoicesFallback")}
-          </p>
-        </div>
-      ) : (
-        <div className="p-4 border rounded-lg bg-muted/50 mb-8">
-          <p className="text-muted-foreground text-sm">
-            {t("noChoices")}{" "}
-            <strong>{submitResult?.correct_answer ?? exercise?.correct_answer ?? ""}</strong>
-          </p>
-        </div>
-      )}
+      <ExerciseSolverChoices
+        isOpenAnswer={isOpenAnswer}
+        choices={choices}
+        selectedAnswer={selectedAnswer}
+        hasSubmitted={hasSubmitted}
+        isCorrectChoice={isCorrectChoice}
+        sessionMode={sessionMode}
+        correctAnswer={submitResult?.correct_answer ?? exercise?.correct_answer ?? ""}
+        onSelectAnswer={handleSelectAnswer}
+        onSubmitOpenAnswer={handleSubmit}
+        labels={{
+          openAnswerLabel: t("openAnswerLabel", { default: "Votre réponse" }),
+          openAnswerPlaceholder: t("openAnswerPlaceholder", { default: "Entrez votre réponse…" }),
+          option: (index) => t("option", { index }),
+          answerCorrect: t("answerCorrect"),
+          answerIncorrect: t("answerIncorrect"),
+          reviewNoChoicesFallback: t("reviewNoChoicesFallback"),
+          noChoices: t("noChoices"),
+        }}
+      />
 
       {/* Bouton Valider — dynamique (grisé si aucune réponse, primaire si activé) */}
       {!hasSubmitted && (
@@ -589,77 +469,26 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         </Button>
       )}
 
-      {/* Feedback après soumission */}
-      {hasSubmitted && submitResult && (
-        <div
-          className={cn(
-            "rounded-xl p-4 font-semibold text-lg flex items-center gap-3 transition-all mt-8",
-            isCorrect
-              ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-              : "bg-red-500/10 border-2 border-red-500/30 text-red-400"
-          )}
-        >
-          {isCorrect ? (
-            <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
-          ) : (
-            <XCircle className="h-6 w-6 flex-shrink-0" />
-          )}
-          <div className="flex-1">
-            <p className={isCorrect ? "mb-0" : "mb-1"}>
-              {isCorrect ? t("correctTitle") : t("incorrectTitle")}
-            </p>
-            {!isCorrect && (
-              <GrowthMindsetHint
-                supportText={t("incorrectSupport")}
-                correctAnswerLabel={t("correctAnswerWas")}
-                correctAnswer={submitResult.correct_answer}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Explication — Fiche de savoir */}
-      {showExplanation && explanationText && (
-        <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mt-6">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
-              <MathText size="lg" className="text-foreground">
-                {explanationText}
-              </MathText>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Indice — masqué en session révision (pas d’indice avant réponse) */}
-      {!hasSubmitted && exercise?.hint && !showHint && sessionMode !== "spaced-review" && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowHint(true)}
-          className="w-full mt-6"
-          aria-label={t("hint")}
-        >
-          <Lightbulb className="mr-2 h-4 w-4" />
-          {t("hint")}
-        </Button>
-      )}
-      {showHint && exercise?.hint && sessionMode !== "spaced-review" && (
-        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mt-6">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-yellow-400 mb-1">{t("hint")}</h4>
-              <MathText size="sm" className="text-muted-foreground">
-                {exercise.hint || ""}
-              </MathText>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExerciseSolverFeedback
+        hasSubmitted={hasSubmitted}
+        submitResultPresent={!!submitResult}
+        isCorrect={isCorrect}
+        correctAnswer={submitResult?.correct_answer ?? ""}
+        explanationText={explanationText}
+        showExplanation={showExplanation}
+        hint={exercise?.hint}
+        showHint={showHint}
+        sessionMode={sessionMode}
+        onShowHint={() => setShowHint(true)}
+        labels={{
+          correctTitle: t("correctTitle"),
+          incorrectTitle: t("incorrectTitle"),
+          incorrectSupport: t("incorrectSupport"),
+          correctAnswerWas: t("correctAnswerWas"),
+          explanation: t("explanation"),
+          hint: t("hint"),
+        }}
+      />
 
       {/* Actions après soumission */}
       {hasSubmitted && sessionMode === "interleaved" && sessionData && (
