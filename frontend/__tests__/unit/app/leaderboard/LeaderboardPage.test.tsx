@@ -114,9 +114,9 @@ describe("LeaderboardPage (L2)", () => {
     const items = within(list).getAllByRole("listitem");
     expect(items).toHaveLength(3);
 
-    expect(items[0]?.className).toMatch(/ring-amber-500/);
-    expect(items[1]?.className).toMatch(/ring-slate/);
-    expect(items[2]?.className).toMatch(/ring-amber-700/);
+    expect(items[0]?.className).toMatch(/leaderboard-podium-surface--rank-1/);
+    expect(items[1]?.className).toMatch(/leaderboard-podium-surface--rank-2/);
+    expect(items[2]?.className).toMatch(/leaderboard-podium-surface--rank-3/);
   });
 
   it("rend sans erreur avec série et badges à zéro", () => {

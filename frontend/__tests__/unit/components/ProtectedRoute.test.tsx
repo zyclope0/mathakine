@@ -1,5 +1,9 @@
+"use client";
+
 import { act, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import fr from "@/messages/fr.json";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -21,6 +25,14 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <NextIntlClientProvider locale="fr" messages={fr}>
+      {children}
+    </NextIntlClientProvider>
+  );
+}
+
 describe("ProtectedRoute", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +43,7 @@ describe("ProtectedRoute", () => {
     vi.useRealTimers();
   });
 
-  it("affiche immédiatement le contenu si un utilisateur est déjà en cache", () => {
+  it("affiche immediatement le contenu si un utilisateur est deja en cache", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 1,
@@ -44,15 +56,16 @@ describe("ProtectedRoute", () => {
 
     render(
       <ProtectedRoute>
-        <div>Contenu protégé</div>
-      </ProtectedRoute>
+        <div>Contenu protege</div>
+      </ProtectedRoute>,
+      { wrapper: TestWrapper }
     );
 
-    expect(screen.getByText("Contenu protégé")).toBeInTheDocument();
+    expect(screen.getByText("Contenu protege")).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
   });
 
-  it("redirige vers /login après le timeout de sécurité si l'auth reste indéterminée", async () => {
+  it("redirige vers /login apres le timeout de securite si l'auth reste indeterminee", async () => {
     vi.useFakeTimers();
     vi.mocked(useAuth).mockReturnValue({
       user: null,
@@ -62,11 +75,12 @@ describe("ProtectedRoute", () => {
 
     render(
       <ProtectedRoute>
-        <div>Contenu protégé</div>
-      </ProtectedRoute>
+        <div>Contenu protege</div>
+      </ProtectedRoute>,
+      { wrapper: TestWrapper }
     );
 
-    expect(screen.getByText("Chargement...")).toBeInTheDocument();
+    expect(screen.getAllByText("Chargement...")).toHaveLength(2);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1500);
