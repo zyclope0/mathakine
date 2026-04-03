@@ -20,7 +20,7 @@ import {
   storeSpacedReviewNext,
 } from "@/lib/spacedReviewSession";
 import type { ReviewSafeExercisePayload } from "@/lib/validation/spacedRepetitionNextReview";
-import { SolverFocusBoard } from "@/components/shared/SolverFocusBoard";
+import { LearnerCard } from "@/components/learner";
 import {
   INTERLEAVED_STORAGE_KEY,
   parseInterleavedSessionFromStorage,
@@ -309,20 +309,20 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
 
   if (isLoading) {
     return (
-      <SolverFocusBoard variant="exercise">
+      <LearnerCard variant="exercise">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (error) {
     return (
-      <SolverFocusBoard variant="exercise">
+      <LearnerCard variant="exercise">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <XCircle className="h-12 w-12 text-destructive mx-auto" />
           <div>
@@ -338,26 +338,26 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Link>
           </Button>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (sessionMode === "spaced-review" && isReviewExerciseLoading) {
     return (
-      <SolverFocusBoard variant="exercise">
+      <LearnerCard variant="exercise">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto motion-reduce:animate-none" />
             <p className="text-muted-foreground">{t("reviewPreparing")}</p>
           </div>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (sessionMode === "spaced-review" && reviewExerciseError) {
     return (
-      <SolverFocusBoard variant="exercise">
+      <LearnerCard variant="exercise">
         <div className="text-center space-y-4" role="status" aria-live="polite">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{t("reviewUnavailableTitle")}</h3>
@@ -376,7 +376,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Button>
           </div>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
@@ -395,7 +395,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const explanationText = submitResult?.explanation || exercise?.explanation || "";
 
   return (
-    <SolverFocusBoard variant="exercise">
+    <LearnerCard variant="exercise">
       {/* Progression session entrelacée */}
       {sessionMode === "interleaved" && sessionData && (
         <p className="text-sm text-muted-foreground mb-4" aria-live="polite">
@@ -444,29 +444,40 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
 
       {/* Bouton Valider — dynamique (grisé si aucune réponse, primaire si activé) */}
       {!hasSubmitted && (
-        <Button
-          onClick={handleSubmit}
-          disabled={!selectedAnswer || isSubmitting}
-          className={cn(
-            "w-full size-lg transition-all",
-            !selectedAnswer &&
-              "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
-            selectedAnswer &&
-              "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
+        <div className="space-y-2">
+          <Button
+            onClick={handleSubmit}
+            disabled={!selectedAnswer || isSubmitting}
+            className={cn(
+              "w-full size-lg transition-all",
+              !selectedAnswer &&
+                "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
+              selectedAnswer && "bg-primary text-primary-foreground"
+            )}
+            size="lg"
+            aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
+            aria-busy={isSubmitting}
+            aria-describedby={!selectedAnswer ? "validate-hint" : undefined}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                {t("saving")}
+              </>
+            ) : (
+              t("validateMyAnswer")
+            )}
+          </Button>
+          {!selectedAnswer && (
+            <p
+              id="validate-hint"
+              className="text-center text-xs text-muted-foreground"
+              aria-live="polite"
+            >
+              {isOpenAnswer ? t("validateHintOpen") : t("validateHintMcq")}
+            </p>
           )}
-          size="lg"
-          aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
-          aria-busy={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              {t("saving")}
-            </>
-          ) : (
-            t("validateMyAnswer")
-          )}
-        </Button>
+        </div>
       )}
 
       <ExerciseSolverFeedback
@@ -623,6 +634,6 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Button>
           </div>
         )}
-    </SolverFocusBoard>
+    </LearnerCard>
   );
 }

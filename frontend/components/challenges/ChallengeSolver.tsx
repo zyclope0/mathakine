@@ -36,7 +36,7 @@ import {
   parsePositionsFromLayout,
 } from "@/lib/utils/visualChallengeUtils";
 import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
-import { SolverFocusBoard } from "@/components/shared/SolverFocusBoard";
+import { LearnerCard } from "@/components/learner";
 
 interface ChallengeSolverProps {
   challengeId: number;
@@ -238,20 +238,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   if (isLoading) {
     return (
-      <SolverFocusBoard variant="challenge">
+      <LearnerCard variant="challenge">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (error) {
     return (
-      <SolverFocusBoard variant="challenge">
+      <LearnerCard variant="challenge">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <XCircle className="h-12 w-12 text-destructive mx-auto" />
           <div>
@@ -267,13 +267,13 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Link>
           </Button>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (!challenge && !isLoading && !error) {
     return (
-      <SolverFocusBoard variant="challenge">
+      <LearnerCard variant="challenge">
         <div className="text-center space-y-4" role="alert" aria-live="assertive">
           <AlertCircle className="h-12 w-12 text-warning mx-auto" />
           <div>
@@ -289,20 +289,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Link>
           </Button>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
   if (!challenge) {
     return (
-      <SolverFocusBoard variant="challenge">
+      <LearnerCard variant="challenge">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("loading")}</p>
           </div>
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
     );
   }
 
@@ -350,7 +350,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   return (
     <>
-      <SolverFocusBoard variant="challenge">
+      <LearnerCard variant="challenge">
         {/* Bouton Retour */}
         <Link
           href="/challenges"
@@ -554,11 +554,11 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Button>
           )}
         </div>
-      </SolverFocusBoard>
+      </LearnerCard>
 
       {/* Command Bar — Zone de réponse et d'action */}
       {!hasSubmitted && (
-        <div className="bg-muted/80 border border-border border-t-0 p-6 rounded-b-3xl max-w-5xl mx-auto">
+        <div className="bg-[var(--bg-learner,var(--card))] border border-border/40 rounded-2xl p-6 max-w-5xl mx-auto">
           <h3 className="text-lg font-semibold text-foreground mb-4">{t("yourAnswer")}</h3>
           <div className="space-y-4">
             {showMcq ? (
@@ -577,7 +577,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                     role="radio"
                     aria-checked={userAnswer === choice}
                     aria-label={`${t("option", { index: index + 1 })}: ${choice}`}
-                    tabIndex={userAnswer === choice ? 0 : -1}
+                    tabIndex={hasSubmitted ? -1 : userAnswer === choice || index === 0 ? 0 : -1}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -795,68 +795,82 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               </div>
             )}
 
-            <div className="flex gap-3">
-              <Button
-                onClick={handleSubmit}
-                disabled={
-                  isSubmitting ||
-                  hasSubmitted ||
-                  (hasVisualButtons
-                    ? visualPositions.length > 1
-                      ? !isVisualMultiComplete
-                      : !userAnswer.trim()
-                    : !userAnswer.trim())
-                }
-                className={cn(
-                  "flex-1 px-6 py-3 rounded-xl font-medium transition-all",
-                  (hasVisualButtons
-                    ? visualPositions.length > 1
-                      ? !isVisualMultiComplete
-                      : !userAnswer.trim()
-                    : !userAnswer.trim()) && !isSubmitting
-                    ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground border border-border"
-                    : "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)] hover:-translate-y-0.5"
-                )}
-                aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
-                aria-busy={isSubmitting}
-              >
-                {isSubmitting ? (
+            <div className="space-y-2 flex-1">
+              {(() => {
+                const isAnswerEmpty = hasVisualButtons
+                  ? visualPositions.length > 1
+                    ? !isVisualMultiComplete
+                    : !userAnswer.trim()
+                  : !userAnswer.trim();
+                const isDisabled = isSubmitting || hasSubmitted || isAnswerEmpty;
+                return (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("checking")}
-                  </>
-                ) : (
-                  t("validate")
-                )}
-              </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={isDisabled}
+                        className={cn(
+                          "flex-1 px-6 py-3 rounded-2xl font-medium transition-all",
+                          isAnswerEmpty && !isSubmitting
+                            ? "opacity-60 cursor-not-allowed bg-muted text-muted-foreground border border-border"
+                            : "bg-primary text-primary-foreground"
+                        )}
+                        aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
+                        aria-busy={isSubmitting}
+                        aria-describedby={
+                          isAnswerEmpty && !isSubmitting ? "challenge-validate-hint" : undefined
+                        }
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t("checking")}
+                          </>
+                        ) : (
+                          t("validate")
+                        )}
+                      </Button>
 
-              {(availableHints.length > 0 || challenge?.hints) && (
-                <Button
-                  onClick={handleRequestHint}
-                  variant="outline"
-                  disabled={
-                    hasSubmitted ||
-                    (availableHints.length > 0 && hintsUsed.length >= availableHints.length)
-                  }
-                  className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-xl"
-                  aria-label={
-                    availableHints.length > 0
-                      ? t("requestHint", {
-                          current: hintsUsed.length + 1,
-                          total: availableHints.length,
-                        })
-                      : t("requestHintGeneric")
-                  }
-                >
-                  <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
-                  {availableHints.length > 0
-                    ? t("hintButton", {
-                        current: hintsUsed.length + 1,
-                        total: availableHints.length,
-                      })
-                    : t("hintButtonGeneric")}
-                </Button>
-              )}
+                      {(availableHints.length > 0 || challenge?.hints) && (
+                        <Button
+                          onClick={handleRequestHint}
+                          variant="outline"
+                          disabled={
+                            hasSubmitted ||
+                            (availableHints.length > 0 && hintsUsed.length >= availableHints.length)
+                          }
+                          className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-2xl"
+                          aria-label={
+                            availableHints.length > 0
+                              ? t("requestHint", {
+                                  current: hintsUsed.length + 1,
+                                  total: availableHints.length,
+                                })
+                              : t("requestHintGeneric")
+                          }
+                        >
+                          <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
+                          {availableHints.length > 0
+                            ? t("hintButton", {
+                                current: hintsUsed.length + 1,
+                                total: availableHints.length,
+                              })
+                            : t("hintButtonGeneric")}
+                        </Button>
+                      )}
+                    </div>
+                    {isAnswerEmpty && !isSubmitting && (
+                      <p
+                        id="challenge-validate-hint"
+                        className="text-center text-xs text-muted-foreground"
+                        aria-live="polite"
+                      >
+                        {t("validateHint")}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

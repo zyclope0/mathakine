@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ExerciseSolver } from "@/components/exercises/ExerciseSolver";
 import { useTranslations } from "next-intl";
 import { PageLayout, EmptyState } from "@/components/layout";
+import { LearnerLayout } from "@/components/learner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -42,11 +43,9 @@ export default function ExercisePage({ params }: ExercisePageProps) {
 
   return (
     <ProtectedRoute>
-      <PageLayout>
-        <div className="max-w-4xl mx-auto">
-          <ExerciseSolver exerciseId={exerciseId} />
-        </div>
-      </PageLayout>
+      <LearnerLayout>
+        <ExerciseSolver exerciseId={exerciseId} />
+      </LearnerLayout>
     </ProtectedRoute>
   );
 }

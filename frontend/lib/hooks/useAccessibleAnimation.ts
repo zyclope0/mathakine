@@ -1,20 +1,39 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { useReducedMotion, type Variants, type Transition } from "framer-motion";
+
+function subscribeToHydration() {
+  return () => {};
+}
 
 /**
  * Hook pour créer des animations accessibles qui respectent les préférences utilisateur
  * - reducedMotion : Réduit ou désactive les animations
  * - focusMode : Simplifie les animations pour TSA/TDAH
  * - prefers-reduced-motion : Respecte la préférence système
+ *
+ * SSR-safe : shouldReduceMotion est initialisé à false côté serveur pour éviter
+ * le hydration mismatch. La vraie valeur est appliquée après montage côté client.
+ * Référence : https://react.dev/link/hydration-mismatch
  */
 export function useAccessibleAnimation() {
   const { reducedMotion, focusMode } = useAccessibilityStore();
   const prefersReducedMotion = useReducedMotion();
 
-  // Déterminer si les animations doivent être réduites
-  const shouldReduceMotion = reducedMotion || focusMode || prefersReducedMotion;
+  // `useSyncExternalStore` permet un guard SSR-safe sans `setState` dans un effet.
+  // Snapshot serveur = false, snapshot client = true après hydratation.
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false
+  );
+
+  // Avant montage : toujours false → pas d'animation → pas de mismatch SSR/client.
+  // Après montage : valeur réelle lue depuis window.matchMedia et les stores.
+  const shouldReduceMotion =
+    isHydrated && (reducedMotion || focusMode || Boolean(prefersReducedMotion));
 
   /**
    * Crée une variante d'animation avec garde-fous

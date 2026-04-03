@@ -4,6 +4,7 @@ import { use } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeSolver } from "@/components/challenges/ChallengeSolver";
 import { PageLayout, EmptyState } from "@/components/layout";
+import { LearnerLayout } from "@/components/learner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -42,11 +43,9 @@ export default function ChallengePage({ params }: ChallengePageProps) {
 
   return (
     <ProtectedRoute requireFullAccess>
-      <PageLayout>
-        <div className="max-w-5xl mx-auto">
-          <ChallengeSolver challengeId={challengeId} />
-        </div>
-      </PageLayout>
+      <LearnerLayout maxWidth="5xl">
+        <ChallengeSolver challengeId={challengeId} />
+      </LearnerLayout>
     </ProtectedRoute>
   );
 }

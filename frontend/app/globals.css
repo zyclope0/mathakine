@@ -178,37 +178,15 @@
   }
 }
 
-/* Améliorations boutons - micro-interactions premium améliorées */
+/* Boutons — micro-interactions globales (surfaces marketing, dashboard, navigation).
+ * Neutralisé dans [data-learner-context] pour respecter COGA 4.2.3 :
+ * aucun mouvement non essentiel pendant une tâche cognitive. */
 button:not(:disabled) {
   position: relative;
-  overflow: hidden;
   transition:
     transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Effet de brillance amélioré sur les boutons */
-button:not(:disabled)::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-button:not(:disabled):hover::after {
-  left: 100%;
 }
 
 button:not(:disabled):hover {
@@ -229,39 +207,27 @@ button:not(:disabled):active {
     box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Améliorations cards - hover effect avec effet de brillance amélioré */
+/* Contexte apprenant — neutralisation du lift/glow global sur les boutons.
+ * Appliqué via data-learner-context sur LearnerLayout et LearnerCard.
+ * Les boutons post-soumission conservent leurs classes Tailwind inline
+ * qui peuvent réintroduire un lift discret — choix intentionnel
+ * (post-réflexion = acceptable selon COGA). */
+[data-learner-context] button:not(:disabled):hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-learner-context] button:not(:disabled):active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Cards — hover effect (surfaces hors contexte apprenant) */
 [data-slot="card"] {
-  position: relative;
-  overflow: hidden;
   transition:
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Effet de brillance (sweep effect) amélioré sur les cards */
-[data-slot="card"]::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.15),
-    color-mix(in srgb, var(--primary) 10%, transparent),
-    rgba(255, 255, 255, 0.15),
-    transparent
-  );
-  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-  z-index: 1;
-}
-
-[data-slot="card"]:hover::before {
-  left: 100%;
 }
 
 [data-slot="card"]:hover {
@@ -275,6 +241,19 @@ button:not(:disabled):active {
 [data-slot="card"]:active {
   transform: translateY(-2px) scale(1);
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Contexte apprenant — neutralisation du lift/scale global sur les cards.
+ * LearnerCard n'utilise pas [data-slot="card"] mais cette règle couvre
+ * tout composant Card qui serait incidentellement utilisé dans le contexte. */
+[data-learner-context] [data-slot="card"]:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: inherit;
+}
+
+[data-learner-context] [data-slot="card"]:active {
+  transform: none;
 }
 
 /* Améliorations liens - feedback visuel amélioré */
@@ -330,13 +309,44 @@ select:focus {
     transition: none;
   }
 
-  button:not(:disabled)::after,
-  [data-slot="card"]::before {
-    display: none;
-  }
-
   /* Les animations sont désactivées via les composants React qui vérifient reducedMotion */
   /* Pas besoin de redéfinir les @keyframes ici */
+}
+
+/* Sweep effect opt-in — surfaces marketing uniquement (page d'accueil, CTA hero).
+ * Ne pas appliquer sur les solvers, les cartes QCM ou tout contexte d'apprentissage.
+ * Usage : ajouter la classe .hover-sweep sur le composant concerné. */
+.hover-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-sweep::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+.hover-sweep:hover::after {
+  left: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-sweep::after {
+    display: none;
+  }
 }
 
 /* Animations spatiales - Planète */
@@ -511,6 +521,8 @@ select:focus {
   --border: rgba(124, 58, 237, 0.2);
   --input: rgba(124, 58, 237, 0.1);
   --ring: #7c3aed;
+  /* Fond apprenant — aligné sur --card pour créer un contraste visible avec --background (Option A) */
+  --bg-learner: #12121a;
 }
 
 /* Thème Spatial - Mode Dark (plus sombre, plus contrasté) */
@@ -527,6 +539,7 @@ select:focus {
   --rank-gold: #fbbf24;
   --rank-silver: #94a3b8;
   --rank-bronze: #d97706;
+  --bg-learner: #0a0a0f;
 }
 
 /* Thème Minimaliste (Priorité 2) */
@@ -555,6 +568,7 @@ select:focus {
   --rank-gold: #ca8a04;
   --rank-silver: #737373;
   --rank-bronze: #92400e;
+  --bg-learner: #f5f5f5;
 }
 
 /* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
@@ -580,6 +594,7 @@ select:focus {
   --rank-gold: #eab308;
   --rank-silver: #a3a3a3;
   --rank-bronze: #d97706;
+  --bg-learner: #111111;
 }
 
 /* Thème Océan (Priorité 3) */
@@ -610,6 +625,7 @@ select:focus {
   --rank-gold: #fbbf24;
   --rank-silver: #94a3b8;
   --rank-bronze: #d97706;
+  --bg-learner: #0e1829;
 }
 
 /* Thème Océan - Mode Dark (profondeur océanique plus sombre) */
@@ -627,6 +643,7 @@ select:focus {
   --rank-gold: #fde047;
   --rank-silver: #cbd5e1;
   --rank-bronze: #f59e0b;
+  --bg-learner: #040710;
 }
 
 /* Thème Dune (Sable) — clair + chaud, réduction fatigue visuelle */
@@ -654,6 +671,7 @@ select:focus {
   --rank-gold: #d97706;
   --rank-silver: #78716c;
   --rank-bronze: #92400e;
+  --bg-learner: #fdf4e7;
 }
 
 .dark[data-theme="dune"] {
@@ -678,6 +696,7 @@ select:focus {
   --rank-gold: #fbbf24;
   --rank-silver: #a8a29e;
   --rank-bronze: #f59e0b;
+  --bg-learner: #14100c;
 }
 
 /* Thème Forêt (Nature) — verts doux, calme et focus */
@@ -705,6 +724,7 @@ select:focus {
   --rank-gold: #ca8a04;
   --rank-silver: #64748b;
   --rank-bronze: #92400e;
+  --bg-learner: #edfbf0;
 }
 
 .dark[data-theme="forest"] {
@@ -729,6 +749,7 @@ select:focus {
   --rank-gold: #facc15;
   --rank-silver: #94a3b8;
   --rank-bronze: #d97706;
+  --bg-learner: #021a0b;
 }
 
 /* Thème Lumière (Pêche) — tons chauds, énergie douce */
@@ -756,6 +777,7 @@ select:focus {
   --rank-gold: #ea580c;
   --rank-silver: #78716c;
   --rank-bronze: #9a3412;
+  --bg-learner: #fff4ee;
 }
 
 .dark[data-theme="peach"] {
@@ -780,6 +802,7 @@ select:focus {
   --rank-gold: #fb923c;
   --rank-silver: #a8a29e;
   --rank-bronze: #fdba74;
+  --bg-learner: #120e0b;
 }
 
 /* Thème Dinosaures 🦖 — jungle préhistorique, verts lime + ambre fossil */
@@ -807,6 +830,7 @@ select:focus {
   --rank-gold: #ca8a04;
   --rank-silver: #78716c;
   --rank-bronze: #a16207;
+  --bg-learner: #fefce4;
 }
 
 /* Thème Dino dark : fond plus neutre/frais pour réduire le voile jaune (ex‑#1a2e05 trop chaud) */
@@ -832,6 +856,7 @@ select:focus {
   --rank-gold: #eab308;
   --rank-silver: #94a3b8;
   --rank-bronze: #ca8a04;
+  --bg-learner: #060f02;
 }
 
 /* ─── Tokens sidebar — miroir des variables du thème actif ─────────────────── */

@@ -434,6 +434,8 @@
       "validateAnswer": "Valider la réponse",
       "saving": "Enregistrement...",
       "validateMyAnswer": "Valider ma réponse",
+      "validateHintMcq": "Choisis une réponse pour continuer",
+      "validateHintOpen": "Écris ta réponse pour continuer",
       "correctTitle": "Bravo ! Réponse correcte 🎉",
       "incorrectTitle": "Pas encore, tu progresses.",
       "incorrectSupport": "Regarde la méthode, puis retente avec une autre stratégie.",
@@ -476,6 +478,8 @@
       "noMultipleChoice": "Cet exercice n'a pas de choix multiples. Entrez votre réponse ci-dessous.",
       "saving": "Enregistrement...",
       "validateAnswer": "Valider ma réponse",
+      "validateHintMcq": "Choisis une réponse pour continuer",
+      "validateHintOpen": "Écris ta réponse pour continuer",
       "correctTitle": "Bravo ! Réponse correcte 🎉",
       "incorrectTitle": "Pas encore, tu progresses.",
       "incorrectSupport": "Regarde la méthode, puis retente avec une autre stratégie.",
@@ -653,6 +657,7 @@
       "validateAnswer": "Valider la réponse au défi",
       "checking": "Vérification...",
       "validate": "Valider",
+      "validateHint": "Complète ta réponse pour continuer",
       "requestHint": "Demander l'indice {current} sur {total}",
       "requestHintGeneric": "Demander un indice",
       "hintButton": "Indice ({current}/{total})",
@@ -1418,6 +1423,7 @@
       "title": "Fonctionnalités",
       "description": "Tout ce dont vous avez besoin pour progresser en mathématiques",
       "feature1": {
+        "label": "Notre approche",
         "title": "Exercices Adaptatifs",
         "description": "Des exercices mathématiques personnalisés selon votre niveau et vos besoins"
       },

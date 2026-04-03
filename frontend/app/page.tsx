@@ -1,11 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { BookOpen, Zap, Trophy, Users, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PageLayout } from "@/components/layout";
 import { LogoBadge } from "@/components/LogoBadge";
 import { useTranslations } from "next-intl";
@@ -13,7 +12,7 @@ import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
-// Lazy loading des composants non-critiques
+// AcademyStatsWidget — chargé uniquement pour les visiteurs non-connectés (NI-6)
 const AcademyStatsWidgetLazy = dynamic(
   () =>
     import("@/components/home/AcademyStatsWidget").then((mod) => ({
@@ -22,60 +21,29 @@ const AcademyStatsWidgetLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <Card className="border border-border/50 bg-card/40 backdrop-blur-md">
-        <CardContent className="py-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="border border-border/40 rounded-xl bg-card/40">
+        <div className="py-6 px-4">
+          <div className="flex flex-wrap gap-8 justify-center">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="text-center space-y-2">
-                <Skeleton className="h-8 w-8 mx-auto rounded-full" />
                 <Skeleton className="h-6 w-12 mx-auto" />
                 <Skeleton className="h-4 w-20 mx-auto" />
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   }
 );
 
-// Types
-interface Feature {
-  icon: React.ComponentType<{ className?: string }>;
-  titleKey: string;
-  descriptionKey: string;
-}
-
 /**
- * Page d'accueil Mathakine - Version optimisée
+ * Page d'accueil Mathakine
  */
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const t = useTranslations("home");
   const { shouldReduceMotion } = useAccessibleAnimation();
-
-  const features: Feature[] = [
-    {
-      icon: BookOpen,
-      titleKey: "features.feature1.title",
-      descriptionKey: "features.feature1.description",
-    },
-    {
-      icon: Zap,
-      titleKey: "features.feature2.title",
-      descriptionKey: "features.feature2.description",
-    },
-    {
-      icon: Trophy,
-      titleKey: "features.feature3.title",
-      descriptionKey: "features.feature3.description",
-    },
-    {
-      icon: Users,
-      titleKey: "features.feature4.title",
-      descriptionKey: "features.feature4.description",
-    },
-  ];
 
   return (
     <PageLayout>
@@ -109,7 +77,7 @@ export default function HomePage() {
           {t("hero.subtitle")}
         </p>
 
-        {/* CTAs — 2 boutons centrés */}
+        {/* CTAs */}
         <div
           className={cn(
             "flex flex-wrap gap-4 justify-center",
@@ -137,43 +105,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats de l'Académie */}
-      <section className="py-4" aria-label="Statistiques de l'Académie">
-        <AcademyStatsWidgetLazy />
-      </section>
+      {/* Stats de l'Académie — visiteurs non-connectés uniquement (NI-6)
+          Guard !isAuthLoading : évite le flash du widget pendant la résolution de la query auth */}
+      {!isAuthLoading && !isAuthenticated && (
+        <section className="py-4" aria-label="Statistiques de l'Académie">
+          <AcademyStatsWidgetLazy />
+        </section>
+      )}
 
-      {/* Fonctionnalités */}
-      <section className="py-8 md:py-12 space-y-4" aria-labelledby="features-title">
-        <div className="text-center space-y-2">
+      {/* Fonctionnalités — layout asymétrique (NI-6) */}
+      <section className="py-8 md:py-16 space-y-8 md:space-y-12" aria-labelledby="features-title">
+        <div className="space-y-2">
           <h2 id="features-title" className="text-2xl md:text-3xl font-bold">
             {t("features.title")}
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm">
+          <p className="text-muted-foreground text-sm md:text-base max-w-lg">
             {t("features.description")}
           </p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <Card
-                key={feature.titleKey}
-                className="bg-card/40 border border-border/50 backdrop-blur-md text-center p-6 md:p-8 cursor-default"
-              >
-                <CardHeader className="pb-2 pt-0 px-0">
-                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                  </div>
-                  <CardTitle className="text-sm md:text-base">{t(feature.titleKey)}</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 px-0">
-                  <CardDescription className="text-xs md:text-sm">
-                    {t(feature.descriptionKey)}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            );
-          })}
+
+        {/* Feature principale — large */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <div className="md:col-span-2 border border-border/40 rounded-2xl p-8 md:p-10 bg-card/60 min-h-40 md:min-h-56 flex flex-col justify-center">
+            <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">
+              {t("features.feature1.label")}
+            </p>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+              {t("features.feature1.title")}
+            </h3>
+            <p className="text-muted-foreground text-sm md:text-base max-w-prose">
+              {t("features.feature1.description")}
+            </p>
+          </div>
+
+          {/* Feature secondaire — Défis */}
+          <div className="border border-border/40 rounded-2xl p-6 md:p-8">
+            <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
+              {t("features.feature2.title")}
+            </h3>
+            <p className="text-muted-foreground text-sm">{t("features.feature2.description")}</p>
+          </div>
+
+          {/* Feature secondaire — Gamification */}
+          <div className="border border-border/40 rounded-2xl p-6 md:p-8">
+            <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
+              {t("features.feature3.title")}
+            </h3>
+            <p className="text-muted-foreground text-sm">{t("features.feature3.description")}</p>
+          </div>
+        </div>
+
+        {/* Feature tertiaire — Accessibilité — bande texte */}
+        <div className="border-t border-border/30 pt-6 flex flex-col sm:flex-row sm:items-center gap-3">
+          <p className="text-sm font-medium text-foreground">{t("features.feature4.title")}</p>
+          <span className="hidden sm:block text-border/60" aria-hidden="true">
+            —
+          </span>
+          <p className="text-sm text-muted-foreground">{t("features.feature4.description")}</p>
         </div>
       </section>
     </PageLayout>

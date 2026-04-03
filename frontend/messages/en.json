@@ -434,6 +434,8 @@
       "validateAnswer": "Validate answer",
       "saving": "Saving...",
       "validateMyAnswer": "Validate my answer",
+      "validateHintMcq": "Choose an answer to continue",
+      "validateHintOpen": "Write your answer to continue",
       "correctTitle": "Well done! Correct answer 🎉",
       "incorrectTitle": "Not yet, you're making progress.",
       "incorrectSupport": "Review the method, then retry with a different strategy.",
@@ -476,6 +478,8 @@
       "noMultipleChoice": "This exercise has no multiple choices. Enter your answer below.",
       "saving": "Saving...",
       "validateAnswer": "Submit my answer",
+      "validateHintMcq": "Choose an answer to continue",
+      "validateHintOpen": "Write your answer to continue",
       "correctTitle": "Well done! Correct answer 🎉",
       "incorrectTitle": "Not yet, you're making progress.",
       "incorrectSupport": "Review the method, then retry with a different strategy.",
@@ -653,6 +657,7 @@
       "validateAnswer": "Validate challenge answer",
       "checking": "Checking...",
       "validate": "Validate",
+      "validateHint": "Complete your answer to continue",
       "requestHint": "Request hint {current} of {total}",
       "requestHintGeneric": "Request a hint",
       "hintButton": "Hint ({current}/{total})",
@@ -1626,6 +1631,7 @@
       "title": "Features",
       "description": "Everything you need to progress in mathematics",
       "feature1": {
+        "label": "Our approach",
         "title": "Adaptive Exercises",
         "description": "Personalized math exercises based on your level and needs"
       },

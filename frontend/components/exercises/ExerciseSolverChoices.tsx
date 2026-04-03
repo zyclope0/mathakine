@@ -90,15 +90,15 @@ export function ExerciseSolverChoices({
               key={index}
               type="button"
               className={cn(
-                "rounded-2xl py-6 md:py-8 text-2xl font-medium text-foreground cursor-pointer transition-all text-center border-2",
+                "rounded-2xl py-6 md:py-8 text-2xl font-medium text-foreground cursor-pointer transition-colors text-center border-2",
                 !hasSubmitted &&
                   !showCorrect &&
                   !showIncorrect &&
                   (isSelected
-                    ? "border-primary bg-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
-                    : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
+                    ? "border-primary bg-primary/20"
+                    : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50"),
                 showCorrect &&
-                  "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-500/20",
+                  "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500/20",
                 showIncorrect && "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
                 hasSubmitted && !isSelected && !isCorrectChoice(choice) && "opacity-50"
               )}

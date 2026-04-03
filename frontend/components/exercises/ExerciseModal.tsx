@@ -97,11 +97,12 @@ function ExerciseModalContent({
     <DialogContent
       showCloseButton={false}
       aria-describedby={undefined}
-      className="w-full max-w-[calc(100%-2rem)] md:max-w-3xl lg:max-w-4xl max-h-[90vh] p-0 gap-0 bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden"
+      className="w-full max-w-[calc(100%-2rem)] md:max-w-3xl lg:max-w-4xl max-h-[90vh] p-0 gap-0 bg-[var(--bg-learner,var(--card))] border border-border/40 shadow-none rounded-2xl overflow-hidden"
       onPointerDownOutside={() => !isSubmitting && handleClose()}
     >
       {/* Contenu : stopPropagation pour éviter fermeture au clic dedans */}
       <div
+        data-learner-context
         className="p-6 md:p-8 overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
@@ -162,6 +163,7 @@ function ExerciseModalContent({
           </div>
         ) : exercise ? (
           <>
+            {/* Question — scroll conditionnel si très long */}
             {(() => {
               const question = exercise.question ?? "";
               const isLongText = question.length > 80;
@@ -205,15 +207,16 @@ function ExerciseModalContent({
                     disabled={hasSubmitted}
                     autoFocus
                     className={cn(
-                      "w-full bg-background/50 border border-border/50 text-foreground text-lg px-4 py-4 rounded-xl transition-all",
-                      "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-muted-foreground",
+                      "w-full rounded-2xl py-5 px-6 text-2xl font-medium text-foreground bg-secondary/50 border-2 border-border",
+                      "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all",
+                      "placeholder:text-muted-foreground",
                       hasSubmitted && "opacity-70 cursor-not-allowed",
                       hasSubmitted &&
                         submitResult?.is_correct &&
-                        "border-success bg-success/10 text-success",
+                        "border-emerald-500 bg-emerald-500/10 text-emerald-400",
                       hasSubmitted &&
                         !submitResult?.is_correct &&
-                        "border-destructive bg-destructive/10 text-destructive"
+                        "border-red-500 bg-red-500/10 text-red-400"
                     )}
                     placeholder={t("openAnswerPlaceholder", { default: "Entrez votre réponse…" })}
                     aria-label={t("openAnswerLabel", { default: "Votre réponse" })}
@@ -221,7 +224,7 @@ function ExerciseModalContent({
                 </div>
               ) : choices.length > 0 ? (
                 <div
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4"
                   role="radiogroup"
                   aria-label={t("answerChoicesLabel")}
                 >
@@ -239,18 +242,17 @@ function ExerciseModalContent({
                         key={index}
                         type="button"
                         className={cn(
-                          "h-auto py-4 px-6 text-xl font-medium transition-all duration-200 rounded-xl text-left",
-                          "border-2",
+                          "rounded-2xl py-6 md:py-7 text-2xl font-medium text-foreground cursor-pointer transition-colors text-center border-2",
                           !hasSubmitted &&
                             !showCorrect &&
                             !showIncorrect &&
                             (isSelected
-                              ? "border-primary bg-primary/20 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
-                              : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
+                              ? "border-primary bg-primary/20"
+                              : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50"),
                           showCorrect &&
-                            "bg-success/20 border-success text-success hover:bg-success/20",
+                            "bg-emerald-500/20 border-emerald-500 text-emerald-400 hover:bg-emerald-500/20",
                           showIncorrect &&
-                            "bg-destructive/20 border-destructive text-destructive hover:bg-destructive/20",
+                            "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
                           hasSubmitted && !isSelected && !isCorrectChoice && "opacity-50"
                         )}
                         onClick={() => handleSelectAnswer(choice)}
@@ -258,7 +260,7 @@ function ExerciseModalContent({
                         role="radio"
                         aria-checked={isSelected ? "true" : "false"}
                         aria-label={`Option ${index + 1}: ${choice}${hasSubmitted ? (isCorrectChoice ? ` - ${t("correctAnswer")}` : showIncorrect ? ` - ${t("incorrectAnswer")}` : "") : ""}`}
-                        tabIndex={hasSubmitted ? -1 : isSelected ? 0 : -1}
+                        tabIndex={hasSubmitted ? -1 : isSelected || index === 0 ? 0 : -1}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
@@ -292,25 +294,40 @@ function ExerciseModalContent({
               )}
 
               {!hasSubmitted && (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!selectedAnswer || isSubmitting}
-                  className={cn(
-                    "w-full size-lg font-semibold transition-all",
-                    !selectedAnswer && "opacity-50 cursor-not-allowed",
-                    selectedAnswer && "bg-primary text-primary-foreground hover:bg-primary/90"
+                <div className="space-y-2">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!selectedAnswer || isSubmitting}
+                    className={cn(
+                      "w-full size-lg font-semibold transition-all",
+                      !selectedAnswer &&
+                        "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
+                      selectedAnswer && "bg-primary text-primary-foreground hover:bg-primary/90"
+                    )}
+                    size="lg"
+                    aria-describedby={!selectedAnswer ? "modal-validate-hint" : undefined}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        {t("saving")}
+                      </>
+                    ) : (
+                      t("validateAnswer")
+                    )}
+                  </Button>
+                  {!selectedAnswer && (
+                    <p
+                      id="modal-validate-hint"
+                      className="text-center text-xs text-muted-foreground"
+                      aria-live="polite"
+                    >
+                      {isOpenAnswer
+                        ? t("validateHintOpen", { default: "Écris ta réponse pour continuer" })
+                        : t("validateHintMcq", { default: "Choisis une réponse pour continuer" })}
+                    </p>
                   )}
-                  size="lg"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {t("saving")}
-                    </>
-                  ) : (
-                    t("validateAnswer")
-                  )}
-                </Button>
+                </div>
               )}
 
               {hasSubmitted && submitResult && (
