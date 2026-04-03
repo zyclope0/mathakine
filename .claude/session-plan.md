@@ -7,10 +7,65 @@
 
 ---
 
+## Addendum Frontend - 2026-04-03
+
+> Ce fichier garde l'historique du plan `CC1` backend.
+> L'addendum ci-dessous sert de **session-plan courant** pour le frontend, afin d'eviter
+> une divergence entre la memoire Claude et les audits projet.
+
+### 0. Verite d'execution courante
+
+**Source de verite frontend**
+
+- `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
+- `docs/03-PROJECT/DEBAT_NEURO_INCLUSION_2026-03-30.md`
+- `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` reste un audit historique, plus un plan actif
+
+**Etat FFI (commite + pousse)**
+
+- `FFI-L1` a `FFI-L9` : livres
+- `FFI-L10` : prochain lot critique (`ChallengeSolver`)
+- `FFI-L11` a `FFI-L13` : ouverts, apres stabilisation solver
+
+**Etat NI (worktree local relu au 2026-04-03)**
+
+- `NI-1` : fait localement
+- `NI-2` : fait localement
+- `NI-3` : fait localement
+- `NI-4` : backlog
+- `NI-5` : a faire
+- `NI-6` : fait localement
+- `NI-7` : fait localement
+- `NI-8` : fait localement
+
+### 1. Prochain ordre recommande
+
+```text
+1. Stabiliser / integrer proprement les travaux NI locaux si l'objectif est de les garder
+2. FFI-L10 : split ChallengeSolver
+3. FFI-L11 : couleurs semantiques hardcodees
+4. FFI-L12 : split Header.tsx
+5. FFI-L13 : doc design system + clarification chatbot
+```
+
+### 2. Gardes-fous frontend
+
+1. **Ne pas sur-declarer "fait"** : distinguer explicitement `commite/pousse`, `local`, `backlog`.
+2. **Dashboard != solver** : ne pas faire passer du hors-scope dashboard comme lot apprenant sans le documenter.
+3. **Neuro-inclusion** : zero mouvement non essentiel pendant la phase de reflexion ; conserver les neutralisations `[data-learner-context]`.
+4. **Industrialisation** : garder `FFI-Lx` comme ordre de reference, pas les anciens audits phase/par phase.
+5. **Docs** : toute evolution NI/FFI doit realigner ces 3 fichiers en meme temps :
+   - `DEBAT_NEURO_INCLUSION_2026-03-30.md`
+   - `AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
+   - `AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md`
+
+---
+
 ## 1. Contexte
 
 Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 7 findings identifies, classes en 3 categories :
+
 - **Bugs** (P0) : encoding corruption + clamp manquant
 - **Code mort** (P1) : 2 suppressions sures
 - **DRY** (P2) : 2 violations de coherence, differables
@@ -35,6 +90,7 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 **Fichiers :** 5 fichiers backend
 
 #### BUG-1 : Encoding `exercise_ai_service.py`
+
 - **Fichier :** `app/services/exercises/exercise_ai_service.py`
 - **Probleme :** le fichier contient une corruption UTF-8 -> Latin-1 sur des chaines francaises
   (`generation`, `evenements SSE`, `Bibliotheque`, etc.)
@@ -43,11 +99,13 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 - **Impact :** prompts IA degrades ; messages d'erreur illisibles
 
 #### BUG-1b : Encoding `challenge_ai_service.py:84`
+
 - **Fichier :** `app/services/challenges/challenge_ai_service.py`
 - **Ligne :** 84
 - **Action :** corriger la chaine du log (`Groupe d'age`, `non trouve`)
 
 #### BUG-2 : Clamp manquant `mastery_tier_bridge.py`
+
 - **Fichier :** `app/core/mastery_tier_bridge.py`
 - **Fonction :** `project_challenge_progress_row_f42()` ligne 230
 - **Probleme :** `compute_tier_from_age_group_and_band()` est appele sans clamp alors que
@@ -57,6 +115,7 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 - **Risque si non corrige :** tier hors [1-12] silencieux cote defis
 
 #### D1 : Dead attrs `AIConfig.ADVANCED_MODEL / BASIC_MODEL`
+
 - **Fichier :** `app/core/ai_config.py` lignes 21-23
 - **Preuve :** `test_challenge_ia4_prompt_and_model_policy.py:143` asserte
   `"ADVANCED_MODEL" not in src`
@@ -64,6 +123,7 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 - **Risque :** zero - aucun caller en dehors du test de non-utilisation
 
 #### D2 : Dead function `experience_points_in_current_level()`
+
 - **Fichier :** `app/services/gamification/compute.py` lignes 88-91
 - **Preuve :** jamais importe ni appele (grep exhaustif, 0 resultat hors definition)
 - **Corps :** alias d'une ligne de `level_and_xp_from_total_points()`
@@ -71,6 +131,7 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 - **Risque :** zero - aucun caller
 
 **Gate CC1-L1 :**
+
 ```powershell
 D:\Mathakine\.venv\Scripts\python.exe -m pytest tests\ -q --tb=short --maxfail=20 --no-cov --ignore=tests\api\test_admin_auth_stability.py
 D:\Mathakine\.venv\Scripts\python.exe -m black app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check
@@ -89,6 +150,7 @@ docstring "DRY pour generation IA en streaming". `challenge_ai_service.py` l'uti
 `exercise_ai_service.py` utilise des f-strings inline identiques partout.
 
 **Action :**
+
 1. Ajouter l'import `from app.utils.sse_utils import sse_error_message, sse_status_message`
 2. Remplacer tous les `f"data: {json.dumps({'type': 'error', ...})}\n\n"` par `sse_error_message(...)`
 3. Remplacer `f"data: {json.dumps({'type': 'status', ...})}\n\n"` par `sse_status_message(...)`
@@ -111,6 +173,7 @@ a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
 **Statut final :** realise avec helper borne, sans elargir le scope ni toucher au fallback non-stream.
 
 **Analyse precise du differe :**
+
 - c'est le **seul vrai differe** du plan CC1
 - le lot ne doit pas devenir une refonte de toute la policy IA defis
 - la source de verite actuelle des params reste `AIConfig.get_openai_params(challenge_type)`
@@ -118,6 +181,7 @@ a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
 - le fallback stream vide (`resolve_challenge_ai_fallback_model`) reste hors lot
 
 **Scope max effort applicable si le lot est reactive plus tard :**
+
 1. **Fichiers autorises (stricts)**
    - `app/services/challenges/challenge_ai_service.py`
    - `app/services/challenges/challenge_ai_model_policy.py`
@@ -146,6 +210,7 @@ a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
    - `black` / `isort` / `flake8` sur les fichiers touches
 
 **Condition de GO future :**
+
 - helper introduit sans changer le contrat OpenAI effectif
 - `challenge_ai_service.py` ne porte plus de branchement inline famille/parms
 - fallback o3 vide inchange
@@ -157,8 +222,8 @@ a `build_exercise_ai_stream_kwargs()` qui fait la meme chose proprement.
 
 **Fichier :** `CLAUDE.md`
 
-Supprimer la ligne P1 challenge_service double filtrage : deja resolu
-(`_apply_challenge_filters()` utilise `is_active.is_(True)` + `is_archived.is_(False)`).
+Supprimer la ligne P1 challenge*service double filtrage : deja resolu
+(`_apply_challenge_filters()` utilise `is_active.is*(True)`+`is*archived.is*(False)`).
 
 ```
 | ~~P1~~ | ~~`app/services/challenges/challenge_service.py:353`~~ | ~~Double filtrage...~~ - **RESOLU** |
@@ -168,13 +233,15 @@ Supprimer la ligne P1 challenge_service double filtrage : deja resolu
 
 ## 4. Findings hors scope
 
-| Finding | Raison |
-|---------|--------|
-| `resolve_exercise_ai_model_for_user()` wrapper | Extension future documentee + testee, pas du code mort accidentel |
-| `DIFFICULTY_RANGES` dans exercise_ai_service.py | Utilise activement pour prompts |
-| `jedi_rank_for_level()` naming | F43-A3 migration contractuelle additive |
-| `_LEGACY_PROGRESS_RANKS` dans compute.py | Necessaire pour migration buckets legacy |
+| Finding                                         | Raison                                                            |
+| ----------------------------------------------- | ----------------------------------------------------------------- |
+| `resolve_exercise_ai_model_for_user()` wrapper  | Extension future documentee + testee, pas du code mort accidentel |
+| `DIFFICULTY_RANGES` dans exercise_ai_service.py | Utilise activement pour prompts                                   |
+| `jedi_rank_for_level()` naming                  | F43-A3 migration contractuelle additive                           |
+| `_LEGACY_PROGRESS_RANKS` dans compute.py        | Necessaire pour migration buckets legacy                          |
+
 **Clarification importante :**
+
 - `resolve_exercise_ai_model_for_user()` n'est **pas** un differe du plan ; il reste hors scope assume
 - `DIFFICULTY_RANGES`, `jedi_rank_for_level()` et `_LEGACY_PROGRESS_RANKS` ne sont **pas** des nettoyages a programmer ici
 - le rapport initial mentionnait plusieurs dettes legitimes ; `CC1-L3` a depuis ete traite et le plan CC1 est maintenant integralement consomme
@@ -204,6 +271,6 @@ Supprimer la ligne P1 challenge_service double filtrage : deja resolu
 
 ## 7. Dette documentee pour F43
 
-| Item | Reference |
-|------|-----------|
+| Item                                                        | Reference                              |
+| ----------------------------------------------------------- | -------------------------------------- |
 | Double systeme policy IA (ai_config + ai_generation_policy) | Architecture CLAUDE.md - dette assumee |
