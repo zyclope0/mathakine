@@ -220,20 +220,17 @@ export default function DashboardPage() {
         {stats && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList
-              className="grid w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
+              className="grid h-14 w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
               aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}
             >
-              <TabsTrigger value="overview" className="flex items-center gap-2 py-2.5 text-sm">
+              <TabsTrigger value="overview" className="flex items-center gap-2 text-sm">
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">
                   {t("tabs.overview", { default: "Vue d'ensemble" })}
                 </span>
                 <span className="sm:hidden">{t("tabs.overviewShort", { default: "Vue" })}</span>
               </TabsTrigger>
-              <TabsTrigger
-                value="recommendations"
-                className="flex items-center gap-2 py-2.5 text-sm"
-              >
+              <TabsTrigger value="recommendations" className="flex items-center gap-2 text-sm">
                 <Zap className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">
                   {t("tabs.recommendations", { default: "Recommandations" })}
@@ -242,14 +239,14 @@ export default function DashboardPage() {
                   {t("tabs.recommendationsShort", { default: "Recommandés" })}
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="progress" className="flex items-center gap-2 py-2.5 text-sm">
+              <TabsTrigger value="progress" className="flex items-center gap-2 text-sm">
                 <TrendingUp className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">
                   {t("tabs.progress", { default: "Progression" })}
                 </span>
                 <span className="sm:hidden">{t("tabs.progressShort", { default: "Stats" })}</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center gap-2 py-2.5 text-sm">
+              <TabsTrigger value="profile" className="flex items-center gap-2 text-sm">
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">
                   {t("tabs.profile", { default: "Mon Profil" })}
