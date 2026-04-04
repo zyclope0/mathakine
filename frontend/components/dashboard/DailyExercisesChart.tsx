@@ -27,13 +27,21 @@ export interface DailyExercisesChartData {
   }>;
 }
 
+interface DailyExercisesChartRow {
+  name: string;
+  value: number;
+}
+
+const DAILY_EXERCISES_VALUE_KEY: keyof DailyExercisesChartRow = "value";
+const DEFAULT_DAILY_EXERCISES_SERIES_LABEL = "Exercices par jour";
+
 interface DailyExercisesChartBodyProps {
   data: DailyExercisesChartData;
   /** Human-readable period for aria-label (already translated). */
   accessibilityPeriodSummary: string;
 }
 
-/** Chart region only (no Card) — for embedding with an external header / period selector. */
+/** Chart region only (no Card) - for embedding with an external header / period selector. */
 export function DailyExercisesChartBody({
   data,
   accessibilityPeriodSummary,
@@ -41,11 +49,12 @@ export function DailyExercisesChartBody({
   const t = useTranslations("dashboard.charts.dailyExercises");
   const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
   const descriptionId = useId();
+  const seriesLabel = data.datasets[0]?.label || DEFAULT_DAILY_EXERCISES_SERIES_LABEL;
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo<DailyExercisesChartRow[]>(() => {
     return data.labels.map((label, index) => ({
       name: label,
-      [data.datasets[0]?.label || "Exercices par jour"]: data.datasets[0]?.data[index] || 0,
+      value: data.datasets[0]?.data[index] || 0,
     }));
   }, [data.labels, data.datasets]);
 
@@ -54,14 +63,11 @@ export function DailyExercisesChartBody({
 
   const chartDescription = useMemo(() => {
     return data.labels
-      .map(
-        (label, index) =>
-          `${label}: ${data.datasets[0]?.data[index] || 0} ${data.datasets[0]?.label || "exercices"}`
-      )
+      .map((label, index) => `${label}: ${data.datasets[0]?.data[index] || 0} ${seriesLabel}`)
       .join(", ");
-  }, [data.labels, data.datasets]);
+  }, [data.labels, data.datasets, seriesLabel]);
 
-  const ariaLabel = `${t("titleShort")} — ${accessibilityPeriodSummary}`;
+  const ariaLabel = `${t("titleShort")} - ${accessibilityPeriodSummary}`;
 
   return (
     <>
@@ -74,7 +80,7 @@ export function DailyExercisesChartBody({
         aria-label={ariaLabel}
         aria-describedby={descriptionId}
       >
-        {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+        {/* aria-hidden: accessibility is carried by the parent div[role="img"] */}
         <div aria-hidden="true" className="h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ bottom: 8 }}>
@@ -104,11 +110,15 @@ export function DailyExercisesChartBody({
                 labelFormatter={(label) =>
                   typeof label === "string" ? formatShortDate(label) : label
                 }
-                formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
+                formatter={(value) => [
+                  typeof value === "number" ? Math.round(value) : value,
+                  seriesLabel,
+                ]}
               />
               <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
               <Bar
-                dataKey={data.datasets[0]?.label || "Exercices par jour"}
+                dataKey={DAILY_EXERCISES_VALUE_KEY}
+                name={seriesLabel}
                 fill={barColor}
                 stroke={borderColor}
                 strokeWidth={1}
@@ -134,7 +144,7 @@ interface DailyExercisesChartProps {
 export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
   const t = useTranslations("dashboard.charts.dailyExercises");
   const defaultPeriod = t("defaultPeriodAria", {
-    default: "période sélectionnée dans les statistiques",
+    default: "periode selectionnee dans les statistiques",
   });
 
   return (

@@ -17,6 +17,14 @@ import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { formatShortDate } from "@/lib/utils/format";
 import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
 
+interface ProgressChartRow {
+  name: string;
+  value: number;
+}
+
+const PROGRESS_VALUE_KEY: keyof ProgressChartRow = "value";
+const DEFAULT_PROGRESS_SERIES_LABEL = "Exercices resolus";
+
 interface ProgressChartProps {
   data: {
     labels: string[];
@@ -30,24 +38,22 @@ interface ProgressChartProps {
 export function ProgressChart({ data }: ProgressChartProps) {
   const t = useTranslations("dashboard.charts.progressByType");
   const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
+  const seriesLabel = data.datasets[0]?.label || DEFAULT_PROGRESS_SERIES_LABEL;
 
-  // Memoization de la transformation des données pour éviter les recalculs
-  const chartData = useMemo(() => {
+  // Memoization de la transformation des donnees pour eviter les recalculs
+  const chartData = useMemo<ProgressChartRow[]>(() => {
     return data.labels.map((label, index) => ({
       name: label,
-      [data.datasets[0]?.label || "Exercices résolus"]: data.datasets[0]?.data[index] || 0,
+      value: data.datasets[0]?.data[index] || 0,
     }));
   }, [data.labels, data.datasets]);
 
-  // Memoization de la description textuelle pour l'accessibilité
+  // Memoization de la description textuelle pour l'accessibilite
   const chartDescription = useMemo(() => {
     return data.labels
-      .map(
-        (label, index) =>
-          `${label}: ${data.datasets[0]?.data[index] || 0} ${data.datasets[0]?.label || "exercices"}`
-      )
+      .map((label, index) => `${label}: ${data.datasets[0]?.data[index] || 0} ${seriesLabel}`)
       .join(", ");
-  }, [data.labels, data.datasets]);
+  }, [data.labels, data.datasets, seriesLabel]);
 
   return (
     <Card className="border-border/50 bg-card/40 backdrop-blur-md">
@@ -64,11 +70,11 @@ export function ProgressChart({ data }: ProgressChartProps) {
           className="h-[300px] w-full"
           role="img"
           aria-label={t("ariaLabel", {
-            default: "Graphique de progression montrant le nombre d'exercices résolus par type",
+            default: "Graphique de progression montrant le nombre d'exercices resolus par type",
           })}
           aria-describedby="progress-chart-description"
         >
-          {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+          {/* aria-hidden : l'accessibilite est portee par le div[role="img"] parent */}
           <div aria-hidden="true" className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -98,12 +104,16 @@ export function ProgressChart({ data }: ProgressChartProps) {
                 />
                 <Tooltip
                   contentStyle={RECHARTS_TOOLTIP_STYLE}
-                  formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
+                  formatter={(value) => [
+                    typeof value === "number" ? Math.round(value) : value,
+                    seriesLabel,
+                  ]}
                 />
                 <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
                 <Area
                   type="monotone"
-                  dataKey={data.datasets[0]?.label || "Exercices résolus"}
+                  dataKey={PROGRESS_VALUE_KEY}
+                  name={seriesLabel}
                   stroke="var(--color-chart-1)"
                   strokeWidth={2}
                   fill="url(#progressGradient)"
