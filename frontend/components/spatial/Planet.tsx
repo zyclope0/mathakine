@@ -8,8 +8,9 @@ import { useThemeStore } from "@/lib/stores/themeStore";
  * Composant Planet - Planète rotative avec cratères 3D et symboles orbitants
  *
  * Symboles mathématiques orbitants : ∑∫π∞√Δ
- * S'adapte aux 7 thèmes (Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures)
+ * S'adapte aux 8 thèmes (Spatial, Minimaliste, Océan, Dune, Forêt, Aurora, Dinosaures, Licorne)
  * Thème Dino : silhouette T-Rex à la place de la planète
+ * Thème Unicorn : licorne avec arc-en-ciel pulsant et étoiles scintillantes
  * Respecte prefers-reduced-motion et se désactive en mode Focus
  */
 export function Planet() {
@@ -53,6 +54,87 @@ export function Planet() {
   // Ne pas rendre si mode Focus ou reduced motion
   if (focusMode || reducedMotion) {
     return null;
+  }
+
+  // Thème Unicorn : licorne avec arc-en-ciel pulsant
+  if (theme === "unicorn") {
+    return (
+      <div
+        ref={containerRef}
+        className="fixed bottom-8 right-8 z-[-5] pointer-events-none"
+        data-spatial-layer="planet"
+        aria-hidden="true"
+      >
+        <div
+          className="relative w-36 h-36 flex items-center justify-center"
+          style={{
+            animation: "rainbow-halo 8s ease-in-out infinite",
+          }}
+        >
+          {/* Licorne centrale */}
+          <span className="text-8xl" role="img" aria-hidden="true">
+            🦄
+          </span>
+          {/* Étoiles scintillantes autour — set unique pour stabilité React */}
+          {(
+            [
+              { glyph: "✨", id: "sparkle-a" },
+              { glyph: "⭐", id: "star-a" },
+              { glyph: "🌟", id: "glowing" },
+              { glyph: "💫", id: "dizzy" },
+              { glyph: "🌸", id: "blossom" },
+              { glyph: "💖", id: "heart" },
+            ] as const
+          ).map(({ glyph, id }, index) => {
+            const angle = (360 / 6) * index;
+            return (
+              <div
+                key={id}
+                className="absolute text-base"
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  transform: `
+                    translate(-50%, -50%)
+                    rotate(${angle}deg)
+                    translateY(-72px)
+                    rotate(-${angle}deg)
+                  `,
+                  animation: `sparkle-drift ${2 + index * 0.4}s ease-in-out infinite`,
+                  animationDelay: `${index * 0.5}s`,
+                }}
+              >
+                {glyph}
+              </div>
+            );
+          })}
+        </div>
+        {/* Symboles mathématiques orbitants en lilas violet */}
+        {symbols.map((symbol, index) => {
+          const angle = (360 / symbols.length) * index;
+          return (
+            <div
+              key={symbol}
+              className="absolute text-xl font-bold"
+              style={{
+                color: "rgb(var(--spatial-unicorn-symbol-rgb, var(--spatial-dino-symbol-rgb)) / 0.9)",
+                top: "50%",
+                left: "50%",
+                transform: `
+                  translate(-50%, -50%)
+                  rotate(${angle}deg)
+                  translateY(-96px)
+                  rotate(-${angle}deg)
+                `,
+                animation: `orbit-${index} 24s linear infinite`,
+              }}
+            >
+              {symbol}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   // Thème Dino : silhouette de dinosaure à la place de la planète
