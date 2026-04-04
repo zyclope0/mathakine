@@ -32,7 +32,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
   const t = useTranslations("dashboard.categoryAccuracy");
   const tExercises = useTranslations("exercises");
   const tChTypes = useTranslations("dashboard.challengesProgress");
-  const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
+  const { createVariants, createTransition } = useAccessibleAnimation();
   const {
     data: detailed,
     isLoading: isLoadingChallenges,
@@ -90,10 +90,9 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
       initial="initial"
       animate="animate"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg h-full"
     >
-      <Card className="dashboard-card-surface h-full flex flex-col">
+      <Card className="dashboard-card-surface-interactive h-full flex flex-col">
         <CardHeader className="pb-2 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex flex-wrap items-center justify-between gap-2 text-foreground">
             <span className="flex items-center gap-2 min-w-0">

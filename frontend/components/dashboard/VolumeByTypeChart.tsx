@@ -16,7 +16,7 @@ interface VolumeByTypeChartProps {
 export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
   const t = useTranslations("dashboard.charts.volumeByType");
   const tExercises = useTranslations("exercises");
-  const { shouldReduceMotion } = useAccessibleAnimation();
+  const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
 
   const chartData = useMemo(() => {
     return Object.entries(categoryData)
@@ -64,82 +64,85 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
         <DashboardDataScopeBadge />
       </CardHeader>
       <CardContent>
+        <div id="volume-by-type-chart-description" className="sr-only">
+          {chartDescription}
+        </div>
         <div
           className="h-[300px] w-full"
           role="img"
           aria-label={t("ariaLabel")}
           aria-describedby="volume-by-type-chart-description"
         >
-          <div id="volume-by-type-chart-description" className="sr-only">
-            {chartDescription}
-          </div>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ left: 8, right: 0, top: 4, bottom: 4 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-                strokeOpacity={0.4}
-                horizontal={false}
-              />
-              <XAxis
-                type="number"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "11px" }}
-                allowDecimals={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "12px" }}
-                width={80}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={RECHARTS_TOOLTIP_STYLE}
-                formatter={(value, _name, item) => {
-                  const payload =
-                    (
-                      item as {
-                        payload?: {
-                          attempts?: number;
-                          correct?: number;
-                          accuracy?: number;
-                        };
-                      }
-                    )?.payload ?? {};
-                  const numericValue = typeof value === "number" ? value : Number(value ?? 0);
-                  const attempts = payload.attempts ?? numericValue;
-                  const correct = payload.correct ?? 0;
-                  const accuracy = payload.accuracy ?? 0;
-                  const pct = attempts > 0 ? Math.round(accuracy * 100) : 0;
+          {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+          <div aria-hidden="true" className="h-full w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ left: 8, right: 0, top: 4, bottom: 4 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--color-border)"
+                  strokeOpacity={0.4}
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "11px" }}
+                  allowDecimals={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "12px" }}
+                  width={80}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={RECHARTS_TOOLTIP_STYLE}
+                  formatter={(value, _name, item) => {
+                    const payload =
+                      (
+                        item as {
+                          payload?: {
+                            attempts?: number;
+                            correct?: number;
+                            accuracy?: number;
+                          };
+                        }
+                      )?.payload ?? {};
+                    const numericValue = typeof value === "number" ? value : Number(value ?? 0);
+                    const attempts = payload.attempts ?? numericValue;
+                    const correct = payload.correct ?? 0;
+                    const accuracy = payload.accuracy ?? 0;
+                    const pct = attempts > 0 ? Math.round(accuracy * 100) : 0;
 
-                  return [
-                    `${numericValue} ${t("attemptsLabel")}${
-                      attempts > 0 ? ` - ${correct}/${attempts} (${pct}%)` : ""
-                    }`,
-                    "",
-                  ];
-                }}
-                labelFormatter={(label) => label}
-              />
-              <Bar
-                dataKey="attempts"
-                fill="var(--color-chart-2)"
-                stroke="var(--color-chart-2)"
-                strokeWidth={1}
-                strokeOpacity={0.6}
-                radius={[0, 4, 4, 0]}
-                isAnimationActive={!shouldReduceMotion}
-                animationDuration={600}
-                animationEasing="ease-out"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+                    return [
+                      `${numericValue} ${t("attemptsLabel")}${
+                        attempts > 0 ? ` - ${correct}/${attempts} (${pct}%)` : ""
+                      }`,
+                      "",
+                    ];
+                  }}
+                  labelFormatter={(label) => label}
+                />
+                <Bar
+                  dataKey="attempts"
+                  fill="var(--color-chart-2)"
+                  stroke="var(--color-chart-2)"
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  radius={[0, 4, 4, 0]}
+                  isAnimationActive={!shouldReduceMotion}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -2,10 +2,16 @@
 
 import { useSyncExternalStore } from "react";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
-import { useReducedMotion, type Variants, type Transition } from "framer-motion";
+import type { Variants, Transition } from "framer-motion";
+import { useSystemReducedMotion } from "@/lib/hooks/useSystemReducedMotion";
 
 function subscribeToHydration() {
   return () => {};
+}
+
+interface UseAccessibleAnimationOptions {
+  /** Dashboard adulte : peut ignorer focusMode tout en respectant reduced-motion. */
+  respectFocusMode?: boolean;
 }
 
 /**
@@ -18,9 +24,11 @@ function subscribeToHydration() {
  * le hydration mismatch. La vraie valeur est appliquée après montage côté client.
  * Référence : https://react.dev/link/hydration-mismatch
  */
-export function useAccessibleAnimation() {
+export function useAccessibleAnimation({
+  respectFocusMode = true,
+}: UseAccessibleAnimationOptions = {}) {
   const { reducedMotion, focusMode } = useAccessibilityStore();
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useSystemReducedMotion();
 
   // `useSyncExternalStore` permet un guard SSR-safe sans `setState` dans un effet.
   // Snapshot serveur = false, snapshot client = true après hydratation.
@@ -33,7 +41,8 @@ export function useAccessibleAnimation() {
   // Avant montage : toujours false → pas d'animation → pas de mismatch SSR/client.
   // Après montage : valeur réelle lue depuis window.matchMedia et les stores.
   const shouldReduceMotion =
-    isHydrated && (reducedMotion || focusMode || Boolean(prefersReducedMotion));
+    isHydrated &&
+    (reducedMotion || Boolean(prefersReducedMotion) || (respectFocusMode && focusMode));
 
   /**
    * Crée une variante d'animation avec garde-fous

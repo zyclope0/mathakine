@@ -31,7 +31,7 @@ export function ContentCardBase({
   onClick,
   children,
 }: ContentCardBaseProps) {
-  const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
+  const { createVariants, createTransition } = useAccessibleAnimation();
 
   const variants = createVariants({
     initial: { opacity: 0, scale: 0.95 },
@@ -48,7 +48,6 @@ export function ContentCardBase({
       animate="animate"
       exit="exit"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { y: -4 } : {}}
       onClick={onClick}
       className={cn("h-full", onClick && "cursor-pointer")}
     >

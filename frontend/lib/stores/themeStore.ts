@@ -24,15 +24,12 @@ export const useThemeStore = create<ThemeState>()(
         ];
         const t = valid.includes(theme) ? theme : "spatial";
         set({ theme: t });
-        if (typeof document !== "undefined") {
-          document.documentElement.setAttribute("data-theme", t);
-        }
       },
     }),
     {
       name: "theme-preferences",
       onRehydrateStorage: () => (state) => {
-        if (!state || typeof document === "undefined") return;
+        if (!state) return;
         // Migration: neutral → dune (anciens utilisateurs avec thème Neutral)
         const theme = (state.theme as string) === "neutral" ? "dune" : state.theme;
         const valid: Theme[] = [
@@ -45,9 +42,8 @@ export const useThemeStore = create<ThemeState>()(
           "dino",
         ];
         const t = valid.includes(theme) ? theme : "spatial";
-        document.documentElement.setAttribute("data-theme", t);
         if (t !== state.theme) {
-          useThemeStore.getState().setTheme(t);
+          useThemeStore.setState({ theme: t });
         }
       },
     }

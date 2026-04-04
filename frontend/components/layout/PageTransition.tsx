@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { ReactNode, useEffect, useRef } from "react";
@@ -61,24 +61,26 @@ export function PageTransition({ children }: PageTransitionProps) {
   }
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        ref={containerRef}
-        key={pathname}
-        variants={variants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={transition}
-        className="relative z-10"
-        onAnimationComplete={() => {
-          if (containerRef.current) {
-            containerRef.current.style.opacity = "1";
-          }
-        }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div
+          ref={containerRef}
+          key={pathname}
+          variants={variants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={transition}
+          className="relative z-10"
+          onAnimationComplete={() => {
+            if (containerRef.current) {
+              containerRef.current.style.opacity = "1";
+            }
+          }}
+        >
+          {children}
+        </m.div>
+      </AnimatePresence>
+    </LazyMotion>
   );
 }

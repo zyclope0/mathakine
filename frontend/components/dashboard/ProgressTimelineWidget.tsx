@@ -40,7 +40,7 @@ export function ProgressTimelineWidget({
 
   const { data, isLoading, error } = useProgressTimeline(period);
   const t = useTranslations("dashboard.charts.timeline");
-  const { shouldReduceMotion } = useAccessibleAnimation();
+  const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
   const { locale } = useLocaleStore();
   const dateLocale = locale === "en" ? "en-US" : "fr-FR";
 
@@ -139,6 +139,9 @@ export function ProgressTimelineWidget({
         </Tabs>
       </CardHeader>
       <CardContent>
+        <div id="timeline-chart-description" className="sr-only">
+          {chartDescription}
+        </div>
         <div
           className="h-[280px] w-full"
           role="img"
@@ -147,110 +150,110 @@ export function ProgressTimelineWidget({
           })}
           aria-describedby="timeline-chart-description"
         >
-          <div id="timeline-chart-description" className="sr-only">
-            {chartDescription}
+          {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+          <div aria-hidden="true" className="h-full w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={chartData}
+                margin={{ bottom: period === "30d" ? 4 : 8, left: 4, right: 4, top: 4 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--color-border)"
+                  strokeOpacity={0.4}
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "11px" }}
+                  angle={0}
+                  textAnchor="middle"
+                  height={period === "30d" ? 72 : 48}
+                  tickFormatter={(value) =>
+                    typeof value === "string" ? formatShortDate(value, dateLocale) : String(value)
+                  }
+                  minTickGap={period === "30d" ? 36 : 24}
+                  interval={period === "30d" ? 2 : 0}
+                />
+                <YAxis
+                  yAxisId="left"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "12px" }}
+                  allowDecimals={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "12px" }}
+                  domain={[0, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Tooltip
+                  contentStyle={RECHARTS_TOOLTIP_STYLE}
+                  labelFormatter={(label) => {
+                    if (typeof label !== "string") return String(label);
+                    try {
+                      const d = new Date(label);
+                      if (isNaN(d.getTime())) return label;
+                      return d.toLocaleDateString(dateLocale, {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      });
+                    } catch {
+                      return label;
+                    }
+                  }}
+                  formatter={(value, name) => {
+                    if (name === "attempts") {
+                      return [value, t("attemptsLabel", { default: "Attempts" })];
+                    }
+                    if (name === "successRate") {
+                      return [
+                        `${typeof value === "number" ? Math.round(value) : value}%`,
+                        t("successRateLabel", { default: "Success rate" }),
+                      ];
+                    }
+                    return [value, String(name)];
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ color: "var(--color-muted-foreground)" }}
+                  formatter={(value: string) =>
+                    value === "attempts"
+                      ? t("attemptsLabel", { default: "Attempts" })
+                      : t("successRateLabel", { default: "Success rate" })
+                  }
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="attempts"
+                  fill="var(--color-chart-2)"
+                  stroke="var(--color-chart-2)"
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  radius={[4, 4, 0, 0]}
+                  isAnimationActive={!shouldReduceMotion}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="successRate"
+                  stroke="var(--color-chart-1)"
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-chart-1)", r: 4 }}
+                  activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
+                  isAnimationActive={!shouldReduceMotion}
+                  animationDuration={800}
+                  animationEasing="ease-out"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={chartData}
-              margin={{ bottom: period === "30d" ? 4 : 8, left: 4, right: 4, top: 4 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-                strokeOpacity={0.4}
-              />
-              <XAxis
-                dataKey="name"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "11px" }}
-                angle={0}
-                textAnchor="middle"
-                height={period === "30d" ? 72 : 48}
-                tickFormatter={(value) =>
-                  typeof value === "string" ? formatShortDate(value, dateLocale) : String(value)
-                }
-                minTickGap={period === "30d" ? 36 : 24}
-                interval={period === "30d" ? 2 : 0}
-              />
-              <YAxis
-                yAxisId="left"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "12px" }}
-                allowDecimals={false}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "12px" }}
-                domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <Tooltip
-                contentStyle={RECHARTS_TOOLTIP_STYLE}
-                labelFormatter={(label) => {
-                  if (typeof label !== "string") return String(label);
-                  try {
-                    const d = new Date(label);
-                    if (isNaN(d.getTime())) return label;
-                    return d.toLocaleDateString(dateLocale, {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    });
-                  } catch {
-                    return label;
-                  }
-                }}
-                formatter={(value, name) => {
-                  if (name === "attempts") {
-                    return [value, t("attemptsLabel", { default: "Attempts" })];
-                  }
-                  if (name === "successRate") {
-                    return [
-                      `${typeof value === "number" ? Math.round(value) : value}%`,
-                      t("successRateLabel", { default: "Success rate" }),
-                    ];
-                  }
-                  return [value, String(name)];
-                }}
-              />
-              <Legend
-                wrapperStyle={{ color: "var(--color-muted-foreground)" }}
-                formatter={(value: string) =>
-                  value === "attempts"
-                    ? t("attemptsLabel", { default: "Attempts" })
-                    : t("successRateLabel", { default: "Success rate" })
-                }
-              />
-              <Bar
-                yAxisId="left"
-                dataKey="attempts"
-                fill="var(--color-chart-2)"
-                stroke="var(--color-chart-2)"
-                strokeWidth={1}
-                strokeOpacity={0.6}
-                radius={[4, 4, 0, 0]}
-                isAnimationActive={!shouldReduceMotion}
-                animationDuration={600}
-                animationEasing="ease-out"
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="successRate"
-                stroke="var(--color-chart-1)"
-                strokeWidth={2}
-                dot={{ fill: "var(--color-chart-1)", r: 4 }}
-                activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
-                isAnimationActive={!shouldReduceMotion}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>

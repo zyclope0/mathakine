@@ -30,7 +30,7 @@ import { LogoMathakine } from "@/components/LogoMathakine";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useChatStore } from "@/lib/stores/chatStore";
 
@@ -240,88 +240,90 @@ export function Header() {
           </div>
 
           {/* Menu mobile déroulant */}
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="md:hidden border-t border-border overflow-hidden"
-                role="menu"
-              >
-                <div className="space-y-2 py-4">
-                  {navigation.map((item, index) => {
-                    const Icon = "icon" in item ? item.icon : undefined;
-                    const isAssistant = "isAssistant" in item && item.isAssistant;
-                    const transition = createTransition({ duration: 0.15, delay: index * 0.05 });
+          <LazyMotion features={domAnimation}>
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <m.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="md:hidden border-t border-border overflow-hidden"
+                  role="menu"
+                >
+                  <div className="space-y-2 py-4">
+                    {navigation.map((item, index) => {
+                      const Icon = "icon" in item ? item.icon : undefined;
+                      const isAssistant = "isAssistant" in item && item.isAssistant;
+                      const transition = createTransition({ duration: 0.15, delay: index * 0.05 });
 
-                    if (isAssistant) {
+                      if (isAssistant) {
+                        return (
+                          <m.div
+                            key="assistant"
+                            initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
+                            animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
+                            transition={transition}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10"
+                              onClick={() => {
+                                setChatOpen(true);
+                                setMobileMenuOpen(false);
+                              }}
+                              aria-haspopup="dialog"
+                              role="menuitem"
+                            >
+                              {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
+                              {item.name}
+                            </Button>
+                          </m.div>
+                        );
+                      }
+
                       return (
-                        <motion.div
-                          key="assistant"
+                        <m.div
+                          key={item.href}
                           initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
                           animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
                           transition={transition}
                         >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10"
-                            onClick={() => {
-                              setChatOpen(true);
-                              setMobileMenuOpen(false);
-                            }}
-                            aria-haspopup="dialog"
+                          <Link
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                              isActive(item.href)
+                                ? "bg-primary/10 text-primary-on-dark"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                            )}
                             role="menuitem"
+                            aria-current={isActive(item.href) ? "page" : undefined}
                           >
                             {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
                             {item.name}
-                          </Button>
-                        </motion.div>
+                          </Link>
+                        </m.div>
                       );
-                    }
-
-                    return (
-                      <motion.div
-                        key={item.href}
-                        initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
-                        animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
-                        transition={transition}
-                      >
-                        <Link
-                          href={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                            isActive(item.href)
-                              ? "bg-primary/10 text-primary-on-dark"
-                              : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
-                          )}
-                          role="menuitem"
-                          aria-current={isActive(item.href) ? "page" : undefined}
-                        >
-                          {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                          {item.name}
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                  <motion.div
-                    initial={!shouldReduceMotion ? { opacity: 0 } : false}
-                    animate={!shouldReduceMotion ? { opacity: 1 } : false}
-                    transition={createTransition({
-                      duration: 0.15,
-                      delay: navigation.length * 0.05,
                     })}
-                    className="pt-2 border-t border-border"
-                  >
-                    <ThemeSelectorCompact />
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    <m.div
+                      initial={!shouldReduceMotion ? { opacity: 0 } : false}
+                      animate={!shouldReduceMotion ? { opacity: 1 } : false}
+                      transition={createTransition({
+                        duration: 0.15,
+                        delay: navigation.length * 0.05,
+                      })}
+                      className="pt-2 border-t border-border"
+                    >
+                      <ThemeSelectorCompact />
+                    </m.div>
+                  </div>
+                </m.div>
+              )}
+            </AnimatePresence>
+          </LazyMotion>
         </nav>
       </header>
     </>

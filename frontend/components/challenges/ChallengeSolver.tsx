@@ -558,7 +558,10 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
       {/* Command Bar — Zone de réponse et d'action */}
       {!hasSubmitted && (
-        <div className="bg-[var(--bg-learner,var(--card))] border border-border/40 rounded-2xl p-6 max-w-5xl mx-auto">
+        <div
+          data-learner-context
+          className="bg-[var(--bg-learner,var(--card))] border border-border/40 rounded-2xl p-6 max-w-5xl mx-auto"
+        >
           <h3 className="text-lg font-semibold text-foreground mb-4">{t("yourAnswer")}</h3>
           <div className="space-y-4">
             {showMcq ? (

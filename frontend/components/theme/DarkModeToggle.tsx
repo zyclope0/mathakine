@@ -5,6 +5,8 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useThemeStore } from "@/lib/stores/themeStore";
+import { STORAGE_KEYS } from "@/lib/storage";
+import { applyThemeDomState, readStoredDarkMode } from "@/lib/theme/themeDom";
 
 /**
  * Toggle pour basculer entre mode clair et sombre
@@ -18,9 +20,7 @@ export function DarkModeToggle() {
       return false;
     }
 
-    const stored = window.localStorage.getItem("dark-mode");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return stored !== null ? stored === "true" : prefersDark;
+    return readStoredDarkMode();
   });
   const { theme } = useThemeStore();
 
@@ -29,14 +29,14 @@ export function DarkModeToggle() {
       return;
     }
 
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [theme, isDark, isHydrated]);
+    applyThemeDomState({ theme, isDark, disableTransitions: false });
+  }, [isDark, isHydrated, theme]);
 
   const toggleDarkMode = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
-    window.localStorage.setItem("dark-mode", String(newIsDark));
-    document.documentElement.classList.toggle("dark", newIsDark);
+    window.localStorage.setItem(STORAGE_KEYS.darkMode, String(newIsDark));
+    applyThemeDomState({ theme, isDark: newIsDark, disableTransitions: true });
   };
 
   // Éviter le flash de contenu non stylé (hydration mismatch)

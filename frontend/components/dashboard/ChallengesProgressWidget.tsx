@@ -80,10 +80,9 @@ export function ChallengesProgressWidget({
       initial="initial"
       animate="animate"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="border-border/50 bg-card/40 backdrop-blur-md h-full flex flex-col">
+      <Card className="dashboard-card-surface-interactive h-full flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex flex-wrap items-center justify-between gap-2 text-foreground">
             <span className="flex items-center gap-2 min-w-0">

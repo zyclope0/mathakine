@@ -6,27 +6,33 @@ interface AccessibilityState {
   largeText: boolean;
   reducedMotion: boolean;
   dyslexiaMode: boolean;
-  focusMode: boolean; // Mode unique Phase 1
+  focusMode: boolean;
   toggleHighContrast: () => void;
   toggleLargeText: () => void;
   toggleReducedMotion: () => void;
   toggleDyslexiaMode: () => void;
   toggleFocusMode: () => void;
+  resetAll: () => void;
 }
+
+const DEFAULT_STATE = {
+  highContrast: false,
+  largeText: false,
+  reducedMotion: false,
+  dyslexiaMode: false,
+  focusMode: false,
+};
 
 export const useAccessibilityStore = create<AccessibilityState>()(
   persist(
     (set) => ({
-      highContrast: false,
-      largeText: false,
-      reducedMotion: false,
-      dyslexiaMode: false,
-      focusMode: false,
+      ...DEFAULT_STATE,
       toggleHighContrast: () => set((state) => ({ highContrast: !state.highContrast })),
       toggleLargeText: () => set((state) => ({ largeText: !state.largeText })),
       toggleReducedMotion: () => set((state) => ({ reducedMotion: !state.reducedMotion })),
       toggleDyslexiaMode: () => set((state) => ({ dyslexiaMode: !state.dyslexiaMode })),
       toggleFocusMode: () => set((state) => ({ focusMode: !state.focusMode })),
+      resetAll: () => set(DEFAULT_STATE),
     }),
     { name: "accessibility-preferences" }
   )

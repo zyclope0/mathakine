@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Download, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -94,40 +94,42 @@ export function InstallPrompt() {
   }
 
   return (
-    <AnimatePresence>
-      {showPrompt && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96"
-        >
-          <div className="bg-card border border-border rounded-lg shadow-lg p-4 flex items-center gap-4">
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">Installer Mathakine</h3>
-              <p className="text-xs text-muted-foreground">
-                Installez l&apos;application pour un accès rapide et une meilleure expérience.
-              </p>
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence>
+        {showPrompt && (
+          <m.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96"
+          >
+            <div className="bg-card border border-border rounded-lg shadow-lg p-4 flex items-center gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm mb-1">Installer Mathakine</h3>
+                <p className="text-xs text-muted-foreground">
+                  Installez l&apos;application pour un accès rapide et une meilleure expérience.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleInstallClick} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Installer
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleDismiss}
+                  className="h-8 w-8 p-0"
+                  aria-label="Fermer"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleInstallClick} className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Installer
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDismiss}
-                className="h-8 w-8 p-0"
-                aria-label="Fermer"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
   );
 }

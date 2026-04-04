@@ -2,11 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import * as accessibilityStore from "@/lib/stores/accessibilityStore";
-import * as framerMotion from "framer-motion";
+import * as reducedMotionHook from "@/lib/hooks/useSystemReducedMotion";
 
-// Mock framer-motion
-vi.mock("framer-motion", () => ({
-  useReducedMotion: vi.fn(() => false),
+vi.mock("@/lib/hooks/useSystemReducedMotion", () => ({
+  useSystemReducedMotion: vi.fn(() => false),
 }));
 
 // Mock store
@@ -25,6 +24,7 @@ interface MockStoreValue {
   toggleReducedMotion: () => void;
   toggleDyslexiaMode: () => void;
   toggleFocusMode: () => void;
+  resetAll: () => void;
 }
 
 describe("useAccessibleAnimation", () => {
@@ -43,12 +43,13 @@ describe("useAccessibleAnimation", () => {
     toggleReducedMotion: vi.fn(),
     toggleDyslexiaMode: vi.fn(),
     toggleFocusMode: vi.fn(),
+    resetAll: vi.fn(),
     ...overrides,
   });
 
   it("retourne shouldReduceMotion false par défaut", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(getMockStoreValue());
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(false);
@@ -58,7 +59,7 @@ describe("useAccessibleAnimation", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true })
     );
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(true);
@@ -68,7 +69,7 @@ describe("useAccessibleAnimation", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ focusMode: true })
     );
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(true);
@@ -76,17 +77,27 @@ describe("useAccessibleAnimation", () => {
 
   it("retourne shouldReduceMotion true si prefers-reduced-motion activé", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(getMockStoreValue());
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(true);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(true);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(true);
+  });
+
+  it("ignore focusMode si respectFocusMode vaut false", () => {
+    vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
+      getMockStoreValue({ focusMode: true })
+    );
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
+
+    const { result } = renderHook(() => useAccessibleAnimation({ respectFocusMode: false }));
+    expect(result.current.shouldReduceMotion).toBe(false);
   });
 
   it("crée des variantes simplifiées si shouldReduceMotion est true", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true })
     );
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     const variants = result.current.createVariants({
@@ -104,7 +115,7 @@ describe("useAccessibleAnimation", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true })
     );
-    vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
+    vi.mocked(reducedMotionHook.useSystemReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     const transition = result.current.createTransition({ duration: 0.3, delay: 0.1 });

@@ -50,7 +50,6 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center py-8 md:py-12 space-y-4" aria-labelledby="hero-title">
         <div
-          id="hero-title"
           className={cn(
             "flex flex-col items-center",
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
@@ -58,6 +57,7 @@ export default function HomePage() {
         >
           <LogoBadge alt={t("hero.title")} className="mb-6" />
           <h1
+            id="hero-title"
             className={cn(
               "text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 tracking-tight",
               !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4 animation-delay-100"

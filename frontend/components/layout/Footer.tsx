@@ -34,9 +34,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <p className="text-lg font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Mathakine
-            </h3>
+            </p>
             <p className="text-sm text-muted-foreground mb-4">
               Plateforme éducative mathématique adaptative. Apprendre les mathématiques de manière
               ludique et immersive.
@@ -63,7 +63,7 @@ export function Footer() {
 
           {/* Liens rapides */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Liens rapides</h4>
+            <p className="text-sm font-semibold mb-4">Liens rapides</p>
             <ul className="space-y-2">
               {footerLinks.map((link) => (
                 <li key={link.href}>
@@ -86,7 +86,7 @@ export function Footer() {
 
           {/* Ressources */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Ressources</h4>
+            <p className="text-sm font-semibold mb-4">Ressources</p>
             <ul className="space-y-2">
               <li>
                 <Link

@@ -29,7 +29,7 @@ interface ProgressChartProps {
 
 export function ProgressChart({ data }: ProgressChartProps) {
   const t = useTranslations("dashboard.charts.progressByType");
-  const { shouldReduceMotion } = useAccessibleAnimation();
+  const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
 
   // Memoization de la transformation des données pour éviter les recalculs
   const chartData = useMemo(() => {
@@ -57,6 +57,9 @@ export function ProgressChart({ data }: ProgressChartProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div id="progress-chart-description" className="sr-only">
+          {chartDescription}
+        </div>
         <div
           className="h-[300px] w-full"
           role="img"
@@ -65,54 +68,54 @@ export function ProgressChart({ data }: ProgressChartProps) {
           })}
           aria-describedby="progress-chart-description"
         >
-          <div id="progress-chart-description" className="sr-only">
-            {chartDescription}
+          {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+          <div aria-hidden="true" className="h-full w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--color-border)"
+                  strokeOpacity={0.4}
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "11px" }}
+                  tickFormatter={formatShortDate}
+                  minTickGap={28}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  stroke="var(--color-muted-foreground)"
+                  style={{ fontSize: "12px" }}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={RECHARTS_TOOLTIP_STYLE}
+                  formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
+                />
+                <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
+                <Area
+                  type="monotone"
+                  dataKey={data.datasets[0]?.label || "Exercices résolus"}
+                  stroke="var(--color-chart-1)"
+                  strokeWidth={2}
+                  fill="url(#progressGradient)"
+                  dot={{ fill: "var(--color-chart-1)", r: 4 }}
+                  activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
+                  isAnimationActive={!shouldReduceMotion}
+                  animationDuration={800}
+                  animationEasing="ease-out"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-                strokeOpacity={0.4}
-              />
-              <XAxis
-                dataKey="name"
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "11px" }}
-                tickFormatter={formatShortDate}
-                minTickGap={28}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "12px" }}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={RECHARTS_TOOLTIP_STYLE}
-                formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
-              />
-              <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
-              <Area
-                type="monotone"
-                dataKey={data.datasets[0]?.label || "Exercices résolus"}
-                stroke="var(--color-chart-1)"
-                strokeWidth={2}
-                fill="url(#progressGradient)"
-                dot={{ fill: "var(--color-chart-1)", r: 4 }}
-                activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
-                isAnimationActive={!shouldReduceMotion}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>

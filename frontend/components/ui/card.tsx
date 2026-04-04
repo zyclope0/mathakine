@@ -2,12 +2,20 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+interface CardProps extends React.ComponentProps<"div"> {
+  /** Mode flat : supprime shadow et fond opaque. Utilisé dans les contextes apprenant
+   *  (LearnerCard, surfaces éducatives) pour réduire la profondeur visuelle (NI-5). */
+  flat?: boolean;
+}
+
+function Card({ className, flat = false, ...props }: CardProps) {
   return (
     <div
       data-slot="card"
+      data-flat={flat || undefined}
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border-0 py-6 shadow-[var(--shadow-card)] transition-all duration-200",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border-0 py-6 transition-all duration-200",
+        flat ? "shadow-none" : "shadow-[var(--shadow-card)]",
         className
       )}
       {...props}
@@ -73,3 +81,4 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent };
+export type { CardProps };

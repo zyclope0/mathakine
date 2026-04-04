@@ -1,0 +1,14 @@
+---
+description: Troubleshooting factuel, pas de contournements produit
+alwaysApply: true
+---
+
+## Troubleshooting
+
+- Partir des **faits observables** : logs, tracebacks, sorties de commandes, code lu — pas de « cause probable » ni de déduction non vérifiée.
+- Nommer ce qui est **prouvé** vs ce qui reste à **vérifier** (repro, requête SQL, migration, etc.).
+
+## Corrections
+
+- **Pas de solution de contournement** pour masquer un état invalide (schéma DB manquant, contrat API cassé, etc.) : corriger la **cause** (migration, alignement code/contrat, bug réel).
+- Les garde-fous « silencieux » (vider un payload, avaler une erreur métier) sont interdits sauf **décision produit explicite** documentée.

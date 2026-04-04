@@ -10,6 +10,7 @@ import { NextIntlProvider } from "./NextIntlProvider";
 import { AuthSyncProvider } from "./AuthSyncProvider";
 import { AccessScopeSync } from "./AccessScopeSync";
 import { getLocalString, STORAGE_KEYS } from "@/lib/storage";
+import { applyThemeDomState, readStoredDarkMode } from "@/lib/theme/themeDom";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,18 +39,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   // Appliquer le thème au chargement
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", theme);
-
-      // Réappliquer le dark mode si activé (pour synchroniser avec les variantes dark: du thème)
-      const stored = getLocalString(STORAGE_KEYS.darkMode);
-      const isDarkMode = stored === "true";
-      if (isDarkMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
+    applyThemeDomState({
+      theme,
+      isDark: readStoredDarkMode(),
+      disableTransitions: true,
+    });
   }, [theme]);
 
   // Appliquer les préférences d'accessibilité

@@ -2,7 +2,17 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Settings2, Contrast, Type, Move, BookOpen, Focus, X, Check } from "lucide-react";
+import {
+  Settings2,
+  Contrast,
+  Type,
+  Move,
+  BookOpen,
+  Focus,
+  X,
+  Check,
+  RotateCcw,
+} from "lucide-react";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { cn } from "@/lib/utils";
@@ -43,6 +53,7 @@ export function AccessibilityToolbar() {
     toggleReducedMotion,
     toggleDyslexiaMode,
     toggleFocusMode,
+    resetAll,
   } = useAccessibilityStore();
 
   // Options d'accessibilité
@@ -227,10 +238,24 @@ export function AccessibilityToolbar() {
               ))}
             </div>
 
-            <div className="px-4 py-2 border-t border-border bg-muted/50 rounded-b-lg">
+            <div className="px-4 py-2 border-t border-border bg-muted/50 rounded-b-lg flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">
                 Utilisez Alt + lettre pour activer rapidement
               </p>
+              {activeCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetAll();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  aria-label="Réinitialiser toutes les options d'accessibilité"
+                >
+                  <RotateCcw className="h-3 w-3" aria-hidden="true" />
+                  Réinitialiser
+                </button>
+              )}
             </div>
           </div>
         )}

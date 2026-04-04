@@ -31,7 +31,7 @@ export function LeaderboardWidget() {
     return isKnownProgressionRankBucket(bucket) ? tProgRank(c) : bucket;
   };
   const { leaderboard, isLoading, error } = useLeaderboard(5);
-  const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
+  const { createVariants, createTransition } = useAccessibleAnimation();
 
   if (isLoading) {
     return (
@@ -58,7 +58,6 @@ export function LeaderboardWidget() {
       initial="initial"
       animate="animate"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { scale: 1.01 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
       <Card className="dashboard-card-surface h-full flex flex-col overflow-hidden">
@@ -104,7 +103,6 @@ export function LeaderboardWidget() {
                 return (
                   <motion.li
                     key={`${entry.rank}-${entry.username}`}
-                    {...(!shouldReduceMotion ? { whileHover: { y: -1 } } : {})}
                     className={cn(
                       "flex items-center gap-2.5 px-4 py-2",
                       "transition-shadow duration-200 hover:shadow-sm hover:shadow-primary/5",

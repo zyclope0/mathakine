@@ -39,7 +39,7 @@ export function DailyExercisesChartBody({
   accessibilityPeriodSummary,
 }: DailyExercisesChartBodyProps) {
   const t = useTranslations("dashboard.charts.dailyExercises");
-  const { shouldReduceMotion } = useAccessibleAnimation();
+  const { shouldReduceMotion } = useAccessibleAnimation({ respectFocusMode: false });
   const descriptionId = useId();
 
   const chartData = useMemo(() => {
@@ -64,54 +64,65 @@ export function DailyExercisesChartBody({
   const ariaLabel = `${t("titleShort")} — ${accessibilityPeriodSummary}`;
 
   return (
-    <div
-      className="h-[300px] w-full"
-      role="img"
-      aria-label={ariaLabel}
-      aria-describedby={descriptionId}
-    >
+    <>
       <div id={descriptionId} className="sr-only">
         {chartDescription}
       </div>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
-          <XAxis
-            dataKey="name"
-            stroke="var(--color-muted-foreground)"
-            style={{ fontSize: "11px" }}
-            angle={-35}
-            textAnchor="end"
-            height={56}
-            tickFormatter={formatShortDate}
-            minTickGap={28}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            stroke="var(--color-muted-foreground)"
-            style={{ fontSize: "12px" }}
-            allowDecimals={false}
-          />
-          <Tooltip
-            contentStyle={RECHARTS_TOOLTIP_STYLE}
-            labelFormatter={(label) => (typeof label === "string" ? formatShortDate(label) : label)}
-            formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
-          />
-          <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
-          <Bar
-            dataKey={data.datasets[0]?.label || "Exercices par jour"}
-            fill={barColor}
-            stroke={borderColor}
-            strokeWidth={1}
-            strokeOpacity={0.6}
-            radius={[4, 4, 0, 0]}
-            isAnimationActive={!shouldReduceMotion}
-            animationDuration={600}
-            animationEasing="ease-out"
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+      <div
+        className="h-[300px] w-full"
+        role="img"
+        aria-label={ariaLabel}
+        aria-describedby={descriptionId}
+      >
+        {/* aria-hidden : l'accessibilité est portée par le div[role="img"] parent */}
+        <div aria-hidden="true" className="h-full w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ bottom: 8 }}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border)"
+                strokeOpacity={0.4}
+              />
+              <XAxis
+                dataKey="name"
+                stroke="var(--color-muted-foreground)"
+                style={{ fontSize: "11px" }}
+                angle={-35}
+                textAnchor="end"
+                height={56}
+                tickFormatter={formatShortDate}
+                minTickGap={28}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                stroke="var(--color-muted-foreground)"
+                style={{ fontSize: "12px" }}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={RECHARTS_TOOLTIP_STYLE}
+                labelFormatter={(label) =>
+                  typeof label === "string" ? formatShortDate(label) : label
+                }
+                formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
+              />
+              <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
+              <Bar
+                dataKey={data.datasets[0]?.label || "Exercices par jour"}
+                fill={barColor}
+                stroke={borderColor}
+                strokeWidth={1}
+                strokeOpacity={0.6}
+                radius={[4, 4, 0, 0]}
+                isAnimationActive={!shouldReduceMotion}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </>
   );
 }
 

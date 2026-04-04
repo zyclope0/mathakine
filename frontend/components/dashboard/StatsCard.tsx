@@ -55,9 +55,8 @@ export function StatsCard({
       initial="initial"
       animate="animate"
       transition={transition}
-      whileHover={!shouldReduceMotion ? { y: -4 } : {}}
       className={cn(
-        "dashboard-card-surface group",
+        "dashboard-card-surface-interactive group",
         "transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         className
