@@ -157,17 +157,19 @@ function ProfilePageContent() {
       practice_rhythm: user.practice_rhythm || "",
     };
 
-    // Migration: neutral -> dune
+    // Migration : neutral → dune, peach → aurora (refonte 2026-03-30)
     const userThemeRaw = user.preferred_theme || "spatial";
-    const userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
+    let userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
+    userTheme = userTheme === "peach" ? "aurora" : userTheme;
     const validThemes = [
       "spatial",
       "minimalist",
       "ocean",
       "dune",
       "forest",
-      "peach",
+      "aurora",
       "dino",
+      "unicorn",
     ] as const;
     const nextAccessibilitySettings = {
       preferred_theme: userTheme,
@@ -297,8 +299,9 @@ function ProfilePageContent() {
             | "ocean"
             | "dune"
             | "forest"
-            | "peach"
+            | "aurora"
             | "dino"
+            | "unicorn"
         );
       }
     },
@@ -1370,8 +1373,9 @@ function ProfilePageContent() {
                               | "ocean"
                               | "dune"
                               | "forest"
-                              | "peach"
-                              | "dino";
+                              | "aurora"
+                              | "dino"
+                              | "unicorn";
                             setAccessibilitySettings((prev) => ({
                               ...prev,
                               preferred_theme: theme,
@@ -1417,16 +1421,22 @@ function ProfilePageContent() {
                                 <span>{tTheme("forest")}</span>
                               </span>
                             </SelectItem>
-                            <SelectItem value="peach">
+                            <SelectItem value="aurora">
                               <span className="flex items-center gap-2">
-                                <span>🍑</span>
-                                <span>{tTheme("peach")}</span>
+                                <span>🌸</span>
+                                <span>{tTheme("aurora")}</span>
                               </span>
                             </SelectItem>
                             <SelectItem value="dino">
                               <span className="flex items-center gap-2">
                                 <span>🦖</span>
                                 <span>{tTheme("dino")}</span>
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="unicorn">
+                              <span className="flex items-center gap-2">
+                                <span>🦄</span>
+                                <span>{tTheme("unicorn")}</span>
                               </span>
                             </SelectItem>
                           </SelectContent>

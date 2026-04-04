@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
+export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "aurora" | "dino" | "unicorn";
 
 interface ThemeState {
   theme: Theme;
@@ -19,8 +19,9 @@ export const useThemeStore = create<ThemeState>()(
           "ocean",
           "dune",
           "forest",
-          "peach",
+          "aurora",
           "dino",
+          "unicorn",
         ];
         const t = valid.includes(theme) ? theme : "spatial";
         set({ theme: t });
@@ -30,16 +31,18 @@ export const useThemeStore = create<ThemeState>()(
       name: "theme-preferences",
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        // Migration: neutral → dune (anciens utilisateurs avec thème Neutral)
-        const theme = (state.theme as string) === "neutral" ? "dune" : state.theme;
+        // Migration : neutral → dune (anciens utilisateurs), peach → aurora (refonte 2026-03-30)
+        let theme = (state.theme as string) === "neutral" ? "dune" : state.theme;
+        theme = (theme as string) === "peach" ? "aurora" : theme;
         const valid: Theme[] = [
           "spatial",
           "minimalist",
           "ocean",
           "dune",
           "forest",
-          "peach",
+          "aurora",
           "dino",
+          "unicorn",
         ];
         const t = valid.includes(theme) ? theme : "spatial";
         if (t !== state.theme) {

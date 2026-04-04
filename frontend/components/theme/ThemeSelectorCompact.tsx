@@ -17,8 +17,9 @@ const themeIds = [
   { id: "ocean" as const, icon: "🌊" },
   { id: "dune" as const, icon: "🏜️" },
   { id: "forest" as const, icon: "🌲" },
-  { id: "peach" as const, icon: "🍑" },
+  { id: "aurora" as const, icon: "🌸" },
   { id: "dino" as const, icon: "🦖" },
+  { id: "unicorn" as const, icon: "🦄" },
 ] as const;
 
 export function ThemeSelectorCompact() {

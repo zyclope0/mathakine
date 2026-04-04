@@ -114,7 +114,7 @@ const AGE_GROUP_COLORS_DARK_BG: Record<string, string> = {
   default: "bg-gray-500/20 text-gray-300 border-gray-500/30",
 };
 
-export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
+export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "aurora" | "dino" | "unicorn";
 
 export function getAgeGroupColor(ageGroup: string | null | undefined, theme?: Theme): string {
   const key = ageGroup && AGE_GROUP_COLORS[ageGroup] ? ageGroup : "default";

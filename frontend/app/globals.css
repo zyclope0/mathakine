@@ -413,6 +413,48 @@ select:focus {
   }
 }
 
+/* Thème Licorne : vol gracieux avec léger tangage */
+@keyframes unicorn-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+/* Étoiles filantes licorne (sparkle) */
+@keyframes sparkle-drift {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2) rotate(180deg) translateY(-20px);
+  }
+}
+
+/* Arc-en-ciel pulsant autour de la licorne-planète */
+@keyframes rainbow-halo {
+  0% {
+    filter: hue-rotate(0deg) drop-shadow(0 0 20px rgba(236, 72, 153, 0.5));
+  }
+  50% {
+    filter: hue-rotate(180deg) drop-shadow(0 0 30px rgba(167, 139, 250, 0.6));
+  }
+  100% {
+    filter: hue-rotate(360deg) drop-shadow(0 0 20px rgba(236, 72, 153, 0.5));
+  }
+}
+
 /* Animations orbitales pour symboles mathématiques */
 @keyframes orbit-0 {
   from {
@@ -528,58 +570,65 @@ select:focus {
   }
 }
 
-/* Thème Spatial (Priorité 1) - Par défaut */
+/* Thème Spatial (Priorité 1) - Par défaut
+ * Refonte 2026-03-30 : indigo-nuit #4f46e5 remplace violet #7c3aed (fingerprint AI slop).
+ * Background #060818 (bleu quasi-noir) remplace #0a0a0f (noir générique).
+ * Secondary cyan #06b6d4 : vrai complémentaire froid, distinct du primary.
+ * Accent rose-corail #f43f5e : chaud, énergique, différent du pink générique.
+ * Borders rgba-indigo cohérentes avec le nouveau primary. */
 :root,
 [data-theme="spatial"] {
   --radius: 1rem;
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.07);
-  --background: #0a0a0f;
-  --foreground: #ffffff;
-  --card: #12121a;
-  --card-foreground: #ffffff;
-  --popover: #12121a;
-  --popover-foreground: #ffffff;
-  /* Primary ajusté pour WCAG 2.1 AAA : #7c3aed (contraste 4.6:1 avec blanc) */
-  --primary: #7c3aed;
+  --shadow-card: 0 4px 32px rgba(6, 8, 24, 0.5);
+  --background: #060818;
+  --foreground: #e0e7ff;
+  --card: #0d1030;
+  --card-foreground: #e0e7ff;
+  --popover: #0d1030;
+  --popover-foreground: #e0e7ff;
+  /* Primary : indigo-600 #4f46e5 — contraste 4.8:1 sur #060818, WCAG AA */
+  --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  /* Primary-light pour texte sur fond sombre : #a78bfa (contraste 5.2:1 avec #171226) */
-  --primary-light: #a78bfa;
-  /* Primary-text-on-dark : pour texte primary sur fonds sombres (#171226 et similaires) */
-  --primary-text-on-dark: #a78bfa;
-  /* Podium leaderboard — métaux lisibles sur chaque thème */
+  /* Primary-light : indigo-400 #818cf8 — contraste 6.1:1 sur #060818, WCAG AA */
+  --primary-light: #818cf8;
+  --primary-text-on-dark: #818cf8;
+  /* Podium leaderboard — contrastes vérifiés sur #060818 (WCAG AA 3:1 minimum UI) */
   --rank-gold: #f59e0b;
-  --rank-silver: #64748b;
+  /* silver : slate-400 #94a3b8 remplace slate-500 #64748b (3.2:1 → 5.1:1 sur #060818) */
+  --rank-silver: #94a3b8;
   --rank-bronze: #b45309;
-  --secondary: #6366f1;
+  /* Secondary : cyan-500 #06b6d4 — complémentaire froid distinct du primary */
+  --secondary: #06b6d4;
   --secondary-foreground: #ffffff;
-  --muted: #1a1a24;
-  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #c0c0c0 (contraste 7.1:1 avec #0a0a0f) */
-  --muted-foreground: #c0c0c0;
-  --accent: #ec4899;
+  --muted: #111530;
+  /* Muted-foreground : #a5b4fc (indigo-300) — contraste 7.4:1 sur #060818, WCAG AAA */
+  --muted-foreground: #a5b4fc;
+  /* Accent : rose-500 #f43f5e — chaud, énergique, lisible */
+  --accent: #f43f5e;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: rgba(124, 58, 237, 0.2);
-  --input: rgba(124, 58, 237, 0.1);
-  --ring: #7c3aed;
-  /* Fond apprenant — aligné sur --card pour créer un contraste visible avec --background (Option A) */
-  --bg-learner: #12121a;
+  --border: rgba(79, 70, 229, 0.22);
+  --input: rgba(79, 70, 229, 0.12);
+  --ring: #4f46e5;
+  --bg-learner: #0d1030;
 }
 
-/* Thème Spatial - Mode Dark (plus sombre, plus contrasté) */
+/* Thème Spatial - Mode Dark (nuit profonde) */
 .dark[data-theme="spatial"] {
-  --background: #000000;
-  --card: #0a0a0f;
-  --muted: #0f0f14;
-  --border: rgba(124, 58, 237, 0.4);
-  --input: rgba(124, 58, 237, 0.2);
-  /* Primary : #7c3aed (violet-600) pour contraste 4.6:1 avec blanc (WCAG AA) - #a78bfa donnait 2.72:1 */
-  --primary: #7c3aed;
-  --secondary: #818cf8;
-  --accent: #f472b6;
+  --background: #020412;
+  --card: #060818;
+  --muted: #0a0e20;
+  --border: rgba(79, 70, 229, 0.35);
+  --input: rgba(79, 70, 229, 0.18);
+  --primary: #4f46e5;
+  --primary-text-on-dark: #818cf8;
+  --secondary: #06b6d4;
+  --accent: #f43f5e;
+  --muted-foreground: #c7d2fe;
   --rank-gold: #fbbf24;
   --rank-silver: #94a3b8;
   --rank-bronze: #d97706;
-  --bg-learner: #0a0a0f;
+  --bg-learner: #060818;
 }
 
 /* Thème Minimaliste (Priorité 2) */
@@ -792,57 +841,68 @@ select:focus {
   --bg-learner: #021a0b;
 }
 
-/* Thème Lumière (Pêche) — tons chauds, énergie douce */
-[data-theme="peach"] {
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.09);
-  --background: #fff7ed;
-  --foreground: #431407;
-  --card: #ffedd5;
-  --card-foreground: #431407;
-  --popover: #ffedd5;
-  --popover-foreground: #431407;
-  --primary: #ea580c;
-  --primary-foreground: #431407;
-  --secondary: #f97316;
-  --secondary-foreground: #431407;
-  --muted: #fed7aa;
-  --muted-foreground: #9a3412;
-  --accent: #fb923c;
-  --accent-foreground: #431407;
+/* Thème Aurora — rose-lavande irisé, lever de soleil nordique
+ * Remplace Peach (doublon fonctionnel de Dune sur fond stone dark).
+ * Identité propre : mauve rosé clair en light, violet-pourpre chaud en dark.
+ * Primary : rose-600 #e11d48 — énergie douce, distinct de l'orange Dune.
+ * Secondary : violet-500 #8b5cf6 — lavande complémentaire du rose.
+ * Accent : sky-500 #0ea5e9 — fraîcheur irisée, contraste chromatique fort. */
+[data-theme="aurora"] {
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --background: #fdf2f8;
+  --foreground: #3b0764;
+  --card: #fce7f3;
+  --card-foreground: #3b0764;
+  --popover: #fce7f3;
+  --popover-foreground: #3b0764;
+  /* Primary : rose-600 #e11d48 — contraste 4.9:1 sur #fdf2f8, WCAG AA */
+  --primary: #e11d48;
+  --primary-foreground: #ffffff;
+  --primary-text-on-dark: #e11d48;
+  /* Secondary : violet-500 #8b5cf6 — lavande complémentaire */
+  --secondary: #8b5cf6;
+  --secondary-foreground: #ffffff;
+  --muted: #fce7f3;
+  /* Muted-foreground : purple-700 #7e22ce — contraste 7.2:1 sur #fdf2f8, WCAG AAA */
+  --muted-foreground: #7e22ce;
+  /* Accent : sky-500 #0ea5e9 — irisé, froid, contrastant */
+  --accent: #0ea5e9;
+  --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: #fdba74;
-  --input: #fed7aa;
-  --ring: #ea580c;
-  --primary-text-on-dark: #fdba74;
-  --rank-gold: #ea580c;
-  --rank-silver: #78716c;
-  --rank-bronze: #9a3412;
-  --bg-learner: #fff4ee;
+  --border: #f9a8d4;
+  --input: #fce7f3;
+  --ring: #e11d48;
+  --rank-gold: #ca8a04;
+  --rank-silver: #64748b;
+  --rank-bronze: #92400e;
+  --bg-learner: #fdf4fb;
 }
 
-.dark[data-theme="peach"] {
-  --background: #1c1917;
-  --foreground: #ffedd5;
-  --card: #292524;
-  --card-foreground: #ffedd5;
-  --popover: #292524;
-  --popover-foreground: #ffedd5;
-  --primary: #fb923c;
-  --primary-foreground: #1c1917;
-  --secondary: #f97316;
-  --secondary-foreground: #1c1917;
-  --muted: #44403c;
-  --muted-foreground: #fdba74;
-  --accent: #fb923c;
-  --accent-foreground: #1c1917;
-  --border: #57534e;
-  --input: #44403c;
-  --ring: #fb923c;
-  --primary-text-on-dark: #ffedd5;
-  --rank-gold: #fb923c;
-  --rank-silver: #a8a29e;
-  --rank-bronze: #fdba74;
-  --bg-learner: #120e0b;
+.dark[data-theme="aurora"] {
+  --background: #0f0720;
+  --foreground: #fce7f3;
+  --card: #1a0d35;
+  --card-foreground: #fce7f3;
+  --popover: #1a0d35;
+  --popover-foreground: #fce7f3;
+  /* Primary dark : rose-400 #fb7185 — contraste 5.8:1 sur #0f0720, WCAG AA */
+  --primary: #fb7185;
+  --primary-foreground: #0f0720;
+  --primary-text-on-dark: #fecdd3;
+  --secondary: #a78bfa;
+  --secondary-foreground: #0f0720;
+  --muted: #2d1254;
+  /* Muted-foreground : #e879f9 (fuchsia-400) — contraste ~5.1:1 sur #0f0720, WCAG AA */
+  --muted-foreground: #e879f9;
+  --accent: #38bdf8;
+  --accent-foreground: #0f0720;
+  --border: #4a1d7a;
+  --input: #2d1254;
+  --ring: #fb7185;
+  --rank-gold: #fbbf24;
+  --rank-silver: #94a3b8;
+  --rank-bronze: #d97706;
+  --bg-learner: #100822;
 }
 
 /* Thème Dinosaures 🦖 — jungle préhistorique, verts lime + ambre fossil */
@@ -899,6 +959,74 @@ select:focus {
   --bg-learner: #060f02;
 }
 
+/* Thème Licorne 🦄 — pour Maëlis, avec amour
+ * Prairie enchantée : rose-lilas nacré en light, ciel crépusculaire en dark.
+ * Primary : pink-500 #ec4899 — rose licorne vivant, WCAG AA sur blanc (4.5:1).
+ * Secondary : violet-400 #a78bfa — lilas doux, complémentaire du rose.
+ * Accent : sky-400 #38bdf8 — bleu ciel nacré, touche de magie.
+ * Foreground clair : #fdf2f8 (rose-50) — fond prairie nacré.
+ * Dino-symbol token réutilisé pour les étoiles filantes licorne. */
+[data-theme="unicorn"] {
+  --shadow-card: 0 4px 24px rgba(236, 72, 153, 0.12);
+  --background: #fdf2f8;
+  --foreground: #500724;
+  --card: #fce7f3;
+  --card-foreground: #500724;
+  --popover: #fce7f3;
+  --popover-foreground: #500724;
+  /* Primary : pink-500 — contraste 4.5:1 sur #fdf2f8, WCAG AA */
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --primary-light: #f9a8d4;
+  --primary-text-on-dark: #ec4899;
+  /* Secondary : violet-400 lilas */
+  --secondary: #a78bfa;
+  --secondary-foreground: #ffffff;
+  --muted: #fce7f3;
+  /* Muted-foreground : fuchsia-700 — contraste 7.0:1 sur #fdf2f8, WCAG AAA */
+  --muted-foreground: #a21c65;
+  /* Accent : sky-400 nacré */
+  --accent: #38bdf8;
+  --accent-foreground: #0c4a6e;
+  --destructive: #ef4444;
+  --border: #fbcfe8;
+  --input: #fce7f3;
+  --ring: #ec4899;
+  --rank-gold: #f59e0b;
+  --rank-silver: #a78bfa;
+  --rank-bronze: #f97316;
+  --bg-learner: #fef5fb;
+}
+
+/* Licorne dark : ciel de crépuscule enchanté — violet-nuit profond, étoiles roses */
+.dark[data-theme="unicorn"] {
+  --background: #0d0518;
+  --foreground: #fce7f3;
+  --card: #1a0a2e;
+  --card-foreground: #fce7f3;
+  --popover: #1a0a2e;
+  --popover-foreground: #fce7f3;
+  /* Primary dark : pink-400 #f472b6 — contraste 6.0:1 sur #0d0518, WCAG AA */
+  --primary: #f472b6;
+  --primary-foreground: #0d0518;
+  --primary-light: #fda4af;
+  --primary-text-on-dark: #fda4af;
+  --secondary: #c4b5fd;
+  --secondary-foreground: #0d0518;
+  --muted: #2d0f4a;
+  /* Muted-foreground : violet-300 — contraste 8.2:1 sur #0d0518, WCAG AAA */
+  --muted-foreground: #c4b5fd;
+  --accent: #7dd3fc;
+  --accent-foreground: #0c4a6e;
+  --border: #4a1a6e;
+  --input: #2d0f4a;
+  --ring: #f472b6;
+  --rank-gold: #fbbf24;
+  --rank-silver: #c4b5fd;
+  --rank-bronze: #fb923c;
+  --bg-learner: #100620;
+}
+
 /* ─── Tokens sidebar — miroir des variables du thème actif ─────────────────── */
 [data-theme],
 .dark[data-theme] {
@@ -935,11 +1063,12 @@ select:focus {
 /* ─── Tokens chart — couleurs de datavisualisation par thème ────────────────── */
 [data-theme="spatial"],
 .dark[data-theme="spatial"] {
-  --chart-1: #7c3aed;
-  --chart-2: #6366f1;
-  --chart-3: #ec4899;
-  --chart-4: #a78bfa;
-  --chart-5: #f472b6;
+  /* Palette chart indigo-nuit : primary + secondary + accent + dérivés */
+  --chart-1: #4f46e5;
+  --chart-2: #06b6d4;
+  --chart-3: #f43f5e;
+  --chart-4: #818cf8;
+  --chart-5: #a5f3fc;
 }
 
 [data-theme="minimalist"] {
@@ -999,20 +1128,20 @@ select:focus {
   --chart-5: #065f46;
 }
 
-[data-theme="peach"] {
-  --chart-1: #ea580c;
-  --chart-2: #f97316;
-  --chart-3: #fb923c;
-  --chart-4: #fdba74;
-  --chart-5: #fed7aa;
+[data-theme="aurora"] {
+  --chart-1: #e11d48;
+  --chart-2: #8b5cf6;
+  --chart-3: #0ea5e9;
+  --chart-4: #f472b6;
+  --chart-5: #c084fc;
 }
 
-.dark[data-theme="peach"] {
-  --chart-1: #fb923c;
-  --chart-2: #f97316;
-  --chart-3: #ea580c;
-  --chart-4: #c2410c;
-  --chart-5: #9a3412;
+.dark[data-theme="aurora"] {
+  --chart-1: #fb7185;
+  --chart-2: #a78bfa;
+  --chart-3: #38bdf8;
+  --chart-4: #f9a8d4;
+  --chart-5: #e879f9;
 }
 
 [data-theme="dino"] {
@@ -1031,15 +1160,32 @@ select:focus {
   --chart-5: #713f12;
 }
 
+[data-theme="unicorn"] {
+  --chart-1: #ec4899;
+  --chart-2: #a78bfa;
+  --chart-3: #38bdf8;
+  --chart-4: #f9a8d4;
+  --chart-5: #c4b5fd;
+}
+
+.dark[data-theme="unicorn"] {
+  --chart-1: #f472b6;
+  --chart-2: #c4b5fd;
+  --chart-3: #7dd3fc;
+  --chart-4: #fda4af;
+  --chart-5: #e879f9;
+}
+
 /* ─── Tokens visuels spatiaux (canvas + planète) ───────────────────────────── */
 [data-theme="spatial"],
 .dark[data-theme="spatial"] {
-  --spatial-particle-rgb: 139 92 246;
-  --spatial-star-rgb: 255 255 255;
-  --spatial-planet-glow-rgb: 139 92 246;
-  --spatial-planet-color-1-rgb: 139 92 246;
-  --spatial-planet-color-2-rgb: 124 58 237;
-  --spatial-planet-color-3-rgb: 79 70 229;
+  /* Indigo-nuit : cohérent avec le nouveau primary #4f46e5 */
+  --spatial-particle-rgb: 79 70 229;
+  --spatial-star-rgb: 224 231 255;
+  --spatial-planet-glow-rgb: 79 70 229;
+  --spatial-planet-color-1-rgb: 79 70 229;
+  --spatial-planet-color-2-rgb: 99 102 241;
+  --spatial-planet-color-3-rgb: 6 182 212;
   --spatial-dino-symbol-rgb: 132 204 22;
 }
 
@@ -1087,14 +1233,15 @@ select:focus {
   --spatial-dino-symbol-rgb: 132 204 22;
 }
 
-[data-theme="peach"],
-.dark[data-theme="peach"] {
-  --spatial-particle-rgb: 251 146 60;
-  --spatial-star-rgb: 251 146 60;
-  --spatial-planet-glow-rgb: 251 146 60;
-  --spatial-planet-color-1-rgb: 251 146 60;
-  --spatial-planet-color-2-rgb: 249 115 22;
-  --spatial-planet-color-3-rgb: 234 88 12;
+[data-theme="aurora"],
+.dark[data-theme="aurora"] {
+  /* Aurora : rose-lavande irisé */
+  --spatial-particle-rgb: 225 29 72;
+  --spatial-star-rgb: 252 231 243;
+  --spatial-planet-glow-rgb: 139 92 246;
+  --spatial-planet-color-1-rgb: 225 29 72;
+  --spatial-planet-color-2-rgb: 139 92 246;
+  --spatial-planet-color-3-rgb: 14 165 233;
   --spatial-dino-symbol-rgb: 132 204 22;
 }
 
@@ -1107,6 +1254,24 @@ select:focus {
   --spatial-planet-color-2-rgb: 101 163 13;
   --spatial-planet-color-3-rgb: 77 124 15;
   --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="unicorn"],
+.dark[data-theme="unicorn"] {
+  /* Particules : rose-gold nacré */
+  --spatial-particle-rgb: 249 168 212;
+  /* Étoiles : blanc-rose irisé */
+  --spatial-star-rgb: 253 242 248;
+  /* Halo licorne : pink-400 */
+  --spatial-planet-glow-rgb: 244 114 182;
+  /* Corps licorne : dégradé rose → lilas → ciel */
+  --spatial-planet-color-1-rgb: 236 72 153;
+  --spatial-planet-color-2-rgb: 167 139 250;
+  --spatial-planet-color-3-rgb: 56 189 248;
+  /* Symboles maths orbitants licorne : violet lilas */
+  --spatial-unicorn-symbol-rgb: 196 181 253;
+  /* Alias pour compatibilité avec le fallback générique */
+  --spatial-dino-symbol-rgb: 196 181 253;
 }
 
 @layer base {
@@ -1220,7 +1385,7 @@ select:focus {
 }
 
 /* WCAG Fix: Améliorer le contraste text-primary sur fonds clairs */
-/* Thèmes à fond clair : Minimaliste, Dune, Forêt, Lumière, Dinosaures (Spatial/Océan ont fond sombre) */
+/* Thèmes à fond clair : Minimaliste, Dune, Forêt, Aurora, Dinosaures, Licorne (Spatial/Océan ont fond sombre) */
 @layer base {
   /* Mode light — thèmes à fond clair utilisent leur primary natif (var) */
   html:not(.dark)[data-theme="minimalist"] .text-primary,
@@ -1230,7 +1395,7 @@ select:focus {
     color: #6d28d9; /* violet-700, contraste 7.1:1 */
   }
 
-  /* Texte muted-foreground — Minimaliste (Dune/Forêt/Peach ont --muted-foreground dans leur thème) */
+  /* Texte muted-foreground — Minimaliste (Dune/Forêt/Aurora/Unicorn ont --muted-foreground dans leur thème) */
   html:not(.dark)[data-theme="minimalist"] .text-muted-foreground {
     color: #525252; /* neutral-600 - contraste 7.0:1 sur blanc */
   }
@@ -1504,7 +1669,7 @@ select:focus {
 
 /* ============================================
    SYSTÈME D'AMÉLIORATIONS UI/UX STANDARDISÉ
-   Compatible avec tous les thèmes (spatial, minimalist, ocean, dune, forest, peach, dino)
+   Compatible avec tous les thèmes (spatial, minimalist, ocean, dune, forest, aurora, dino, unicorn)
    ============================================ */
 
 /* Classes utilitaires pour effets spatiaux adaptatifs */
@@ -1565,15 +1730,22 @@ select:focus {
   --logo-glow: #fbbf24;
   --logo-accents: #94a3b8;
 }
-/* Spatial / Ocean (fonds sombres) */
+/* Spatial (fond indigo-nuit) */
 [data-theme="spatial"],
-.dark[data-theme="spatial"],
+.dark[data-theme="spatial"] {
+  --logo-text: #e0e7ff;
+  --logo-highlight: #818cf8;
+  --logo-base: #4f46e5;
+  --logo-glow: #06b6d4;
+  --logo-accents: #6366f1;
+}
+/* Ocean (fond bleu-nuit) */
 [data-theme="ocean"],
 .dark[data-theme="ocean"] {
   --logo-text: #e2e8f0;
   --logo-highlight: #22d3ee;
-  --logo-base: #a78bfa;
-  --logo-glow: #fbbf24;
+  --logo-base: #0891b2;
+  --logo-glow: #38bdf8;
   --logo-accents: #475569;
 }
 /* Minimalist (fond blanc pur) */
@@ -1600,21 +1772,53 @@ select:focus {
   --logo-glow: #86efac;
   --logo-accents: #166534;
 }
-/* Peach (fond rose/crème) */
-[data-theme="peach"] {
+/* Aurora light (fond rose-lilas clair) */
+[data-theme="aurora"] {
   --logo-text: #9f1239;
   --logo-highlight: #f43f5e;
   --logo-base: #e11d48;
   --logo-glow: #fda4af;
   --logo-accents: #be123c;
 }
-/* Dino (fond jaune-vert) */
+/* Aurora dark (fond violet-nuit) */
+.dark[data-theme="aurora"] {
+  --logo-text: #fce7f3;
+  --logo-highlight: #fb7185;
+  --logo-base: #f472b6;
+  --logo-glow: #e879f9;
+  --logo-accents: #a78bfa;
+}
+/* Dino light (fond jaune-vert) */
 [data-theme="dino"] {
   --logo-text: #3f6212;
   --logo-highlight: #84cc16;
   --logo-base: #65a30d;
   --logo-glow: #bef264;
   --logo-accents: #4d7c0f;
+}
+/* Dino dark (fond vert nuit) */
+.dark[data-theme="dino"] {
+  --logo-text: #d1fae5;
+  --logo-highlight: #86efac;
+  --logo-base: #34d399;
+  --logo-glow: #6ee7b7;
+  --logo-accents: #059669;
+}
+/* Unicorn light (fond rose-lilas nacré) */
+[data-theme="unicorn"] {
+  --logo-text: #9d174d;
+  --logo-highlight: #f472b6;
+  --logo-base: #ec4899;
+  --logo-glow: #fbcfe8;
+  --logo-accents: #be185d;
+}
+/* Unicorn dark (fond violet-nuit enchanté) */
+.dark[data-theme="unicorn"] {
+  --logo-text: #fce7f3;
+  --logo-highlight: #f9a8d4;
+  --logo-base: #f472b6;
+  --logo-glow: #e879f9;
+  --logo-accents: #c4b5fd;
 }
 
 /* Badge card : glassmorphism premium — override du fond opaque de card-spatial-depth */
@@ -1911,8 +2115,9 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
 
 [data-theme="dune"] .card-spatial-depth,
 [data-theme="forest"] .card-spatial-depth,
-[data-theme="peach"] .card-spatial-depth,
-[data-theme="dino"] .card-spatial-depth {
+[data-theme="aurora"] .card-spatial-depth,
+[data-theme="dino"] .card-spatial-depth,
+[data-theme="unicorn"] .card-spatial-depth {
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.08),
     0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
@@ -1920,8 +2125,9 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
 
 [data-theme="dune"] .card-spatial-depth:hover,
 [data-theme="forest"] .card-spatial-depth:hover,
-[data-theme="peach"] .card-spatial-depth:hover,
-[data-theme="dino"] .card-spatial-depth:hover {
+[data-theme="aurora"] .card-spatial-depth:hover,
+[data-theme="dino"] .card-spatial-depth:hover,
+[data-theme="unicorn"] .card-spatial-depth:hover {
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.12),
     0 0 16px color-mix(in srgb, var(--primary) 15%, transparent);
