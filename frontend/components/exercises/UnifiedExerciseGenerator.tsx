@@ -143,14 +143,14 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
                 isIAEnabled ? "text-primary" : "text-muted-foreground"
               )}
             >
-              Mode IA ✨
+              {t("generator.iaModeLabel")}
             </label>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle
                     className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-help"
-                    aria-label="En savoir plus sur le Mode IA"
+                    aria-label={t("generator.iaModeHelpAriaLabel")}
                   />
                 </TooltipTrigger>
                 <TooltipContent
@@ -158,8 +158,7 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
                   className="max-w-[230px] bg-card border border-border/50 p-3 rounded-lg"
                 >
                   <p className="text-xs leading-relaxed text-foreground">
-                    ✨ L&apos;IA génère un exercice unique basé sur un scénario créatif de ton
-                    choix. Plus lent que le mode classique, mais bien plus imaginatif !
+                    {t("generator.iaModeHelpText")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -176,7 +175,7 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
                   setGeneratedExercise(null);
                 }
               }}
-              aria-label="Activer le mode génération IA"
+              aria-label={t("generator.iaModeAriaLabel")}
             />
           </div>
           <Button

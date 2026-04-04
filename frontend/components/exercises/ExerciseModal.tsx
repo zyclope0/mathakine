@@ -187,6 +187,22 @@ function ExerciseModalContent({
                 </div>
               );
             })()}
+            {/* NI-10 — Indice avant les choix : visible sans scroll sur mobile.
+                W3C COGA 2.2 : un enfant bloqué ne scroll pas pour chercher de l'aide. */}
+            {!hasSubmitted && exercise.hint && !showHint && (
+              <div className="flex justify-end pt-4 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setShowHint(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t("showHint")}
+                >
+                  <Lightbulb className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("showHint")}
+                </button>
+              </div>
+            )}
+
             <div className="space-y-3 pt-6 pb-4">
               {isOpenAnswer ? (
                 <div className="space-y-2">
@@ -202,7 +218,8 @@ function ExerciseModalContent({
                     value={selectedAnswer ?? ""}
                     onChange={(e) => !hasSubmitted && setSelectedAnswer(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && selectedAnswer && !hasSubmitted) handleSubmit();
+                      if (e.key === "Enter" && selectedAnswer?.trim() && !hasSubmitted)
+                        handleSubmit();
                     }}
                     disabled={hasSubmitted}
                     autoFocus
@@ -297,15 +314,18 @@ function ExerciseModalContent({
                 <div className="space-y-2">
                   <Button
                     onClick={handleSubmit}
-                    disabled={!selectedAnswer || isSubmitting}
+                    disabled={!selectedAnswer?.trim() || isSubmitting}
                     className={cn(
                       "w-full size-lg font-semibold transition-all",
-                      !selectedAnswer &&
+                      !selectedAnswer?.trim() &&
                         "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
-                      selectedAnswer && "bg-primary text-primary-foreground hover:bg-primary/90"
+                      selectedAnswer?.trim() &&
+                        "bg-primary text-primary-foreground hover:bg-primary/90"
                     )}
                     size="lg"
-                    aria-describedby={!selectedAnswer ? "modal-validate-hint" : undefined}
+                    aria-label={isSubmitting ? t("saving") : t("validateAnswer")}
+                    aria-busy={isSubmitting}
+                    aria-describedby={!selectedAnswer?.trim() ? "modal-validate-hint" : undefined}
                   >
                     {isSubmitting ? (
                       <>
@@ -316,7 +336,7 @@ function ExerciseModalContent({
                       t("validateAnswer")
                     )}
                   </Button>
-                  {!selectedAnswer && (
+                  {!selectedAnswer?.trim() && (
                     <p
                       id="modal-validate-hint"
                       className="text-center text-xs text-muted-foreground"
@@ -375,17 +395,6 @@ function ExerciseModalContent({
                 </div>
               )}
 
-              {!hasSubmitted && exercise.hint && !showHint && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowHint(true)}
-                  className="w-full"
-                >
-                  <Lightbulb className="mr-2 h-4 w-4" />
-                  {t("showHint")}
-                </Button>
-              )}
               {showHint && exercise.hint && (
                 <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
                   <div className="flex items-start gap-3">

@@ -54,7 +54,7 @@ export function ExerciseSolverChoices({
           value={selectedAnswer ?? ""}
           onChange={(e) => !hasSubmitted && onSelectAnswer(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && selectedAnswer && !hasSubmitted) onSubmitOpenAnswer();
+            if (e.key === "Enter" && selectedAnswer?.trim() && !hasSubmitted) onSubmitOpenAnswer();
           }}
           disabled={hasSubmitted}
           autoFocus

@@ -1,7 +1,6 @@
 "use client";
 
 import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
@@ -19,7 +18,6 @@ interface ExerciseSolverFeedbackProps {
   hint: string | null | undefined;
   showHint: boolean;
   sessionMode: SessionMode;
-  onShowHint: () => void;
   labels: {
     correctTitle: string;
     incorrectTitle: string;
@@ -40,7 +38,6 @@ export function ExerciseSolverFeedback({
   hint,
   showHint,
   sessionMode,
-  onShowHint,
   labels,
 }: ExerciseSolverFeedbackProps) {
   return (
@@ -48,11 +45,14 @@ export function ExerciseSolverFeedback({
       {/* Feedback après soumission */}
       {hasSubmitted && submitResultPresent && (
         <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
           className={cn(
             "rounded-xl p-4 font-semibold text-lg flex items-center gap-3 transition-all mt-8",
             isCorrect
-              ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-              : "bg-red-500/10 border-2 border-red-500/30 text-red-400"
+              ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 feedback-success-animate"
+              : "bg-red-500/10 border-2 border-red-500/30 text-red-400 feedback-error-animate"
           )}
         >
           {isCorrect ? (
@@ -90,19 +90,6 @@ export function ExerciseSolverFeedback({
         </div>
       )}
 
-      {/* Indice — masqué en session révision (pas d'indice avant réponse) */}
-      {!hasSubmitted && hint && !showHint && sessionMode !== "spaced-review" && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onShowHint}
-          className="w-full mt-6"
-          aria-label={labels.hint}
-        >
-          <Lightbulb className="mr-2 h-4 w-4" />
-          {labels.hint}
-        </Button>
-      )}
       {showHint && hint && sessionMode !== "spaced-review" && (
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mt-6">
           <div className="flex items-start gap-3">
