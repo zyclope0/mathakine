@@ -109,9 +109,15 @@ export function useAuth() {
       toast.success(t("loginSuccess"), {
         description: t("loginWelcome", { username: data.user.username }),
       });
-      // Rediriger : onboarding si pas encore fait, sinon /dashboard (post-inscription) ou /exercises
+      // Rediriger : onboarding si pas encore fait, sinon page dédiée selon le rôle
       const needsOnboarding = !data.user.onboarding_completed_at;
-      const target = needsOnboarding ? "/onboarding" : postLoginRedirectRef.current || "/exercises";
+      // TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
+      // Mettre à jour ici + Header.tsx + dashboard/page.tsx si le contrat API change.
+      const isStudent = data.user.role === "padawan";
+      const defaultTarget = isStudent ? "/home-learner" : "/exercises";
+      const target = needsOnboarding
+        ? "/onboarding"
+        : postLoginRedirectRef.current || defaultTarget;
       postLoginRedirectRef.current = null;
       router.replace(target);
     },

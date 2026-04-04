@@ -264,7 +264,8 @@
     "contact": "Contact",
     "changelog": "Nouveautés",
     "documentation": "Documentation",
-    "privacy": "Politique de confidentialité"
+    "privacy": "Politique de confidentialité",
+    "homeLearner": "Mon espace"
   },
   "exercises": {
     "title": "Exercices Mathématiques",
@@ -344,7 +345,11 @@
       "selectDifficulty": "Sélectionner un niveau",
       "selectAgeGroup": "Sélectionner un groupe d'âge",
       "generating": "Génération...",
-      "generate": "Générer un exercice"
+      "generate": "Générer un exercice",
+      "iaModeLabel": "Exercice surprise ✨",
+      "iaModeHelpAriaLabel": "En savoir plus sur le mode Exercice surprise",
+      "iaModeHelpText": "✨ L'IA crée un exercice unique avec un scénario original de ton choix. Un peu plus long, mais bien plus imaginatif !",
+      "iaModeAriaLabel": "Activer le mode Exercice surprise"
     },
     "aiGenerator": {
       "title": "Générer avec l'IA",
@@ -419,8 +424,8 @@
       "explanation": "Explication",
       "nextExercise": "Exercice suivant",
       "sessionProgress": "{current}/{total}",
-      "sessionEndTitle": "Session terminée",
-      "sessionEndDescription": "Bravo ! Tu as enchaîné plusieurs types d'exercices.",
+      "sessionEndTitle": "Bravo, tu as tout enchaîné !",
+      "sessionEndDescription": "Tu as alterné plusieurs types d'exercices. C'est comme ça qu'on progresse vraiment !",
       "loading": "Chargement de l'exercice...",
       "back": "Retour",
       "backToExercises": "Retour aux exercices",
@@ -447,21 +452,21 @@
       "option": "Option {index}",
       "openAnswerLabel": "Votre réponse",
       "openAnswerPlaceholder": "Entrez votre réponse…",
-      "reviewContextBadge": "Révision",
+      "reviewContextBadge": "Entraînement",
       "reviewBackDashboard": "Tableau de bord",
       "reviewAllExercises": "Tous les exercices",
-      "reviewNavLabel": "Navigation pendant une révision",
-      "reviewPreparing": "Préparation de la révision…",
-      "reviewUnavailableTitle": "Aucune révision disponible",
-      "reviewUnavailableBody": "Aucune carte actionnable n’est disponible pour le moment. Tu peux revenir au tableau de bord ou continuer tes exercices.",
+      "reviewNavLabel": "Navigation pendant un entraînement",
+      "reviewPreparing": "Préparation de ton entraînement…",
+      "reviewUnavailableTitle": "Aucun entraînement prévu",
+      "reviewUnavailableBody": "Il n'y a rien à revoir pour le moment. Tu peux continuer tes exercices ou revenir au tableau de bord.",
       "reviewNoChoicesFallback": "Ce format d’exercice ne peut pas être complété ici sans aide. Passe à un autre exercice ou reviens au tableau de bord.",
-      "reviewCheckingNext": "Vérification des prochaines révisions…",
-      "reviewFetchNextError": "Impossible de vérifier la suite pour le moment.",
+      "reviewCheckingNext": "On cherche la suite…",
+      "reviewFetchNextError": "Impossible de vérifier la suite. Réessaie dans un instant.",
       "reviewRetry": "Réessayer",
-      "reviewSessionCompleteTitle": "Révisions à jour",
-      "reviewSessionCompleteBody": "Tu as terminé les révisions prévues pour aujourd’hui. Tu peux revenir demain ou continuer depuis le tableau de bord.",
-      "reviewNext": "Révision suivante",
-      "reviewFollowUpLabel": "Suite de la session de révision"
+      "reviewSessionCompleteTitle": "C'est tout bon !",
+      "reviewSessionCompleteBody": "Tu as fait tous les entraînements prévus pour aujourd'hui. Reviens demain ou continue avec un exercice.",
+      "reviewNext": "Entraînement suivant",
+      "reviewFollowUpLabel": "Suite de ton entraînement"
     },
     "error": {
       "invalidId": "ID d'exercice invalide",
@@ -745,10 +750,10 @@
       "title": "Que veux-tu faire ?",
       "exerciseCta": "Un exercice",
       "challengeCta": "Un défi",
-      "interleavedCta": "Session entrelacée",
-      "interleavedSubtext": "Alterne plusieurs types pour mieux mémoriser",
-      "interleavedPedagogy": "Ton cerveau doit reconnaître la bonne stratégie à chaque exercice. C'est plus exigeant, et c'est justement ce qui aide à mémoriser.",
-      "interleavedNotEnoughVariety": "Pratique au moins 2 types d'exercices différents cette semaine pour débloquer la session entrelacée.",
+      "interleavedCta": "Mélange de maths",
+      "interleavedSubtext": "Plusieurs types d'exercices dans une seule session",
+      "interleavedPedagogy": "On prépare ton parcours… Tu vas enchaîner des exercices variés !",
+      "interleavedNotEnoughVariety": "Essaie d'abord 2 types d'exercices différents cette semaine pour débloquer le Mélange de maths.",
       "challengeDefault": "Défi logique",
       "startCta": "Commencer",
       "browseAll": "Explorer la liste"
@@ -770,24 +775,29 @@
       "pending": "{current}/{target}",
       "bonus": "+{points} XP",
       "expiresAt": "Expire à minuit",
-      "cta": "S'entraîner maintenant"
+      "cta": "S'entraîner maintenant",
+      "statusCompleted": "Terminé",
+      "statusPending": "{current}/{target} en cours",
+      "allDone": "Tous les défis du jour complétés !",
+      "allDoneMessage": "Constellation complète ! Reviens demain.",
+      "progressAriaLabel": "{done} sur {total} défis complétés"
     },
     "spacedRepetition": {
       "title": "Révisions du jour",
-      "notInitialized": "Les révisions apparaîtront après quelques exercices.",
-      "noneToday": "Aucune révision prévue aujourd'hui.",
-      "dueToday": "{count, plural, one {# révision aujourd'hui} other {# révisions aujourd'hui}}",
-      "overdue": "{count, plural, one {# carte en retard} other {# cartes en retard}}",
-      "activeCards": "{count, plural, one {# carte suivie} other {# cartes suivies}}",
+      "notInitialized": "Tes révisions apparaîtront ici après quelques exercices.",
+      "noneToday": "Tout est à jour ! Aucune révision prévue aujourd'hui.",
+      "dueToday": "{count, plural, one {# exercice à réviser aujourd'hui} other {# exercices à réviser aujourd'hui}}",
+      "overdue": "{count, plural, one {# exercice en attente} other {# exercices en attente}}",
+      "activeCards": "{count, plural, one {# exercice suivi} other {# exercices suivis}}",
       "nextReview": "Prochaine révision : {date}",
-      "loadError": "Impossible d'afficher le résumé des révisions.",
-      "reviewNow": "Réviser maintenant",
+      "loadError": "Impossible d'afficher tes révisions pour le moment.",
+      "reviewNow": "Commencer les révisions",
       "reviewNowLoading": "Préparation…",
-      "reviewFetchError": "Impossible de lancer la révision pour le moment. Réessayez dans un instant.",
-      "noReviewAvailable": "Aucune carte due pour l’instant. Vous pouvez actualiser le tableau de bord.",
+      "reviewFetchError": "Impossible de lancer la révision pour le moment. Réessaie dans un instant.",
+      "noReviewAvailable": "Tout est révisé pour l'instant, bravo !",
       "a11y": {
-        "regionLabel": "Résumé des révisions espacées",
-        "ctaSection": "Actions de révision"
+        "regionLabel": "Révisions du jour",
+        "ctaSection": "Lancer les révisions"
       }
     },
     "stats": {
@@ -955,12 +965,20 @@
       "overviewShort": "Vue",
       "recommendations": "Recommandations",
       "recommendationsShort": "Recommandés",
-      "progress": "Progression",
-      "progressShort": "Stats",
+      "progress": "Ma progression",
+      "progressShort": "Progrès",
       "details": "Détails",
       "detailsShort": "Détails",
       "profile": "Mon Profil",
-      "profileShort": "Profil"
+      "profileShort": "Profil",
+      "studentTabsLabel": "Mon espace",
+      "studentToday": "Aujourd'hui",
+      "studentTodayShort": "Aujourd'hui",
+      "studentProgress": "Mon aventure",
+      "studentProgressShort": "Aventure",
+      "studentChallenges": "Mes défis",
+      "studentChallengesShort": "Défis",
+      "inProgressWithCount": "{count} en cours"
     },
     "export": {
       "pdf": "Exporter PDF",
@@ -1119,7 +1137,8 @@
       "30days": "30 derniers jours",
       "90days": "3 derniers mois",
       "all": "Tout"
-    }
+    },
+    "seeBadges": "Voir mes badges"
   },
   "badges": {
     "title": "Badges et Récompenses",
@@ -1245,7 +1264,12 @@
       "sortDate": "Date d'obtention",
       "sortPoints": "Points",
       "sortCategory": "Catégorie"
-    }
+    },
+    "noProgressYet": "Pas encore de progression — fais un exercice pour commencer !",
+    "progressLabel": "{current} / {target}",
+    "noName": "Badge sans nom",
+    "noDescription": "Description non disponible",
+    "ariaLabel": "Badge {name} {status}"
   },
   "leaderboard": {
     "title": "Classement",
@@ -2162,6 +2186,33 @@
       "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
       "networkError": "Erreur réseau",
       "cannotConnect": "Impossible de se connecter au serveur."
+    }
+  },
+  "homeLearner": {
+    "greeting": "Bonjour {name} !",
+    "greetingGeneric": "Bonjour !",
+    "subtitle": "Prêt pour ta session du jour ?",
+    "actions": {
+      "heading": "Que veux-tu faire ?",
+      "exercises": "Faire des exercices",
+      "challenges": "Relever un défi",
+      "badges": "Voir mes badges"
+    },
+    "progress": {
+      "heading": "Ma progression",
+      "seeBadges": "Voir tous mes badges"
+    },
+    "reviews": {
+      "heading": "Mes révisions du jour"
+    },
+    "challenges": {
+      "heading": "Mes défis du jour"
+    },
+    "pageMap": {
+      "label": "Sur cette page",
+      "reviews": "Révisions",
+      "challenges": "Défis",
+      "progress": "Progression"
     }
   }
 }

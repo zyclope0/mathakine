@@ -45,6 +45,9 @@ export function Header() {
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
 
   const isAdmin = user?.role === "archiviste";
+  // TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
+  // Mettre à jour ici + useAuth.ts + dashboard/page.tsx si le contrat API change.
+  const isStudent = user?.role === "padawan";
   // Non vérifié : menu restreint sauf si access_scope === "full" (période de grâce).
   // Évite d'afficher le menu complet quand access_scope est undefined (chargement, cache).
   const hasFullAccess = user?.is_email_verified === true || user?.access_scope === "full";
@@ -53,11 +56,20 @@ export function Header() {
     { name: t("home"), href: "/", icon: Home },
     ...(isAuthenticated
       ? [
-          ...(hasFullAccess ? [{ name: t("dashboard"), href: "/dashboard" }] : []),
+          // Padawan → page dédiée ; adulte → dashboard analytique
+          ...(hasFullAccess
+            ? [
+                isStudent
+                  ? { name: t("homeLearner"), href: "/home-learner", icon: Home }
+                  : { name: t("dashboard"), href: "/dashboard" },
+              ]
+            : []),
           { name: t("exercises"), href: "/exercises" },
           ...(hasFullAccess ? [{ name: t("challenges"), href: "/challenges" }] : []),
           ...(hasFullAccess ? [{ name: t("badges"), href: "/badges" }] : []),
-          ...(hasFullAccess ? [{ name: t("leaderboard"), href: "/leaderboard" }] : []),
+          ...(!isStudent && hasFullAccess
+            ? [{ name: t("leaderboard"), href: "/leaderboard" }]
+            : []),
         ]
       : []),
     { name: tHome("hero.ctaAssistant"), href: "#", icon: MessageCircle, isAssistant: true },

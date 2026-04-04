@@ -264,7 +264,8 @@
     "contact": "Contact",
     "changelog": "What's new",
     "documentation": "Documentation",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "homeLearner": "My space"
   },
   "exercises": {
     "title": "Math Exercises",
@@ -344,7 +345,11 @@
       "selectDifficulty": "Select a level",
       "selectAgeGroup": "Select an age group",
       "generating": "Generating...",
-      "generate": "Generate an exercise"
+      "generate": "Generate an exercise",
+      "iaModeLabel": "Surprise exercise ✨",
+      "iaModeHelpAriaLabel": "Learn more about Surprise exercise mode",
+      "iaModeHelpText": "✨ The AI creates a unique exercise with an original scenario of your choice. A bit slower, but way more creative!",
+      "iaModeAriaLabel": "Enable Surprise exercise mode"
     },
     "aiGenerator": {
       "title": "Generate with AI",
@@ -419,8 +424,8 @@
       "explanation": "Explanation",
       "nextExercise": "Next exercise",
       "sessionProgress": "{current}/{total}",
-      "sessionEndTitle": "Session complete",
-      "sessionEndDescription": "Well done! You alternated several exercise types.",
+      "sessionEndTitle": "Great, you mixed it up!",
+      "sessionEndDescription": "You alternated different exercise types. That's how real progress happens!",
       "loading": "Loading exercise...",
       "back": "Back",
       "backToExercises": "Back to exercises",
@@ -447,21 +452,21 @@
       "option": "Option {index}",
       "openAnswerLabel": "Your answer",
       "openAnswerPlaceholder": "Enter your answer…",
-      "reviewContextBadge": "Review",
+      "reviewContextBadge": "Practice",
       "reviewBackDashboard": "Dashboard",
       "reviewAllExercises": "All exercises",
-      "reviewNavLabel": "Navigation during a review",
-      "reviewPreparing": "Preparing your review…",
-      "reviewUnavailableTitle": "No review available",
-      "reviewUnavailableBody": "There is no actionable review card right now. You can go back to the dashboard or continue with regular exercises.",
+      "reviewNavLabel": "Navigation during practice",
+      "reviewPreparing": "Getting your practice ready…",
+      "reviewUnavailableTitle": "No practice scheduled",
+      "reviewUnavailableBody": "Nothing to review right now. Keep practising or go back to the dashboard.",
       "reviewNoChoicesFallback": "This exercise format can’t be completed here without help. Try another exercise or go back to the dashboard.",
-      "reviewCheckingNext": "Checking for more reviews…",
-      "reviewFetchNextError": "We couldn’t check what’s next right now.",
+      "reviewCheckingNext": "Finding what's next…",
+      "reviewFetchNextError": "Can't find what's next right now. Try again in a moment.",
       "reviewRetry": "Try again",
-      "reviewSessionCompleteTitle": "You’re caught up",
-      "reviewSessionCompleteBody": "You’ve finished today’s scheduled reviews. Come back tomorrow or continue from the dashboard.",
-      "reviewNext": "Next review",
-      "reviewFollowUpLabel": "Next steps in your review session"
+      "reviewSessionCompleteTitle": "All done!",
+      "reviewSessionCompleteBody": "You've finished today's practice. Come back tomorrow or keep going with more exercises.",
+      "reviewNext": "Next practice",
+      "reviewFollowUpLabel": "What's next in your practice"
     },
     "error": {
       "invalidId": "Invalid exercise ID",
@@ -746,22 +751,30 @@
       "overviewShort": "Overview",
       "recommendations": "Recommendations",
       "recommendationsShort": "Recs",
-      "progress": "Progress",
-      "progressShort": "Stats",
+      "progress": "My Progress",
+      "progressShort": "Progress",
       "details": "Details",
       "detailsShort": "Details",
       "profile": "My Profile",
-      "profileShort": "Profile"
+      "profileShort": "Profile",
+      "studentTabsLabel": "My space",
+      "studentToday": "Today",
+      "studentTodayShort": "Today",
+      "studentProgress": "My journey",
+      "studentProgressShort": "Journey",
+      "studentChallenges": "My challenges",
+      "studentChallengesShort": "Challenges",
+      "inProgressWithCount": "{count} in progress"
     },
     "lastUpdate": "Last update: {time}",
     "quickStart": {
       "title": "What do you want to do?",
       "exerciseCta": "An exercise",
       "challengeCta": "A challenge",
-      "interleavedCta": "Interleaved session",
-      "interleavedSubtext": "Alternate several types to memorize better",
-      "interleavedPedagogy": "Your brain has to identify the right strategy each time. It feels harder, and that is exactly what helps memory stick.",
-      "interleavedNotEnoughVariety": "Practice at least 2 different exercise types this week to unlock the interleaved session.",
+      "interleavedCta": "Mixed maths",
+      "interleavedSubtext": "Several exercise types in one session",
+      "interleavedPedagogy": "Getting your session ready… You'll mix different exercises!",
+      "interleavedNotEnoughVariety": "Try 2 different exercise types this week first to unlock Mixed maths.",
       "challengeDefault": "Logic challenge",
       "startCta": "Start",
       "browseAll": "Browse all"
@@ -783,24 +796,29 @@
       "pending": "{current}/{target}",
       "bonus": "+{points} XP",
       "expiresAt": "Expires at midnight",
-      "cta": "Train now"
+      "cta": "Train now",
+      "statusCompleted": "Completed",
+      "statusPending": "{current}/{target} in progress",
+      "allDone": "All daily challenges completed!",
+      "allDoneMessage": "Constellation complete! Come back tomorrow.",
+      "progressAriaLabel": "{done} of {total} challenges completed"
     },
     "spacedRepetition": {
       "title": "Today's reviews",
-      "notInitialized": "Reviews will appear after you've practiced a few exercises.",
-      "noneToday": "No reviews scheduled for today.",
-      "dueToday": "{count, plural, one {# review due today} other {# reviews due today}}",
-      "overdue": "{count, plural, one {# overdue card} other {# overdue cards}}",
-      "activeCards": "{count, plural, one {# card in your review deck} other {# cards in your review deck}}",
+      "notInitialized": "Your review exercises will appear here after your first practice sessions.",
+      "noneToday": "You're all caught up! No exercises to review today.",
+      "dueToday": "{count, plural, one {# exercise to review today} other {# exercises to review today}}",
+      "overdue": "{count, plural, one {# exercise waiting} other {# exercises waiting}}",
+      "activeCards": "{count, plural, one {# exercise tracked} other {# exercises tracked}}",
       "nextReview": "Next review: {date}",
-      "loadError": "Review summary could not be loaded.",
-      "reviewNow": "Review now",
+      "loadError": "We couldn't load your reviews right now.",
+      "reviewNow": "Start reviewing",
       "reviewNowLoading": "Getting ready…",
-      "reviewFetchError": "We couldn’t start the review just now. Please try again in a moment.",
-      "noReviewAvailable": "No card is due right now. You can refresh the dashboard.",
+      "reviewFetchError": "We couldn't start the review just now. Please try again in a moment.",
+      "noReviewAvailable": "All caught up for now — great work!",
       "a11y": {
-        "regionLabel": "Spaced repetition summary",
-        "ctaSection": "Review actions"
+        "regionLabel": "Today's reviews",
+        "ctaSection": "Start reviewing"
       }
     },
     "stats": {
@@ -1119,7 +1137,8 @@
       "30days": "Last 30 days",
       "90days": "Last 3 months",
       "all": "All"
-    }
+    },
+    "seeBadges": "See my badges"
   },
   "badges": {
     "title": "Badges and Rewards",
@@ -1245,7 +1264,12 @@
       "sortDate": "Date earned",
       "sortPoints": "Points",
       "sortCategory": "Category"
-    }
+    },
+    "noProgressYet": "No progress yet — do an exercise to get started!",
+    "progressLabel": "{current} / {target}",
+    "noName": "Unnamed badge",
+    "noDescription": "No description available",
+    "ariaLabel": "Badge {name} {status}"
   },
   "leaderboard": {
     "error": "Unable to load leaderboard.",
@@ -2163,6 +2187,33 @@
       "sessionExpired": "Session expired. Please log in again.",
       "networkError": "Network error",
       "cannotConnect": "Unable to connect to the server."
+    }
+  },
+  "homeLearner": {
+    "greeting": "Hello {name}!",
+    "greetingGeneric": "Hello!",
+    "subtitle": "Ready for today’s session?",
+    "actions": {
+      "heading": "What do you want to do?",
+      "exercises": "Do exercises",
+      "challenges": "Take a challenge",
+      "badges": "See my badges"
+    },
+    "progress": {
+      "heading": "My progress",
+      "seeBadges": "See all my badges"
+    },
+    "reviews": {
+      "heading": "Today’s reviews"
+    },
+    "challenges": {
+      "heading": "Today’s challenges"
+    },
+    "pageMap": {
+      "label": "On this page",
+      "reviews": "Reviews",
+      "challenges": "Challenges",
+      "progress": "Progress"
     }
   }
 }

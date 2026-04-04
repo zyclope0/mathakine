@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,6 +65,7 @@ function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }
 export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const router = useRouter();
   const { locale } = useLocaleStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("30");
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
@@ -134,6 +136,17 @@ export default function DashboardPage() {
       setTimeout(() => setIsRefreshing(false), 500);
     }
   }, [refetch, isRefreshing, queryClient, tToasts, t]);
+
+  /** Boundary enfant/adulte : padawan redirigé vers /home-learner.
+   * ProtectedRoute couvre exercises_only mais pas le rôle padawan à accès complet.
+   * Ce useEffect enforce le boundary côté client avant tout rendu.
+   * TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
+   * Mettre à jour ici + useAuth.ts + Header.tsx si le contrat API change. */
+  useEffect(() => {
+    if (user && user.role === "padawan") {
+      router.replace("/home-learner");
+    }
+  }, [user, router]);
 
   /** Atténuation du décor spatial : attribut document, ciblé par globals.css (route dashboard uniquement). */
   useEffect(() => {
@@ -244,7 +257,7 @@ export default function DashboardPage() {
                 <span className="hidden sm:inline">
                   {t("tabs.progress", { default: "Progression" })}
                 </span>
-                <span className="sm:hidden">{t("tabs.progressShort", { default: "Stats" })}</span>
+                <span className="sm:hidden">{t("tabs.progressShort")}</span>
               </TabsTrigger>
               <TabsTrigger value="profile" className="flex items-center gap-2 text-sm">
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
@@ -387,7 +400,7 @@ export default function DashboardPage() {
           </Tabs>
         )}
 
-        {/* État vide */}
+        {/* État vide — commun aux deux vues */}
         {!stats && <EmptyState title={t("empty.message")} />}
       </PageLayout>
     </ProtectedRoute>
