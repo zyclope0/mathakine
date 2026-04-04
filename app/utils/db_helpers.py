@@ -172,10 +172,18 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
     return {
         "engine": "postgresql",
         "user_roles": {
-            CanonicalUserRole.APPRENANT.value: get_enum_value(UserRole, UserRole.PADAWAN),
-            CanonicalUserRole.ENSEIGNANT.value: get_enum_value(UserRole, UserRole.MAITRE),
-            CanonicalUserRole.MODERATEUR.value: get_enum_value(UserRole, UserRole.GARDIEN),
-            CanonicalUserRole.ADMIN.value: get_enum_value(UserRole, UserRole.ARCHIVISTE),
+            CanonicalUserRole.APPRENANT.value: get_enum_value(
+                UserRole, UserRole.PADAWAN
+            ),
+            CanonicalUserRole.ENSEIGNANT.value: get_enum_value(
+                UserRole, UserRole.MAITRE
+            ),
+            CanonicalUserRole.MODERATEUR.value: get_enum_value(
+                UserRole, UserRole.GARDIEN
+            ),
+            CanonicalUserRole.ADMIN.value: get_enum_value(
+                UserRole, UserRole.ARCHIVISTE
+            ),
         },
         "exercise_types": {
             "addition": get_enum_value(ExerciseType, ExerciseType.ADDITION),

@@ -71,9 +71,9 @@ export function ProtectedRoute({
       ? "/exercises"
       : mustRedirectForRole
         ? authenticatedFallbackRoute
-      : mustRedirectToLogin
-        ? redirectTo
-        : null;
+        : mustRedirectToLogin
+          ? redirectTo
+          : null;
 
   useEffect(() => {
     if (!redirectTarget) {

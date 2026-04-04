@@ -34,8 +34,7 @@ LEGACY_TO_CANONICAL_USER_ROLE: Final[dict[str, CanonicalUserRole]] = {
 }
 
 CANONICAL_TO_LEGACY_USER_ROLE: Final[dict[CanonicalUserRole, str]] = {
-    canonical: legacy
-    for legacy, canonical in LEGACY_TO_CANONICAL_USER_ROLE.items()
+    canonical: legacy for legacy, canonical in LEGACY_TO_CANONICAL_USER_ROLE.items()
 }
 
 ADULT_DASHBOARD_USER_ROLES: Final[tuple[CanonicalUserRole, ...]] = (

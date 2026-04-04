@@ -117,7 +117,8 @@ export function Planet() {
               key={symbol}
               className="absolute text-xl font-bold"
               style={{
-                color: "rgb(var(--spatial-unicorn-symbol-rgb, var(--spatial-dino-symbol-rgb)) / 0.9)",
+                color:
+                  "rgb(var(--spatial-unicorn-symbol-rgb, var(--spatial-dino-symbol-rgb)) / 0.9)",
                 top: "50%",
                 left: "50%",
                 transform: `

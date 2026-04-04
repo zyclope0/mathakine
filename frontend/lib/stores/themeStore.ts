@@ -1,7 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "aurora" | "dino" | "unicorn";
+export type Theme =
+  | "spatial"
+  | "minimalist"
+  | "ocean"
+  | "dune"
+  | "forest"
+  | "aurora"
+  | "dino"
+  | "unicorn";
 
 interface ThemeState {
   theme: Theme;
