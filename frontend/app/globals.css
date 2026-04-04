@@ -10,6 +10,7 @@
   body {
     overflow-x: hidden;
     max-width: 100vw;
+    scroll-behavior: smooth;
   }
 
   html.theme-switching *,
@@ -100,10 +101,19 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition:
-      max-height 0.3s ease,
-      opacity 0.25s ease;
+    transition: opacity 0.25s ease;
   }
+
+  /* NI-11 — WCAG 2.1 SC 2.3.3 : max-height transition uniquement si pas de préférence
+     reduced-motion. L'opacité reste animée (pas de mouvement physique). */
+  @media (prefers-reduced-motion: no-preference) {
+    .badge-card-earned-compact .badge-card-expandable {
+      transition:
+        max-height 0.3s ease,
+        opacity 0.25s ease;
+    }
+  }
+
   .badge-card-earned-compact:hover .badge-card-expandable,
   .badge-card-earned-compact:focus-within .badge-card-expandable {
     max-height: 420px;
@@ -182,6 +192,17 @@
   80% {
     transform: translateX(4px);
   }
+}
+
+/* Classes utilitaires feedback post-soumission (NI-9).
+ * Appliquées une seule fois à l'apparition du bloc résultat.
+ * Désactivées par .feedback-*-animate dans le @media reduce ci-dessous. */
+.feedback-success-animate {
+  animation: success-pulse 0.6s cubic-bezier(0.25, 1, 0.5, 1) 1;
+}
+
+.feedback-error-animate {
+  animation: error-shake 0.4s cubic-bezier(0.25, 1, 0.5, 1) 1;
 }
 
 /* Boutons — micro-interactions globales (surfaces marketing, dashboard, navigation).
@@ -325,8 +346,11 @@ select:focus {
     transition: none;
   }
 
-  /* Les animations sont désactivées via les composants React qui vérifient reducedMotion */
-  /* Pas besoin de redéfinir les @keyframes ici */
+  /* Désactiver feedback-pulse/shake post-soumission (NI-9) */
+  .feedback-success-animate,
+  .feedback-error-animate {
+    animation: none !important;
+  }
 }
 
 /* Sweep effect opt-in — surfaces marketing uniquement (page d'accueil, CTA hero).
@@ -1901,4 +1925,35 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.12),
     0 0 16px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* ── StudentChallengesBoard — keyframes (NI-13 / OVERDRIVE-C) ─────────────
+ * Burst de completion sur l'icône CheckCircle2 du nœud complété.
+ * Halo expansion sur le fond de l'icône.
+ * prefers-reduced-motion : les animations ne sont PAS appliquées via
+ * la classe conditionnelle dans le composant — pas besoin de @media ici. */
+@keyframes challenge-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes challenge-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }

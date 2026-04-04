@@ -57,7 +57,7 @@ export function SequenceRenderer({
 
   if (!sequence || sequence.length === 0) {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ""}`}>
+      <Card flat className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucune séquence disponible
         </CardContent>
@@ -66,7 +66,7 @@ export function SequenceRenderer({
   }
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ""}`}>
+    <Card flat className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">

@@ -46,7 +46,7 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
   const dataType = isString ? "text" : "json";
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ""}`}>
+    <Card flat className={`bg-card border-primary/20 ${className || ""}`}>
       <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           {isString ? (

@@ -63,7 +63,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
   if (!nodes || nodes.length === 0) {
     return (
-      <Card className={`bg-card border-border/50 ${className || ""}`}>
+      <Card flat className={`bg-card border-border/50 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun graphe disponible
         </CardContent>
@@ -131,7 +131,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   });
 
   return (
-    <Card className={`bg-card border-border/50 ${className || ""}`}>
+    <Card flat className={`bg-card border-border/50 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">

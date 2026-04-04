@@ -349,7 +349,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
   };
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ""}`}>
+    <Card flat className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
