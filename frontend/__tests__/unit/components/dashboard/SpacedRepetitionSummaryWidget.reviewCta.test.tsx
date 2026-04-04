@@ -66,7 +66,7 @@ describe("SpacedRepetitionSummaryWidget — CTA Réviser maintenant", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper: Wrapper });
-    expect(screen.getByRole("button", { name: /Réviser maintenant/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Commencer les révisions/i })).toBeInTheDocument();
   });
 
   it("affiche le bouton lorsqu’il y a des cartes en retard", () => {
@@ -78,7 +78,7 @@ describe("SpacedRepetitionSummaryWidget — CTA Réviser maintenant", () => {
       overdue_count: 1,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper: Wrapper });
-    expect(screen.getByRole("button", { name: /Réviser maintenant/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Commencer les révisions/i })).toBeInTheDocument();
   });
 
   it("n’affiche pas le CTA sans révision due", () => {
@@ -90,7 +90,9 @@ describe("SpacedRepetitionSummaryWidget — CTA Réviser maintenant", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper: Wrapper });
-    expect(screen.queryByRole("button", { name: /Réviser maintenant/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Commencer les révisions/i })
+    ).not.toBeInTheDocument();
   });
 
   it("désactive le bouton pendant le chargement", () => {
@@ -153,7 +155,7 @@ describe("SpacedRepetitionSummaryWidget — CTA Réviser maintenant", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper: Wrapper });
-    await user.click(screen.getByRole("button", { name: /Réviser maintenant/i }));
+    await user.click(screen.getByRole("button", { name: /Commencer les révisions/i }));
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/exercises/99?session=spaced-review");
     });
@@ -174,9 +176,9 @@ describe("SpacedRepetitionSummaryWidget — CTA Réviser maintenant", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper: Wrapper });
-    await user.click(screen.getByRole("button", { name: /Réviser maintenant/i }));
+    await user.click(screen.getByRole("button", { name: /Commencer les révisions/i }));
     await waitFor(() => {
-      expect(screen.getByText(/Aucune carte due/i)).toBeInTheDocument();
+      expect(screen.getByText(/Tout est révisé pour l'instant, bravo !/i)).toBeInTheDocument();
     });
     expect(mockPush).not.toHaveBeenCalled();
   });

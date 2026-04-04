@@ -45,7 +45,7 @@ describe("QuickStartActions", () => {
     expect(screen.getByText("Que veux-tu faire ?")).toBeInTheDocument();
     expect(screen.getByText("Un exercice")).toBeInTheDocument();
     expect(screen.getByText("Un défi")).toBeInTheDocument();
-    expect(screen.getByText("Session entrelacée")).toBeInTheDocument();
+    expect(screen.getByText("Mélange de maths")).toBeInTheDocument();
   });
 
   it("liens vers /exercises et /challenges quand aucune recommandation", () => {
@@ -113,10 +113,10 @@ describe("QuickStartActions", () => {
     expect(interleavedCta).toBeInTheDocument();
   });
 
-  it("lien Session entrelacée vers /exercises/interleaved", () => {
+  it("lien Mélange de maths vers /exercises/interleaved", () => {
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    const interleavedLink = screen.getByRole("link", { name: /Session entrelacée/i });
+    const interleavedLink = screen.getByRole("link", { name: /Mélange de maths/i });
     expect(interleavedLink).toHaveAttribute("href", "/exercises/interleaved");
   });
 
@@ -205,7 +205,7 @@ describe("QuickStartActions", () => {
     expect(recordOpen).toHaveBeenCalledWith(20);
   });
 
-  it("R4b — Session entrelacée ne déclenche pas recordOpen", async () => {
+  it("R4b — Mélange de maths ne déclenche pas recordOpen", async () => {
     const recordOpen = vi.fn();
     vi.mocked(useRecommendations).mockReturnValue({
       recommendations: [
@@ -231,7 +231,7 @@ describe("QuickStartActions", () => {
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
     recordOpen.mockClear();
-    await userEvent.click(screen.getByRole("link", { name: /Session entrelacée/i }));
+    await userEvent.click(screen.getByRole("link", { name: /Mélange de maths/i }));
 
     expect(recordOpen).not.toHaveBeenCalled();
   });

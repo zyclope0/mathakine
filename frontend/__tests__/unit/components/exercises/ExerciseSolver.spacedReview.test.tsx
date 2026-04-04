@@ -79,7 +79,7 @@ describe("ExerciseSolver - session spaced-review", () => {
     mockFetchNextReviewApi.mockResolvedValue(null);
   });
 
-  it("falls back to /reviews/next and still renders without spoiler-bearing exercise data", async () => {
+  it("renders the spaced-review safe payload without spoiler-bearing fallback data", async () => {
     mockFetchNextReviewApi.mockResolvedValue({
       has_due_review: true,
       summary: {
@@ -103,7 +103,7 @@ describe("ExerciseSolver - session spaced-review", () => {
     await waitFor(() => {
       expect(screen.getByText("Test SR")).toBeInTheDocument();
     });
-    expect(screen.getByText(/Révision/i)).toBeInTheDocument();
+    expect(screen.getByText(/Entraînement/i)).toBeInTheDocument();
     expect(screen.queryByText(/indice discret/i)).not.toBeInTheDocument();
     expect(mockUseExercise).toHaveBeenCalledWith(1, { enabled: false });
     expect(mockFetchNextReviewApi).toHaveBeenCalled();

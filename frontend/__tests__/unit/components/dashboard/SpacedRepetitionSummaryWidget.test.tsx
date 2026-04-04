@@ -43,7 +43,7 @@ describe("SpacedRepetitionSummaryWidget", () => {
     render(<SpacedRepetitionSummaryWidget summary={base} />, { wrapper });
     expect(screen.getByText("Révisions du jour")).toBeInTheDocument();
     expect(
-      screen.getByText("Les révisions apparaîtront après quelques exercices.")
+      screen.getByText("Tes révisions apparaîtront ici après quelques exercices.")
     ).toBeInTheDocument();
   });
 
@@ -56,8 +56,10 @@ describe("SpacedRepetitionSummaryWidget", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
-    expect(screen.getByText("Aucune révision prévue aujourd'hui.")).toBeInTheDocument();
-    expect(screen.getByText("4 cartes suivies")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tout est à jour ! Aucune révision prévue aujourd'hui.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("4 exercices suivis")).toBeInTheDocument();
   });
 
   it("met en avant le nombre de révisions dues aujourd'hui", () => {
@@ -69,7 +71,7 @@ describe("SpacedRepetitionSummaryWidget", () => {
       overdue_count: 0,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
-    expect(screen.getByText("2 révisions aujourd'hui")).toBeInTheDocument();
+    expect(screen.getByText("2 exercices à réviser aujourd'hui")).toBeInTheDocument();
   });
 
   it("affiche le retard en secondaire", () => {
@@ -81,12 +83,14 @@ describe("SpacedRepetitionSummaryWidget", () => {
       overdue_count: 1,
     };
     render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
-    expect(screen.getByText("1 carte en retard")).toBeInTheDocument();
+    expect(screen.getByText("1 exercice en attente")).toBeInTheDocument();
   });
 
   it("affiche l'état erreur localisé", () => {
     render(<SpacedRepetitionSummaryWidget summary={base} hasError />, { wrapper });
-    expect(screen.getByText("Impossible d'afficher le résumé des révisions.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Impossible d'afficher tes révisions pour le moment.")
+    ).toBeInTheDocument();
   });
 
   it("affiche le skeleton en chargement", () => {

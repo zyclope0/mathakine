@@ -232,7 +232,7 @@ def test_user_roles_enum_exists():
 
 def test_user_roles_expected_values():
     """Vérifie que les rôles attendus existent"""
-    expected_roles = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GARDIEN"]
+    expected_roles = ["APPRENANT", "ENSEIGNANT", "MODERATEUR", "ADMIN"]
 
     for expected_role in expected_roles:
         assert hasattr(

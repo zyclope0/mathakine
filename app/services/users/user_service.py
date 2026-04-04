@@ -18,8 +18,8 @@ from app.core.types import (
     PerformanceByType,
     UserProgressDict,
 )
-from app.core.user_roles import serialize_user_role
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
+from app.core.user_roles import serialize_user_role
 from app.services.gamification.compute import (
     canonicalize_progression_rank_bucket,
     compute_state_from_total_points,
@@ -209,7 +209,16 @@ class UserService:
         # Adapter le rôle utilisateur si présent dans les données de mise à jour
         if "role" in user_data:
             role = user_data["role"]
-            user_data["role"] = adapt_enum_for_db("UserRole", role, db)
+            try:
+                user_data["role"] = adapt_enum_for_db("UserRole", role, db)
+            except ValueError as invalid_role_error:
+                logger.warning(
+                    "Rôle utilisateur invalide pour mise à jour (user_id=%s, role=%s): %s",
+                    user_id,
+                    role,
+                    invalid_role_error,
+                )
+                return False
             logger.debug(
                 f"Rôle adapté pour mise à jour: de '{role}' à '{user_data['role']}'"
             )

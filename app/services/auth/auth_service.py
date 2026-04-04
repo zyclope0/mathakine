@@ -16,12 +16,12 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
+from app.core.types import TokenRefreshResponse, TokenResponse
 from app.core.user_roles import (
     CanonicalUserRole,
     serialize_user_role,
     to_legacy_user_role_enum,
 )
-from app.core.types import TokenRefreshResponse, TokenResponse
 from app.models.user import User
 from app.models.user_session import UserSession
 from app.schemas.auth_result import (

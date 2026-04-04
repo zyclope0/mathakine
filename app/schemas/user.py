@@ -12,8 +12,8 @@ from pydantic import (
     model_validator,
 )
 
-from app.core.user_roles import CanonicalUserRole, normalize_user_role
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
+from app.core.user_roles import CanonicalUserRole, normalize_user_role
 
 # Schémas pour la manipulation des utilisateurs
 
