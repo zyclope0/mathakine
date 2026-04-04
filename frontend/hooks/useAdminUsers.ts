@@ -2,13 +2,14 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
+import { normalizeUserRole, type UserRole } from "@/lib/auth/userRoles";
 
 export interface AdminUser {
   id: number;
   username: string;
   email: string;
   full_name: string | null;
-  role: string;
+  role: UserRole;
   is_active: boolean;
   is_email_verified?: boolean;
   created_at: string | null;
@@ -16,7 +17,7 @@ export interface AdminUser {
 
 export interface AdminUsersParams {
   search?: string;
-  role?: string;
+  role?: UserRole;
   is_active?: boolean;
   skip?: number;
   limit?: number;
@@ -27,8 +28,15 @@ export interface AdminUsersResponse {
   total: number;
 }
 
+function normalizeAdminUser(user: AdminUser): AdminUser {
+  return {
+    ...user,
+    role: normalizeUserRole(user.role) ?? "apprenant",
+  };
+}
+
 export function useAdminUsers(params: AdminUsersParams = {}) {
-  const { search = "", role = "", is_active, skip = 0, limit = 20 } = params;
+  const { search = "", role, is_active, skip = 0, limit = 20 } = params;
 
   const searchParams = new URLSearchParams();
   if (search) searchParams.set("search", search);
@@ -42,7 +50,13 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
 
   const { data, isLoading, error, refetch } = useQuery<AdminUsersResponse, ApiClientError>({
     queryKey: ["admin", "users", { search, role, is_active, skip, limit }],
-    queryFn: async () => api.get<AdminUsersResponse>(url),
+    queryFn: async () => {
+      const response = await api.get<AdminUsersResponse>(url);
+      return {
+        ...response,
+        items: response.items.map(normalizeAdminUser),
+      };
+    },
     staleTime: 30 * 1000,
   });
 
@@ -55,12 +69,12 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
     }: {
       userId: number;
       isActive?: boolean;
-      role?: string;
+      role?: UserRole;
     }) => {
       const body: Record<string, unknown> = {};
       if (isActive !== undefined) body.is_active = isActive;
       if (role !== undefined) body.role = role;
-      return api.patch<{ id: number; username: string; is_active: boolean; role: string }>(
+      return api.patch<{ id: number; username: string; is_active: boolean; role: UserRole }>(
         `/api/admin/users/${userId}`,
         body as { is_active?: boolean; role?: string }
       );
@@ -95,7 +109,7 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
     refetch,
     updateUserActive: (params: { userId: number; isActive: boolean }) =>
       patchMutation.mutateAsync({ ...params, isActive: params.isActive }),
-    updateUserRole: (params: { userId: number; role: string }) =>
+    updateUserRole: (params: { userId: number; role: UserRole }) =>
       patchMutation.mutateAsync({ userId: params.userId, role: params.role }),
     sendResetPassword: sendResetMutation.mutateAsync,
     resendVerification: resendVerificationMutation.mutateAsync,

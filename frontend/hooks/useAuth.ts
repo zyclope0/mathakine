@@ -10,6 +10,7 @@ import {
   syncAccessTokenToFrontend,
   syncCsrfTokenToFrontend,
 } from "@/lib/auth/auth-session-sync";
+import { getDefaultPostLoginRoute } from "@/lib/auth/userRoles";
 import { useTranslations } from "next-intl";
 import type { User } from "@/types/api";
 
@@ -111,10 +112,7 @@ export function useAuth() {
       });
       // Rediriger : onboarding si pas encore fait, sinon page dédiée selon le rôle
       const needsOnboarding = !data.user.onboarding_completed_at;
-      // TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
-      // Mettre à jour ici + Header.tsx + dashboard/page.tsx si le contrat API change.
-      const isStudent = data.user.role === "padawan";
-      const defaultTarget = isStudent ? "/home-learner" : "/exercises";
+      const defaultTarget = getDefaultPostLoginRoute(data.user.role);
       const target = needsOnboarding
         ? "/onboarding"
         : postLoginRedirectRef.current || defaultTarget;
@@ -197,11 +195,13 @@ export function useAuth() {
       // Effacer le contexte utilisateur Sentry à la déconnexion
       Sentry.setUser(null);
 
+      // Court-circuite immédiatement l'état auth avant navigation pour éviter un header stale.
+      queryClient.setQueryData(["auth", "me"], null);
       toast.success(t("logoutSuccess"));
-      // Nettoyer le cache
+      // Nettoyer le cache applicatif puis forcer un refresh de l'arbre Next.js.
       queryClient.clear();
-      // Rediriger vers la page d'accueil
-      router.push("/");
+      router.replace("/");
+      router.refresh();
     },
   });
 

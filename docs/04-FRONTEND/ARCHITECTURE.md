@@ -1,6 +1,6 @@
 # Architecture Frontend — Mathakine
 
-> Dernière mise à jour : 29/03/2026  
+> Dernière mise à jour : 04/04/2026  
 > Validé contre le code source réel (post-audit industrialisation)
 
 ---
@@ -15,18 +15,18 @@
 
 ## Stack technique
 
-| Technologie | Usage | Version |
-|---|---|---|
-| **Next.js** | Framework (App Router) | 16.1.6 |
-| **TypeScript** | Langage (strict mode) | 5.x |
-| **Tailwind CSS** | Styling | v4 |
-| **shadcn/ui** | Composants UI (Radix UI) | — |
-| **TanStack Query** | Server state (cache API) | v5 |
-| **Zustand** | Client state (thèmes, a11y, locale) | — |
-| **Framer Motion** | Animations (avec garde-fous a11y) | — |
-| **next-intl** | Internationalisation (FR/EN) | — |
-| **Vitest** | Tests unitaires | — |
-| **Playwright** | Tests E2E | — |
+| Technologie        | Usage                               | Version |
+| ------------------ | ----------------------------------- | ------- |
+| **Next.js**        | Framework (App Router)              | 16.1.6  |
+| **TypeScript**     | Langage (strict mode)               | 5.x     |
+| **Tailwind CSS**   | Styling                             | v4      |
+| **shadcn/ui**      | Composants UI (Radix UI)            | —       |
+| **TanStack Query** | Server state (cache API)            | v5      |
+| **Zustand**        | Client state (thèmes, a11y, locale) | —       |
+| **Framer Motion**  | Animations (avec garde-fous a11y)   | —       |
+| **next-intl**      | Internationalisation (FR/EN)        | —       |
+| **Vitest**         | Tests unitaires                     | —       |
+| **Playwright**     | Tests E2E                           | —       |
 
 ---
 
@@ -35,7 +35,7 @@
 ```
 frontend/
 ├── app/                          # Next.js App Router
-│   ├── admin/                    # Espace admin (rôle archiviste)
+│   ├── admin/                    # Espace admin (role canonique admin)
 │   │   ├── layout.tsx            # Layout admin + navigation latérale
 │   │   ├── page.tsx              # Vue d'ensemble admin
 │   │   ├── analytics/            # Analytics EdTech
@@ -56,7 +56,8 @@ frontend/
 │   ├── challenge/[id]/page.tsx
 │   ├── challenges/page.tsx
 │   ├── changelog/page.tsx
-│   ├── dashboard/page.tsx
+│   ├── dashboard/page.tsx        # Surface analytique principale adulte, entree secondaire pour apprenant
+│   ├── home-learner/page.tsx     # Surface apprenant dediee et point d'entree par defaut (NI-13)
 │   ├── exercises/page.tsx + [id]/page.tsx
 │   ├── forgot-password/page.tsx
 │   ├── leaderboard/page.tsx
@@ -172,6 +173,7 @@ frontend/
 ### Client API
 
 `lib/api/client.ts` — wrapper centralisé :
+
 - Injection automatique du token Bearer (cookie → header)
 - CSRF token (`X-CSRF-Token` depuis cookie `csrf_token`)
 - Gestion d'erreurs typées (`ApiClientError`)
@@ -180,6 +182,7 @@ frontend/
 ### Routing API (proxy)
 
 Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
+
 - Éviter d'exposer l'URL backend en CORS direct
 - Gérer le streaming SSE (génération IA) côté serveur
 - Synchroniser les cookies entre domaines (cross-domain prod)
@@ -187,12 +190,14 @@ Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
 Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (même origine), comme les flux génération IA — sans réutiliser leurs dispatchers d’événements (schéma différent). Détail : `lib/chat/README.md`.
 
 La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/backendUrl.ts` :
+
 - priorite `NEXT_PUBLIC_API_BASE_URL`
 - fallback legacy `NEXT_PUBLIC_API_URL`
 - fallback `http://localhost:10000` en developpement uniquement
 - en production : erreur explicite si l'URL est absente, mal formee ou locale (`localhost`, `127.0.0.1`, `::1`)
 
 Les handlers de routes Next.js sont maintenant couverts par des tests dedies (`frontend/__tests__/unit/app/api/...`) :
+
 - succes et erreur JSON sur `/api/chat`
 - succes SSE et garde config invalide sur `/api/chat/stream`
 - succes SSE, refus auth/cookie, et propagation `!ok` sur `/api/exercises/generate-ai-stream`
@@ -205,6 +210,7 @@ Les handlers de routes Next.js sont maintenant couverts par des tests dedies (`f
 - `assistant_chat` : `status`, `chunk`, `image`, `error`, `done`
 
 Pour les exercices, `done` est maintenant emis sur les fins de flux controlees :
+
 - succes nominal
 - echec validation metier deja transforme en `error`
 - echec persistance deja transforme en `error`
@@ -214,6 +220,7 @@ Les exceptions top-level non recuperees restent une fin `error` sans `done`, com
 ### Echecs auth / CSRF generation IA
 
 Le client partage `frontend/lib/ai/generation/postAiGenerationSse.ts` execute maintenant un preflight et un mapping d'erreurs stables avant le dispatch SSE :
+
 - `csrf_token_missing`
 - `http_401`
 - `http_403`
@@ -221,15 +228,32 @@ Le client partage `frontend/lib/ai/generation/postAiGenerationSse.ts` execute ma
 
 Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ces erreurs en toasts i18n explicites sans exposer de details techniques bruts.
 
+### Boundary de roles et navigation
+
+- Le frontend raisonne sur des roles canoniques :
+  - `apprenant`
+  - `enseignant`
+  - `moderateur`
+  - `admin`
+- La source de verite frontend est `lib/auth/userRoles.ts`
+- `ProtectedRoute` porte les gardes de role avec `allowedRoles`
+- `NI-13` impose :
+- `/home-learner` comme point d'entree par defaut pour `apprenant`
+- `/dashboard` comme surface analytique normale pour les roles adultes
+- `/dashboard` peut rester accessible a `apprenant` via une entree discrete du menu profil, sans reprendre le role de home principale
+- Les anciens noms Star Wars restent hors de la logique active, sauf compatibilite backend/DB
+
 ### F04 review flow
 
 Le flow F04 n'introduit pas de second solver. Il recompose des seams existants :
+
 - `SpacedRepetitionSummaryWidget` expose le CTA `Reviser maintenant`
 - `useNextReview.ts` lit `GET /api/users/me/reviews/next`
 - `spacedReviewSession.ts` conserve temporairement la prochaine carte review-safe
 - `ExerciseSolver.tsx` rehydrate ce payload en `?session=spaced-review`
 
 Contrainte produit importante :
+
 - avant soumission, le flow F04 ne doit jamais recharger un payload exercice classique contenant `correct_answer`, `hint` ou `explanation`
 - apres soumission, l'explication peut etre affichee comme feedback pedagogique
 
@@ -300,4 +324,3 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:10000   # Dev (API Starlette)
 - [PWA](PWA.md) — configuration Progressive Web App
 - [i18n](../02-FEATURES/I18N.md) — internationalisation next-intl
 - [Thèmes](../02-FEATURES/THEMES.md) — 7 thèmes, themeStore
-

@@ -16,8 +16,13 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
+from app.core.user_roles import (
+    CanonicalUserRole,
+    serialize_user_role,
+    to_legacy_user_role_enum,
+)
 from app.core.types import TokenRefreshResponse, TokenResponse
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.models.user_session import UserSession
 from app.schemas.auth_result import (
     AuthenticateWithSessionResult,
@@ -28,7 +33,6 @@ from app.schemas.auth_result import (
     VerifyEmailTokenResult,
 )
 from app.schemas.user import TokenData, UserCreate, UserUpdate
-from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 from app.utils.email_verification import (
     is_password_reset_token_expired,
     is_verification_token_expired,
@@ -157,11 +161,11 @@ def create_user(
             status_code=409,
         )
 
-    # Par défaut, les nouveaux utilisateurs sont des Padawans sauf spécification contraire
+    # Par défaut, les nouveaux utilisateurs sont des apprenants.
     if user_in.role:
-        user_role = user_in.role
+        user_role = to_legacy_user_role_enum(user_in.role)
     else:
-        user_role = UserRole.PADAWAN
+        user_role = to_legacy_user_role_enum(CanonicalUserRole.APPRENANT)
 
     current_time = datetime.now(timezone.utc)
     user = User(
@@ -203,7 +207,7 @@ def create_user_token(user: User) -> TokenResponse:
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     # Données pour les tokens - gérer le cas où role est string ou enum
-    role_value = user.role if isinstance(user.role, str) else user.role.value
+    role_value = serialize_user_role(user.role)
     token_data = {"sub": user.username, "role": role_value}
 
     # Créer le token d'accès

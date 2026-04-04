@@ -320,40 +320,40 @@ Les lots NI-1 à NI-5 du plan original restent inchangés. Les lots suivants s'y
 
 Quatre points du rapport ont été contestés et vérifiés dans le code :
 
-| Point | Verdict | Preuve code |
-|-------|---------|-------------|
-| "ExerciseModal se ferme après 3s" | ❌ Inexact | `setTimeout(3000)` appelle `onExerciseCompleted?.()` ; dans `exercises/page.tsx` ce callback invalide des queries sans fermer la modal |
-| "`jedi_rank` dans le DOM" | ⚠️ Surestimé | `jedi_rank` est une prop TypeScript `@deprecated` dans `LevelIndicator.tsx` — dette interne non visible à l'utilisateur |
+| Point                                             | Verdict              | Preuve code                                                                                                                                                                               |
+| ------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "ExerciseModal se ferme après 3s"                 | ❌ Inexact           | `setTimeout(3000)` appelle `onExerciseCompleted?.()` ; dans `exercises/page.tsx` ce callback invalide des queries sans fermer la modal                                                    |
+| "`jedi_rank` dans le DOM"                         | ⚠️ Surestimé         | `jedi_rank` est une prop TypeScript `@deprecated` dans `LevelIndicator.tsx` — dette interne non visible à l'utilisateur                                                                   |
 | "Activer `success-pulse`/`error-shake` est mieux" | ⚠️ Opinion, pas fait | Les keyframes existent et sont inactifs — c'est prouvé. Mais les activer sur surface apprenant peut introduire du bruit post-réflexion (Mayer, 2009 — extraneous load). Décision ouverte. |
-| "Pas de feedback immédiat Valider = P1" | ⚠️ Sur-sévérisé | Le bouton passe en `disabled` + `Loader2` via `isSubmitting` ; la latence dépend du cycle React/réseau. Reclassé P2. |
+| "Pas de feedback immédiat Valider = P1"           | ⚠️ Sur-sévérisé      | Le bouton passe en `disabled` + `Loader2` via `isSubmitting` ; la latence dépend du cycle React/réseau. Reclassé P2.                                                                      |
 
 ### Heuristiques Nielsen — Score terrain
 
-| # | Heuristique | Score | Finding principal |
-|---|-------------|-------|-------------------|
-| 1 | Visibilité du statut système | **3** | Spinner + texte sur loading ✓. Sur mobile lent : délai perceptible entre clic Valider et déclenchement du `Loader2` (`isSubmitting` non immédiat au clic). |
-| 2 | Correspondance monde réel | **2** | "session entrelacée", "spaced-review", "Mode IA ✨" — jargon adulte sur interface enfant. Badge "Révision" sans explication. |
-| 3 | Contrôle utilisateur | **3** | Back links présents. `handleClose` bloqué pendant `isSubmitting`. `ExerciseModal` : le timeout 3s déclenche `onExerciseCompleted` (invalidation queries), la modal ne se ferme pas automatiquement — comportement acceptable. |
-| 4 | Cohérence et standards | **2** | `error-shake` et `success-pulse` définis en CSS mais jamais appliqués. Deux boutons "Retour aux défis" dans ChallengeSolver (haut + bas). `border-2` sur feedback erreur exercice vs `border` sur feedback succès. |
-| 5 | Prévention des erreurs | **3** | Bouton Valider grisé + microcopy NI-8 ✓. `tabIndex` QCM ✓. Enter vide en open-answer passe silencieusement — à corriger. |
-| 6 | Reconnaissance plutôt que rappel | **2** | Bouton "Voir un indice" sous le fold mobile dans ~80% des cas (4 boutons QCM `py-6` ≈ 300px + Valider + microcopy avant l'indice). Navigation : 7 items sans priorité claire pour un enfant. |
-| 7 | Flexibilité et efficacité | **2** | Navigation clavier QCM ✓. Zéro raccourci documenté. Dashboard : 16 widgets potentiels, pas de priorisation de lecture. ExportButton invisible mobile. |
-| 8 | Design esthétique et minimaliste | **2** | Dashboard : 5 widgets simultanés sans hiérarchie de lecture. ChallengeSolver : deux blocs "Retour aux défis" redondants. `AcademyStatsWidget` : `backdrop-blur-md` dans skeleton ET rendu final (hors NI). |
-| 9 | Aide à la récupération d'erreur | **3** | Toast errors clairs ✓. `GrowthMindsetHint` sur mauvaise réponse ✓. `role="alert" aria-live="assertive"` sur les error states ✓. |
-| 10 | Aide et documentation | **1** | Aucune aide contextuelle pendant la résolution pour un enfant. Pas d'explication "défi logique" vs "exercice". Pas d'onboarding. Tooltip HelpCircle sur "Mode IA" = seule aide visible. |
-| **Total** | | **23/40** | **Acceptable — dette UX significative pour l'audience enfant** |
+| #         | Heuristique                      | Score     | Finding principal                                                                                                                                                                                                             |
+| --------- | -------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1         | Visibilité du statut système     | **3**     | Spinner + texte sur loading ✓. Sur mobile lent : délai perceptible entre clic Valider et déclenchement du `Loader2` (`isSubmitting` non immédiat au clic).                                                                    |
+| 2         | Correspondance monde réel        | **2**     | "session entrelacée", "spaced-review", "Mode IA ✨" — jargon adulte sur interface enfant. Badge "Révision" sans explication.                                                                                                  |
+| 3         | Contrôle utilisateur             | **3**     | Back links présents. `handleClose` bloqué pendant `isSubmitting`. `ExerciseModal` : le timeout 3s déclenche `onExerciseCompleted` (invalidation queries), la modal ne se ferme pas automatiquement — comportement acceptable. |
+| 4         | Cohérence et standards           | **2**     | `error-shake` et `success-pulse` définis en CSS mais jamais appliqués. Deux boutons "Retour aux défis" dans ChallengeSolver (haut + bas). `border-2` sur feedback erreur exercice vs `border` sur feedback succès.            |
+| 5         | Prévention des erreurs           | **3**     | Bouton Valider grisé + microcopy NI-8 ✓. `tabIndex` QCM ✓. Enter vide en open-answer passe silencieusement — à corriger.                                                                                                      |
+| 6         | Reconnaissance plutôt que rappel | **2**     | Bouton "Voir un indice" sous le fold mobile dans ~80% des cas (4 boutons QCM `py-6` ≈ 300px + Valider + microcopy avant l'indice). Navigation : 7 items sans priorité claire pour un enfant.                                  |
+| 7         | Flexibilité et efficacité        | **2**     | Navigation clavier QCM ✓. Zéro raccourci documenté. Dashboard : 16 widgets potentiels, pas de priorisation de lecture. ExportButton invisible mobile.                                                                         |
+| 8         | Design esthétique et minimaliste | **2**     | Dashboard : 5 widgets simultanés sans hiérarchie de lecture. ChallengeSolver : deux blocs "Retour aux défis" redondants. `AcademyStatsWidget` : `backdrop-blur-md` dans skeleton ET rendu final (hors NI).                    |
+| 9         | Aide à la récupération d'erreur  | **3**     | Toast errors clairs ✓. `GrowthMindsetHint` sur mauvaise réponse ✓. `role="alert" aria-live="assertive"` sur les error states ✓.                                                                                               |
+| 10        | Aide et documentation            | **1**     | Aucune aide contextuelle pendant la résolution pour un enfant. Pas d'explication "défi logique" vs "exercice". Pas d'onboarding. Tooltip HelpCircle sur "Mode IA" = seule aide visible.                                       |
+| **Total** |                                  | **23/40** | **Acceptable — dette UX significative pour l'audience enfant**                                                                                                                                                                |
 
 ### Anti-patterns — État au 2026-04-04
 
-| Tell AI Slop | État | Détail |
-|---|---|---|
-| Violet `#7c3aed` + fond `#0a0a0f` | ⚠️ Atténué | Thème spatial = palette AI 2024. Sauvé par 6 autres thèmes, mais premier contact encore reconnaissable. |
-| Glassmorphism systématique | ✅ Corrigé dans learner | `AcademyStatsWidget` conserve `backdrop-blur-md` dans skeleton ET rendu normal — hors scope NI mais visible en homepage. |
-| Hero metric layout | ✅ Supprimé pour connectés | Widget conditionné `!isAuthLoading && !isAuthenticated`. Le widget lui-même reste hero-metric pour les non-connectés. |
-| `rounded-full bg-primary/10` icon-containers | ✅ Supprimé homepage | Subsiste dans `AcademyStatsWidget` (icônes stats), `StreakWidget`, `LeaderboardWidget`. |
-| Identical card grid ×4 | ✅ Cassé homepage | Features asymétrique. Listes exercices/défis conservent la grille uniforme. |
-| Sweep effect global | ✅ Neutralisé learner | `translateY(-2px)` reste actif hors `[data-learner-context]`. Dashboard, badges, classement : tous les boutons lèvent encore. |
-| `error-shake` + `success-pulse` | ❌ Définis, jamais utilisés | CSS mort. Décision d'activation = choix design ouvert (voir NI-9). |
+| Tell AI Slop                                 | État                        | Détail                                                                                                                        |
+| -------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Violet `#7c3aed` + fond `#0a0a0f`            | ⚠️ Atténué                  | Thème spatial = palette AI 2024. Sauvé par 6 autres thèmes, mais premier contact encore reconnaissable.                       |
+| Glassmorphism systématique                   | ✅ Corrigé dans learner     | `AcademyStatsWidget` conserve `backdrop-blur-md` dans skeleton ET rendu normal — hors scope NI mais visible en homepage.      |
+| Hero metric layout                           | ✅ Supprimé pour connectés  | Widget conditionné `!isAuthLoading && !isAuthenticated`. Le widget lui-même reste hero-metric pour les non-connectés.         |
+| `rounded-full bg-primary/10` icon-containers | ✅ Supprimé homepage        | Subsiste dans `AcademyStatsWidget` (icônes stats), `StreakWidget`, `LeaderboardWidget`.                                       |
+| Identical card grid ×4                       | ✅ Cassé homepage           | Features asymétrique. Listes exercices/défis conservent la grille uniforme.                                                   |
+| Sweep effect global                          | ✅ Neutralisé learner       | `translateY(-2px)` reste actif hors `[data-learner-context]`. Dashboard, badges, classement : tous les boutons lèvent encore. |
+| `error-shake` + `success-pulse`              | ❌ Définis, jamais utilisés | CSS mort. Décision d'activation = choix design ouvert (voir NI-9).                                                            |
 
 ### Personas — Red Flags terrain
 
@@ -396,6 +396,7 @@ Quatre points du rapport ont été contestés et vérifiés dans le code :
 Les keyframes `success-pulse` et `error-shake` sont définis dans `globals.css` mais jamais appliqués.
 
 Décision de design documentée :
+
 - Activer sur surface apprenant = risque d'extraneous load post-réflexion (Mayer, 2009). À évaluer.
 - Activer uniquement si `!shouldReduceMotion` et avec durée courte (≤ 400ms) pour limiter la distraction.
 - Alternative : signal non-cinétique (couleur + icône + son optionnel).
@@ -408,13 +409,14 @@ Décision de design documentée :
 **Priorité** : P2 | **Effort** : S | **Statut** : À faire
 
 Le bouton "Voir un indice" est rendu après les choix QCM et le bouton Valider. Sur mobile 375px :
+
 - 4 boutons QCM `py-6` ≈ 300px
 - Bouton Valider + microcopy ≈ 80px
 - Total avant l'indice : ~380px → invisible sans scroll
 
 Référence : W3C COGA 2.2 "Provide help for complex information". Un enfant bloqué ne scroll pas pour chercher de l'aide.
 
-**Fix** : Déplacer le bouton indice *avant* les choix (typographie discrète, `text-xs text-muted-foreground`, ne concurrence pas les réponses) ou sticky en bas de la zone de résolution.
+**Fix** : Déplacer le bouton indice _avant_ les choix (typographie discrète, `text-xs text-muted-foreground`, ne concurrence pas les réponses) ou sticky en bas de la zone de résolution.
 
 **Scope** : `ExerciseSolverFeedback` layout, `ExerciseSolver` composition.
 
@@ -427,7 +429,9 @@ Dans `globals.css`, le bloc :
 ```css
 @media (hover: hover) {
   .badge-card-earned-compact .badge-card-expandable {
-    transition: max-height 0.3s ease, opacity 0.25s ease;
+    transition:
+      max-height 0.3s ease,
+      opacity 0.25s ease;
   }
 }
 ```
@@ -445,6 +449,7 @@ Référence WCAG 2.1 SC 2.3.3 (Animation from Interactions — AAA). Pour un pro
 **Priorité** : P3 | **Effort** : XS | **Statut** : À faire
 
 `AcademyStatsWidget.tsx` utilise `backdrop-blur-md` dans :
+
 - Le skeleton loader (`Card className="... backdrop-blur-md"`)
 - Le rendu final (`Card className="... backdrop-blur-md"`)
 
@@ -463,6 +468,7 @@ Le dashboard présente la même interface au rôle `student` (enfant de 8 ans) e
 C'est la surface la plus visitée après la résolution — et la plus mal adaptée à l'audience principale.
 
 **Fix court terme** : Conditionner l'affichage dans `dashboard/page.tsx` au rôle utilisateur :
+
 - Rôle `student` : streak, niveau, bouton "Commencer un exercice", sans onglets Progression / Mon Profil / graphiques.
 - Rôle parent/admin : vue actuelle inchangée.
 
@@ -507,80 +513,89 @@ du code relu au 2026-04-03 dans le worktree local.
 ### Ce qui a été livré dans ce sprint
 
 **NI-4 — Page `/home-learner` apprenant** (`app/home-learner/page.tsx`)
+
 - `LearnerLayout maxWidth="2xl"`, structure 100 % linéaire, zéro onglets
 - Page-map chips d'ancrage (COGA 4.1.1 — prévisibilité structurelle) : `#section-reviews`, `#section-challenges`, `#section-progress`
 - `scroll-behavior: smooth` sur `html, body` dans `globals.css` ; `scroll-mt-20` sur chaque section cible
 - `SpacedRepetitionSummaryWidget` + `StudentChallengesBoard` intégrés
 - Section "Révisions" toujours rendue (ancre jamais morte) : `isLoading` → skeleton, `hasError` → message localisé, fallback `EMPTY_SPACED_REPETITION`
-- Redirection post-login `padawan → /home-learner` dans `useAuth.ts`
-- Nav Header : "Mon espace" pour padawan, "Classement" masqué pour padawan
+- Redirection post-login `apprenant -> /home-learner` dans `useAuth.ts`
+- Nav Header : "Mon espace" pour `apprenant`, "Classement" masque pour `apprenant`
 
 **NI-5 — Opt-in `flat` sur `<Card>`** (`components/ui/card.tsx`)
+
 - Prop `flat?: boolean` ; `flat=true → shadow-none` ; défaut global inchangé
 - 10 visualizations challenge migrées (`VisualRenderer`, `PuzzleRenderer`, `GraphRenderer`, `DefaultRenderer`, `SequenceRenderer`, `PatternRenderer`)
 
 **NI-9 — Animations `success-pulse` / `error-shake`** (`globals.css` + solvers)
+
 - Décision prise : **activées** (post-réflexion, durée ≤ 600ms, iteration: 1)
 - `.feedback-success-animate` / `.feedback-error-animate` dans `globals.css`
 - `prefers-reduced-motion: reduce → animation: none !important`
 - `role="status"` + `aria-live="polite"` + `aria-atomic="true"` sur les deux blocs feedback
 
 **NI-11 — Badge hover-reveal `prefers-reduced-motion`** (`globals.css`)
+
 - `max-height` transition dans `@media (prefers-reduced-motion: no-preference)` uniquement
 - Opacité reste animée (pas de mouvement physique — conforme WCAG 2.1 SC 2.3.3)
 
 **NI-12 — `AcademyStatsWidget` glassmorphism** (`AcademyStatsWidget.tsx`)
+
 - `backdrop-blur-md` retiré des deux `Card` (skeleton + rendu)
 - `rounded-full bg-primary/10` icon-containers supprimés → icônes directes
 - `hover:scale-105` parasite supprimé
 
-**NI-13 — Boundary dashboard enfant/adulte** (`dashboard/page.tsx`)
-- `useEffect` → `router.replace("/home-learner")` si `user.role === "padawan"`
-- `isStudentView` et widgets padawan retirés du dashboard (StudentChallengesBoard déplacé dans `/home-learner`)
-- Dashboard adulte par défaut ; boundary fonctionnel côté client, sans hard guard partagé au niveau route
+**NI-13 — Boundary dashboard enfant/adulte** (`ProtectedRoute` + routes frontend)
+
+- `ProtectedRoute` supporte `allowedRoles` avec roles canoniques
+- `/dashboard` reste la surface analytique dense, mais n'est plus interdit a `apprenant`
+- `/home-learner` reste la home principale et protegee pour `apprenant`
+- `apprenant` arrive sur `/home-learner` apres login, puis peut ouvrir `/dashboard` via une entree discrete du menu profil
+- `isStudentView` et widgets apprenant retirés du dashboard (StudentChallengesBoard deplace dans `/home-learner`)
+- Dashboard adulte par defaut ; boundary partage et type au niveau route frontend, sans redirect ad hoc locale a la page
 
 ### Correctifs Octopus Challenge (audit croisé 2026-04-04)
 
-| Bug Octopus | Verdict | Correction |
-|---|---|---|
-| B1 — A1 `prefers-reduced-motion` | ⚠️ Partiellement résolu | `transform: none` et `transition: none` existent déjà dans le bloc reduce ; un résiduel `box-shadow` hors learner context reste mineur mais réel |
-| B2 — Ancre `#section-reviews` morte | ✅ Corrigé | Section toujours rendue avec `isLoading`/`hasError` |
-| B3 — TODO `padawan` absent | ✅ Corrigé | `TODO(NI-4)` ajouté dans `useAuth.ts`, `Header.tsx`, `dashboard/page.tsx` |
-| Double bouton "Retour aux défis" | ✅ Corrigé | Bouton du bas supprimé — lien discret haut + actions contextuelles suffisent |
+| Bug Octopus                         | Verdict                 | Correction                                                                                                                                       |
+| ----------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1 — A1 `prefers-reduced-motion`    | ⚠️ Partiellement résolu | `transform: none` et `transition: none` existent déjà dans le bloc reduce ; un résiduel `box-shadow` hors learner context reste mineur mais réel |
+| B2 — Ancre `#section-reviews` morte | ✅ Corrigé              | Section toujours rendue avec `isLoading`/`hasError`                                                                                              |
+| B3 — TODO role apprenant absent     | ✅ Corrigé              | boundary centralise sur roles canoniques dans `ProtectedRoute`, `useAuth.ts` et `Header.tsx`                                                     |
+| Double bouton "Retour aux défis"    | ✅ Corrigé              | Bouton du bas supprimé — lien discret haut + actions contextuelles suffisent                                                                     |
 
 ### Dettes résiduelles connues (non bloquantes)
 
-| ID | Surface | Problème | Sévérité |
-|---|---|---|---|
-| U1 | Partout | Jargon enfant résiduel à la marge ("session entrelacée" en interne — UI déjà neutralisée) | P3 |
-| U2 | Solvers | Aucun onboarding contextuel pour un enfant pendant la résolution | P2 |
-| U4 | Liste exercices | 4 dropdowns visibles d'emblée (surcharge choix Schwartz 2004) | P2 |
-| S2 | Thème spatial | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 — décision produit requise | P3 |
-| R1 | `dashboard/page.tsx` | `SpacedRepetitionSummaryWidget` présent dans dashboard adulte ET `/home-learner` — légitime mais non documenté | P3 |
-| R2 | `dashboard/page.tsx` | Boundary NI-13 appliqué via `useEffect` client (`router.replace`) : fonctionnel, mais pas un hard guard et peut théoriquement laisser entrevoir un rendu avant redirection | P2 |
-| O1 | `ExerciseSolverChoices.tsx` | `<input>` raw hors design system (dette antérieure, hors scope NI) | P3 |
+| ID  | Surface                     | Problème                                                                                                                                                                                         | Sévérité |
+| --- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| U1  | Partout                     | Jargon enfant résiduel à la marge ("session entrelacée" en interne — UI déjà neutralisée)                                                                                                        | P3       |
+| U2  | Solvers                     | Aucun onboarding contextuel pour un enfant pendant la résolution                                                                                                                                 | P2       |
+| U4  | Liste exercices             | 4 dropdowns visibles d'emblée (surcharge choix Schwartz 2004)                                                                                                                                    | P2       |
+| S2  | Thème spatial               | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 — décision produit requise                                                                                                                   | P3       |
+| R1  | `dashboard/page.tsx`        | `SpacedRepetitionSummaryWidget` présent dans dashboard adulte ET `/home-learner` — légitime mais non documenté                                                                                   | P3       |
+| R2  | Boundary frontend           | Boundary NI-13 centralise dans `ProtectedRoute` cote frontend ; home apprenant prioritaire, dashboard secondaire discret pour apprenant ; pas encore porte par un middleware ou un guard serveur | P2       |
+| O1  | `ExerciseSolverChoices.tsx` | `<input>` raw hors design system (dette antérieure, hors scope NI)                                                                                                                               | P3       |
 
 ---
 
 ## Récapitulatif consolidé — tous les lots
 
-| Lot | Priorité | Effort | Scope | Statut |
-| --- | -------- | ------ | ----- | ------ |
-| NI-1 Composants apprenant (`LearnerCard`, `LearnerLayout`) | P1 | S-M | Solvers | ✅ FAIT 2026-03-30 |
-| NI-2 Token `--bg-learner` par thème | P1 | S | `globals.css` | ✅ FAIT 2026-03-30 |
-| NI-3 Intégration Solver (exercice + défi) | P1 | S | Solvers | ✅ FAIT 2026-03-30 |
-| NI-4 Page apprenant tubulaire `/home-learner` | P2 | M | Nouvelle page | ✅ FAIT 2026-04-04 |
-| NI-5 Opt-in `flat` sur `<Card>` | P2 | XS | Design system | ✅ FAIT 2026-04-04 |
-| NI-6 Refonte section features accueil | P2 | S | `app/page.tsx` | ✅ FAIT 2026-03-30 |
-| NI-7 Suppression sweep effect global | P1 | XS | `globals.css` | ✅ FAIT 2026-03-30 |
-| NI-8 Microcopy bouton Valider grisé | P2 | XS | Solvers / modal exercice | ✅ FAIT 2026-03-30 |
-| NI-9 Animations `success-pulse` / `error-shake` | P2 | XS | `globals.css` + solvers | ✅ FAIT 2026-04-04 |
-| NI-10 Indice sous le fold mobile | P2 | S | `ExerciseSolverChoices` | ✅ FAIT 2026-03-30 |
-| NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2 | XS | `globals.css` | ✅ FAIT 2026-03-30 |
-| NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md` | P3 | XS | `AcademyStatsWidget.tsx` | ✅ FAIT 2026-04-04 |
-| NI-13 Boundary dashboard enfant / adulte | P1 | M | `dashboard/page.tsx` | ✅ FAIT 2026-04-04 (enforcement côté client) |
+| Lot                                                            | Priorité | Effort | Scope                                                  | Statut                                            |
+| -------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------ | ------------------------------------------------- |
+| NI-1 Composants apprenant (`LearnerCard`, `LearnerLayout`)     | P1       | S-M    | Solvers                                                | ✅ FAIT 2026-03-30                                |
+| NI-2 Token `--bg-learner` par thème                            | P1       | S      | `globals.css`                                          | ✅ FAIT 2026-03-30                                |
+| NI-3 Intégration Solver (exercice + défi)                      | P1       | S      | Solvers                                                | ✅ FAIT 2026-03-30                                |
+| NI-4 Page apprenant tubulaire `/home-learner`                  | P2       | M      | Nouvelle page                                          | ✅ FAIT 2026-04-04                                |
+| NI-5 Opt-in `flat` sur `<Card>`                                | P2       | XS     | Design system                                          | ✅ FAIT 2026-04-04                                |
+| NI-6 Refonte section features accueil                          | P2       | S      | `app/page.tsx`                                         | ✅ FAIT 2026-03-30                                |
+| NI-7 Suppression sweep effect global                           | P1       | XS     | `globals.css`                                          | ✅ FAIT 2026-03-30                                |
+| NI-8 Microcopy bouton Valider grisé                            | P2       | XS     | Solvers / modal exercice                               | ✅ FAIT 2026-03-30                                |
+| NI-9 Animations `success-pulse` / `error-shake`                | P2       | XS     | `globals.css` + solvers                                | ✅ FAIT 2026-04-04                                |
+| NI-10 Indice sous le fold mobile                               | P2       | S      | `ExerciseSolverChoices`                                | ✅ FAIT 2026-03-30                                |
+| NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2       | XS     | `globals.css`                                          | ✅ FAIT 2026-03-30                                |
+| NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md`      | P3       | XS     | `AcademyStatsWidget.tsx`                               | ✅ FAIT 2026-04-04                                |
+| NI-13 Boundary dashboard enfant / adulte                       | P1       | M      | `ProtectedRoute` + routes `dashboard` / `home-learner` | ✅ FAIT 2026-04-04 (boundary frontend centralise) |
 
 **Tous les lots NI-1 à NI-13 sont livrés et committés.**
-**Réserve documentée** : `NI-13` est enforce côté client via redirection, pas via un hard guard partagé.
+**Reserve documentee** : `NI-13` est centralise cote frontend, mais pas encore porte par un middleware ou un guard serveur partage. Le dashboard n'est plus interdit a l'apprenant ; il est simplement de-priorise dans la navigation.
 
 Dettes résiduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la mise en production du flux apprenant.

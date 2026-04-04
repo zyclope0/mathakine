@@ -34,7 +34,7 @@ async def test_admin_users_patch_nominal(archiviste_client, db_session, mock_use
     assert data["id"] == user_id
     assert data["username"] == user.username
     assert data["is_active"] is False
-    assert data["role"] == "maitre"
+    assert data["role"] == "enseignant"
 
 
 # ─── POST send-reset-password (LOT 5.1) ──────────────────────────────────────

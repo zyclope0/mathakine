@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.security import decode_token
+from app.core.user_roles import serialize_user_role
 from app.schemas.auth_result import LoginResult, RefreshTokenResult
 from app.services.auth.auth_service import (
     _is_token_revoked_by_password_reset,
@@ -48,7 +49,7 @@ def build_authenticated_user_payload(user) -> Dict[str, Any]:
         "username": user.username,
         "email": user.email if hasattr(user, "email") else None,
         "full_name": user.full_name if hasattr(user, "full_name") else None,
-        "role": user.role.value if hasattr(user, "role") else None,
+        "role": serialize_user_role(getattr(user, "role", None)),
         "is_email_verified": (
             user.is_email_verified if hasattr(user, "is_email_verified") else False
         ),
@@ -176,7 +177,7 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
             "is_authenticated": True,
             "is_email_verified": is_email_verified,
             "access_scope": access_scope,
-            "role": user.role.value if hasattr(user, "role") else None,
+            "role": serialize_user_role(getattr(user, "role", None)),
             "full_name": user.full_name if hasattr(user, "full_name") else None,
             "grade_level": user.grade_level if hasattr(user, "grade_level") else None,
             "grade_system": getattr(user, "grade_system", None),

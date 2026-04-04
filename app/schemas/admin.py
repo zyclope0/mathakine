@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from app.core.user_roles import CanonicalUserRole
+
 
 class AdminError(Exception):
     """Erreur métier admin : message utilisateur et code HTTP."""
@@ -33,7 +35,7 @@ class AdminUserMutationResult(BaseModel):
 
     id: int
     username: str
-    role: str | None = None
+    role: CanonicalUserRole | None = None
     is_active: bool | None = None
 
 

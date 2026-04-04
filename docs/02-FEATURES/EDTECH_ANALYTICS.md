@@ -2,11 +2,12 @@
 
 > **Statut** : Implémenté  
 > **Date** : 08/03/2026 (MAJ F32 interleaved + hardening session)  
-> **Cible** : Admins (rôle archiviste)
+> **Cible** : Admins (role canonique `admin`, alias DB legacy `archiviste`)
 
 ## Objectif
 
 Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
+
 - **CTR Quick Start** : clics exercice vs défi vs session entrelacée, guidé vs libre
 - **Temps vers 1er attempt** : délai entre clic Quick Start et première soumission (référence = clic, pas vue dashboard, pour éviter temps négatifs)
 - **Conversion** : exercice vs défi vs session entrelacée
@@ -17,10 +18,10 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 
 ### 1.1 Événements collectés
 
-| Événement | Déclencheur | Payload |
-|-----------|-------------|---------|
-| `quick_start_click` | Clic sur un CTA Quick Start (exercice, défi, session entrelacée) | type, guided, targetId |
-| `first_attempt` | Soumission (exercice, défi). Pour session entrelacée : **une seule fois** au premier exercice soumis | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
+| Événement           | Déclencheur                                                                                          | Payload                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `quick_start_click` | Clic sur un CTA Quick Start (exercice, défi, session entrelacée)                                     | type, guided, targetId                                     |
+| `first_attempt`     | Soumission (exercice, défi). Pour session entrelacée : **une seule fois** au premier exercice soumis | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
 
 ### 1.2 Module `lib/analytics/edtech.ts`
 
@@ -40,22 +41,22 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 
 ### 2.1 Table `edtech_events`
 
-| Colonne | Type | Description |
-|---------|------|-------------|
-| id | INTEGER | Clé primaire |
-| user_id | INTEGER | Utilisateur (FK users, SET NULL) |
-| event | VARCHAR(50) | quick_start_click, first_attempt |
-| payload | JSONB | type (exercise/challenge/interleaved), guided, targetId, timeToFirstAttemptMs |
-| created_at | TIMESTAMPTZ | Horodatage |
+| Colonne    | Type        | Description                                                                   |
+| ---------- | ----------- | ----------------------------------------------------------------------------- |
+| id         | INTEGER     | Clé primaire                                                                  |
+| user_id    | INTEGER     | Utilisateur (FK users, SET NULL)                                              |
+| event      | VARCHAR(50) | quick_start_click, first_attempt                                              |
+| payload    | JSONB       | type (exercise/challenge/interleaved), guided, targetId, timeToFirstAttemptMs |
+| created_at | TIMESTAMPTZ | Horodatage                                                                    |
 
 **Migration** : `20260225_add_edtech_events.py`
 
 ### 2.2 Endpoints
 
-| Méthode | Route | Description | Auth |
-|---------|-------|-------------|------|
-| POST | `/api/analytics/event` | Enregistrer un événement | require_auth |
-| GET | `/api/admin/analytics/edtech` | Consulter agrégats + liste | require_admin |
+| Méthode | Route                         | Description                | Auth          |
+| ------- | ----------------------------- | -------------------------- | ------------- |
+| POST    | `/api/analytics/event`        | Enregistrer un événement   | require_auth  |
+| GET     | `/api/admin/analytics/edtech` | Consulter agrégats + liste | require_admin |
 
 **Paramètres GET** : `period=7d|30d`, `event=quick_start_click|first_attempt`, `limit=200` (max 500)
 
@@ -84,9 +85,10 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 
 **Route** : `/admin/analytics`
 
-**Accès** : rôle `archiviste` uniquement.
+**Acces** : role canonique `admin` uniquement.
 
 **Contenu** :
+
 - Filtres : période (7d / 30d), type d'événement
 - KPIs : clics Quick Start, % guidés, 1ers attempts, temps moyen
 - Table des derniers événements (date, type, user_id, détails)

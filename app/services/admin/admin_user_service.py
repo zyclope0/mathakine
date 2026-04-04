@@ -13,6 +13,12 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.types import AdminUserItemDict, AdminUserListDict
+from app.core.user_roles import (
+    CanonicalUserRole,
+    normalize_user_role,
+    serialize_user_role,
+    to_legacy_user_role_enum,
+)
 from app.models.user import User, UserRole
 from app.schemas.admin import (
     AdminActionResult,
@@ -28,10 +34,10 @@ class AdminUserService:
     """Opérations admin pour la gestion des utilisateurs."""
 
     ROLE_MAP = {
-        "padawan": UserRole.PADAWAN,
-        "maitre": UserRole.MAITRE,
-        "gardien": UserRole.GARDIEN,
-        "archiviste": UserRole.ARCHIVISTE,
+        CanonicalUserRole.APPRENANT.value: UserRole.PADAWAN,
+        CanonicalUserRole.ENSEIGNANT.value: UserRole.MAITRE,
+        CanonicalUserRole.MODERATEUR.value: UserRole.GARDIEN,
+        CanonicalUserRole.ADMIN.value: UserRole.ARCHIVISTE,
     }
 
     @staticmethod
@@ -56,14 +62,11 @@ class AdminUserService:
                     User.full_name.ilike(pattern),
                 )
             )
-        role_map = {
-            "padawan": UserRole.PADAWAN,
-            "maitre": UserRole.MAITRE,
-            "gardien": UserRole.GARDIEN,
-            "archiviste": UserRole.ARCHIVISTE,
-        }
-        if role and role in role_map:
-            q = q.filter(User.role == role_map[role])
+        if role:
+            try:
+                q = q.filter(User.role == to_legacy_user_role_enum(role))
+            except ValueError:
+                return {"items": [], "total": 0}
         if is_active is not None:
             q = q.filter(User.is_active == is_active)
         total = q.count()
@@ -74,7 +77,8 @@ class AdminUserService:
                 "username": u.username,
                 "email": u.email,
                 "full_name": u.full_name,
-                "role": u.role.value if u.role else "padawan",
+                "role": serialize_user_role(getattr(u, "role", None))
+                or CanonicalUserRole.APPRENANT.value,
                 "is_active": u.is_active,
                 "is_email_verified": u.is_email_verified,
                 "created_at": u.created_at.isoformat() if u.created_at else None,
@@ -100,14 +104,16 @@ class AdminUserService:
 
         new_role = None
         if role_raw is not None:
-            r = str(role_raw).strip().lower()
-            if r not in cls.ROLE_MAP:
+            try:
+                normalized_role = normalize_user_role(role_raw)
+            except ValueError:
+                valid_roles = ", ".join(role.value for role in CanonicalUserRole)
                 return (
                     None,
-                    "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste.",
+                    f"Rôle invalide. Valeurs canoniques: {valid_roles}.",
                     400,
                 )
-            new_role = cls.ROLE_MAP[r]
+            new_role = cls.ROLE_MAP[normalized_role.value]
 
         if is_active is None and new_role is None:
             return None, "Fournissez is_active et/ou role à modifier.", 400
@@ -167,7 +173,8 @@ class AdminUserService:
                 "id": user.id,
                 "username": user.username,
                 "is_active": user.is_active,
-                "role": user.role.value if user.role else "padawan",
+                "role": serialize_user_role(getattr(user, "role", None))
+                or CanonicalUserRole.APPRENANT.value,
             },
             None,
             200,

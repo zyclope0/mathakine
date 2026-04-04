@@ -147,7 +147,7 @@ describe("LeaderboardPage (L2)", () => {
         id: 99,
         username: "hors_top",
         email: "hors_top@test.com",
-        role: "padawan",
+        role: "apprenant",
         is_active: true,
         current_level: 5,
         jedi_rank: "padawan",

@@ -31,6 +31,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
+import { isAdminRole, isApprenantRole } from "@/lib/auth/userRoles";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useChatStore } from "@/lib/stores/chatStore";
 
@@ -44,10 +45,8 @@ export function Header() {
   const tAuth = useTranslations("auth");
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
 
-  const isAdmin = user?.role === "archiviste";
-  // TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
-  // Mettre à jour ici + useAuth.ts + dashboard/page.tsx si le contrat API change.
-  const isStudent = user?.role === "padawan";
+  const isAdmin = isAdminRole(user?.role);
+  const isStudent = isApprenantRole(user?.role);
   // Non vérifié : menu restreint sauf si access_scope === "full" (période de grâce).
   // Évite d'afficher le menu complet quand access_scope est undefined (chargement, cache).
   const hasFullAccess = user?.is_email_verified === true || user?.access_scope === "full";
@@ -56,7 +55,7 @@ export function Header() {
     { name: t("home"), href: "/", icon: Home },
     ...(isAuthenticated
       ? [
-          // Padawan → page dédiée ; adulte → dashboard analytique
+          // Apprenant → page dédiée ; adulte → dashboard analytique
           ...(hasFullAccess
             ? [
                 isStudent
@@ -67,9 +66,7 @@ export function Header() {
           { name: t("exercises"), href: "/exercises" },
           ...(hasFullAccess ? [{ name: t("challenges"), href: "/challenges" }] : []),
           ...(hasFullAccess ? [{ name: t("badges"), href: "/badges" }] : []),
-          ...(!isStudent && hasFullAccess
-            ? [{ name: t("leaderboard"), href: "/leaderboard" }]
-            : []),
+          ...(hasFullAccess ? [{ name: t("leaderboard"), href: "/leaderboard" }] : []),
         ]
       : []),
     { name: tHome("hero.ctaAssistant"), href: "#", icon: MessageCircle, isAssistant: true },
@@ -206,6 +203,14 @@ export function Header() {
                           <span>{t("settings")}</span>
                         </Link>
                       </DropdownMenuItem>
+                      {hasFullAccess && isStudent && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard" className="flex items-center cursor-pointer">
+                            <Home className="mr-2 h-4 w-4" />
+                            <span>{t("dashboard")}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       {isAdmin && (
                         <DropdownMenuItem asChild>
                           <Link href="/admin" className="flex items-center cursor-pointer">

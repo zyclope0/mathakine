@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AdminUser } from "@/hooks/useAdminUsers";
+import type { UserRole } from "@/lib/auth/userRoles";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,31 +44,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { USER_ROLE_LABELS, getUserRoleLabel, normalizeUserRole } from "@/lib/auth/userRoles";
 
 const ROLES = [
   { value: "all", label: "Tous les rôles" },
-  { value: "padawan", label: "Apprenant" },
-  { value: "maitre", label: "Enseignant" },
-  { value: "gardien", label: "Gardien" },
-  { value: "archiviste", label: "Archiviste" },
-];
-
-const ROLE_LABELS: Record<string, string> = {
-  padawan: "Apprenant",
-  maitre: "Enseignant",
-  gardien: "Gardien",
-  archiviste: "Archiviste",
-};
+  { value: "apprenant", label: USER_ROLE_LABELS.apprenant },
+  { value: "enseignant", label: USER_ROLE_LABELS.enseignant },
+  { value: "moderateur", label: USER_ROLE_LABELS.moderateur },
+  { value: "admin", label: USER_ROLE_LABELS.admin },
+] as const;
 
 const PAGE_SIZE = 20;
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState("all");
+  const [role, setRole] = useState<UserRole | "all">("all");
   const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
   const [roleEditUser, setRoleEditUser] = useState<AdminUser | null>(null);
-  const [roleEditValue, setRoleEditValue] = useState<string>("");
+  const [roleEditValue, setRoleEditValue] = useState<UserRole>("apprenant");
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
 
   const isActive = isActiveFilter === "all" ? undefined : isActiveFilter === "true";
@@ -107,11 +102,11 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleUpdateRole = async (u: AdminUser, newRole: string) => {
+  const handleUpdateRole = async (u: AdminUser, newRole: UserRole) => {
     try {
       await updateUserRole({ userId: u.id, role: newRole });
       toast.success("Rôle modifié", {
-        description: `${u.username} → ${ROLE_LABELS[newRole] ?? newRole}`,
+        description: `${u.username} → ${getUserRoleLabel(newRole)}`,
       });
       setRoleEditUser(null);
     } catch (err) {
@@ -189,7 +184,7 @@ export default function AdminUsersPage() {
                 <Select
                   value={role}
                   onValueChange={(v) => {
-                    setRole(v);
+                    setRole(v as UserRole | "all");
                     setPage(0);
                   }}
                 >
@@ -263,9 +258,7 @@ export default function AdminUsersPage() {
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                             <td className="px-4 py-3">
-                              <Badge variant="secondary">
-                                {ROLE_LABELS[u.role?.toLowerCase() ?? ""] ?? u.role}
-                              </Badge>
+                              <Badge variant="secondary">{getUserRoleLabel(u.role)}</Badge>
                             </td>
                             <td className="px-4 py-3">
                               <Badge variant={u.is_active ? "default" : "outline"}>
@@ -294,7 +287,7 @@ export default function AdminUsersPage() {
                                     <DropdownMenuItem
                                       onClick={() => {
                                         setRoleEditUser(u);
-                                        setRoleEditValue(u.role?.toLowerCase() ?? "padawan");
+                                        setRoleEditValue(normalizeUserRole(u.role) ?? "apprenant");
                                       }}
                                     >
                                       <Shield className="h-4 w-4" />
@@ -399,9 +392,17 @@ export default function AdminUsersPage() {
               <div className="flex flex-col gap-4 py-4">
                 <div>
                   <Label className="mb-2 block">Nouveau rôle</Label>
-                  <Select value={roleEditValue} onValueChange={setRoleEditValue}>
+                  {roleEditUser && (
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      Rôle actuel : {getUserRoleLabel(roleEditUser.role)}
+                    </p>
+                  )}
+                  <Select
+                    value={roleEditValue}
+                    onValueChange={(v) => setRoleEditValue(v as UserRole)}
+                  >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Choisir un rôle" />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.filter((r) => r.value !== "all").map((r) => (
@@ -420,10 +421,7 @@ export default function AdminUsersPage() {
               </Button>
               <Button
                 onClick={() => roleEditUser && handleUpdateRole(roleEditUser, roleEditValue)}
-                disabled={
-                  !roleEditUser ||
-                  roleEditValue === (roleEditUser?.role?.toLowerCase() ?? "padawan")
-                }
+                disabled={!roleEditUser || roleEditValue === roleEditUser.role}
               >
                 Enregistrer
               </Button>

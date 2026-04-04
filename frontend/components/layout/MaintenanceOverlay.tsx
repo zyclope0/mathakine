@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { isAdminRole } from "@/lib/auth/userRoles";
 
 export function MaintenanceOverlay() {
   const [show, setShow] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const isAdmin = user?.role === "archiviste";
+  const isAdmin = isAdminRole(user?.role);
 
-  // Ne pas bloquer l'accès au login et à l'admin : permet à l'archiviste de se reconnecter en maintenance
+  // Ne pas bloquer l'accès au login et à l'admin : permet à l'admin de se reconnecter en maintenance
   const isAuthOrAdminRoute = pathname === "/login" || pathname?.startsWith("/admin");
 
   useEffect(() => {

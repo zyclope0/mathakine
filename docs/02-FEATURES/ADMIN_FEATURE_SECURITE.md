@@ -15,10 +15,12 @@ La feature **Admin** est prévue dans la roadmap. Les endpoints admin exposent d
 
 **Pour tout endpoint admin ajouté à l'avenir**, il faudra impérativement :
 
-1. **Appliquer** `@require_admin` (ou `@require_role("archiviste")`) sur chaque handler admin
+1. **Appliquer** `@require_admin` (ou `@require_role("admin")`) sur chaque handler admin
 2. **Ne jamais** se fier uniquement à `@require_auth` pour les routes admin
 
-> **Note** : À Mathakine, le rôle admin = `archiviste`. Le décorateur `require_admin` vérifie ce rôle.
+> **Note** : Le contrat admin canonique expose le role `admin`.
+> La base conserve encore l'alias legacy `archiviste` pendant la migration,
+> mais les handlers et payloads doivent raisonner en role canonique.
 
 ### Exemple à suivre
 
@@ -27,7 +29,7 @@ La feature **Admin** est prévue dans la roadmap. Les endpoints admin exposent d
 from app.utils.error_handler import api_error_response
 
 def require_role(role: str):
-    """Décorateur qui exige un rôle spécifique (ex: admin)."""
+    """Decorateur qui exige un role canonique specifique (ex: admin)."""
     def decorator(handler):
         @wraps(handler)
         async def wrapper(request, *args, **kwargs):
@@ -52,13 +54,13 @@ async def admin_promote_user(request):
 
 ## 3. État actuel
 
-| Élément                    | Statut                            |
-|---------------------------|-----------------------------------|
-| `require_auth`            | ✅ Existe (auth basique)          |
-| `require_role`            | ✅ Implémenté dans `server/auth.py` |
-| `require_admin`           | ✅ Alias `require_role("archiviste")` |
-| Modèle `User.role`        | ✅ Existe (padawan, maitre, gardien, archiviste) |
-| Vérification rôle admin   | ✅ Appliquée sur tous les endpoints `/api/admin/*` |
+| Élément                 | Statut                                                                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `require_auth`          | ✅ Existe (auth basique)                                                                                              |
+| `require_role`          | ✅ Implémenté dans `server/auth.py`                                                                                   |
+| `require_admin`         | ✅ Alias `require_role("admin")`                                                                                      |
+| Modèle `User.role`      | ✅ DB legacy `padawan, maitre, gardien, archiviste` + exposition canonique `apprenant, enseignant, moderateur, admin` |
+| Vérification rôle admin | ✅ Appliquée sur tous les endpoints `/api/admin/*`                                                                    |
 
 ---
 
@@ -66,5 +68,6 @@ async def admin_promote_user(request):
 
 - **Proposition détaillée** : [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) — Benchmark, périmètre, plan d'implémentation
 - Audit sécurité : Validation & Input Sanitization (2.2 RBAC)
-- Modèle : `app/models/user.py` → `UserRole` (archiviste = accès admin complet)
+- Nomenclature canonique : `docs/00-REFERENCE/USER_ROLE_NOMENCLATURE.md`
+- Modèle : `app/models/user.py` → `UserRole` (stockage legacy), normalisé par `app/core/user_roles.py`
 - Auth : `server/auth.py`

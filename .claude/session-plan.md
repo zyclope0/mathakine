@@ -59,6 +59,38 @@
    - `AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
    - `AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md`
 
+## Addendum Roles + NI-13 - 2026-04-04
+
+> Bloc de reference courant pour le realignement des roles utilisateur et le boundary apprenant/adulte.
+
+### 0. Verite d'execution courante
+
+- Roles metier actifs :
+  - `apprenant`
+  - `enseignant`
+  - `moderateur`
+  - `admin`
+- Les alias legacy `padawan`, `maitre`, `gardien`, `archiviste` restent limites a la compatibilite backend/DB.
+- `parent` reste documente comme phase 2, non implemente.
+
+### 1. Boundary NI-13
+
+- `/home-learner` = home apprenant
+- `/dashboard` = surface analytique adulte, accessible secondairement a l'apprenant
+- `ProtectedRoute` porte les restrictions de roles avec `allowedRoles`
+- `useAuth.ts` derive la route post-login via helper partage
+- `Header.tsx` n'utilise plus de strings legacy dans sa logique metier
+- l'apprenant garde `/home-learner` comme home par defaut, avec un acces discret a `/dashboard` via le menu profil
+
+### 2. Gardes-fous
+
+1. Ne pas reintroduire de comparaison brute `role === "padawan"` dans le code actif.
+2. Toute nouvelle surface protegee doit passer par helpers/guards de roles canoniques.
+3. Toute doc active qui parle des roles utilisateur doit pointer vers :
+   - `docs/00-REFERENCE/USER_ROLE_NOMENCLATURE.md`
+   - `app/core/user_roles.py`
+   - `frontend/lib/auth/userRoles.ts`
+
 ---
 
 ## 1. Contexte

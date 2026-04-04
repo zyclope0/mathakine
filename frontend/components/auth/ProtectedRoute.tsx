@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingState } from "@/components/layout/LoadingState";
+import { getDefaultHomeRoute, normalizeUserRole } from "@/lib/auth/userRoles";
+import type { UserRole } from "@/lib/auth/userRoles";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,7 +14,11 @@ interface ProtectedRouteProps {
   requireFullAccess?: boolean;
   /** Si true, redirige vers /onboarding si onboarding_completed_at est null */
   requireOnboardingCompleted?: boolean;
+  /** Rôles canoniques autorisés sur cette surface. */
+  allowedRoles?: UserRole[];
   redirectTo?: string;
+  /** Redirection si l'utilisateur est authentifié mais n'a pas le bon rôle. */
+  redirectAuthenticatedTo?: string;
 }
 
 export function ProtectedRoute({
@@ -20,7 +26,9 @@ export function ProtectedRoute({
   requireAuth = true,
   requireFullAccess = false,
   requireOnboardingCompleted = false,
+  allowedRoles,
   redirectTo = "/login",
+  redirectAuthenticatedTo,
 }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -40,6 +48,7 @@ export function ProtectedRoute({
   }, [isLoading, user, hasTimedOut]);
 
   const hasCheckedAuth = hasTimedOut || user !== null || !isLoading;
+  const normalizedUserRole = normalizeUserRole(user?.role);
   const mustRedirectToOnboarding =
     hasCheckedAuth &&
     requireOnboardingCompleted &&
@@ -49,11 +58,19 @@ export function ProtectedRoute({
   const mustRedirectToExercises =
     hasCheckedAuth && requireFullAccess && user && user.access_scope === "exercises_only";
   const mustRedirectToLogin = hasCheckedAuth && requireAuth && !isAuthenticated && user === null;
+  const mustRedirectForRole =
+    hasCheckedAuth &&
+    user !== null &&
+    !!allowedRoles &&
+    (normalizedUserRole === null || !allowedRoles.includes(normalizedUserRole));
+  const authenticatedFallbackRoute = redirectAuthenticatedTo ?? getDefaultHomeRoute(user?.role);
 
   const redirectTarget = mustRedirectToOnboarding
     ? "/onboarding"
     : mustRedirectToExercises
       ? "/exercises"
+      : mustRedirectForRole
+        ? authenticatedFallbackRoute
       : mustRedirectToLogin
         ? redirectTo
         : null;
@@ -73,14 +90,16 @@ export function ProtectedRoute({
         console.log("[ProtectedRoute] Onboarding non complété → redirection vers /onboarding");
       } else if (redirectTarget === "/exercises") {
         console.log("[ProtectedRoute] Accès limité → redirection vers /exercises");
+      } else if (mustRedirectForRole) {
+        console.log("[ProtectedRoute] Rôle interdit → redirection vers", redirectTarget);
       } else {
         console.log("[ProtectedRoute] Redirection vers", redirectTarget);
       }
     }
 
     lastRedirectRef.current = redirectTarget;
-    router.push(redirectTarget);
-  }, [redirectTarget, router]);
+    router.replace(redirectTarget);
+  }, [mustRedirectForRole, redirectTarget, router]);
 
   if (isLoading && user === null && !hasCheckedAuth) {
     return (

@@ -28,7 +28,7 @@ const EMPTY_SPACED_REPETITION: SpacedRepetitionUserSummary = {
 };
 
 /**
- * Page d'accueil dédiée aux apprenants (rôle padawan). — NI-4
+ * Page d'accueil dédiée aux apprenants (rôle canonique `apprenant`). — NI-4 / NI-13
  *
  * Structure linéaire, colonne unique, zéro onglets :
  *   1. Salutation + mini-index d'ancrage (COGA 4.1.1 — prévisibilité structurelle)
@@ -43,7 +43,11 @@ const EMPTY_SPACED_REPETITION: SpacedRepetitionUserSummary = {
  */
 export default function HomeLearnerPage() {
   return (
-    <ProtectedRoute requireOnboardingCompleted>
+    <ProtectedRoute
+      requireOnboardingCompleted
+      allowedRoles={["apprenant"]}
+      redirectAuthenticatedTo="/dashboard"
+    >
       <HomeLearnerContent />
     </ProtectedRoute>
   );

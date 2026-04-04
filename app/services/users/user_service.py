@@ -18,6 +18,7 @@ from app.core.types import (
     PerformanceByType,
     UserProgressDict,
 )
+from app.core.user_roles import serialize_user_role
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
 from app.services.gamification.compute import (
     canonicalize_progression_rank_bucket,
@@ -384,7 +385,7 @@ class UserService:
                 "user": {
                     "id": user.id,
                     "username": user.username,
-                    "role": user.role,
+                    "role": serialize_user_role(getattr(user, "role", None)),
                     "grade_level": user.grade_level,
                 },
                 "total_attempts": total_attempts,
@@ -1262,7 +1263,7 @@ class UserService:
             "username": user.username,
             "email": user.email,
             "full_name": user.full_name,
-            "role": user.role.value if user.role else None,
+            "role": serialize_user_role(getattr(user, "role", None)),
             "is_email_verified": getattr(user, "is_email_verified", True),
             "grade_level": user.grade_level,
             "grade_system": getattr(user, "grade_system", None),
@@ -1296,7 +1297,7 @@ class UserService:
             "username": user.username,
             "email": user.email,
             "full_name": user.full_name,
-            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            "role": serialize_user_role(getattr(user, "role", None)),
             "is_active": user.is_active,
             "is_email_verified": user.is_email_verified,
             "created_at": user.created_at.isoformat() if user.created_at else None,
@@ -1433,7 +1434,7 @@ class UserService:
             "username": user.username,
             "email": user.email,
             "full_name": user.full_name,
-            "role": user.role.value if user.role else None,
+            "role": serialize_user_role(getattr(user, "role", None)),
             "is_active": user.is_active,
             "grade_level": user.grade_level,
             "grade_system": getattr(user, "grade_system", None),

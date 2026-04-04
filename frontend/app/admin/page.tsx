@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { AdminAcademyStatsSection } from "@/components/admin/AdminAcademyStatsSection";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
 import { useAdminOverview } from "@/hooks/useAdminOverview";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
@@ -37,17 +34,13 @@ const EXPORT_PERIODS = [
 ];
 
 export default function AdminPage() {
-  const { user, isLoading: authLoading } = useAuth();
   const { overview, isLoading: overviewLoading, error } = useAdminOverview();
-  const router = useRouter();
   const [exportType, setExportType] = useState("users");
   const [exportPeriod, setExportPeriod] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
   const [reportsPeriod, setReportsPeriod] = useState<"7d" | "30d">("7d");
 
   const { reports, isLoading: reportsLoading } = useAdminReports(reportsPeriod);
-
-  const isAdmin = user?.role === "archiviste";
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -66,17 +59,8 @@ export default function AdminPage() {
     }
   };
 
-  useEffect(() => {
-    if (!authLoading && user && !isAdmin) {
-      router.push("/dashboard");
-    }
-  }, [authLoading, user, isAdmin, router]);
-
-  if (!user && !authLoading) return null;
-  if (!isAdmin && user) return null; // Redirection en cours
-
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={["admin"]}>
       <PageLayout>
         <PageHeader title="Espace Admin" description="Vue d'ensemble de la plateforme" />
 

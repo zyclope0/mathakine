@@ -200,7 +200,7 @@ def test_serialize_user_profile_for_api():
     response_data = UserService.serialize_user_profile_for_api(user)
 
     assert response_data["username"] == "serialize_user"
-    assert response_data["role"] == UserRole.PADAWAN.value
+    assert response_data["role"] == "apprenant"
     assert response_data["grade_system"] == "suisse"
     assert response_data["age_group"] is None
     assert response_data["accessibility_settings"] == {"high_contrast": True}

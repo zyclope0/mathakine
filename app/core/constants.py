@@ -15,6 +15,7 @@ from app.core.constants_challenge import (  # noqa: F401
     normalize_challenge_type,
 )
 from app.core.logging_config import get_logger
+from app.core.user_roles import CanonicalUserRole
 from app.models.exercise import DifficultyLevel, ExerciseType
 from app.models.logic_challenge import AgeGroup
 
@@ -289,28 +290,32 @@ def calculate_difficulty_for_age_group(age_group: str) -> float:
 
 # Rôles d'utilisateurs
 class UserRoles:
-    INITIE = "initie"  # Alias pour compatibilité (niveau utilisateur, pas rôle)
-    PADAWAN = "padawan"
-    CHEVALIER = "chevalier"
-    MAITRE = "maitre"
-    GARDIEN = "gardien"
-    ARCHIVISTE = "archiviste"
+    APPRENANT = CanonicalUserRole.APPRENANT.value
+    ENSEIGNANT = CanonicalUserRole.ENSEIGNANT.value
+    MODERATEUR = CanonicalUserRole.MODERATEUR.value
+    ADMIN = CanonicalUserRole.ADMIN.value
 
-    ALL_ROLES = [PADAWAN, CHEVALIER, MAITRE, GARDIEN, ARCHIVISTE]
+    ALL_ROLES = [APPRENANT, ENSEIGNANT, MODERATEUR, ADMIN]
+
+    LEGACY_ALIASES = {
+        APPRENANT: "padawan",
+        ENSEIGNANT: "maitre",
+        MODERATEUR: "gardien",
+        ADMIN: "archiviste",
+    }
 
     # Mapping des permissions par rôle (hiérarchique)
     ROLE_PERMISSIONS = {
-        PADAWAN: ["view_own"],
-        CHEVALIER: ["view_own", "create_exercises"],
-        MAITRE: ["view_own", "create_exercises", "modify_own"],
-        GARDIEN: [
+        APPRENANT: ["view_own"],
+        ENSEIGNANT: ["view_own", "create_exercises", "modify_own"],
+        MODERATEUR: [
             "view_own",
             "view_all",
             "create_exercises",
             "modify_own",
             "modify_all",
         ],
-        ARCHIVISTE: [
+        ADMIN: [
             "view_own",
             "view_all",
             "create_exercises",

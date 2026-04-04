@@ -12,8 +12,8 @@ from pydantic import (
     model_validator,
 )
 
+from app.core.user_roles import CanonicalUserRole, normalize_user_role
 from app.core.user_age_group import USER_AGE_GROUP_VALUES
-from app.models.user import UserRole
 
 # Schémas pour la manipulation des utilisateurs
 
@@ -31,9 +31,13 @@ class UserBase(BaseModel):
     full_name: Optional[str] = Field(
         None, min_length=2, max_length=100, description="Nom complet de l'utilisateur"
     )
-    role: Optional[UserRole] = Field(
-        default="PADAWAN",
-        description="Rôle du compte (enum ``UserRole`` : droits d'accès applicatifs).",
+    role: Optional[CanonicalUserRole] = Field(
+        default=CanonicalUserRole.APPRENANT,
+        description=(
+            "Rôle canonique du compte. "
+            "Valeurs API : apprenant, enseignant, moderateur, admin. "
+            "Les alias legacy restent acceptés temporairement en entrée."
+        ),
     )
     grade_level: Optional[int] = Field(
         None, ge=1, le=12, description="Niveau scolaire (1-12)"
@@ -80,6 +84,13 @@ class UserBase(BaseModel):
                 f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}"
             )
         return v
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def normalize_role(cls, v):
+        if v is None:
+            return v
+        return normalize_user_role(v).value
 
 
 class UserCreate(UserBase):
@@ -239,11 +250,12 @@ class UserLogin(BaseModel):
 
 
 class SchemaUserRole(str, Enum):
-    """Sous-ensemble historique des rôles ; les valeurs string restent le contrat API."""
+    """Contrat public canonique des rôles utilisateur."""
 
-    PADAWAN = "padawan"
-    CHEVALIER = "chevalier"
-    MAITRE = "maitre"
+    APPRENANT = CanonicalUserRole.APPRENANT.value
+    ENSEIGNANT = CanonicalUserRole.ENSEIGNANT.value
+    MODERATEUR = CanonicalUserRole.MODERATEUR.value
+    ADMIN = CanonicalUserRole.ADMIN.value
 
 
 class Token(BaseModel):

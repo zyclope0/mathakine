@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
+from app.core.user_roles import serialize_user_role
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth.auth_service import (
@@ -368,6 +369,22 @@ def test_create_user_success(db_session):
         created_user.role == UserRole.PADAWAN
     ), f"Expected role {UserRole.PADAWAN}, got {created_user.role}"
 
+
+def test_create_user_accepts_canonical_role_and_persists_legacy_enum(db_session):
+    user_data = UserCreate(
+        username=unique_username(),
+        email=unique_email(),
+        password="TestPassword123",
+        role="enseignant",
+    )
+
+    result = create_user(db_session, user_data)
+
+    assert result.is_success
+    assert result.user is not None
+    created_user = result.user
+    assert created_user.role == UserRole.MAITRE
+
     # Vérifier que le mot de passe a été haché
     assert created_user.hashed_password != "TestPassword123"
     assert verify_password("TestPassword123", created_user.hashed_password)
@@ -454,12 +471,7 @@ def test_create_user_token(db_session, mock_user):
         tokens["access_token"], settings.SECRET_KEY, algorithms=["HS256"]
     )
     assert access_payload["sub"] == user.username
-    # Comparer avec la valeur string du rôle, pas l'objet enum
-    assert (
-        access_payload["role"] == user.role
-        if isinstance(user.role, str)
-        else user.role.value
-    )
+    assert access_payload["role"] == serialize_user_role(user.role)
     assert access_payload["type"] == "access"
 
     # Vérifier le contenu du refresh token
@@ -467,12 +479,7 @@ def test_create_user_token(db_session, mock_user):
         tokens["refresh_token"], settings.SECRET_KEY, algorithms=["HS256"]
     )
     assert refresh_payload["sub"] == user.username
-    # Comparer avec la valeur string du rôle, pas l'objet enum
-    assert (
-        refresh_payload["role"] == user.role
-        if isinstance(user.role, str)
-        else user.role.value
-    )
+    assert refresh_payload["role"] == serialize_user_role(user.role)
     assert refresh_payload["type"] == "refresh"
 
 
@@ -520,7 +527,7 @@ def test_refresh_access_token_valid(db_session, mock_user):
         result.token_data["access_token"], settings.SECRET_KEY, algorithms=["HS256"]
     )
     assert new_payload["sub"] == user.username
-    assert new_payload["role"] == role_value
+    assert new_payload["role"] == serialize_user_role(user.role)
     assert new_payload["type"] == "access"
 
 
@@ -1141,4 +1148,5 @@ def test_build_authenticated_user_payload_f43_progression_rank_alias():
     user.total_points = 100
     user.jedi_rank = "padawan"
     payload = build_authenticated_user_payload(user)
+    assert payload["role"] == "apprenant"
     assert payload["jedi_rank"] == payload["progression_rank"]

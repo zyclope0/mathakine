@@ -6,6 +6,12 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.user_roles import (
+    CanonicalUserRole,
+    serialize_user_role,
+    to_legacy_user_role_value,
+)
+
 
 def get_db_engine(db_session: Session) -> str:
     """
@@ -39,6 +45,10 @@ def is_postgresql(db_session: Session) -> bool:
 # Format: (nom_enum, valeur_python): valeur_postgresql
 ENUM_MAPPING = {
     # UserRole - Valeurs PostgreSQL exactes
+    ("UserRole", "apprenant"): "PADAWAN",
+    ("UserRole", "enseignant"): "MAITRE",
+    ("UserRole", "moderateur"): "GARDIEN",
+    ("UserRole", "admin"): "ARCHIVISTE",
     ("UserRole", "padawan"): "PADAWAN",
     ("UserRole", "maitre"): "MAITRE",
     ("UserRole", "gardien"): "GARDIEN",
@@ -132,6 +142,9 @@ def adapt_enum_for_db(enum_name: str, value: str, db: Optional[Session] = None) 
     Returns:
         Valeur adaptée pour PostgreSQL
     """
+    if enum_name == "UserRole":
+        return to_legacy_user_role_value(value).upper()
+
     # Chercher dans le mapping
     mapping_key = (enum_name, value)
     if mapping_key in ENUM_MAPPING:
@@ -159,11 +172,10 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
     return {
         "engine": "postgresql",
         "user_roles": {
-            "padawan": get_enum_value(UserRole, UserRole.PADAWAN),
-            "maitre": get_enum_value(UserRole, UserRole.MAITRE),
-            "gardien": get_enum_value(UserRole, UserRole.GARDIEN),
-            "archiviste": get_enum_value(UserRole, UserRole.ARCHIVISTE),
-            # Note: ADMIN supprimé - ARCHIVISTE couvre maintenant tous les privilèges admin
+            CanonicalUserRole.APPRENANT.value: get_enum_value(UserRole, UserRole.PADAWAN),
+            CanonicalUserRole.ENSEIGNANT.value: get_enum_value(UserRole, UserRole.MAITRE),
+            CanonicalUserRole.MODERATEUR.value: get_enum_value(UserRole, UserRole.GARDIEN),
+            CanonicalUserRole.ADMIN.value: get_enum_value(UserRole, UserRole.ARCHIVISTE),
         },
         "exercise_types": {
             "addition": get_enum_value(ExerciseType, ExerciseType.ADDITION),
@@ -244,10 +256,10 @@ def get_python_enum_value(enum_class, db_value: str) -> str:
     # Mapping inverse PostgreSQL -> Python
     reverse_mapping = {
         # UserRole
-        ("UserRole", "PADAWAN"): "padawan",
-        ("UserRole", "MAITRE"): "maitre",
-        ("UserRole", "GARDIEN"): "gardien",
-        ("UserRole", "ARCHIVISTE"): "archiviste",
+        ("UserRole", "PADAWAN"): CanonicalUserRole.APPRENANT.value,
+        ("UserRole", "MAITRE"): CanonicalUserRole.ENSEIGNANT.value,
+        ("UserRole", "GARDIEN"): CanonicalUserRole.MODERATEUR.value,
+        ("UserRole", "ARCHIVISTE"): CanonicalUserRole.ADMIN.value,
         # ExerciseType
         ("ExerciseType", "ADDITION"): "addition",
         ("ExerciseType", "SOUSTRACTION"): "soustraction",
@@ -282,6 +294,9 @@ def get_python_enum_value(enum_class, db_value: str) -> str:
     key = (enum_name, db_value)
     if key in reverse_mapping:
         return reverse_mapping[key]
+
+    if enum_name == "UserRole":
+        return serialize_user_role(db_value) or str(db_value).lower()
 
     # Si pas trouvé, essayer de deviner selon les patterns
     if db_value.startswith("GROUP_"):

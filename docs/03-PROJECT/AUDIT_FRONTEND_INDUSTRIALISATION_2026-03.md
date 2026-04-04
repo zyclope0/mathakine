@@ -18,6 +18,11 @@
 > loading/skeletons, cleanup legacy safe, recouvrement générateurs IA, préparation solver,
 > split `ExerciseSolver`).
 >
+> Mise a jour complementaire 2026-04-04 :
+> le boundary `NI-13` est maintenant structurel cote frontend (`ProtectedRoute` + roles canoniques),
+> avec `/home-learner` comme surface apprenant principale et `/dashboard` comme surface analytique adulte,
+> accessible secondairement a l'apprenant sans etre son point d'entree par defaut.
+>
 > Les principaux chantiers encore ouverts ne sont donc plus ceux de cet audit pris ligne à ligne,
 > mais surtout :
 > `FFI-L10` split `ChallengeSolver`, `FFI-L11` sweep large des couleurs sémantiques hardcodées,

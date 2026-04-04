@@ -80,6 +80,26 @@ a déjà avancé de manière significative depuis l'extraction du 2026-03-29.
 - `ExerciseSolver.tsx` n'est plus un géant de 848 LOC : le gros du risque runtime est désormais concentré côté défi.
 - La duplication AIGenerator n'est plus le sujet principal ; les prochains lots rentables sont `FFI-L10` puis `FFI-L11` à `FFI-L13`.
 
+### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
+
+Depuis le lot de realignement des roles utilisateur :
+
+- le contrat frontend n'utilise plus `padawan / maitre / gardien / archiviste` comme verite metier
+- les roles canoniques actifs sont :
+  - `apprenant`
+  - `enseignant`
+  - `moderateur`
+  - `admin`
+- les anciens noms restent limites aux couches de compatibilite backend/DB ou a des domaines hors scope (difficultes, badges, rangs, archives)
+
+Impact frontend structurel :
+
+- `User.role` est maintenant type sur l'union canonique
+- les helpers de role sont centralises dans `frontend/lib/auth/userRoles.ts`
+- `NI-13` n'est plus un guard local de page ; le boundary apprenant/adulte est porte par `ProtectedRoute`
+- `/home-learner` devient la home principale des apprenants
+- `/dashboard` reste accessible a l'apprenant comme entree secondaire discrete, sans redevenir la destination par defaut
+
 ---
 
 ## 2. Design Tokens

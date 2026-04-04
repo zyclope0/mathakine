@@ -1,4 +1,4 @@
-"""Routes API admin (rôle archiviste)."""
+"""Routes API admin (rôle admin canonique)."""
 
 from starlette.routing import Mount, Route
 

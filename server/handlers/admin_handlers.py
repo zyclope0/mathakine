@@ -1,5 +1,5 @@
 """
-Handlers pour l'espace admin (rôle archiviste).
+Handlers pour l'espace admin (rôle admin canonique).
 LOT A6 : appels via run_db_bound() vers facades sync.
 """
 

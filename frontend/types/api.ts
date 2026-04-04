@@ -5,6 +5,8 @@
  * Le frontend préfère `progression_rank` et `thematic_title` — voir `progressionRankLabel`, `badgeThematicTitle`.
  */
 
+import type { UserRole } from "@/lib/auth/userRoles";
+
 /**
  * Niveau gamification persisté (aligné classement), fourni par le backend — pas dérivé du timeRange stats.
  */
@@ -28,7 +30,7 @@ export interface User {
   username: string;
   email: string;
   full_name?: string | null;
-  role: string;
+  role: UserRole;
   is_active: boolean;
   is_email_verified?: boolean;
   /** "full" = accès complet ; "exercises_only" = uniquement exercices (non vérifié hors période de grâce) */

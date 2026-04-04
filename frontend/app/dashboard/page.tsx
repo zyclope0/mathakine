@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +12,7 @@ import type { TimelinePeriod } from "@/hooks/useProgressTimeline";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
 import { useDailyChallenges } from "@/hooks/useDailyChallenges";
 import { buildDashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
+import { DASHBOARD_ALLOWED_ROLES } from "@/lib/auth/userRoles";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +65,6 @@ function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }
 export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const router = useRouter();
   const { locale } = useLocaleStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("30");
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
@@ -137,17 +136,6 @@ export default function DashboardPage() {
     }
   }, [refetch, isRefreshing, queryClient, tToasts, t]);
 
-  /** Boundary enfant/adulte : padawan redirigé vers /home-learner.
-   * ProtectedRoute couvre exercises_only mais pas le rôle padawan à accès complet.
-   * Ce useEffect enforce le boundary côté client avant tout rendu.
-   * TODO(NI-4): "padawan" est une string nue — fragile si le backend renomme ce rôle.
-   * Mettre à jour ici + useAuth.ts + Header.tsx si le contrat API change. */
-  useEffect(() => {
-    if (user && user.role === "padawan") {
-      router.replace("/home-learner");
-    }
-  }, [user, router]);
-
   /** Atténuation du décor spatial : attribut document, ciblé par globals.css (route dashboard uniquement). */
   useEffect(() => {
     document.documentElement.setAttribute("data-mathakine-dashboard", "");
@@ -158,7 +146,11 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute requireFullAccess requireOnboardingCompleted>
+      <ProtectedRoute
+        requireFullAccess
+        requireOnboardingCompleted
+        allowedRoles={DASHBOARD_ALLOWED_ROLES}
+      >
         <PageLayout>
           <PageHeader
             title={user?.username ? `${t("welcome")}, ${user.username} !` : t("title")}
@@ -188,7 +180,11 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <ProtectedRoute requireFullAccess requireOnboardingCompleted>
+      <ProtectedRoute
+        requireFullAccess
+        requireOnboardingCompleted
+        allowedRoles={DASHBOARD_ALLOWED_ROLES}
+      >
         <PageLayout>
           <EmptyState
             title={t("error.title")}
@@ -200,7 +196,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute requireFullAccess requireOnboardingCompleted>
+    <ProtectedRoute
+      requireFullAccess
+      requireOnboardingCompleted
+      allowedRoles={DASHBOARD_ALLOWED_ROLES}
+    >
       <PageLayout>
         {/* En-tête */}
         <PageHeader

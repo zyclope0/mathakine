@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
 import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import {
@@ -19,19 +17,7 @@ import {
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
-  const isAdmin = user?.role === "archiviste";
-
-  useEffect(() => {
-    if (!isLoading && user && !isAdmin) {
-      router.push("/dashboard");
-    }
-  }, [isLoading, user, isAdmin, router]);
-
-  if (!user && !isLoading) return null;
-  if (!isAdmin && user) return null;
 
   const navItems = [
     { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
@@ -46,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={["admin"]}>
       <PageLayout maxWidth="2xl">
         <div className="flex flex-col gap-6 md:flex-row">
           <nav className="flex shrink-0 flex-col gap-1 md:w-48">

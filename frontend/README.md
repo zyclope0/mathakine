@@ -82,8 +82,9 @@ npm run lint
 ```
 frontend/
 ├── app/                          # Next.js App Router (routes plates)
-│   ├── admin/                    # Espace admin (rôle archiviste)
-│   ├── dashboard/                # Tableau de bord
+│   ├── admin/                    # Espace admin (role canonique admin)
+│   ├── dashboard/                # Tableau de bord adulte
+│   ├── home-learner/             # Espace apprenant dedie et home par defaut (NI-13)
 │   ├── exercises/ + [id]/        # Exercices
 │   ├── challenges/ + challenge/[id]/  # Défis
 │   ├── badges/                   # Badges
@@ -295,6 +296,19 @@ Configuration via CSS dans `app/globals.css` :
 - **React Query** : Cache et synchronisation données serveur
 - **Zustand** : État client léger (thèmes, accessibilité, locale)
 - **Composition** : Composants réutilisables et composables
+
+### **Roles canoniques**
+
+Le frontend ne raisonne plus avec les anciens noms Star Wars pour les roles utilisateur.
+Les roles actifs sont :
+
+- `apprenant`
+- `enseignant`
+- `moderateur`
+- `admin`
+
+Les alias legacy backend/DB (`padawan`, `maitre`, `gardien`, `archiviste`) restent
+supportes uniquement dans la couche de compatibilite.
 
 ---
 
@@ -575,4 +589,4 @@ Propriétaire - Mathakine
 
 ---
 
-**Dernière mise à jour** : 06/03/2026
+**Dernière mise à jour** : 04/04/2026

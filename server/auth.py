@@ -12,6 +12,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
+from app.core.user_roles import serialize_user_role
 from app.utils.error_handler import api_error_response
 
 logger = get_logger(__name__)
@@ -135,14 +136,14 @@ def optional_auth(handler):
 
 
 def require_role(role: str):
-    """Décorateur qui exige un rôle spécifique (ex: archiviste pour admin).
+    """Décorateur qui exige un rôle spécifique (ex: admin pour l'espace admin).
 
     À combiner avec @require_auth. Place request.state.user.
     Retourne 403 si le rôle ne correspond pas.
 
     Usage:
         @require_auth
-        @require_role("archiviste")
+        @require_role("admin")
         async def admin_handler(request):
             ...
     """
@@ -156,7 +157,9 @@ def require_role(role: str):
                 current_user = await get_current_user(request)
             if not current_user or not current_user.get("is_authenticated"):
                 return api_error_response(401, "Authentification requise")
-            if current_user.get("role") != role:
+            current_role = serialize_user_role(current_user.get("role"))
+            required_role = serialize_user_role(role)
+            if current_role != required_role:
                 return api_error_response(403, "Droits insuffisants")
             request.state.user = current_user
             return await handler(request, *args, **kwargs)
@@ -167,7 +170,7 @@ def require_role(role: str):
 
 
 # Alias pratique pour les routes admin
-require_admin = require_role("archiviste")
+require_admin = require_role("admin")
 
 
 def require_full_access(handler):

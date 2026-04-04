@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
+from app.core.user_roles import serialize_user_role
 from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
@@ -869,7 +870,7 @@ class AdminContentService:
                     u.username or "",
                     u.email or "",
                     u.full_name or "",
-                    u.role.value if u.role else "",
+                    serialize_user_role(getattr(u, "role", None)) or "",
                     u.is_active,
                     u.created_at.isoformat() if u.created_at else "",
                 ]

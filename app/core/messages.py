@@ -310,9 +310,10 @@ class UserMessages:
     # Permissions
     ERROR_NOT_AUTHORIZED = "Tu n'es pas autorisé à effectuer cette action."
     ERROR_ADMIN_REQUIRED = "Seuls les administrateurs peuvent effectuer cette action."
-    ERROR_GARDIEN_REQUIRED = (
-        "Seuls les Gardiens et Archivistes peuvent effectuer cette action."
+    ERROR_MODERATEUR_REQUIRED = (
+        "Seuls les modérateurs et administrateurs peuvent effectuer cette action."
     )
+    ERROR_GARDIEN_REQUIRED = ERROR_MODERATEUR_REQUIRED
     ERROR_CHEVALIER_REQUIRED = (
         "Cette action est réservée aux comptes avec une habilitation avancée."
     )
