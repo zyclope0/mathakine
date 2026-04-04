@@ -537,13 +537,13 @@ du code relu au 2026-04-03 dans le worktree local.
 **NI-13 — Boundary dashboard enfant/adulte** (`dashboard/page.tsx`)
 - `useEffect` → `router.replace("/home-learner")` si `user.role === "padawan"`
 - `isStudentView` et widgets padawan retirés du dashboard (StudentChallengesBoard déplacé dans `/home-learner`)
-- Dashboard désormais exclusivement adulte
+- Dashboard adulte par défaut ; boundary fonctionnel côté client, sans hard guard partagé au niveau route
 
 ### Correctifs Octopus Challenge (audit croisé 2026-04-04)
 
 | Bug Octopus | Verdict | Correction |
 |---|---|---|
-| B1 — A1 fausse alerte `prefers-reduced-motion` | ✅ Déjà résolu | `transform: none` dans bloc reduce existant — retiré du backlog |
+| B1 — A1 `prefers-reduced-motion` | ⚠️ Partiellement résolu | `transform: none` et `transition: none` existent déjà dans le bloc reduce ; un résiduel `box-shadow` hors learner context reste mineur mais réel |
 | B2 — Ancre `#section-reviews` morte | ✅ Corrigé | Section toujours rendue avec `isLoading`/`hasError` |
 | B3 — TODO `padawan` absent | ✅ Corrigé | `TODO(NI-4)` ajouté dans `useAuth.ts`, `Header.tsx`, `dashboard/page.tsx` |
 | Double bouton "Retour aux défis" | ✅ Corrigé | Bouton du bas supprimé — lien discret haut + actions contextuelles suffisent |
@@ -557,6 +557,7 @@ du code relu au 2026-04-03 dans le worktree local.
 | U4 | Liste exercices | 4 dropdowns visibles d'emblée (surcharge choix Schwartz 2004) | P2 |
 | S2 | Thème spatial | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 — décision produit requise | P3 |
 | R1 | `dashboard/page.tsx` | `SpacedRepetitionSummaryWidget` présent dans dashboard adulte ET `/home-learner` — légitime mais non documenté | P3 |
+| R2 | `dashboard/page.tsx` | Boundary NI-13 appliqué via `useEffect` client (`router.replace`) : fonctionnel, mais pas un hard guard et peut théoriquement laisser entrevoir un rendu avant redirection | P2 |
 | O1 | `ExerciseSolverChoices.tsx` | `<input>` raw hors design system (dette antérieure, hors scope NI) | P3 |
 
 ---
@@ -577,8 +578,9 @@ du code relu au 2026-04-03 dans le worktree local.
 | NI-10 Indice sous le fold mobile | P2 | S | `ExerciseSolverChoices` | ✅ FAIT 2026-03-30 |
 | NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2 | XS | `globals.css` | ✅ FAIT 2026-03-30 |
 | NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md` | P3 | XS | `AcademyStatsWidget.tsx` | ✅ FAIT 2026-04-04 |
-| NI-13 Boundary dashboard enfant / adulte | P1 | M | `dashboard/page.tsx` | ✅ FAIT 2026-04-04 |
+| NI-13 Boundary dashboard enfant / adulte | P1 | M | `dashboard/page.tsx` | ✅ FAIT 2026-04-04 (enforcement côté client) |
 
 **Tous les lots NI-1 à NI-13 sont livrés et committés.**
+**Réserve documentée** : `NI-13` est enforce côté client via redirection, pas via un hard guard partagé.
 
 Dettes résiduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la mise en production du flux apprenant.
