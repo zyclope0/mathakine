@@ -420,7 +420,7 @@ Référence : W3C COGA 2.2 "Provide help for complex information". Un enfant blo
 
 ### NI-11 — Badge hover-reveal : protection `prefers-reduced-motion` manquante
 
-**Priorité** : P2 | **Effort** : XS | **Statut** : À faire — bug prouvé
+**Priorité** : P2 | **Effort** : XS | **Statut** : ✅ FAIT 2026-03-30
 
 Dans `globals.css`, le bloc :
 
@@ -499,6 +499,68 @@ du code relu au 2026-04-03 dans le worktree local.
 
 ---
 
+## Mise à jour vérité code — 2026-04-04 (sprint NI-4 à NI-13 + correctifs Octopus)
+
+> Audit conduit et corrections appliquées dans le worktree local puis committées en lots atomiques.
+> Vérification Octopus Challenge intégrée — 4 points factuels corrigés.
+
+### Ce qui a été livré dans ce sprint
+
+**NI-4 — Page `/home-learner` apprenant** (`app/home-learner/page.tsx`)
+- `LearnerLayout maxWidth="2xl"`, structure 100 % linéaire, zéro onglets
+- Page-map chips d'ancrage (COGA 4.1.1 — prévisibilité structurelle) : `#section-reviews`, `#section-challenges`, `#section-progress`
+- `scroll-behavior: smooth` sur `html, body` dans `globals.css` ; `scroll-mt-20` sur chaque section cible
+- `SpacedRepetitionSummaryWidget` + `StudentChallengesBoard` intégrés
+- Section "Révisions" toujours rendue (ancre jamais morte) : `isLoading` → skeleton, `hasError` → message localisé, fallback `EMPTY_SPACED_REPETITION`
+- Redirection post-login `padawan → /home-learner` dans `useAuth.ts`
+- Nav Header : "Mon espace" pour padawan, "Classement" masqué pour padawan
+
+**NI-5 — Opt-in `flat` sur `<Card>`** (`components/ui/card.tsx`)
+- Prop `flat?: boolean` ; `flat=true → shadow-none` ; défaut global inchangé
+- 10 visualizations challenge migrées (`VisualRenderer`, `PuzzleRenderer`, `GraphRenderer`, `DefaultRenderer`, `SequenceRenderer`, `PatternRenderer`)
+
+**NI-9 — Animations `success-pulse` / `error-shake`** (`globals.css` + solvers)
+- Décision prise : **activées** (post-réflexion, durée ≤ 600ms, iteration: 1)
+- `.feedback-success-animate` / `.feedback-error-animate` dans `globals.css`
+- `prefers-reduced-motion: reduce → animation: none !important`
+- `role="status"` + `aria-live="polite"` + `aria-atomic="true"` sur les deux blocs feedback
+
+**NI-11 — Badge hover-reveal `prefers-reduced-motion`** (`globals.css`)
+- `max-height` transition dans `@media (prefers-reduced-motion: no-preference)` uniquement
+- Opacité reste animée (pas de mouvement physique — conforme WCAG 2.1 SC 2.3.3)
+
+**NI-12 — `AcademyStatsWidget` glassmorphism** (`AcademyStatsWidget.tsx`)
+- `backdrop-blur-md` retiré des deux `Card` (skeleton + rendu)
+- `rounded-full bg-primary/10` icon-containers supprimés → icônes directes
+- `hover:scale-105` parasite supprimé
+
+**NI-13 — Boundary dashboard enfant/adulte** (`dashboard/page.tsx`)
+- `useEffect` → `router.replace("/home-learner")` si `user.role === "padawan"`
+- `isStudentView` et widgets padawan retirés du dashboard (StudentChallengesBoard déplacé dans `/home-learner`)
+- Dashboard désormais exclusivement adulte
+
+### Correctifs Octopus Challenge (audit croisé 2026-04-04)
+
+| Bug Octopus | Verdict | Correction |
+|---|---|---|
+| B1 — A1 fausse alerte `prefers-reduced-motion` | ✅ Déjà résolu | `transform: none` dans bloc reduce existant — retiré du backlog |
+| B2 — Ancre `#section-reviews` morte | ✅ Corrigé | Section toujours rendue avec `isLoading`/`hasError` |
+| B3 — TODO `padawan` absent | ✅ Corrigé | `TODO(NI-4)` ajouté dans `useAuth.ts`, `Header.tsx`, `dashboard/page.tsx` |
+| Double bouton "Retour aux défis" | ✅ Corrigé | Bouton du bas supprimé — lien discret haut + actions contextuelles suffisent |
+
+### Dettes résiduelles connues (non bloquantes)
+
+| ID | Surface | Problème | Sévérité |
+|---|---|---|---|
+| U1 | Partout | Jargon enfant résiduel à la marge ("session entrelacée" en interne — UI déjà neutralisée) | P3 |
+| U2 | Solvers | Aucun onboarding contextuel pour un enfant pendant la résolution | P2 |
+| U4 | Liste exercices | 4 dropdowns visibles d'emblée (surcharge choix Schwartz 2004) | P2 |
+| S2 | Thème spatial | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 — décision produit requise | P3 |
+| R1 | `dashboard/page.tsx` | `SpacedRepetitionSummaryWidget` présent dans dashboard adulte ET `/home-learner` — légitime mais non documenté | P3 |
+| O1 | `ExerciseSolverChoices.tsx` | `<input>` raw hors design system (dette antérieure, hors scope NI) | P3 |
+
+---
+
 ## Récapitulatif consolidé — tous les lots
 
 | Lot | Priorité | Effort | Scope | Statut |
@@ -506,20 +568,17 @@ du code relu au 2026-04-03 dans le worktree local.
 | NI-1 Composants apprenant (`LearnerCard`, `LearnerLayout`) | P1 | S-M | Solvers | ✅ FAIT 2026-03-30 |
 | NI-2 Token `--bg-learner` par thème | P1 | S | `globals.css` | ✅ FAIT 2026-03-30 |
 | NI-3 Intégration Solver (exercice + défi) | P1 | S | Solvers | ✅ FAIT 2026-03-30 |
-| NI-4 Page apprenant tubulaire `/home-learner` | P2 | M | Nouvelle page | 💤 Backlog |
+| NI-4 Page apprenant tubulaire `/home-learner` | P2 | M | Nouvelle page | ✅ FAIT 2026-04-04 |
 | NI-5 Opt-in `flat` sur `<Card>` | P2 | XS | Design system | ✅ FAIT 2026-04-04 |
 | NI-6 Refonte section features accueil | P2 | S | `app/page.tsx` | ✅ FAIT 2026-03-30 |
 | NI-7 Suppression sweep effect global | P1 | XS | `globals.css` | ✅ FAIT 2026-03-30 |
 | NI-8 Microcopy bouton Valider grisé | P2 | XS | Solvers / modal exercice | ✅ FAIT 2026-03-30 |
-| NI-9 Décision animations `success-pulse` / `error-shake` | P2 | XS | `globals.css` + solvers | À faire |
-| NI-10 Indice sous le fold mobile | P2 | S | `ExerciseSolverFeedback` | À faire |
-| NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2 | XS | `globals.css` | À faire |
-| NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md` | P3 | XS | `AcademyStatsWidget.tsx` | À faire |
-| NI-13 Dashboard vue conditionnelle enfant / adulte | P1 | M | `dashboard/page.tsx` | À planifier |
+| NI-9 Animations `success-pulse` / `error-shake` | P2 | XS | `globals.css` + solvers | ✅ FAIT 2026-04-04 |
+| NI-10 Indice sous le fold mobile | P2 | S | `ExerciseSolverChoices` | ✅ FAIT 2026-03-30 |
+| NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2 | XS | `globals.css` | ✅ FAIT 2026-03-30 |
+| NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md` | P3 | XS | `AcademyStatsWidget.tsx` | ✅ FAIT 2026-04-04 |
+| NI-13 Boundary dashboard enfant / adulte | P1 | M | `dashboard/page.tsx` | ✅ FAIT 2026-04-04 |
 
-**Recommandation solo founder révisée** :
+**Tous les lots NI-1 à NI-13 sont livrés et committés.**
 
-- Sprint NI-1→NI-8 : terminé — couche apprenant en place, homepage refondue, affordance correcte.
-- Sprint NI-9→NI-12 (quick wins, ~2h) : NI-11 en priorité (bug accessibilité réel), NI-12 (glassmorphism résiduel), NI-10 (UX enfant), NI-9 (décision design à prendre).
-- Sprint NI-13 (M) : à planifier quand le rôle parent/enseignant est prêt — bloquant pour la monétisation B2B.
-- NI-4 : backlog long terme, après NI-13.
+Dettes résiduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la mise en production du flux apprenant.
