@@ -453,11 +453,14 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         {/* Feedback après soumission */}
         {hasSubmitted && (
           <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
             className={cn(
               "mt-6 rounded-xl p-4 border",
               isCorrect
-                ? "bg-emerald-500/10 border-emerald-500/30"
-                : "bg-red-500/10 border-red-500/30"
+                ? "bg-emerald-500/10 border-emerald-500/30 feedback-success-animate"
+                : "bg-red-500/10 border-red-500/30 feedback-error-animate"
             )}
           >
             <div className="flex items-start gap-4">
@@ -523,37 +526,29 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-8 mt-8 border-t border-border">
-          <Button
-            asChild
-            variant="outline"
-            className="flex-1 bg-transparent border border-border text-muted-foreground hover:bg-accent hover:text-foreground px-6 py-3 rounded-xl transition-colors"
-          >
-            <Link href="/challenges">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Link>
-          </Button>
-          {hasSubmitted && !isCorrect && (
-            <Button
-              onClick={handleRetry}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
-              aria-label={t("retryLabel")}
-            >
-              <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
-              {t("retry")}
-            </Button>
-          )}
-          {hasSubmitted && isCorrect && (
-            <Button
-              asChild
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
-            >
-              <Link href="/challenges">{t("nextChallenge")}</Link>
-            </Button>
-          )}
-        </div>
+        {/* Actions post-soumission — le lien "Retour" en haut reste accessible, ici les actions contextuelles uniquement */}
+        {hasSubmitted && (
+          <div className="flex gap-3 pt-8 mt-8 border-t border-border">
+            {!isCorrect && (
+              <Button
+                onClick={handleRetry}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+                aria-label={t("retryLabel")}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                {t("retry")}
+              </Button>
+            )}
+            {isCorrect && (
+              <Button
+                asChild
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+              >
+                <Link href="/challenges">{t("nextChallenge")}</Link>
+              </Button>
+            )}
+          </div>
+        )}
       </LearnerCard>
 
       {/* Command Bar — Zone de réponse et d'action */}

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  */
 
 const MAX_WIDTH_CLASSES = {
+  "2xl": "max-w-2xl",
   "4xl": "max-w-4xl",
   "5xl": "max-w-5xl",
 } as const;

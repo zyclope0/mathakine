@@ -6,7 +6,7 @@ import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useIrtScores } from "@/hooks/useIrtScores";
-import { Loader2, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, XCircle, ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -232,7 +232,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   };
 
   const handleSubmit = async () => {
-    if (!selectedAnswer || !displayExercise || hasSubmitted) return;
+    if (!selectedAnswer?.trim() || !displayExercise || hasSubmitted) return;
 
     const timeSpent = (Date.now() - startTimeRef.current) / 1000; // en secondes
 
@@ -421,6 +421,22 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         }}
       />
 
+      {/* NI-10 — Indice avant les choix : visible sans scroll sur mobile 375px.
+          W3C COGA 2.2 : un enfant bloqué ne scroll pas pour chercher de l'aide. */}
+      {!hasSubmitted && exercise?.hint && !showHint && sessionMode !== "spaced-review" && (
+        <div className="flex justify-end mb-2">
+          <button
+            type="button"
+            onClick={() => setShowHint(true)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={t("hint")}
+          >
+            <Lightbulb className="h-3.5 w-3.5" aria-hidden="true" />
+            {t("hint")}
+          </button>
+        </div>
+      )}
+
       <ExerciseSolverChoices
         isOpenAnswer={isOpenAnswer}
         choices={choices}
@@ -447,28 +463,28 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         <div className="space-y-2">
           <Button
             onClick={handleSubmit}
-            disabled={!selectedAnswer || isSubmitting}
+            disabled={!selectedAnswer?.trim() || isSubmitting}
             className={cn(
               "w-full size-lg transition-all",
-              !selectedAnswer &&
+              !selectedAnswer?.trim() &&
                 "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
-              selectedAnswer && "bg-primary text-primary-foreground"
+              selectedAnswer?.trim() && "bg-primary text-primary-foreground"
             )}
             size="lg"
             aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
             aria-busy={isSubmitting}
-            aria-describedby={!selectedAnswer ? "validate-hint" : undefined}
+            aria-describedby={!selectedAnswer?.trim() ? "validate-hint" : undefined}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {t("saving")}
+                {t("validating")}
               </>
             ) : (
               t("validateMyAnswer")
             )}
           </Button>
-          {!selectedAnswer && (
+          {!selectedAnswer?.trim() && (
             <p
               id="validate-hint"
               className="text-center text-xs text-muted-foreground"
@@ -490,7 +506,6 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         hint={exercise?.hint}
         showHint={showHint}
         sessionMode={sessionMode}
-        onShowHint={() => setShowHint(true)}
         labels={{
           correctTitle: t("correctTitle"),
           incorrectTitle: t("incorrectTitle"),
