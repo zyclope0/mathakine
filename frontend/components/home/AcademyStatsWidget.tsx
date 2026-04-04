@@ -33,7 +33,7 @@ export function AcademyStatsWidget() {
   // Skeleton loader
   if (isLoading) {
     return (
-      <Card className="border border-border/50 bg-card/40 backdrop-blur-md">
+      <Card className="border border-border/40 bg-card/60">
         <CardContent className="py-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -58,7 +58,6 @@ export function AcademyStatsWidget() {
       label: t("exercises.label"),
       tooltip: t("exercises.tooltip"),
       color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       icon: Puzzle,
@@ -66,7 +65,6 @@ export function AcademyStatsWidget() {
       label: t("challenges.label"),
       tooltip: t("challenges.tooltip"),
       color: "text-accent",
-      bgColor: "bg-accent/10",
     },
     {
       icon: Target,
@@ -74,7 +72,6 @@ export function AcademyStatsWidget() {
       label: t("mastery.label"),
       tooltip: t("mastery.tooltip"),
       color: "text-success",
-      bgColor: "bg-success/10",
     },
     {
       icon: Sparkles,
@@ -82,7 +79,6 @@ export function AcademyStatsWidget() {
       label: t("aiGenerated.label"),
       tooltip: t("aiGenerated.tooltip"),
       color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       icon: Users,
@@ -90,14 +86,13 @@ export function AcademyStatsWidget() {
       label: t("attempts.label"),
       tooltip: t("attempts.tooltip"),
       color: "text-muted-foreground",
-      bgColor: "bg-muted/50",
     },
   ];
 
   return (
     <Card
       className={cn(
-        "border border-border/50 bg-card/40 backdrop-blur-md",
+        "border border-border/40 bg-card/60",
         !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
       )}
     >
@@ -117,19 +112,12 @@ export function AcademyStatsWidget() {
               <Tooltip key={item.label}>
                 <TooltipTrigger asChild>
                   <div
-                    className="text-center space-y-1 cursor-help transition-transform hover:scale-105"
+                    className="text-center space-y-1 cursor-help"
                     tabIndex={0}
                     role="group"
                     aria-label={`${item.label}: ${item.value}. ${item.tooltip}`}
                   >
-                    <div
-                      className={cn(
-                        "mx-auto flex h-10 w-10 items-center justify-center rounded-full",
-                        item.bgColor
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", item.color)} aria-hidden="true" />
-                    </div>
+                    <Icon className={cn("h-5 w-5 mx-auto mb-1", item.color)} aria-hidden="true" />
                     <div className="text-xl md:text-2xl font-bold">{item.value}</div>
                     <div className="text-xs text-muted-foreground">{item.label}</div>
                   </div>

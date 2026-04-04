@@ -169,7 +169,10 @@ export function BadgeCard({
             "ring-1 ring-amber-400/20 shadow-lg shadow-amber-400/15"
         )}
         role="article"
-        aria-label={`Badge ${badge.name}${isEarned ? " obtenu" : " verrouillé"}`}
+        aria-label={t("ariaLabel", {
+          name: badge.name || t("noName"),
+          status: isEarned ? t("earned") : t("locked"),
+        })}
         tabIndex={isEarned ? 0 : undefined}
         title={isEarned ? t("expandHint") : undefined}
       >
@@ -226,7 +229,7 @@ export function BadgeCard({
               className="text-xs font-semibold leading-tight line-clamp-1 w-full px-1"
               title={badge.name || badge.code || ""}
             >
-              {badge.name || badge.code || "Badge sans nom"}
+              {badge.name || badge.code || t("noName")}
             </p>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <DifficultyMedal difficulty={badge.difficulty} size="xs" />
@@ -268,9 +271,7 @@ export function BadgeCard({
                       isEarned
                     />
                   )}
-                  <span className="break-words">
-                    {badge.name || badge.code || "Badge sans nom"}
-                  </span>
+                  <span className="break-words">{badge.name || badge.code || t("noName")}</span>
                 </CardTitle>
                 {!isEarned && thematicLine && (
                   <CardDescription className="mt-2 text-primary-on-dark italic text-sm">
@@ -378,7 +379,7 @@ export function BadgeCard({
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground/60 italic leading-relaxed">
-                    Description non disponible
+                    {t("noDescription")}
                   </p>
                 )}
               </div>
@@ -415,7 +416,7 @@ export function BadgeCard({
                   </p>
                 ) : (
                   <p className="text-sm md:text-base text-muted-foreground/60 italic leading-relaxed line-clamp-3">
-                    Description non disponible
+                    {t("noDescription")}
                   </p>
                 )}
               </div>
@@ -451,13 +452,23 @@ export function BadgeCard({
                       ) : (
                         <>
                           {" "}
-                          — {progress.current} / {progress.target}
+                          —{" "}
+                          {t("progressLabel", {
+                            current: progress.current,
+                            target: progress.target,
+                          })}
                         </>
                       )}
                     </span>
                   )}
                 </p>
               )}
+              {/* Label "encore X" :
+                  - progress >= 0.5 → label motivant amber (chaud, proche)
+                  - progress > 0 && < 0.5 → label neutre discret (commencé mais loin)
+                  - progress === 0 && target > 0 → label informatif froid (jamais commencé)
+                  Le backend fournit current/target pour TOUS les badges non débloqués
+                  dès que la rule est calculable — pas besoin de données inventées. */}
               {progress && progress.target > 0 && progress.progress >= 0.5 && (
                 <p className="text-sm font-semibold text-amber-500/90" role="status">
                   {progress.progress_detail?.type === "success_rate"
@@ -477,6 +488,26 @@ export function BadgeCard({
                       : t("tuApproches")}
                 </p>
               )}
+              {progress &&
+                progress.target > 0 &&
+                progress.progress > 0 &&
+                progress.progress < 0.5 && (
+                  <p className="text-xs text-muted-foreground" role="status">
+                    {progress.progress_detail?.type !== "success_rate" &&
+                      progress.target - progress.current > 0 &&
+                      t("plusQue", { count: progress.target - progress.current })}
+                  </p>
+                )}
+              {progress && progress.target > 0 && progress.progress === 0 && (
+                <p className="text-xs text-muted-foreground" role="status">
+                  {progress.progress_detail?.type === "success_rate"
+                    ? t("successRateTarget", {
+                        rate: progress.progress_detail.required_rate_pct,
+                        min: progress.progress_detail.min_attempts,
+                      })
+                    : t("plusQue", { count: progress.target })}
+                </p>
+              )}
               {progress && progress.target > 0 && (
                 <div
                   className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"
@@ -491,6 +522,14 @@ export function BadgeCard({
                     style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
                   />
                 </div>
+              )}
+              {/* Fallback pour badges dont la rule n'est pas calculable côté backend
+                  (target = 0 ou null) — le seul cas où le frontend n'a vraiment pas de chiffre.
+                  Les badges avec target > 0 (même à current=0) sont couverts par les labels ci-dessus. */}
+              {!progress && badge.criteria_text && (
+                <p className="text-xs text-muted-foreground/70 italic" role="status">
+                  {t("noProgressYet")}
+                </p>
               )}
             </div>
           )}
