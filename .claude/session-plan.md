@@ -90,6 +90,14 @@
    - `docs/00-REFERENCE/USER_ROLE_NOMENCLATURE.md`
    - `app/core/user_roles.py`
    - `frontend/lib/auth/userRoles.ts`
+4. `home-learner` reste la home principale de l'apprenant ; `/dashboard` n'est qu'une entree secondaire discrete tant qu'aucun boundary serveur n'existe.
+
+### 3. Suite recommandee
+
+1. Stabiliser et pousser le lot `roles canoniques + NI-13`.
+2. Durcir `NI-13` cote serveur/middleware pour ne plus dependre uniquement du guard frontend.
+3. Decider separement si `parent` devient un vrai role metier distinct.
+4. Migrer plus tard l'enum SQL legacy `padawan / maitre / gardien / archiviste` une fois la phase compat terminee.
 
 ---
 
