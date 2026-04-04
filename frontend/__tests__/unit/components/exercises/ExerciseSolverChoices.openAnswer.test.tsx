@@ -17,11 +17,7 @@ const baseLabels = {
   noChoices: "Réponse correcte :",
 };
 
-function renderOpenAnswer(
-  selectedAnswer: string | null,
-  onSubmit = vi.fn(),
-  onSelect = vi.fn()
-) {
+function renderOpenAnswer(selectedAnswer: string | null, onSubmit = vi.fn(), onSelect = vi.fn()) {
   return render(
     <ExerciseSolverChoices
       isOpenAnswer={true}
