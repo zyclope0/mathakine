@@ -140,17 +140,12 @@ export function AIGeneratorBase({
 
   if (compact) {
     return (
-      <div className={`${baseClasses} p-4 animate-fade-in-up-delay-1`}>
+      <div className="rounded-xl border border-border/30 bg-muted/40 px-4 py-3 animate-fade-in-up-delay-1">
         {/* Ligne 1 — Contrôles */}
         <div className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex items-center justify-center p-1.5 rounded-lg bg-primary/10">
-              <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-              <p className="text-xs text-muted-foreground lg:hidden">{description}</p>
-            </div>
+            <Sparkles className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+            <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -211,7 +206,7 @@ export function AIGeneratorBase({
           onChange={(e) => setCustomPrompt(e.target.value)}
           placeholder={promptPlaceholder}
           disabled={isGenerating}
-          className="mt-4 w-full h-10 bg-background/50 border border-border rounded-lg px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-3 w-full h-10 bg-background/50 border border-border rounded-lg px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label={promptLabel}
         />
 

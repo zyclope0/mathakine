@@ -171,6 +171,7 @@ function ChallengesPageContent() {
           onSearchPageReset={() => setCurrentPage(1)}
           panelOpen={filtersPanelOpen}
           onPanelOpenChange={setFiltersPanelOpen}
+          showTypeChipsInline
           typeFilterValue={challengeTypeFilter}
           onTypeFilterChange={setChallengeTypeFilter}
           typeStyles={CHALLENGE_TYPE_STYLES}
@@ -267,7 +268,7 @@ function ChallengesPageContent() {
                   className="md:gap-4"
                 >
                   {challenges.map((challenge, index) => (
-                    <div key={challenge.id} className={`${getStaggerDelay(index)} h-full`}>
+                    <div key={challenge.id} className={`${getStaggerDelay(index)} w-full`}>
                       <ChallengeCard challenge={challenge} completed={isCompleted(challenge.id)} />
                     </div>
                   ))}

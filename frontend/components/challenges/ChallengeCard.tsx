@@ -47,10 +47,14 @@ export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
             <div className="flex-1">
               <CardTitle
                 id={`challenge-title-${challenge.id}`}
-                className="text-lg font-semibold mb-2 flex items-center gap-2"
+                className="text-lg font-semibold mb-2"
               >
                 {hasAiTag(challenge.tags) && (
-                  <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
+                  <Sparkles
+                    className="inline-block h-4 w-4 text-primary mr-1.5 align-middle shrink-0"
+                    aria-label="Généré par intelligence artificielle"
+                    aria-hidden={false}
+                  />
                 )}
                 {challenge.title}
               </CardTitle>
@@ -82,21 +86,10 @@ export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
                 ⭐ {challenge.difficulty_rating.toFixed(1)}/5
               </Badge>
             )}
-            {hasAiTag(challenge.tags) && (
-              <Badge
-                variant="outline"
-                className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"
-                aria-label={t("card.aiGenerated", {
-                  default: "Généré par intelligence artificielle",
-                })}
-              >
-                IA
-              </Badge>
-            )}
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col flex-1">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4 flex-1">
+        <CardContent className="flex flex-col">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
             <div
               className="flex items-center gap-4"
               role="group"
@@ -129,8 +122,8 @@ export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
               )}
             </div>
           </div>
-          {/* CTA pill discret — toujours en bas grâce à mt-auto */}
-          <div className="flex justify-end pt-2 mt-auto border-t border-border/30">
+          {/* CTA pill discret */}
+          <div className="flex justify-end pt-2 mt-3 border-t border-border/30">
             <span
               className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors group-hover:bg-primary/20"
               aria-hidden="true"
