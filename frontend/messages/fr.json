@@ -1162,7 +1162,6 @@
       "90days": "3 derniers mois",
       "all": "Tout"
     },
-    "seeBadges": "Voir mes badges"
   },
   "badges": {
     "title": "Badges et Récompenses",
@@ -2220,7 +2219,7 @@
   "homeLearner": {
     "greeting": "Bonjour {name} !",
     "greetingGeneric": "Bonjour !",
-    "subtitle": "Qu’est-ce qu’on fait aujourd’hui ?",
+    "subtitle": "Voilà ce qui t’attend aujourd’hui.",
     "actions": {
       "heading": "Que veux-tu faire ?",
       "exercises": "Faire des exercices",

@@ -164,7 +164,7 @@ function HomeLearnerContent() {
             )}
             aria-label={t("actions.badges")}
           >
-            <Award className="h-6 w-6 flex-shrink-0 text-amber-400" aria-hidden="true" />
+            <Award className="h-6 w-6 flex-shrink-0" style={{ color: "var(--rank-gold)" }} aria-hidden="true" />
             <span className="text-base font-medium">{t("actions.badges")}</span>
           </Link>
         </div>

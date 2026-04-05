@@ -1162,7 +1162,6 @@
       "90days": "Last 3 months",
       "all": "All"
     },
-    "seeBadges": "See my badges"
   },
   "badges": {
     "title": "Badges and Rewards",
@@ -2221,7 +2220,7 @@
   "homeLearner": {
     "greeting": "Hello {name}!",
     "greetingGeneric": "Hello!",
-    "subtitle": "What shall we do today?",
+    "subtitle": "Here's what's waiting for you today.",
     "actions": {
       "heading": "What do you want to do?",
       "exercises": "Do exercises",
