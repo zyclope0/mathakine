@@ -51,8 +51,9 @@ export function Header() {
   // Évite d'afficher le menu complet quand access_scope est undefined (chargement, cache).
   const hasFullAccess = user?.is_email_verified === true || user?.access_scope === "full";
 
-  const navigation = [
-    { name: t("home"), href: "/", icon: Home },
+  // Navigation principale — primaire (actions fréquentes) + secondaire (consultation)
+  // "Accueil" supprimé : le logo remplit ce rôle (doublon)
+  const navPrimary = [
     ...(isAuthenticated
       ? [
           // Apprenant → page dédiée ; adulte → dashboard analytique
@@ -65,10 +66,22 @@ export function Header() {
             : []),
           { name: t("exercises"), href: "/exercises" },
           ...(hasFullAccess ? [{ name: t("challenges"), href: "/challenges" }] : []),
-          ...(hasFullAccess ? [{ name: t("badges"), href: "/badges" }] : []),
-          ...(hasFullAccess ? [{ name: t("leaderboard"), href: "/leaderboard" }] : []),
         ]
       : []),
+  ];
+
+  // Secondaire : consultation, pas actions principales
+  const navSecondary = isAuthenticated && hasFullAccess
+    ? [
+        { name: t("badges"), href: "/badges" },
+        { name: t("leaderboard"), href: "/leaderboard" },
+      ]
+    : [];
+
+  // Assistant toujours en fin, comme affordance globale
+  const navigation = [
+    ...navPrimary,
+    ...navSecondary,
     { name: tHome("hero.ctaAssistant"), href: "#", icon: MessageCircle, isAssistant: true },
   ];
 
@@ -90,7 +103,7 @@ export function Header() {
         Aller au contenu principal
       </a>
       <header
-        className="fixed top-0 left-0 right-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        className="fixed top-0 left-0 right-0 z-40 w-full border-b border-border bg-background"
         role="banner"
       >
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">
@@ -107,26 +120,10 @@ export function Header() {
             </div>
 
             {/* Navigation Desktop */}
-            <div className="hidden md:flex md:items-center md:space-x-4">
-              {navigation.map((item) => {
+            <div className="hidden md:flex md:items-center md:space-x-1">
+              {/* Primaire : poids fort, hiérarchie principale */}
+              {navPrimary.map((item) => {
                 const Icon = "icon" in item ? item.icon : undefined;
-                const isAssistant = "isAssistant" in item && item.isAssistant;
-                if (isAssistant) {
-                  return (
-                    <Button
-                      key="assistant"
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium"
-                      onClick={() => setChatOpen(true)}
-                      aria-haspopup="dialog"
-                      aria-label={item.name}
-                    >
-                      {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                      {item.name}
-                    </Button>
-                  );
-                }
                 return (
                   <Link
                     key={item.href}
@@ -135,7 +132,7 @@ export function Header() {
                       "px-3 py-2 text-sm font-medium rounded-md transition-colors",
                       isActive(item.href)
                         ? "bg-primary/10 text-primary-on-dark"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                        : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
                     )}
                     aria-current={isActive(item.href) ? "page" : undefined}
                   >
@@ -146,6 +143,44 @@ export function Header() {
                   </Link>
                 );
               })}
+
+              {/* Séparateur visuel primaire / secondaire */}
+              {navSecondary.length > 0 && (
+                <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+              )}
+
+              {/* Secondaire : ton atténué, consultation */}
+              {navSecondary.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-2 text-sm rounded-md transition-colors",
+                    isActive(item.href)
+                      ? "bg-primary/10 text-primary-on-dark font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                  )}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                >
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Séparateur avant Assistant */}
+              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+
+              {/* Assistant — affordance globale */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium ml-1"
+                onClick={() => setChatOpen(true)}
+                aria-haspopup="dialog"
+                aria-label={tHome("hero.ctaAssistant")}
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                {tHome("hero.ctaAssistant")}
+              </Button>
             </div>
 
             {/* Actions droite */}

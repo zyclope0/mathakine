@@ -1762,14 +1762,21 @@ select:focus {
   --logo-glow: #fbbf24;
   --logo-accents: #94a3b8;
 }
-/* Spatial (fond indigo-nuit) */
-[data-theme="spatial"],
+/* Spatial clair (#f0f4ff) — texte foncé, accents blue-800 S2 */
+[data-theme="spatial"] {
+  --logo-text: #0f172a;
+  --logo-highlight: #3b82f6;
+  --logo-base: #1e40af;
+  --logo-glow: #f59e0b;
+  --logo-accents: #64748b;
+}
+/* Spatial sombre (#0c1836) — texte clair, accents blue S2 */
 .dark[data-theme="spatial"] {
   --logo-text: #e0e7ff;
-  --logo-highlight: #818cf8;
-  --logo-base: #4f46e5;
-  --logo-glow: #06b6d4;
-  --logo-accents: #6366f1;
+  --logo-highlight: #60a5fa;
+  --logo-base: #3b82f6;
+  --logo-glow: #f59e0b;
+  --logo-accents: #93c5fd;
 }
 /* Ocean (fond bleu-nuit) */
 [data-theme="ocean"],
