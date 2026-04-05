@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ContentCardBase } from "@/components/shared/ContentCardBase";
@@ -9,26 +8,18 @@ import { useThemeStore } from "@/lib/stores/themeStore";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import type { Exercise } from "@/types/api";
 import { Sparkles, Eye, Calendar, ArrowRight } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
-
-// Lazy load modal pour réduire le bundle initial
-const ExerciseModal = dynamic(
-  () => import("./ExerciseModal").then((mod) => ({ default: mod.ExerciseModal })),
-  {
-    loading: () => null, // Pas de loading pour les modals (s'ouvrent seulement au clic)
-  }
-);
 
 interface ExerciseCardProps {
   exercise: Exercise;
   /** État « résolu » fourni par la page (une seule query completed-ids). */
   completed: boolean;
+  /** Callback centralisé au niveau page — évite N instances ExerciseModal dans le DOM. */
+  onOpen: (exerciseId: number) => void;
 }
 
-export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps) {
   const t = useTranslations("exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
@@ -44,14 +35,13 @@ export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
   const ageGroupBadgeClasses = getAgeGroupColor(exercise.age_group, theme);
 
   return (
-    <>
-      <ContentCardBase
+    <ContentCardBase
         completed={completed}
         titleId={`exercise-title-${exercise.id}`}
         descriptionId={`exercise-description-${exercise.id}`}
         completedLabel={t("card.completed", { default: "Résolu" })}
         completedAriaLabel={t("card.completed", { default: "Exercice résolu" })}
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => onOpen(exercise.id)}
       >
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -61,13 +51,13 @@ export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
                 className="text-lg font-semibold mb-2 flex items-center gap-2"
               >
                 {exercise.ai_generated && (
-                  <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
+                  <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
                 )}
                 {exercise.title}
               </CardTitle>
               <CardDescription
                 id={`exercise-description-${exercise.id}`}
-                className="line-clamp-3 min-h-[3.6rem]"
+                className="line-clamp-3"
               >
                 <MathText size="sm">{exercise.question}</MathText>
               </CardDescription>
@@ -89,15 +79,7 @@ export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
               <IconComponent className="h-3 w-3 mr-1.5" />
               {typeDisplay}
             </Badge>
-            {exercise.ai_generated && (
-              <Badge
-                variant="outline"
-                className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"
-                aria-label={t("card.aiGenerated")}
-              >
-                IA
-              </Badge>
-            )}
+            {/* Badge IA retiré — l'icône Sparkles dans le titre est suffisante (P2 distill) */}
           </div>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
@@ -145,7 +127,5 @@ export function ExerciseCard({ exercise, completed }: ExerciseCardProps) {
           </div>
         </CardContent>
       </ContentCardBase>
-      <ExerciseModal exerciseId={exercise.id} open={isModalOpen} onOpenChange={setIsModalOpen} />
-    </>
   );
 }

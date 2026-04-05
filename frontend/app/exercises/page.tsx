@@ -289,7 +289,14 @@ function ExercisesPageContent() {
                 >
                   {exercises.map((exercise, index) => (
                     <div key={exercise.id} className={`${getStaggerDelay(index)} h-full`}>
-                      <ExerciseCard exercise={exercise} completed={isCompleted(exercise.id)} />
+                      <ExerciseCard
+                        exercise={exercise}
+                        completed={isCompleted(exercise.id)}
+                        onOpen={(id) => {
+                          setSelectedExerciseId(id);
+                          setIsModalOpen(true);
+                        }}
+                      />
                     </div>
                   ))}
                 </PageGrid>

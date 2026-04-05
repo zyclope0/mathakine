@@ -90,7 +90,7 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
   };
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-md p-4 animate-fade-in-up-delay-1">
+    <div className="rounded-xl border border-border/50 bg-card p-4 animate-fade-in-up-delay-1">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Bloc Titre (gauche) */}
         <div className="flex items-center gap-2 flex-shrink-0">

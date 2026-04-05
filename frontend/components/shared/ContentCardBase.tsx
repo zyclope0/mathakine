@@ -41,15 +41,29 @@ export function ContentCardBase({
 
   const transition = createTransition({ duration: 0.2 });
 
+  const MotionEl = onClick ? (motion.button as typeof motion.div) : motion.div;
+
   return (
-    <motion.div
+    <MotionEl
       variants={variants}
       initial="initial"
       animate="animate"
       exit="exit"
       transition={transition}
       onClick={onClick}
-      className={cn("h-full", onClick && "cursor-pointer")}
+      /* Quand cliquable : bouton natif → tabIndex, Enter/Space, focus gérés nativement.
+         aria-labelledby sur l'élément interactif lui-même pour lecteurs d'écran. */
+      {...(onClick
+        ? {
+            type: "button" as const,
+            "aria-labelledby": titleId,
+            "aria-describedby": descriptionId,
+          }
+        : {})}
+      className={cn(
+        "h-full text-left",
+        onClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+      )}
     >
       <Card
         className={cn(
@@ -57,9 +71,10 @@ export function ContentCardBase({
           "transition-all duration-300",
           onClick && "hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.15)]"
         )}
-        role="article"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
+        /* role et aria déplacés sur le bouton wrapper quand onClick présent */
+        role={onClick ? undefined : "article"}
+        aria-labelledby={onClick ? undefined : titleId}
+        aria-describedby={onClick ? undefined : descriptionId}
       >
         {/* Badge "Résolu" — fond teinté discret */}
         {completed && (
@@ -74,6 +89,6 @@ export function ContentCardBase({
         )}
         {children}
       </Card>
-    </motion.div>
+    </MotionEl>
   );
 }

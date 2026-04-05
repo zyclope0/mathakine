@@ -38,7 +38,7 @@ export function CompactListItem({
       onKeyDown={(e) => e.key === "Enter" && onClick()}
       className={cn(
         "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
-        "bg-card/80 backdrop-blur-sm border-border/60",
+        "bg-card border-border/60",
         "hover:bg-accent hover:border-primary/50 hover:shadow-md",
         completed && "bg-emerald-500/5 border-emerald-500/30"
       )}
