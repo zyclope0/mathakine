@@ -30,6 +30,7 @@ import {
 import { ExerciseSolverHeader } from "@/components/exercises/ExerciseSolverHeader";
 import { ExerciseSolverChoices } from "@/components/exercises/ExerciseSolverChoices";
 import { ExerciseSolverFeedback } from "@/components/exercises/ExerciseSolverFeedback";
+import { ExerciseSolverHint } from "@/components/exercises/ExerciseSolverHint";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -420,6 +421,15 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           back: t("back"),
         }}
       />
+
+      {/* U2 — Aide de première visite : inline, entre l'énoncé et les choix.
+          Visible uniquement au premier exercice (localStorage), jamais en spaced-review. */}
+      {!hasSubmitted && sessionMode !== "spaced-review" && (
+        <ExerciseSolverHint
+          isOpenAnswer={isOpenAnswer}
+          hasHint={"hint" in displayExercise && !!displayExercise.hint}
+        />
+      )}
 
       {/* NI-10 — Indice avant les choix : visible sans scroll sur mobile 375px.
           W3C COGA 2.2 : un enfant bloqué ne scroll pas pour chercher de l'aide. */}

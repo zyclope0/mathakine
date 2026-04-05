@@ -13,4 +13,6 @@ export const STORAGE_KEYS = {
   edtechInterleavedSession: "interleaved_session",
   themePreferences: "theme-preferences",
   darkMode: "dark-mode",
+  /** First-visit onboarding hint for ExerciseSolver (U2). Value "1" = seen. */
+  exerciseSolverHintSeen: "mathakine_exercise_solver_hint_seen",
 } as const;

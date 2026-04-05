@@ -12,6 +12,7 @@ import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
+import { ExerciseSolverHint } from "@/components/exercises/ExerciseSolverHint";
 
 interface ExerciseModalProps {
   exerciseId: number | null;
@@ -187,6 +188,15 @@ function ExerciseModalContent({
                 </div>
               );
             })()}
+            {/* U2 — Aide de première visite : même clé localStorage que ExerciseSolver.
+                Un enfant qui a déjà vu le hint dans le solver full-page ne le revoit pas ici. */}
+            {!hasSubmitted && (
+              <ExerciseSolverHint
+                isOpenAnswer={isOpenAnswer}
+                hasHint={!!exercise.hint}
+              />
+            )}
+
             {/* NI-10 — Indice avant les choix : visible sans scroll sur mobile.
                 W3C COGA 2.2 : un enfant bloqué ne scroll pas pour chercher de l'aide. */}
             {!hasSubmitted && exercise.hint && !showHint && (
