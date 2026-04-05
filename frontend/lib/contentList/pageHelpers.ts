@@ -20,9 +20,21 @@ export function hasActiveContentListFilters(params: {
   );
 }
 
+/**
+ * Compte tous les filtres masqués dans le panneau avancé.
+ * Inclut type, âge, tri (non-aléatoire) et masquer réussis.
+ * Utilisé pour le badge du bouton "Plus de filtres".
+ */
 export function contentListAdvancedFilterActiveCount(
   typeFilter: string,
-  ageFilter: string
+  ageFilter: string,
+  orderFilter?: ContentListOrder,
+  hideCompleted?: boolean
 ): number {
-  return (typeFilter !== "all" ? 1 : 0) + (ageFilter !== "all" ? 1 : 0);
+  return (
+    (typeFilter !== "all" ? 1 : 0) +
+    (ageFilter !== "all" ? 1 : 0) +
+    (orderFilter !== undefined && orderFilter !== CONTENT_LIST_ORDER.RANDOM ? 1 : 0) +
+    (hideCompleted ? 1 : 0)
+  );
 }

@@ -154,12 +154,14 @@ function ExercisesPageContent() {
 
   const advancedActiveCount = contentListAdvancedFilterActiveCount(
     exerciseTypeFilter,
-    ageGroupFilter
+    ageGroupFilter,
+    orderFilter,
+    hideCompleted
   );
 
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
-      filterButton: t("filters.title"),
+      filterButton: t("filters.moreFilters"),
       filterButtonAriaExpand: t("filters.expandFilters"),
       filterButtonAriaCollapse: t("filters.collapseFilters"),
       advancedRegionLabel: t("filters.advancedFiltersRegion"),
@@ -168,6 +170,7 @@ function ExercisesPageContent() {
       allTypes: t("filters.allTypes"),
       ageGroup: t("filters.ageGroup"),
       allAgesPlaceholder: t("filters.allAgeGroups"),
+      orderLabel: t("filters.order"),
       orderAria: t("filters.order"),
       orderRandom: t("filters.orderRandom"),
       orderRecent: t("filters.orderRecent"),

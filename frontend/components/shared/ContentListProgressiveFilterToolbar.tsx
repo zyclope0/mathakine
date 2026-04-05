@@ -31,6 +31,7 @@ export interface ContentListFilterToolbarLabels {
   allTypes: string;
   ageGroup: string;
   allAgesPlaceholder: string;
+  orderLabel: string;
   orderAria: string;
   orderRandom: string;
   orderRecent: string;
@@ -68,7 +69,7 @@ export interface ContentListProgressiveFilterToolbarProps {
   onClearAgeFilter: () => void;
   /** Afficher le bouton reset dans le panneau (tout état filtré). */
   hasResettableState: boolean;
-  /** Nombre de filtres « avancés » actifs (type + âge) pour le badge du bouton Filtres. */
+  /** Nombre de filtres avancés actifs (type, âge, ordre, hideCompleted) pour le badge. */
   advancedActiveCount: number;
   containerClassName?: string;
 }
@@ -133,18 +134,24 @@ export function ContentListProgressiveFilterToolbar({
   const showAgeChip = ageFilterValue !== "all";
   const hasSummaryChips = showTypeChip || showAgeChip;
 
+  const orderActive = orderValue !== CONTENT_LIST_ORDER.RANDOM;
+  const stateSummaryParts: string[] = [];
+  if (orderActive) stateSummaryParts.push(orderValue === CONTENT_LIST_ORDER.RECENT ? labels.orderRecent : labels.orderRandom);
+  if (hideCompleted) stateSummaryParts.push(labels.hideCompleted);
+  const showStateSummary = !panelOpen && stateSummaryParts.length > 0;
+
   const filterToggleAriaLabel = panelOpen
-    ? `${labels.filterButton} — ${labels.filterButtonAriaCollapse}`
-    : `${labels.filterButton} — ${labels.filterButtonAriaExpand}`;
+    ? [labels.filterButton, labels.filterButtonAriaCollapse].filter(Boolean).join(" — ")
+    : [labels.filterButton, labels.filterButtonAriaExpand].filter(Boolean).join(" — ");
 
   return (
     <div
       className={cn(
-        "p-4 rounded-xl border border-border/50 bg-card/40 backdrop-blur-md flex flex-col gap-3 animate-fade-in-up",
+        "p-4 rounded-xl border border-border/50 bg-card flex flex-col gap-3 animate-fade-in-up",
         containerClassName
       )}
     >
-      {/* Ligne principale : recherche | Filtres | tri | masquer réussis */}
+      {/* Ligne principale : recherche | Plus de filtres */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
         <div className="relative min-w-0 flex-1">
           <Search
@@ -190,44 +197,15 @@ export function ContentListProgressiveFilterToolbar({
               aria-hidden
             />
           </Button>
-
-          <Select
-            value={orderValue}
-            onValueChange={(value) => {
-              onOrderChange(value as ContentListOrder);
-              onFilterAdjust();
-            }}
-          >
-            <SelectTrigger
-              id={`${baseId}-order`}
-              className="h-11 min-h-[44px] w-[100px] shrink-0 sm:w-[110px]"
-              aria-label={labels.orderAria}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={CONTENT_LIST_ORDER.RANDOM}>{labels.orderRandom}</SelectItem>
-              <SelectItem value={CONTENT_LIST_ORDER.RECENT}>{labels.orderRecent}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <label
-            htmlFor={hideCompletedFieldId}
-            className="flex min-h-[44px] cursor-pointer items-center gap-2 text-xs text-muted-foreground"
-          >
-            <Switch
-              id={hideCompletedFieldId}
-              checked={hideCompleted}
-              onCheckedChange={(checked) => {
-                onHideCompletedChange(checked);
-                onFilterAdjust();
-              }}
-            />
-            <EyeOff className="h-4 w-4 shrink-0" aria-hidden />
-            <span>{labels.hideCompleted}</span>
-          </label>
         </div>
       </div>
+
+      {/* Résumé état ordre/masqués : visible panneau fermé, évite l'opacité du badge seul */}
+      {showStateSummary && (
+        <p className="text-xs text-muted-foreground/70 -mt-1" aria-live="polite">
+          {stateSummaryParts.join(" · ")}
+        </p>
+      )}
 
       {/* Résumé compact (visible panneau fermé ou ouvert) */}
       {hasSummaryChips ? (
@@ -313,7 +291,7 @@ export function ContentListProgressiveFilterToolbar({
           </TooltipProvider>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
           <div className="space-y-1.5 min-w-0 sm:max-w-xs">
             <label htmlFor={`${baseId}-age`} className="text-xs font-medium text-muted-foreground">
               {labels.ageGroup}
@@ -339,6 +317,49 @@ export function ContentListProgressiveFilterToolbar({
             </Select>
           </div>
 
+          <div className="space-y-1.5 min-w-0">
+            <label htmlFor={`${baseId}-order`} className="text-xs font-medium text-muted-foreground">
+              {labels.orderLabel}
+            </label>
+            <Select
+              value={orderValue}
+              onValueChange={(value) => {
+                onOrderChange(value as ContentListOrder);
+                onFilterAdjust();
+              }}
+            >
+              <SelectTrigger
+                id={`${baseId}-order`}
+                className="h-11 min-h-[44px] w-full sm:w-[160px]"
+                aria-label={labels.orderAria}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={CONTENT_LIST_ORDER.RANDOM}>{labels.orderRandom}</SelectItem>
+                <SelectItem value={CONTENT_LIST_ORDER.RECENT}>{labels.orderRecent}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <label
+            htmlFor={hideCompletedFieldId}
+            className="flex min-h-[44px] cursor-pointer items-center gap-2 text-xs text-muted-foreground self-end"
+          >
+            <Switch
+              id={hideCompletedFieldId}
+              checked={hideCompleted}
+              onCheckedChange={(checked) => {
+                onHideCompletedChange(checked);
+                onFilterAdjust();
+              }}
+            />
+            <EyeOff className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{labels.hideCompleted}</span>
+          </label>
+        </div>
+
+        <div className="flex justify-end">
           {hasResettableState ? (
             <Button
               type="button"

@@ -128,12 +128,14 @@ function ChallengesPageContent() {
 
   const advancedActiveCount = contentListAdvancedFilterActiveCount(
     challengeTypeFilter,
-    ageGroupFilter
+    ageGroupFilter,
+    orderFilter,
+    hideCompleted
   );
 
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
-      filterButton: t("filters.title"),
+      filterButton: t("filters.moreFilters"),
       filterButtonAriaExpand: t("filters.expandFilters"),
       filterButtonAriaCollapse: t("filters.collapseFilters"),
       advancedRegionLabel: t("filters.advancedFiltersRegion"),
@@ -142,6 +144,7 @@ function ChallengesPageContent() {
       allTypes: t("filters.allTypes"),
       ageGroup: t("filters.ageGroup"),
       allAgesPlaceholder: t("filters.allGroups"),
+      orderLabel: t("filters.order"),
       orderAria: t("filters.order"),
       orderRandom: t("filters.orderRandom"),
       orderRecent: t("filters.orderRecent"),
