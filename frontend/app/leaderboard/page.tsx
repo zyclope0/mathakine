@@ -34,6 +34,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { useCountUp } from "@/lib/hooks/useCountUp";
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
@@ -62,6 +63,42 @@ function RankBadge({ rank, label }: { rank: number; label: string }) {
       <span className="h-8 w-8 rounded-full bg-muted/40 flex items-center justify-center font-mono text-sm text-muted-foreground">
         {rank}
       </span>
+    </span>
+  );
+}
+
+/** Points animés : count-up de 0 → valeur, rejoue à chaque changement de valeur */
+function AnimatedPoints({
+  value,
+  rank,
+}: {
+  value: number;
+  rank: number;
+}) {
+  // Durée plus longue pour le podium (plus spectaculaire), plus courte pour le reste
+  const duration = rank <= 3 ? 900 : rank <= 10 ? 650 : 450;
+  const displayed = useCountUp(value, duration);
+
+  const colorClass =
+    rank === 1
+      ? "text-[var(--rank-gold)]"
+      : rank === 2
+        ? "text-[var(--rank-silver)]"
+        : rank === 3
+          ? "text-[var(--rank-bronze)]"
+          : "text-amber-400";
+
+  return (
+    <span
+      className={cn(
+        "flex-shrink-0 font-bold tabular-nums",
+        rank <= 3 ? "text-base sm:text-lg" : "text-sm sm:text-base",
+        colorClass
+      )}
+      aria-label={`${value} points`}
+    >
+      {displayed.toLocaleString()}
+      <span className="text-xs font-normal opacity-60 ml-0.5">pts</span>
     </span>
   );
 }
@@ -97,25 +134,44 @@ function LeaderboardRow({
   const rankReadable = progressionRankLabel(bucketRaw);
   const isPodium = entry.rank >= 1 && entry.rank <= 3;
 
+  // Classe halo avatar — uniquement podium
+  const avatarHaloClass =
+    entry.rank === 1
+      ? "lb-avatar-halo-1"
+      : entry.rank === 2
+        ? "lb-avatar-halo-2"
+        : entry.rank === 3
+          ? "lb-avatar-halo-3"
+          : undefined;
+
   return (
     <motion.li
       variants={rowVariants}
       custom={entry.rank}
       {...(!shouldReduceMotion ? { whileHover: { y: -1 } } : {})}
       className={cn(
+        // scroll-driven reveal — dégradé gracieux sans @supports en JSX (géré en CSS)
+        "lb-row-reveal",
         "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4",
         isPodium ? "py-4" : "py-3",
-        "cursor-default transition-colors duration-200",
+        "transition-colors duration-200",
         !isLast && "border-b border-border/40",
         "border-l-4",
         entry.is_current_user
-          ? "bg-primary/10 border-l-primary"
+          ? "bg-primary/10 border-l-primary lb-row-self"
           : cn(leaderboardPodiumSurfaceClass(entry.rank), "border-l-transparent")
       )}
     >
       <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
 
-      <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
+      {/* Halo conditionnel — wrapper div uniquement si halo actif */}
+      {avatarHaloClass ? (
+        <div className={avatarHaloClass}>
+          <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
+        </div>
+      ) : (
+        <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
+      )}
 
       <div className="flex-1 min-w-0">
         {/* Ligne 1 : nom + toi + streak + badges */}
@@ -158,17 +214,12 @@ function LeaderboardRow({
             </span>
           )}
         </div>
-        {/* Ligne 2 : rang progression + niveau — label permanent, visible */}
+        {/* Ligne 2 : rang + niveau — labels visibles en permanence */}
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span
-            className={cn("text-xs leading-none", rankClass)}
-            aria-label={rankReadable}
-          >
+          <span className={cn("text-xs leading-none", rankClass)} aria-label={rankReadable}>
             {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
           </span>
-          <span className="text-xs text-muted-foreground">
-            {rankReadable}
-          </span>
+          <span className="text-xs text-muted-foreground">{rankReadable}</span>
           <span className="text-xs text-muted-foreground/50 hidden sm:inline">·</span>
           <span className="hidden sm:inline text-xs text-muted-foreground">
             {tLevel} {entry.current_level}
@@ -176,22 +227,8 @@ function LeaderboardRow({
         </div>
       </div>
 
-      <span
-        className={cn(
-          "flex-shrink-0 font-bold tabular-nums",
-          isPodium ? "text-base sm:text-lg" : "text-sm sm:text-base",
-          entry.rank === 1
-            ? "text-[var(--rank-gold)]"
-            : entry.rank === 2
-              ? "text-[var(--rank-silver)]"
-              : entry.rank === 3
-                ? "text-[var(--rank-bronze)]"
-                : "text-amber-400"
-        )}
-      >
-        {entry.total_points.toLocaleString()}
-        <span className="text-xs font-normal opacity-60 ml-0.5">pts</span>
-      </span>
+      {/* Points animés count-up */}
+      <AnimatedPoints value={entry.total_points} rank={entry.rank} />
     </motion.li>
   );
 }
@@ -231,25 +268,35 @@ export default function LeaderboardPage() {
 
   const myRankBucketRaw = user ? readPublicProgressionRankRaw(user) : "";
 
+  // Spring différencié : podium = ressort vif, top-10 = intermédiaire, reste = amorti
+  const springForRank = (rank: number) => {
+    if (rank <= 3) return { stiffness: 180, damping: 14 };
+    if (rank <= 10) return { stiffness: 220, damping: 18 };
+    return { stiffness: 260, damping: 22 };
+  };
+
   const listVariants: Variants = shouldReduceMotion
     ? { hidden: {}, show: {} }
     : {
         hidden: { opacity: 0 },
         show: {
           opacity: 1,
-          transition: { staggerChildren: 0.045, delayChildren: 0.02 },
+          transition: { staggerChildren: 0.04, delayChildren: 0.02 },
         },
       };
 
   const rowVariants: Variants = shouldReduceMotion
     ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
     : {
-        hidden: { opacity: 0, y: 8, scale: 0.99 },
+        hidden: { opacity: 0, y: 12, scale: 0.99 },
         show: (rank: number) => ({
           opacity: 1,
           y: 0,
-          scale: typeof rank === "number" && rank >= 1 && rank <= 3 ? 1.01 : 1,
-          transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
+          scale: 1,
+          transition: {
+            type: "spring",
+            ...springForRank(typeof rank === "number" ? rank : 99),
+          },
         }),
       };
 
@@ -356,6 +403,7 @@ export default function LeaderboardPage() {
                       ];
                     })}
                   </motion.ul>
+
                   {showMyRankFooter && user && myRank ? (
                     <div className="border-t border-border/50 bg-muted/20">
                       <div
@@ -367,7 +415,7 @@ export default function LeaderboardPage() {
                       <div
                         className={cn(
                           "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3",
-                          "bg-primary/10 border-l-4 border-l-primary"
+                          "bg-primary/10 border-l-4 border-l-primary lb-row-self"
                         )}
                       >
                         <RankBadge
@@ -407,7 +455,9 @@ export default function LeaderboardPage() {
                               </span>
                               {user.current_level != null && (
                                 <>
-                                  <span className="text-xs text-muted-foreground/50 hidden sm:inline">·</span>
+                                  <span className="text-xs text-muted-foreground/50 hidden sm:inline">
+                                    ·
+                                  </span>
                                   <span className="hidden sm:inline text-xs text-muted-foreground">
                                     {t("level")} {user.current_level}
                                   </span>
@@ -416,10 +466,8 @@ export default function LeaderboardPage() {
                             </div>
                           ) : null}
                         </div>
-                        <span className="flex-shrink-0 text-sm sm:text-base font-bold text-amber-400 tabular-nums">
-                          {myRank.total_points.toLocaleString()}
-                          <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>
-                        </span>
+                        {/* Count-up sur les points du footer aussi */}
+                        <AnimatedPoints value={myRank.total_points} rank={myRank.rank} />
                       </div>
                     </div>
                   ) : null}

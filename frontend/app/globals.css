@@ -1384,6 +1384,68 @@ select:focus {
     border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
   }
 
+  /* ── Leaderboard overdrive ──────────────────────────────────── */
+
+  /* Halo avatar podium : respiration très subtile, 3s loop */
+  @keyframes lb-breathe {
+    0%, 100% { box-shadow: 0 0 0 2px var(--lb-halo-color, transparent); }
+    50%       { box-shadow: 0 0 0 4px var(--lb-halo-color, transparent),
+                            0 0 8px 2px color-mix(in srgb, var(--lb-halo-color, transparent) 40%, transparent); }
+  }
+
+  .lb-avatar-halo-1 {
+    --lb-halo-color: color-mix(in srgb, var(--rank-gold) 70%, transparent);
+    border-radius: 9999px;
+    animation: lb-breathe 3s ease-in-out infinite;
+  }
+  .lb-avatar-halo-2 {
+    --lb-halo-color: color-mix(in srgb, var(--rank-silver) 55%, transparent);
+    border-radius: 9999px;
+    animation: lb-breathe 3.4s ease-in-out infinite;
+  }
+  .lb-avatar-halo-3 {
+    --lb-halo-color: color-mix(in srgb, var(--rank-bronze) 60%, transparent);
+    border-radius: 9999px;
+    animation: lb-breathe 3.8s ease-in-out infinite;
+  }
+
+  /* Pulse-once sur la ligne de l'utilisateur courant (1 seule fois à l'entrée) */
+  @keyframes lb-pulse-once {
+    0%   { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
+    30%  { background-color: color-mix(in srgb, var(--primary) 28%, transparent); }
+    100% { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
+  }
+
+  .lb-row-self {
+    animation: lb-pulse-once 1.4s ease-out forwards;
+  }
+
+  /* Scroll-driven reveal : lignes entrent par le bas au passage du viewport */
+  @supports (animation-timeline: scroll()) {
+    .lb-row-reveal {
+      animation: lb-row-enter linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 18%;
+    }
+  }
+
+  @keyframes lb-row-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Respect prefers-reduced-motion : désactive toutes les animations LB */
+  @media (prefers-reduced-motion: reduce) {
+    .lb-breathe,
+    .lb-avatar-halo-1,
+    .lb-avatar-halo-2,
+    .lb-avatar-halo-3,
+    .lb-row-self,
+    .lb-row-reveal {
+      animation: none !important;
+    }
+  }
+
   /* Scrollbar discrète pour zones scrollables (modals, etc.) */
   .custom-scrollbar,
   .modal-scrollbar {
