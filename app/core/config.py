@@ -100,10 +100,18 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
     MAX_CONTENT_LENGTH: int = 16_777_216
 
-    # Redis — rate limit distribue (C2). Vide = fallback memoire (dev/test uniquement).
+    # Redis — rate limit distribue (C2).
+    # Dev/test : vide = fallback memoire mono-instance (acceptable).
+    # Prod : OBLIGATOIRE — _validate_production_settings() leve ValueError si absent.
     REDIS_URL: str = Field(
         default="",
-        description="URL Redis pour rate limit distribue. Vide = memoire locale (dev/test).",
+        description=(
+            "URL Redis pour rate limit distribue. "
+            "Vide = memoire locale (dev/test uniquement). "
+            "OBLIGATOIRE en production (ENVIRONMENT=production) — "
+            "le demarrage echoue explicitement si absent. "
+            "Ex: redis://localhost:6379/0 | rediss://user:pass@host:6380 (TLS Render)."
+        ),
     )
     SECURE_HEADERS: bool = True
 
