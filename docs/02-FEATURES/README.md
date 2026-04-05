@@ -7,6 +7,7 @@
 ## Purpose
 
 This folder mixes several kinds of documents:
+
 - active runtime references
 - feature backlog/spec documents
 - implemented feature notes kept as reference
@@ -26,28 +27,29 @@ This file defines which document should be trusted for what.
 
 ## Document Map
 
-| Document | Role | Status | Notes |
-|---|---|---|---|
-| [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Backlog source of truth | Active | Priorities, implemented history, open follow-ups |
-| [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) | Active runtime/API reference | Active / truth-reviewed | Mirrors current routes at a high level; runtime notes refreshed 2026-03-23 |
-| [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) | Produit simple: difficulté pédagogique vs rangs publics | Active reference | Version lisible équipe/produit ; le manifeste technique reste dans `00-REFERENCE/` |
-| [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md) | Gamification account + ledger reference | Active | Account-level points, 8-bucket public rank computation, ledger writes and read surfaces |
-| [CHALLENGE_CONTRACT_IA9.md](CHALLENGE_CONTRACT_IA9.md) | Contrat défis : `response_mode`, `choices`, symétrie | Active | Lot IA9 ; code source `challenge_contract_policy.py` |
-| [AUTH_FLOW.md](AUTH_FLOW.md) | Auth reference | Active | Runtime auth flow reference |
-| [RECOMMENDATIONS_ALGORITHM.md](RECOMMENDATIONS_ALGORITHM.md) | Algorithme reco exercices + défis | Active | Pré-filtre tier exercices vs score penalty défis — asymétrie documentée |
-| [AI_EVAL_HARNESS.md](AI_EVAL_HARNESS.md) | Runbook harness évaluation IA (IA7/IA8) | Active | `app/evaluation/` — modes offline/live/persist, corpus, limites |
-| [OPENAI_CIRCUIT_BREAKER.md](OPENAI_CIRCUIT_BREAKER.md) | Circuit breaker OpenAI | Active | `app/utils/circuit_breaker.py` — états CLOSED/OPEN/HALF_OPEN, seuils, exceptions comptées |
-| [ANALYTICS_SERVICE.md](ANALYTICS_SERVICE.md) | Service analytics EdTech | Active | `app/services/analytics/` — événements quick_start_click / first_attempt, agrégats admin |
-| [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md) | Implemented feature note | Active reference | Daily challenges are implemented |
-| [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md) | Implemented feature note | Active reference | Diagnostic is implemented; remaining gaps should also appear in roadmap/backlog |
-| [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md) | Implemented feature note | Active reference | Post-F42 runtime truth for adaptive difficulty and legacy compatibility |
-| [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md) | Implemented admin analytics note | Active reference | Quick Start analytics instrumentation is implemented |
-| [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md) | Spaced repetition implementation note + remaining reserves | Active reference | Exercise scope shipped (`F04-P1`..`F04-P5`); challenge integration and F23 coupling remain out of scope |
-| ~~NIVEAUX_DIFFICULTE_NORMALISATION.md~~ | Compatibility note | **Archivé** 2026-03-27 | Contenu couvert par DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md + DIFFICULTY_AND_RANKS_MANIFEST.md |
-| [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) | Admin security constraints | Active reference | Use before extending admin endpoints |
-| [THEMES.md](THEMES.md) | Frontend/theme reference | Reference | Keep as supporting design/system note |
-| [I18N.md](I18N.md) | Internationalization reference | Reference | System-level reference; includes `LocaleInitializer` runtime/lang sync note and test coverage |
-| [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) | Prototype asset | Prototype | Not implemented; kept outside the feature corpus because it is a static HTML prototype only |
+| Document                                                                                             | Role                                                       | Status                  | Notes                                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)                                             | Backlog source of truth                                    | Active                  | Priorities, implemented history, open follow-ups                                                        |
+| [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)                                                     | Active runtime/API reference                               | Active / truth-reviewed | Mirrors current routes at a high level; runtime notes refreshed 2026-03-23                              |
+| [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)                 | Produit simple: difficulté pédagogique vs rangs publics    | Active reference        | Version lisible équipe/produit ; le manifeste technique reste dans `00-REFERENCE/`                      |
+| [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)           | Gamification account + ledger reference                    | Active                  | Account-level points, 8-bucket public rank computation, ledger writes and read surfaces                 |
+| [CHALLENGE_CONTRACT_IA9.md](CHALLENGE_CONTRACT_IA9.md)                                               | Contrat défis : `response_mode`, `choices`, symétrie       | Active                  | Lot IA9 ; code source `challenge_contract_policy.py`                                                    |
+| [AUTH_FLOW.md](AUTH_FLOW.md)                                                                         | Auth reference                                             | Active                  | Runtime auth flow reference                                                                             |
+| [PARENT_DASHBOARD_AND_CHILD_LINKS.md](PARENT_DASHBOARD_AND_CHILD_LINKS.md)                           | Future parent role + dashboard spec                        | Active spec             | Next product lot after `3.6.0-alpha.1` stabilization                                                    |
+| [RECOMMENDATIONS_ALGORITHM.md](RECOMMENDATIONS_ALGORITHM.md)                                         | Algorithme reco exercices + défis                          | Active                  | Pré-filtre tier exercices vs score penalty défis — asymétrie documentée                                 |
+| [AI_EVAL_HARNESS.md](AI_EVAL_HARNESS.md)                                                             | Runbook harness évaluation IA (IA7/IA8)                    | Active                  | `app/evaluation/` — modes offline/live/persist, corpus, limites                                         |
+| [OPENAI_CIRCUIT_BREAKER.md](OPENAI_CIRCUIT_BREAKER.md)                                               | Circuit breaker OpenAI                                     | Active                  | `app/utils/circuit_breaker.py` — états CLOSED/OPEN/HALF_OPEN, seuils, exceptions comptées               |
+| [ANALYTICS_SERVICE.md](ANALYTICS_SERVICE.md)                                                         | Service analytics EdTech                                   | Active                  | `app/services/analytics/` — événements quick_start_click / first_attempt, agrégats admin                |
+| [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md)                                                   | Implemented feature note                                   | Active reference        | Daily challenges are implemented                                                                        |
+| [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)                                               | Implemented feature note                                   | Active reference        | Diagnostic is implemented; remaining gaps should also appear in roadmap/backlog                         |
+| [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md)                                           | Implemented feature note                                   | Active reference        | Post-F42 runtime truth for adaptive difficulty and legacy compatibility                                 |
+| [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md)                                                           | Implemented admin analytics note                           | Active reference        | Quick Start analytics instrumentation is implemented                                                    |
+| [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md)                                               | Spaced repetition implementation note + remaining reserves | Active reference        | Exercise scope shipped (`F04-P1`..`F04-P5`); challenge integration and F23 coupling remain out of scope |
+| ~~NIVEAUX_DIFFICULTE_NORMALISATION.md~~                                                              | Compatibility note                                         | **Archivé** 2026-03-27  | Contenu couvert par DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md + DIFFICULTY_AND_RANKS_MANIFEST.md         |
+| [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md)                                               | Admin security constraints                                 | Active reference        | Use before extending admin endpoints                                                                    |
+| [THEMES.md](THEMES.md)                                                                               | Frontend/theme reference                                   | Reference               | Keep as supporting design/system note                                                                   |
+| [I18N.md](I18N.md)                                                                                   | Internationalization reference                             | Reference               | System-level reference; includes `LocaleInitializer` runtime/lang sync note and test coverage           |
+| [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) | Prototype asset                                            | Prototype               | Not implemented; kept outside the feature corpus because it is a static HTML prototype only             |
 
 ## Rationalized Usage
 
@@ -59,6 +61,7 @@ This file defines which document should be trusted for what.
 - [GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)
 - [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md)
 - [AUTH_FLOW.md](AUTH_FLOW.md)
+- [PARENT_DASHBOARD_AND_CHILD_LINKS.md](PARENT_DASHBOARD_AND_CHILD_LINKS.md) when opening the parent/dashboard chantier
 - feature notes already marked implemented when working on the same area
 
 ### Historical references
@@ -90,11 +93,10 @@ Their useful truths now belong in:
 - active runtime/API docs in this folder when a behavior is already shipped
 - project archives for historical rationale and older product framing
 
-
-
 ## Roadmap Maintenance Ritual
 
 After each product lot that changes a feature state:
+
 - update the corresponding roadmap row status (`[DONE]`, `[PARTIAL]`, `[BACKLOG]`)
 - keep shipped items visible in roadmap history instead of removing them
 - if only technical foundations shipped, add or update the item in section `8.2`

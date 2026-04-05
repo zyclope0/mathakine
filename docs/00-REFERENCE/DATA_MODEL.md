@@ -76,6 +76,16 @@ Note role utilisateur (phase 1 de migration) :
 - Les alias legacy sont encore acceptes temporairement en entree admin/API.
 - `parent` n'est pas implemente dans ce lot ; il reste un role metier cible de phase 2.
 
+Phase 2 cible :
+
+- ajout d'un role canonique `parent`
+- ajout d'une relation `parent_child_links`
+- surfaces associees : `/parent/dashboard`, `/parent/child/[id]`
+
+Reference produit :
+
+- [../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)
+
 ---
 
 ### `exercises`

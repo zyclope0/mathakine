@@ -46,6 +46,12 @@ Libelles UI stables :
 `parent` n'est pas implemente dans ce lot.
 Il reste un role metier cible de phase 2.
 
+Ordre recommande :
+
+1. stabiliser le lot `3.6.0-alpha.1`
+2. ouvrir `parent` comme prochain role metier distinct
+3. ne pas le fusionner avec `enseignant`
+
 ---
 
 ## Mapping legacy
@@ -85,6 +91,24 @@ L'implementation active utilise maintenant :
 Le proxy Next protege `/home-learner`, `/dashboard` et `/admin` avant rendu,
 sans changer la politique produit : le dashboard reste une surface secondaire
 autorisee pour `apprenant`.
+
+---
+
+## Prochain role cible : `parent`
+
+`parent` est le prochain ajout metier planifie.
+
+Positionnement vise :
+
+- `apprenant` : apprendre
+- `parent` : suivre un ou plusieurs enfants
+- `enseignant` : suivre un cadre plus scolaire / pedagogique
+- `moderateur` : moderation
+- `admin` : administration plateforme
+
+Reference de conception :
+
+- [../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)
 
 ---
 

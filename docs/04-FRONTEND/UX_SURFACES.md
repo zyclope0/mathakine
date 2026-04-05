@@ -19,15 +19,21 @@ Ce document fixe la verite des surfaces UX visibles apres :
 
 ## Audiences et surfaces
 
-| Audience | Home par defaut | Surfaces principales | Surfaces secondaires |
-|---|---|---|---|
-| Visiteur | `/` | home publique, contenu public, changelog | login, register |
-| `apprenant` | `/home-learner` | home apprenant, exercices, defis, badges, classement | `/dashboard` via entree discrete |
-| `enseignant` | `/dashboard` | dashboard adulte, exercices, defis, badges, classement | pas de `home-learner` |
-| `moderateur` | `/dashboard` | dashboard adulte + moderation selon droits | pas de `home-learner` |
-| `admin` | `/dashboard` | dashboard adulte + `/admin` | pas de `home-learner` |
+| Audience     | Home par defaut | Surfaces principales                                   | Surfaces secondaires             |
+| ------------ | --------------- | ------------------------------------------------------ | -------------------------------- |
+| Visiteur     | `/`             | home publique, contenu public, changelog               | login, register                  |
+| `apprenant`  | `/home-learner` | home apprenant, exercices, defis, badges, classement   | `/dashboard` via entree discrete |
+| `enseignant` | `/dashboard`    | dashboard adulte, exercices, defis, badges, classement | pas de `home-learner`            |
+| `moderateur` | `/dashboard`    | dashboard adulte + moderation selon droits             | pas de `home-learner`            |
+| `admin`      | `/dashboard`    | dashboard adulte + `/admin`                            | pas de `home-learner`            |
 
 `parent` n'est pas implemente dans cette phase.
+
+Surface cible suivante apres stabilisation :
+
+| Audience cible | Home par defaut     | Surfaces principales                  | Notes                                            |
+| -------------- | ------------------- | ------------------------------------- | ------------------------------------------------ |
+| `parent`       | `/parent/dashboard` | dashboard parent + detail d'un enfant | prochain ajout produit, distinct de `enseignant` |
 
 ---
 
@@ -60,6 +66,16 @@ Navigation principale :
 Entree admin :
 
 - visible dans le menu profil pour `admin`
+
+### Phase suivante - parent
+
+Navigation cible minimale :
+
+- `Tableau parent`
+- `Mes enfants`
+- acces detail par enfant
+
+Le parent ne doit pas reutiliser tel quel le dashboard analytique adulte actuel.
 
 ---
 
@@ -122,3 +138,4 @@ Regles :
 - Architecture : [ARCHITECTURE.md](ARCHITECTURE.md)
 - Accessibilite : [ACCESSIBILITY.md](ACCESSIBILITY.md)
 - Themes : [../02-FEATURES/THEMES.md](../02-FEATURES/THEMES.md)
+- Parent spec : [../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](../02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)

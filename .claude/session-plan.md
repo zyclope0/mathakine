@@ -45,6 +45,18 @@
 5. Lot roles phase 2 : decider si `parent` devient un role metier distinct
 ```
 
+### 1 bis. Prochain ajout produit cible
+
+Apres stabilisation de `3.6.0-alpha.1`, le prochain ajout produit vise :
+
+- role `parent`
+- dashboard parent
+- gestion des enfants lies
+
+Reference de cadrage :
+
+- `docs/02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md`
+
 ### 2. Gardes-fous frontend
 
 1. **Ne pas sur-declarer "fait"** : distinguer explicitement `commite/pousse`, `local`, `backlog`.

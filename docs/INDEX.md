@@ -42,6 +42,7 @@
 | Features map                      | [02-FEATURES/README.md](02-FEATURES/README.md)                                                                     |
 | Active API                        | [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)                                           |
 | Auth flow                         | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md)                                                               |
+| Parent dashboard spec             | [02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)                 |
 | Gamification account + ledger     | [02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md) |
 | Frontend architecture             | [04-FRONTEND/ARCHITECTURE.md](04-FRONTEND/ARCHITECTURE.md)                                                         |
 | Frontend UX surfaces              | [04-FRONTEND/UX_SURFACES.md](04-FRONTEND/UX_SURFACES.md)                                                           |

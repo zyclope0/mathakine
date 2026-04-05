@@ -20,6 +20,25 @@
 
 ---
 
+## Addendum - 2026-04-05
+
+Apres stabilisation du train visible `3.6.0-alpha.1`, le prochain ajout produit
+vise a etre le **dashboard parent + gestion des enfants**.
+
+Ce cadrage ne change pas le fait que `parent` n'est **pas encore** implemente.
+Il donne simplement la priorite produit suivante a :
+
+- `F09` dashboard parent
+- le futur role metier `parent`
+- la relation parent-enfant
+- la surface `/parent/dashboard`
+
+Spec associee :
+
+- [PARENT_DASHBOARD_AND_CHILD_LINKS.md](PARENT_DASHBOARD_AND_CHILD_LINKS.md)
+
+---
+
 ## 1. MÃƒÂ©thodologie de priorisation
 
 ### 1.1 Axes d'ÃƒÂ©valuation (1Ã¢â‚¬â€œ5)
