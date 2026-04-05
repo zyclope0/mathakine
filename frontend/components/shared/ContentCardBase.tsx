@@ -69,7 +69,7 @@ export function ContentCardBase({
         className={cn(
           "card-spatial-depth relative group flex flex-col",
           "transition-all duration-300",
-          onClick && "hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.15)]"
+          onClick && "hover:border-primary/50 hover:shadow-sm"
         )}
         /* role et aria déplacés sur le bouton wrapper quand onClick présent */
         role={onClick ? undefined : "article"}
