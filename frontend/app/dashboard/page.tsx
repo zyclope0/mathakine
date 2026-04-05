@@ -214,16 +214,17 @@ export default function DashboardPage() {
               <ExportButton snapshot={exportSnapshot} />
               <Button
                 variant="ghost"
+                size="icon"
                 onClick={handleRefresh}
                 disabled={isRefreshing || isLoading}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 aria-label={t("refresh")}
+                title={t("refresh")}
               >
                 <RefreshCw
                   className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
                   aria-hidden="true"
                 />
-                {t("refresh")}
               </Button>
             </>
           }

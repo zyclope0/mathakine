@@ -1003,8 +1003,10 @@
       "levelUnavailableDescription": "Reload the page or sign in again. If it keeps happening, contact support."
     },
     "export": {
-      "pdf": "Export PDF",
-      "excel": "Export Excel",
+      "export": "Export",
+      "exportLabel": "Export data",
+      "pdf": "PDF",
+      "excel": "Excel",
       "pdfLabel": "Export to PDF",
       "excelLabel": "Export to Excel",
       "noData": "No data available",

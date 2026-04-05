@@ -2,7 +2,13 @@
 
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, FileSpreadsheet } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FileText, FileSpreadsheet, Download, ChevronDown } from "lucide-react";
 import { exportDashboardToPDF } from "@/lib/utils/exportPDF";
 import { exportDashboardToExcel } from "@/lib/utils/exportExcel";
 import type { DashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
@@ -156,27 +162,29 @@ export function ExportButton({ snapshot }: ExportButtonProps) {
   };
 
   return (
-    <div className="flex gap-2">
-      <Button
-        onClick={handleExportPDF}
-        variant="outline"
-        disabled={!snapshot}
-        className="flex items-center gap-2"
-        aria-label={t("pdfLabel")}
-      >
-        <FileText className="h-4 w-4" aria-hidden="true" />
-        {t("pdf")}
-      </Button>
-      <Button
-        onClick={handleExportExcel}
-        variant="outline"
-        disabled={!snapshot}
-        className="flex items-center gap-2"
-        aria-label={t("excelLabel")}
-      >
-        <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
-        {t("excel")}
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          disabled={!snapshot}
+          className="flex items-center gap-2"
+          aria-label={t("exportLabel")}
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          {t("export")}
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 cursor-pointer">
+          <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          {t("pdf")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleExportExcel} className="flex items-center gap-2 cursor-pointer">
+          <FileSpreadsheet className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          {t("excel")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

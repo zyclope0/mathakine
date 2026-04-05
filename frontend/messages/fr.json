@@ -1003,8 +1003,10 @@
       "inProgressWithCount": "{count} en cours"
     },
     "export": {
-      "pdf": "Exporter PDF",
-      "excel": "Exporter Excel",
+      "export": "Exporter",
+      "exportLabel": "Exporter les données",
+      "pdf": "PDF",
+      "excel": "Excel",
       "pdfLabel": "Exporter en PDF",
       "excelLabel": "Exporter en Excel",
       "noData": "Aucune donnée disponible",
