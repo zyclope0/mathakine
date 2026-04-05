@@ -363,7 +363,7 @@ Quatre points du rapport ont Ã©tÃ© contestÃ©s et vÃ©rifiÃ©s dans le co
 **Jordan (enfant 8-10 ans)**
 
 - Homepage : "Apprendre sÃ©rieusement, sans perdre le plaisir" â€” trop long, prÃ©suppose que l'apprentissage est douloureux pour l'audience cible.
-- Liste exercices : 4 dropdowns visibles immÃ©diatement (type, difficultÃ©, Ã¢ge, tri). Surcharge de choix (Schwartz, 2004).
+| U4  | Liste exercices             | ~~4 dropdowns visibles emblée (surcharge choix Schwartz 2004)~~ — **RESOLU 2026-03-30** : progressive disclosure, 1 champ + bouton Plus de filtres, resume etat ordre/masques       | ~~P2~~      |
 - Feedback succÃ¨s : `CheckCircle2` vert + `GrowthMindsetHint`. Correct mais purement chromatique â€” aucun signal positif fort pour un enfant qui vient de rÃ©ussir.
 - Indice : sous le fold mobile. L'enfant bloquÃ© abandonne sans savoir qu'une aide existe.
 - Dashboard tabs : "Vue d'ensemble, Recommandations, Progression, Mon Profil" â€” vocabulaire adulte sans sens pour un enfant de 8 ans.
@@ -572,8 +572,9 @@ du code relu au 2026-04-03 dans le worktree local.
 | ID  | Surface                     | ProblÃ¨me                                                                                                                                                                                 | SÃ©vÃ©ritÃ© |
 | --- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | U1  | Partout                     | Jargon enfant rÃ©siduel Ã  la marge ("session entrelacÃ©e" en interne â€” UI dÃ©jÃ  neutralisÃ©e)                                                                                         | P3          |
-| U2  | Solvers                     | Aucun onboarding contextuel pour un enfant pendant la rÃ©solution                                                                                                                         | P2          |
-| U4  | Liste exercices             | 4 dropdowns visibles d'emblÃ©e (surcharge choix Schwartz 2004)                                                                                                                            | P2          |
+| U2  | Solvers                     | ~~Aucun onboarding contextuel pour un enfant pendant la resolution~~ — **RESOLU 2026-03-30** : ExerciseSolverHint inline, localStorage, solver + modal                                | ~~P2~~      |
+| U2b | Solvers                     | Hint de premiere visite irrevocable : ferme par erreur = disparu. Trajectoire : reutiliser le bouton Voir un indice comme fallback passif (affiche les etapes si jamais soumis). Lot U2 phase 2. | P3          |
+| U4  | Liste exercices             | ~~4 dropdowns visibles emblée (surcharge choix Schwartz 2004)~~ — **RESOLU 2026-03-30** : progressive disclosure, 1 champ + bouton Plus de filtres, resume etat ordre/masques       | ~~P2~~      |
 | S2  | ThÃ¨me spatial              | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 â€” dÃ©cision produit requise                                                                                                         | P3          |
 | R1  | `dashboard/page.tsx`        | `SpacedRepetitionSummaryWidget` prÃ©sent dans dashboard adulte ET `/home-learner` â€” lÃ©gitime mais non documentÃ©                                                                       | P3          |
 | R2  | Boundary surface protegee   | Boundary NI-13 durci par `proxy.ts` + `ProtectedRoute`. Reserve residuelle : `access_scope` / onboarding restent enrichis via backend sur les routes protegees, pas dans le JWT lui-meme. | P3          |
@@ -603,3 +604,27 @@ du code relu au 2026-04-03 dans le worktree local.
 **Reserve documentee** : `NI-13` est maintenant porte par un proxy + un guard frontend partage. Le dashboard n'est plus interdit a l'apprenant ; il reste simplement de-priorise dans la navigation.
 
 Dettes rÃ©siduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la mise en production du flux apprenant.
+
+---
+
+## Lots FFI restants (post-sprint NI complet) -- 2026-03-30
+
+> Tous les lots NI-1 a NI-13 sont livres. Les lots U2 et U4 (FFI neuro-inclusion) sont livres.
+> Ce qui reste est classe par priorite produit.
+
+### Lots front actionnables prochains
+
+| ID   | Surface                           | Description                                                                                | Priorite | Commande   |
+| ---- | --------------------------------- | ------------------------------------------------------------------------------------------ | -------- | ---------- |
+| U2b  | Solvers                           | Hint irrevocable : ajouter fallback passif via bouton Voir un indice (lot U2 phase 2)      | P3       | /onboard   |
+| U3   | ChallengeSolver                   | Onboarding premiere visite ChallengeSolver (reutilise useFirstVisitHint, lot separe)       | P3       | /onboard   |
+| O1   | ExerciseSolverChoices.tsx         | input raw hors design system -- dette anterieure                                           | P3       | /normalize |
+| S2   | Theme spatial (defaut)            | Palette #7c3aed + #0a0a0f = fingerprint AI 2024 -- decision produit requise                | P3       | /colorize  |
+
+### Risques produit prioritaires (hors perimetre NI)
+
+| ID | Fichier                           | Probleme                                                        | Priorite |
+| -- | --------------------------------- | --------------------------------------------------------------- | -------- |
+| P1 | frontend/app/api/chat/route.ts    | Routes chat sans authentification (cout OpenAI non controle)    | P1       |
+| P1 | .env.example                      | REDIS_URL absente -- crash demarrage prod                       | P1       |
+| RD | dashboard parent                  | Tableau de bord parent minimal -- premiere brique payante        | Backlog  |
