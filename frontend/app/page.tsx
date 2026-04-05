@@ -114,7 +114,10 @@ export default function HomePage() {
       )}
 
       {/* Fonctionnalités — layout asymétrique (NI-6) */}
-      <section className="pt-4 pb-8 md:pt-6 md:pb-16 space-y-6 md:space-y-12" aria-labelledby="features-title">
+      <section
+        className="pt-4 pb-8 md:pt-6 md:pb-16 space-y-6 md:space-y-12"
+        aria-labelledby="features-title"
+      >
         <div className="space-y-2">
           <h2 id="features-title" className="text-2xl md:text-3xl font-bold">
             {t("features.title")}

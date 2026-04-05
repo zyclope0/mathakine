@@ -62,7 +62,8 @@ export function ContentCardBase({
         : {})}
       className={cn(
         "w-full text-left",
-        onClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+        onClick &&
+          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
       )}
     >
       <Card

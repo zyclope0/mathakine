@@ -77,8 +77,7 @@ function HomeLearnerContent() {
 
   // Révisions urgentes dès que les stats sont chargées et qu'il y a du travail en attente.
   // Pendant le chargement (isLoadingStats), on reste en ordre normal pour éviter le layout shift.
-  const hasUrgentReviews =
-    !isLoadingStats && (sr.due_today_count > 0 || sr.overdue_count > 0);
+  const hasUrgentReviews = !isLoadingStats && (sr.due_today_count > 0 || sr.overdue_count > 0);
 
   // Chips d'ancrage reflétant l'ordre réel affiché (COGA 4.1.1 prévisibilité structurelle).
   // En mode urgent, les Révisions passent avant les CTA dans la liste de chips.
@@ -164,7 +163,11 @@ function HomeLearnerContent() {
             )}
             aria-label={t("actions.badges")}
           >
-            <Award className="h-6 w-6 flex-shrink-0" style={{ color: "var(--rank-gold)" }} aria-hidden="true" />
+            <Award
+              className="h-6 w-6 flex-shrink-0"
+              style={{ color: "var(--rank-gold)" }}
+              aria-hidden="true"
+            />
             <span className="text-base font-medium">{t("actions.badges")}</span>
           </Link>
         </div>

@@ -48,10 +48,7 @@ function RankBadge({ rank, label }: { rank: number; label: string }) {
   if (RANK_MEDALS[rank]) {
     return (
       <span
-        className={cn(
-          medalClass,
-          rank === 1 ? "text-4xl" : rank === 2 ? "text-3xl" : "text-2xl"
-        )}
+        className={cn(medalClass, rank === 1 ? "text-4xl" : rank === 2 ? "text-3xl" : "text-2xl")}
         aria-label={label}
       >
         {RANK_MEDALS[rank]}
@@ -68,13 +65,7 @@ function RankBadge({ rank, label }: { rank: number; label: string }) {
 }
 
 /** Points animés : count-up de 0 → valeur, rejoue à chaque changement de valeur */
-function AnimatedPoints({
-  value,
-  rank,
-}: {
-  value: number;
-  rank: number;
-}) {
+function AnimatedPoints({ value, rank }: { value: number; rank: number }) {
   // Durée plus longue pour le podium (plus spectaculaire), plus courte pour le reste
   const duration = rank <= 3 ? 900 : rank <= 10 ? 650 : 450;
   const displayed = useCountUp(value, duration);
@@ -101,7 +92,9 @@ function AnimatedPoints({
       aria-live="off"
     >
       {displayed.toLocaleString()}
-      <span className="text-xs font-normal opacity-60 ml-0.5" aria-hidden>pts</span>
+      <span className="text-xs font-normal opacity-60 ml-0.5" aria-hidden>
+        pts
+      </span>
     </span>
   );
 }
@@ -379,9 +372,16 @@ export default function LeaderboardPage() {
                       const isLastEntry = idx === leaderboard.length - 1 && !showMyRankFooter;
                       const nodes: React.ReactNode[] = [];
 
-                      if (idx === 0)       nodes.push(<SectionSeparator key="sep-podium" label={t("podiumSeparator")} />);
-                      if (entry.rank === 4)  nodes.push(<SectionSeparator key="sep-top10" label={t("topTenSeparator")} />);
-                      if (entry.rank === 11) nodes.push(<SectionSeparator key="sep-rest"  label={t("restSeparator")} />);
+                      if (idx === 0)
+                        nodes.push(
+                          <SectionSeparator key="sep-podium" label={t("podiumSeparator")} />
+                        );
+                      if (entry.rank === 4)
+                        nodes.push(
+                          <SectionSeparator key="sep-top10" label={t("topTenSeparator")} />
+                        );
+                      if (entry.rank === 11)
+                        nodes.push(<SectionSeparator key="sep-rest" label={t("restSeparator")} />);
 
                       nodes.push(
                         <LeaderboardRow

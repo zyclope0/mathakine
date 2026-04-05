@@ -71,12 +71,13 @@ export function Header() {
   ];
 
   // Secondaire : consultation, pas actions principales
-  const navSecondary = isAuthenticated && hasFullAccess
-    ? [
-        { name: t("badges"), href: "/badges" },
-        { name: t("leaderboard"), href: "/leaderboard" },
-      ]
-    : [];
+  const navSecondary =
+    isAuthenticated && hasFullAccess
+      ? [
+          { name: t("badges"), href: "/badges" },
+          { name: t("leaderboard"), href: "/leaderboard" },
+        ]
+      : [];
 
   const isActive = (href: string) => {
     if (href === "/") {

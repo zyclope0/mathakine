@@ -144,7 +144,10 @@ export function AIGeneratorBase({
         {/* Ligne 1 — Contrôles */}
         <div className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Sparkles className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+            <Sparkles
+              className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0"
+              aria-hidden="true"
+            />
             <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
           </div>
 

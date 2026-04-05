@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
 import { NextIntlClientProvider } from "next-intl";
+import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech";
 import fr from "@/messages/fr.json";
 
 vi.mock("@/hooks/useRecommendations", () => ({
   useRecommendations: vi.fn(),
 }));
+
 vi.mock("@/lib/analytics/edtech", () => ({
   trackDashboardView: vi.fn(),
   trackQuickStartClick: vi.fn(),
 }));
-
-import { useRecommendations } from "@/hooks/useRecommendations";
-import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech";
 
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -42,17 +42,21 @@ describe("QuickStartActions", () => {
   it("affiche le titre et les 3 CTA", () => {
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    expect(screen.getByText("Que veux-tu faire ?")).toBeInTheDocument();
-    expect(screen.getByText("Un exercice")).toBeInTheDocument();
-    expect(screen.getByText("Un défi")).toBeInTheDocument();
-    expect(screen.getByText("Mélange de maths")).toBeInTheDocument();
+    expect(screen.getByText(fr.dashboard.quickStart.title)).toBeInTheDocument();
+    expect(screen.getByText(fr.dashboard.quickStart.exerciseCta)).toBeInTheDocument();
+    expect(screen.getByText(fr.dashboard.quickStart.challengeCta)).toBeInTheDocument();
+    expect(screen.getByText(fr.dashboard.quickStart.interleavedCta)).toBeInTheDocument();
   });
 
   it("liens vers /exercises et /challenges quand aucune recommandation", () => {
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    const exerciseLink = screen.getByRole("link", { name: /Un exercice/i });
-    const challengeLink = screen.getByRole("link", { name: /Un défi/i });
+    const exerciseLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.exerciseCta, "i"),
+    });
+    const challengeLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.challengeCta, "i"),
+    });
 
     expect(exerciseLink).toHaveAttribute("href", "/exercises");
     expect(challengeLink).toHaveAttribute("href", "/challenges");
@@ -92,8 +96,12 @@ describe("QuickStartActions", () => {
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    const exerciseLink = screen.getByRole("link", { name: /Un exercice/i });
-    const challengeLink = screen.getByRole("link", { name: /Un défi/i });
+    const exerciseLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.exerciseCta, "i"),
+    });
+    const challengeLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.challengeCta, "i"),
+    });
 
     expect(exerciseLink).toHaveAttribute("href", "/exercises/42");
     expect(challengeLink).toHaveAttribute("href", "/challenge/99");
@@ -113,10 +121,12 @@ describe("QuickStartActions", () => {
     expect(interleavedCta).toBeInTheDocument();
   });
 
-  it("lien Mélange de maths vers /exercises/interleaved", () => {
+  it("lien Entrainement varie vers /exercises/interleaved", () => {
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    const interleavedLink = screen.getByRole("link", { name: /Mélange de maths/i });
+    const interleavedLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.interleavedCta, "i"),
+    });
     expect(interleavedLink).toHaveAttribute("href", "/exercises/interleaved");
   });
 
@@ -130,7 +140,9 @@ describe("QuickStartActions", () => {
     vi.mocked(trackQuickStartClick).mockClear();
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    const exerciseLink = screen.getByRole("link", { name: /Un exercice/i });
+    const exerciseLink = screen.getByRole("link", {
+      name: new RegExp(fr.dashboard.quickStart.exerciseCta, "i"),
+    });
     await userEvent.click(exerciseLink);
 
     expect(trackQuickStartClick).toHaveBeenCalledWith({
@@ -139,7 +151,7 @@ describe("QuickStartActions", () => {
     });
   });
 
-  it("R4b — n'appelle pas recordOpen sans parcours guidé (liste exercices)", async () => {
+  it("R4b - n'appelle pas recordOpen sans parcours guide (liste exercices)", async () => {
     const recordOpen = vi.fn();
     vi.mocked(useRecommendations).mockReturnValue({
       recommendations: [],
@@ -154,12 +166,16 @@ describe("QuickStartActions", () => {
     } as ReturnType<typeof useRecommendations>);
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
-    await userEvent.click(screen.getByRole("link", { name: /Un exercice/i }));
+    await userEvent.click(
+      screen.getByRole("link", {
+        name: new RegExp(fr.dashboard.quickStart.exerciseCta, "i"),
+      })
+    );
 
     expect(recordOpen).not.toHaveBeenCalled();
   });
 
-  it("R4b — appelle recordOpen(recommendationId) au clic guidé exercice et défi", async () => {
+  it("R4b - appelle recordOpen(recommendationId) au clic guide exercice et defi", async () => {
     const recordOpen = vi.fn().mockResolvedValue({
       id: 1,
       clicked_count: 1,
@@ -198,14 +214,22 @@ describe("QuickStartActions", () => {
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
-    await userEvent.click(screen.getByRole("link", { name: /Un exercice/i }));
+    await userEvent.click(
+      screen.getByRole("link", {
+        name: new RegExp(fr.dashboard.quickStart.exerciseCta, "i"),
+      })
+    );
     expect(recordOpen).toHaveBeenCalledWith(10);
 
-    await userEvent.click(screen.getByRole("link", { name: /Un défi/i }));
+    await userEvent.click(
+      screen.getByRole("link", {
+        name: new RegExp(fr.dashboard.quickStart.challengeCta, "i"),
+      })
+    );
     expect(recordOpen).toHaveBeenCalledWith(20);
   });
 
-  it("R4b — Mélange de maths ne déclenche pas recordOpen", async () => {
+  it("R4b - Entrainement varie ne declenche pas recordOpen", async () => {
     const recordOpen = vi.fn();
     vi.mocked(useRecommendations).mockReturnValue({
       recommendations: [
@@ -231,7 +255,11 @@ describe("QuickStartActions", () => {
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
     recordOpen.mockClear();
-    await userEvent.click(screen.getByRole("link", { name: /Mélange de maths/i }));
+    await userEvent.click(
+      screen.getByRole("link", {
+        name: new RegExp(fr.dashboard.quickStart.interleavedCta, "i"),
+      })
+    );
 
     expect(recordOpen).not.toHaveBeenCalled();
   });

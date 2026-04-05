@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
-import fr from "@/messages/fr.json";
 import { SpacedRepetitionSummaryWidget } from "@/components/dashboard/SpacedRepetitionSummaryWidget";
 import type { SpacedRepetitionUserSummary } from "@/lib/validation/dashboard";
+import fr from "@/messages/fr.json";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -39,7 +39,7 @@ const base: SpacedRepetitionUserSummary = {
 };
 
 describe("SpacedRepetitionSummaryWidget", () => {
-  it("affiche le message discret si F04 non initialisé", () => {
+  it("affiche le message discret si F04 non initialise", () => {
     render(<SpacedRepetitionSummaryWidget summary={base} />, { wrapper });
     expect(screen.getByText("Révisions du jour")).toBeInTheDocument();
     expect(
@@ -47,46 +47,50 @@ describe("SpacedRepetitionSummaryWidget", () => {
     ).toBeInTheDocument();
   });
 
-  it("affiche aucune révision aujourd'hui quand initialisé et rien dû", () => {
-    const s: SpacedRepetitionUserSummary = {
+  it("affiche aucune revision aujourd'hui quand initialise et rien du", () => {
+    const summary: SpacedRepetitionUserSummary = {
       ...base,
       f04_initialized: true,
       active_cards_count: 4,
       due_today_count: 0,
       overdue_count: 0,
     };
-    render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
+
+    render(<SpacedRepetitionSummaryWidget summary={summary} />, { wrapper });
+
     expect(
       screen.getByText("Tout est à jour ! Aucune révision prévue aujourd'hui.")
     ).toBeInTheDocument();
-    expect(screen.getByText("4 exercices suivis")).toBeInTheDocument();
+    expect(screen.getByText("4 exercices dans le suivi")).toBeInTheDocument();
   });
 
-  it("met en avant le nombre de révisions dues aujourd'hui", () => {
-    const s: SpacedRepetitionUserSummary = {
+  it("met en avant le nombre de revisions dues aujourd'hui", () => {
+    const summary: SpacedRepetitionUserSummary = {
       ...base,
       f04_initialized: true,
       active_cards_count: 3,
       due_today_count: 2,
       overdue_count: 0,
     };
-    render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
+
+    render(<SpacedRepetitionSummaryWidget summary={summary} />, { wrapper });
     expect(screen.getByText("2 exercices à réviser aujourd'hui")).toBeInTheDocument();
   });
 
   it("affiche le retard en secondaire", () => {
-    const s: SpacedRepetitionUserSummary = {
+    const summary: SpacedRepetitionUserSummary = {
       ...base,
       f04_initialized: true,
       active_cards_count: 2,
       due_today_count: 0,
       overdue_count: 1,
     };
-    render(<SpacedRepetitionSummaryWidget summary={s} />, { wrapper });
-    expect(screen.getByText("1 exercice en attente")).toBeInTheDocument();
+
+    render(<SpacedRepetitionSummaryWidget summary={summary} />, { wrapper });
+    expect(screen.getByText("1 en retard")).toBeInTheDocument();
   });
 
-  it("affiche l'état erreur localisé", () => {
+  it("affiche l'etat erreur localise", () => {
     render(<SpacedRepetitionSummaryWidget summary={base} hasError />, { wrapper });
     expect(
       screen.getByText("Impossible d'afficher tes révisions pour le moment.")

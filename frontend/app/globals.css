@@ -614,7 +614,7 @@ select:focus {
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --border: rgba(30, 64, 175, 0.18);
-  --input: rgba(30, 64, 175, 0.10);
+  --input: rgba(30, 64, 175, 0.1);
   --ring: #1e40af;
   /* BG learner : blanc pur dans le solver — zéro distraction cognitive */
   --bg-learner: #ffffff;
@@ -1366,9 +1366,15 @@ select:focus {
   }
 
   /* Médailles podium — couleurs texte dérivées des tokens rang */
-  .leaderboard-medal--rank-1 { color: var(--rank-gold); }
-  .leaderboard-medal--rank-2 { color: var(--rank-silver); }
-  .leaderboard-medal--rank-3 { color: var(--rank-bronze); }
+  .leaderboard-medal--rank-1 {
+    color: var(--rank-gold);
+  }
+  .leaderboard-medal--rank-2 {
+    color: var(--rank-silver);
+  }
+  .leaderboard-medal--rank-3 {
+    color: var(--rank-bronze);
+  }
 
   /* Séparateur de section dans la liste */
   .leaderboard-section-separator {
@@ -1388,9 +1394,15 @@ select:focus {
 
   /* Halo avatar podium : respiration très subtile, 3s loop */
   @keyframes lb-breathe {
-    0%, 100% { box-shadow: 0 0 0 2px var(--lb-halo-color, transparent); }
-    50%       { box-shadow: 0 0 0 4px var(--lb-halo-color, transparent),
-                            0 0 8px 2px color-mix(in srgb, var(--lb-halo-color, transparent) 40%, transparent); }
+    0%,
+    100% {
+      box-shadow: 0 0 0 2px var(--lb-halo-color, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 4px var(--lb-halo-color, transparent),
+        0 0 8px 2px color-mix(in srgb, var(--lb-halo-color, transparent) 40%, transparent);
+    }
   }
 
   .lb-avatar-halo-1 {
@@ -1414,9 +1426,15 @@ select:focus {
      animation-fill-mode: forwards : le fond final correspond au fond Tailwind,
      pas de flash ni de conflit de spécificité. */
   @keyframes lb-pulse-once {
-    0%   { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
-    35%  { background-color: color-mix(in srgb, var(--primary) 28%, transparent); }
-    100% { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
+    0% {
+      background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+    }
+    35% {
+      background-color: color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+    100% {
+      background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+    }
   }
 
   .lb-row-self {
@@ -1433,8 +1451,14 @@ select:focus {
   }
 
   @keyframes lb-row-enter {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Respect prefers-reduced-motion : désactive toutes les animations LB */

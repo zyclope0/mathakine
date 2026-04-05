@@ -1966,7 +1966,10 @@
         "Les roles visibles sont maintenant clairs et metier : Apprenant, Enseignant, Moderateur et Admin.",
         "Le boundary apprenant/adulte est plus robuste : /home-learner, /dashboard et /admin sont filtres avant affichage, tout en laissant un acces discret au dashboard pour l apprenant.",
         "Le systeme de themes passe a 8 themes visibles, avec Aurore a la place de l ancien theme Peach et un theme Licorne complet.",
-        "Le changement de theme et le mode clair/sombre sont plus fluides, sans effet de couches colorees successives."
+        "Le changement de theme et le mode clair/sombre sont plus fluides, sans effet de couches colorees successives.",
+        "La page Exercices est plus lisible : filtres mieux ranges, cartes plus calmes et acces clavier renforce.",
+        "La page Defis est maintenant alignee visuellement sur Exercices, avec un meilleur premier contact pour commencer sans hesitation.",
+        "Le Classement et plusieurs surfaces de navigation ont recu un vrai polish visuel et a11y sans changer les parcours principaux."
       ]
     },
     "release_3_5_0_alpha_1": {

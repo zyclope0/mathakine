@@ -176,11 +176,17 @@ export function ExportButton({ snapshot }: ExportButtonProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleExportPDF}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           {t("pdf")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleExportExcel} className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleExportExcel}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <FileSpreadsheet className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           {t("excel")}
         </DropdownMenuItem>

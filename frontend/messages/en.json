@@ -1966,7 +1966,10 @@
         "Visible user roles are now clear and business-oriented: Learner, Teacher, Moderator, and Admin.",
         "The learner/adult boundary is more robust: /home-learner, /dashboard, and /admin are filtered before render, while the learner still keeps discreet secondary access to the dashboard.",
         "The theme system now exposes 8 visible themes, with Aurora replacing the old Peach theme and a full Unicorn theme.",
-        "Theme changes and light/dark switching are smoother, without the previous layered color-jank effect."
+        "Theme changes and light/dark switching are smoother, without the previous layered color-jank effect.",
+        "The Exercises page is easier to scan: filters are calmer, cards are lighter, and keyboard access is stronger.",
+        "The Challenges page is now visually aligned with Exercises, with a cleaner first-contact flow for starting without hesitation.",
+        "The Leaderboard and several navigation surfaces received visible polish and accessibility cleanup without changing the main journeys."
       ]
     },
     "release_3_5_0_alpha_1": {

@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import fr from "@/messages/fr.json";
 import LeaderboardPage from "@/app/leaderboard/page";
+import { useAuth } from "@/hooks/useAuth";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useMyLeaderboardRank } from "@/hooks/useMyLeaderboardRank";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
+import fr from "@/messages/fr.json";
 
 vi.mock("@/hooks/useLeaderboard", () => ({
   useLeaderboard: vi.fn(),
@@ -20,10 +23,6 @@ vi.mock("@/hooks/useAuth", () => ({
 vi.mock("@/hooks/useMyLeaderboardRank", () => ({
   useMyLeaderboardRank: vi.fn(),
 }));
-
-import { useAuth } from "@/hooks/useAuth";
-import { useLeaderboard } from "@/hooks/useLeaderboard";
-import { useMyLeaderboardRank } from "@/hooks/useMyLeaderboardRank";
 
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -119,7 +118,7 @@ describe("LeaderboardPage (L2)", () => {
     expect(items[2]?.className).toMatch(/leaderboard-podium-surface--rank-3/);
   });
 
-  it("rend sans erreur avec série et badges à zéro", () => {
+  it("rend sans erreur avec serie et badges a zero", () => {
     vi.mocked(useLeaderboard).mockReturnValue({
       leaderboard: [
         baseEntry({
@@ -137,10 +136,10 @@ describe("LeaderboardPage (L2)", () => {
     render(<LeaderboardPage />, { wrapper: TestWrapper });
 
     expect(screen.getByText("solo")).toBeInTheDocument();
-    expect(screen.queryByTitle("Série en jours")).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/serie en jours/i)).not.toBeInTheDocument();
   });
 
-  it("affiche le séparateur et le rang hors top quand l’API me/rank renvoie des données", () => {
+  it("affiche le separateur et le rang hors top quand me/rank renvoie des donnees", () => {
     vi.mocked(useAuth).mockReturnValue({
       ...defaultAuthReturn,
       user: {
@@ -174,12 +173,17 @@ describe("LeaderboardPage (L2)", () => {
 
     render(<LeaderboardPage />, { wrapper: TestWrapper });
 
-    expect(screen.getByText(/votre position/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(fr.leaderboard.yourRank.separator, "i"))
+    ).toBeInTheDocument();
     expect(screen.getByText("hors_top")).toBeInTheDocument();
     expect(screen.getByText("120")).toBeInTheDocument();
-    const footerBlock = screen.getByText(/votre position/i).closest(".border-t");
+
+    const footerBlock = screen
+      .getByText(new RegExp(fr.leaderboard.yourRank.separator, "i"))
+      .closest(".border-t");
     expect(footerBlock).toBeTruthy();
-    expect(within(footerBlock as HTMLElement).getByText("3")).toBeInTheDocument();
+    expect(within(footerBlock as HTMLElement).getByLabelText("3 points")).toBeInTheDocument();
     expect(within(footerBlock as HTMLElement).getByText("pts")).toBeInTheDocument();
   });
 });

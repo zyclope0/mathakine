@@ -134,10 +134,10 @@ function ConstellationNode({
     "flex flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-300",
     "motion-reduce:transition-none",
     isCompleted
-      // Nœud terminé : statique, pas de hover (aucune action possible)
-      ? "border-primary/40 bg-primary/[0.08]"
-      // Nœud actif : interactif, hover explicite
-      : "group border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+      ? // Nœud terminé : statique, pas de hover (aucune action possible)
+        "border-primary/40 bg-primary/[0.08]"
+      : // Nœud actif : interactif, hover explicite
+        "group border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
   );
 
   // Nœuds complétés : non-cliquables (informatifs)
@@ -149,7 +149,10 @@ function ConstellationNode({
         <div className="relative">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
             <CheckCircle2
-              className={cn("h-6 w-6", !reducedMotion && "animate-[challenge-pop_0.4s_ease-out_both]")}
+              className={cn(
+                "h-6 w-6",
+                !reducedMotion && "animate-[challenge-pop_0.4s_ease-out_both]"
+              )}
               aria-hidden="true"
             />
           </div>
@@ -178,11 +181,7 @@ function ConstellationNode({
   // Nœud actif → Link cliquable vers la destination du défi
   const href = getChallengeHref(challenge);
   return (
-    <Link
-      href={href}
-      className={nodeClasses}
-      aria-label={ariaLabel}
-    >
+    <Link href={href} className={nodeClasses} aria-label={ariaLabel}>
       {/* Icône avec burst conditionnel */}
       <div className="relative">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
@@ -199,9 +198,7 @@ function ConstellationNode({
       </div>
 
       {/* Label */}
-      <p className="text-center text-xs font-medium leading-snug text-foreground">
-        {label}
-      </p>
+      <p className="text-center text-xs font-medium leading-snug text-foreground">{label}</p>
 
       {/* Mini barre de progression */}
       <div className="w-full space-y-1" aria-hidden="true">
@@ -215,7 +212,6 @@ function ConstellationNode({
           {challenge.completed_count}/{challenge.target_count}
         </p>
       </div>
-
     </Link>
   );
 }
@@ -234,8 +230,6 @@ function ConstellationSvg({
     // Ordre d'activation : 0-1, 1-2, 2-0
     return EDGES.map((_, i) => i < completedCount);
   }, [completedCount]);
-
-  const LINE_LENGTH = 120; // approximation pour stroke-dasharray
 
   return (
     <svg

@@ -85,7 +85,6 @@ export function QuickStartActions() {
 
       {/* Layout asymétrique : exercice prend toute la largeur en priorité */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-
         {/* Carte 1 — EXERCICE : primaire, pleine largeur, accent coloré */}
         <Link
           href={exerciseHref}
@@ -132,7 +131,9 @@ export function QuickStartActions() {
                   {bestChallenge.challenge_title || t("challengeDefault")}
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{t("browseAll")}</p>
+                <p className="text-sm text-muted-foreground mt-0.5 leading-snug">
+                  {t("browseAll")}
+                </p>
               )}
             </div>
           </div>
@@ -170,7 +171,6 @@ export function QuickStartActions() {
             <ArrowRight className={arrowClass} aria-hidden="true" />
           </div>
         </Link>
-
       </div>
     </section>
   );

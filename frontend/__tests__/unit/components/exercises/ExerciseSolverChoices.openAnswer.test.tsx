@@ -1,6 +1,6 @@
 /**
- * Régression : Enter vide / espaces en mode open-answer ne doit pas déclencher onSubmitOpenAnswer.
- * Heuristique H5 (Prévention des erreurs) — NI audit 2026-04-04.
+ * Regression : Enter vide / espaces en mode open-answer ne doit pas declencher onSubmitOpenAnswer.
+ * Heuristique H5 - Prevention des erreurs.
  */
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -8,13 +8,13 @@ import userEvent from "@testing-library/user-event";
 import { ExerciseSolverChoices } from "@/components/exercises/ExerciseSolverChoices";
 
 const baseLabels = {
-  openAnswerLabel: "Votre réponse",
-  openAnswerPlaceholder: "Entrez votre réponse…",
-  option: (i: number) => `Option ${i}`,
+  openAnswerLabel: "Votre reponse",
+  openAnswerPlaceholder: "Entrez votre reponse...",
+  option: (index: number) => `Option ${index}`,
   answerCorrect: "Correct",
   answerIncorrect: "Incorrect",
   reviewNoChoicesFallback: "Aucun choix disponible",
-  noChoices: "Réponse correcte :",
+  noChoices: "Reponse correcte :",
 };
 
 function renderOpenAnswer(selectedAnswer: string | null, onSubmit = vi.fn(), onSelect = vi.fn()) {
@@ -34,20 +34,19 @@ function renderOpenAnswer(selectedAnswer: string | null, onSubmit = vi.fn(), onS
   );
 }
 
-describe("ExerciseSolverChoices — open-answer Enter guard", () => {
-  it("n'appelle pas onSubmitOpenAnswer si l'input est vide (selectedAnswer null)", async () => {
+describe("ExerciseSolverChoices - open-answer Enter guard", () => {
+  it("n'appelle pas onSubmitOpenAnswer si l'input est vide", async () => {
     const onSubmit = vi.fn();
     renderOpenAnswer(null, onSubmit);
-    const input = screen.getByLabelText("Votre réponse");
+    const input = screen.getByLabelText("Votre reponse");
     await userEvent.type(input, "{Enter}");
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("n'appelle pas onSubmitOpenAnswer si l'input ne contient que des espaces", async () => {
     const onSubmit = vi.fn();
-    // selectedAnswer est "   " (espaces) — le composant reçoit ça depuis le parent
     renderOpenAnswer("   ", onSubmit);
-    const input = screen.getByLabelText("Votre réponse");
+    screen.getByLabelText("Votre reponse");
     await userEvent.keyboard("{Enter}");
     expect(onSubmit).not.toHaveBeenCalled();
   });
@@ -55,7 +54,7 @@ describe("ExerciseSolverChoices — open-answer Enter guard", () => {
   it("appelle onSubmitOpenAnswer quand l'input a du contenu valide", async () => {
     const onSubmit = vi.fn();
     renderOpenAnswer("42", onSubmit);
-    const input = screen.getByLabelText("Votre réponse");
+    const input = screen.getByLabelText("Votre reponse");
     await userEvent.click(input);
     await userEvent.keyboard("{Enter}");
     expect(onSubmit).toHaveBeenCalledOnce();

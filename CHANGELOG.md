@@ -57,12 +57,19 @@ Active references:
   - `/admin` now requires authoritative backend truth, not only a locally decoded token
 - The theme system now exposes 8 visible themes instead of 7, with `aurora` replacing legacy `peach` and `unicorn` added as a first-class theme. Theme switching also avoids layered transition jank during light/dark changes.
 - Learner-facing UX is materially calmer and more explicit: dedicated learner cards/layout, disabled-button guidance on validation, review-safe solver flow, post-answer feedback animation guards, and stable anchored sections on `/home-learner`.
+- The exercise and challenge discovery surfaces were tightened substantially without changing their routes or contracts:
+  - exercise filters now rely more on progressive disclosure
+  - cards are lighter, keyboard-accessible, and less visually noisy
+  - the challenge listing is visually realigned with the exercise catalogue
+- The leaderboard now uses a stronger gamification treatment while keeping post-polish accessibility fixes in place: safer contrast, corrected ARIA usage, and calmer post-overdrive cleanup.
+- Shared navigation and dashboard entry points were polished for better hierarchy and lower clutter: navbar hierarchy, learner home spacing, dashboard header disclosure, and calmer hero/metric balance.
 
 ### Fixed
 
 - Logging out now clears the visible authenticated UI state immediately instead of requiring a manual reload.
 - Admin role editing now preloads and displays the current canonical role correctly in the modal instead of showing an empty select.
 - Server-side auth boundary now rejects inactive users on protected truth-building paths.
+- Frontend regression tests were realigned with the shipped UX copy and visible affordances, so CI now validates the actual interface instead of stale wording.
 
 ### Notes
 

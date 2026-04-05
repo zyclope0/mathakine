@@ -109,9 +109,7 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
 
           {/* Message motivationnel — inline, pas de border-t */}
           {currentStreak > 0 && (
-            <p className="text-sm text-muted-foreground leading-snug pt-1">
-              {t("keepGoing")}
-            </p>
+            <p className="text-sm text-muted-foreground leading-snug pt-1">{t("keepGoing")}</p>
           )}
         </CardContent>
       </Card>

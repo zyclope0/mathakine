@@ -30,14 +30,11 @@ export function ThemeSelectorCompact() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label="Changer le thème"
-          title="Changer le thème"
-        >
+        <Button variant="ghost" size="sm" aria-label="Changer le thème" title="Changer le thème">
           <Palette className="h-4 w-4 mr-1.5" aria-hidden="true" />
-          <span className="hidden sm:inline" aria-hidden="true">{currentTheme.icon}</span>
+          <span className="hidden sm:inline" aria-hidden="true">
+            {currentTheme.icon}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
