@@ -222,6 +222,7 @@ function ExercisesPageContent() {
           }}
           hasResettableState={hasActiveFilters}
           advancedActiveCount={advancedActiveCount}
+          showTypeChipsInline
         />
 
         {/* Générateur unifié — Toolbar compacte */}

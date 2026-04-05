@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ChevronDown, EyeOff, Filter, Search, X } from "lucide-react";
+import { ChevronDown, Filter, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,13 @@ export interface ContentListProgressiveFilterToolbarProps {
   /** Nombre de filtres avancés actifs (type, âge, ordre, hideCompleted) pour le badge. */
   advancedActiveCount: number;
   containerClassName?: string;
+  /**
+   * Si true : les chips de filtre par type sont affichées directement sous la barre de
+   * recherche (accès en 1 clic, icône + label visible). Le panneau avancé ne garde que
+   * âge, ordre et masquer les réussis.
+   * Défaut false — rétrocompatible avec les pages qui n'utilisent pas ce mode.
+   */
+  showTypeChipsInline?: boolean;
 }
 
 function FilterSummaryChip({
@@ -125,6 +132,7 @@ export function ContentListProgressiveFilterToolbar({
   hasResettableState,
   advancedActiveCount,
   containerClassName,
+  showTypeChipsInline = false,
 }: ContentListProgressiveFilterToolbarProps) {
   const baseId = useId();
   const panelId = `${baseId}-advanced-panel`;
@@ -203,6 +211,62 @@ export function ContentListProgressiveFilterToolbar({
         </div>
       </div>
 
+      {/* Chips type inline — accès direct, icône + label, 1 clic (NI/enfant) */}
+      {showTypeChipsInline && (
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          role="group"
+          aria-label={labels.typeHeading}
+        >
+          {/* Chip "Tous" — texte explicite, pas d'icône ambiguë */}
+          <button
+            type="button"
+            onClick={() => {
+              onTypeFilterChange("all");
+              onFilterAdjust();
+            }}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+              typeFilterValue === "all"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card border-border/60 text-foreground hover:border-primary/50 hover:bg-primary/5"
+            )}
+            aria-pressed={typeFilterValue === "all"}
+          >
+            {labels.allTypes}
+          </button>
+
+          {/* Chips par type — icône + label visible, pas de Tooltip nécessaire */}
+          {Object.entries(typeStyles).map(([typeKey, { icon: Icon }]) => {
+            const label = getTypeDisplay(typeKey);
+            const isActive = typeFilterValue === typeKey;
+            return (
+              <button
+                key={typeKey}
+                type="button"
+                onClick={() => {
+                  onTypeFilterChange(typeKey);
+                  onFilterAdjust();
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card border-border/60 text-foreground hover:border-primary/50 hover:bg-primary/5"
+                )}
+                aria-pressed={isActive}
+                aria-label={label}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Résumé état ordre/masqués : visible panneau fermé, évite l'opacité du badge seul */}
       {showStateSummary && (
         <p className="text-xs text-muted-foreground/70 -mt-1" aria-live="polite">
@@ -246,53 +310,56 @@ export function ContentListProgressiveFilterToolbar({
           {labels.advancedRegionLabel}
         </h2>
 
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">{labels.typeHeading}</p>
-          <TooltipProvider delayDuration={300}>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant={typeFilterValue === "all" ? "default" : "outline"}
-                    size="sm"
-                    className="h-11 min-h-[44px] min-w-[44px] p-0"
-                    onClick={() => {
-                      onTypeFilterChange("all");
-                      onFilterAdjust();
-                    }}
-                  >
-                    <Filter className="h-4 w-4" aria-hidden />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{labels.allTypes}</TooltipContent>
-              </Tooltip>
-              <div
-                className="mx-0.5 hidden h-11 w-px shrink-0 self-center bg-border sm:block"
-                aria-hidden
-              />
-              {Object.entries(typeStyles).map(([typeKey, { icon: Icon }]) => (
-                <Tooltip key={typeKey}>
+        {/* Filtres par type dans le panneau — seulement si non exposés en inline */}
+        {!showTypeChipsInline && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">{labels.typeHeading}</p>
+            <TooltipProvider delayDuration={300}>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       type="button"
-                      variant={typeFilterValue === typeKey ? "default" : "outline"}
+                      variant={typeFilterValue === "all" ? "default" : "outline"}
                       size="sm"
                       className="h-11 min-h-[44px] min-w-[44px] p-0"
                       onClick={() => {
-                        onTypeFilterChange(typeKey);
+                        onTypeFilterChange("all");
                         onFilterAdjust();
                       }}
                     >
-                      <Icon className="h-4 w-4" aria-hidden />
+                      <Filter className="h-4 w-4" aria-hidden />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">{getTypeDisplay(typeKey)}</TooltipContent>
+                  <TooltipContent side="bottom">{labels.allTypes}</TooltipContent>
                 </Tooltip>
-              ))}
-            </div>
-          </TooltipProvider>
-        </div>
+                <div
+                  className="mx-0.5 hidden h-11 w-px shrink-0 self-center bg-border sm:block"
+                  aria-hidden
+                />
+                {Object.entries(typeStyles).map(([typeKey, { icon: Icon }]) => (
+                  <Tooltip key={typeKey}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant={typeFilterValue === typeKey ? "default" : "outline"}
+                        size="sm"
+                        className="h-11 min-h-[44px] min-w-[44px] p-0"
+                        onClick={() => {
+                          onTypeFilterChange(typeKey);
+                          onFilterAdjust();
+                        }}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{getTypeDisplay(typeKey)}</TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </TooltipProvider>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
           <div className="space-y-1.5 min-w-0 sm:max-w-xs">
@@ -360,7 +427,6 @@ export function ContentListProgressiveFilterToolbar({
                 onFilterAdjust();
               }}
             />
-            <EyeOff className="h-4 w-4 shrink-0" aria-hidden />
             <span>{labels.hideCompleted}</span>
           </label>
         </div>
