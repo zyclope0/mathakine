@@ -1,8 +1,8 @@
 # GETTING STARTED - MATHAKINE
 
 > Quick start
-> Updated: 29/03/2026
-> Visible product release: `3.5.0-alpha.1`
+> Updated: 05/04/2026
+> Visible product release: `3.6.0-alpha.1`
 
 ## Prerequisites
 
@@ -13,6 +13,7 @@
 - Git
 
 Important:
+
 - backend development and backend tests rely on a local PostgreSQL instance
 - visible release truth comes from `CHANGELOG.md` and `frontend/package.json`
 - `pyproject.toml` is not the visible product release source

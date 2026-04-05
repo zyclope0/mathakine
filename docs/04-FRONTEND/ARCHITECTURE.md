@@ -1,32 +1,33 @@
-# Architecture Frontend — Mathakine
+﻿# Architecture Frontend â€” Mathakine
 
-> Dernière mise à jour : 04/04/2026  
-> Validé contre le code source réel (post-audit industrialisation)
+> DerniÃ¨re mise Ã  jour : 05/04/2026  
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation)
 
 ---
 
-## Références
+## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) — catalogue des 41 hooks React (rôle, dépendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) — 126 composants React (catégories, rôles, conventions)
-- [API_ROUTES.md](API_ROUTES.md) — 7 routes API Next.js (proxy, auth, SSE)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 43 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 136 composants React (catÃ©gories, rÃ´les, conventions)
+- [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
+- [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 
 ---
 
 ## Stack technique
 
-| Technologie        | Usage                               | Version |
-| ------------------ | ----------------------------------- | ------- |
-| **Next.js**        | Framework (App Router)              | 16.1.6  |
-| **TypeScript**     | Langage (strict mode)               | 5.x     |
-| **Tailwind CSS**   | Styling                             | v4      |
-| **shadcn/ui**      | Composants UI (Radix UI)            | —       |
-| **TanStack Query** | Server state (cache API)            | v5      |
-| **Zustand**        | Client state (thèmes, a11y, locale) | —       |
-| **Framer Motion**  | Animations (avec garde-fous a11y)   | —       |
-| **next-intl**      | Internationalisation (FR/EN)        | —       |
-| **Vitest**         | Tests unitaires                     | —       |
-| **Playwright**     | Tests E2E                           | —       |
+| Technologie        | Usage                                | Version |
+| ------------------ | ------------------------------------ | ------- |
+| **Next.js**        | Framework (App Router)               | 16.1.6  |
+| **TypeScript**     | Langage (strict mode)                | 5.x     |
+| **Tailwind CSS**   | Styling                              | v4      |
+| **shadcn/ui**      | Composants UI (Radix UI)             | â€”     |
+| **TanStack Query** | Server state (cache API)             | v5      |
+| **Zustand**        | Client state (thÃ¨mes, a11y, locale) | â€”     |
+| **Framer Motion**  | Animations (avec garde-fous a11y)    | â€”     |
+| **next-intl**      | Internationalisation (FR/EN)         | â€”     |
+| **Vitest**         | Tests unitaires                      | â€”     |
+| **Playwright**     | Tests E2E                            | â€”     |
 
 ---
 
@@ -34,116 +35,116 @@
 
 ```
 frontend/
-├── app/                          # Next.js App Router
-│   ├── admin/                    # Espace admin (role canonique admin)
-│   │   ├── layout.tsx            # Layout admin + navigation latérale
-│   │   ├── page.tsx              # Vue d'ensemble admin
-│   │   ├── analytics/            # Analytics EdTech
-│   │   ├── ai-monitoring/        # Monitoring IA (tokens, qualité)
-│   │   ├── audit-log/            # Journal d'audit
-│   │   ├── config/               # Paramètres plateforme
-│   │   ├── content/              # Gestion contenu
-│   │   ├── feedback/             # Retours utilisateurs
-│   │   ├── moderation/           # Modération IA
-│   │   └── users/                # Gestion utilisateurs
-│   ├── api/                      # API Routes Next.js (proxy backend)
-│   │   ├── auth/                 # sync-cookie, check-cookie
-│   │   ├── challenges/           # generate-ai-stream (POST JSON → proxy SSE backend)
-│   │   ├── exercises/            # generate-ai-stream (POST JSON → proxy SSE backend)
-│   │   ├── chat/                 # stream (chatbot)
-│   │   └── sentry-status/
-│   ├── badges/page.tsx
-│   ├── challenge/[id]/page.tsx
-│   ├── challenges/page.tsx
-│   ├── changelog/page.tsx
-│   ├── dashboard/page.tsx        # Surface analytique principale adulte, entree secondaire pour apprenant
-│   ├── home-learner/page.tsx     # Surface apprenant dediee et point d'entree par defaut (NI-13)
-│   ├── exercises/page.tsx + [id]/page.tsx
-│   ├── forgot-password/page.tsx
-│   ├── leaderboard/page.tsx
-│   ├── login/page.tsx
-│   ├── offline/page.tsx
-│   ├── onboarding/page.tsx
-│   ├── profile/page.tsx
-│   ├── register/page.tsx
-│   ├── reset-password/page.tsx
-│   ├── settings/page.tsx
-│   ├── verify-email/page.tsx
-│   ├── layout.tsx                # Layout racine
-│   ├── page.tsx                  # Accueil
-│   ├── error.tsx / global-error.tsx / not-found.tsx
-│   └── globals.css               # Styles globaux + variables thèmes CSS
-│
-├── components/
-│   ├── accessibility/            # AccessibilityToolbar, WCAGAudit (dev)
-│   ├── admin/                    # Modales CRUD (Exercise, Challenge, Badge)
-│   ├── auth/                     # ProtectedRoute, EmailVerification
-│   ├── badges/                   # BadgeCard, BadgeGrid
-│   ├── challenges/               # ChallengeCard, ChallengeSolver, ChallengeModal
-│   │   └── visualizations/       # Renderers (Pattern, Sequence, Visual, Deduction…)
-│   ├── dashboard/                # Widgets dashboard (Stats, Recommendations, Level…)
-│   ├── exercises/                # ExerciseCard, ExerciseSolver, AIGenerator
-│   ├── feedback/                 # FeedbackFab, FeedbackModal
-│   ├── home/                     # Hero, QuickStart, features section
-│   ├── layout/                   # PageLayout, PageHeader, PageSection, PageGrid,
-│   │                             # EmptyState, LoadingState, Header, Footer, PageTransition
-│   ├── locale/                   # LanguageSelector, LocaleInitializer
-│   ├── providers/                # QueryProvider, ThemeProvider, IntlProvider
-│   ├── pwa/                      # InstallPrompt
-│   ├── shared/                   # Composants partagés cross-domaine
-│   │   └── AIGeneratorBase.tsx   # Base UI partagée (exercises + challenges AIGenerator)
-│   ├── spatial/                  # SpatialBackground, Starfield, Planet, Particles, DinoFloating
-│   ├── theme/                    # ThemeSelector, ThemeSelectorCompact
-│   └── ui/                       # shadcn/ui (Button, Card, Dialog, Input, Select…)
-│
-├── hooks/                        # 41 hooks React (majoritairement React Query)
-│   ├── chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
-│   ├── useAuth.ts                # Authentification (login, logout, register)
-│   ├── useExercise(s).ts         # Exercices (liste, détail, pagination)
-│   ├── useChallenge(s).ts        # Défis logiques
-│   ├── useBadges.ts / useBadgesProgress.ts
-│   ├── useUserStats.ts / useProgressStats.ts / useNextReview.ts
-│   ├── useRecommendations.ts
-│   ├── useLeaderboard.ts
-│   ├── useChat.ts
-│   ├── useProfile.ts / useSettings.ts
-│   ├── useAcademyStats.ts
-│   ├── useSubmitAnswer.ts / useCompletedItems.ts
-│   ├── usePaginatedContent.ts
-│   ├── useChallengeTranslations.ts / useChallengesProgress.ts
-│   └── useAdmin*.ts              # 12 hooks admin (Overview, Users, Exercises,
-│                                 # Challenges, Badges, Reports, Moderation,
-│                                 # Config, AuditLog, Feedback, EdTechAnalytics,
-│                                 # AiStats)
-│
-├── lib/
-│   ├── chat/                     # Types + mapping historique API chat (`README.md`)
-│   ├── api/client.ts             # Client HTTP (fetch + CSRF + auth)
-│   ├── constants/                # Constantes centralisées (exercises, challenges, badges)
-│   ├── stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
-│   ├── spacedReviewSession.ts    # handoff review-safe entre dashboard F04 et solver
-│   ├── hooks/                    # Hooks utilitaires (useAccessibleAnimation, useKeyboardNavigation)
-│   ├── utils/
-│   │   ├── cn.ts                 # clsx + tailwind-merge (source de vérité interne)
-│   │   └── format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
-│   ├── utils.ts                  # Re-export de cn — TOUJOURS importer depuis @/lib/utils
-│   └── validation/               # Schémas de validation (dashboard, exercise, next review F04…)
-│
-├── messages/
-│   ├── fr.json                   # Traductions françaises
-│   └── en.json                   # Traductions anglaises
-│
-├── types/                        # Types TypeScript partagés
-├── scripts/i18n/                 # Scripts vérification traductions
-├── public/
-│   ├── manifest.json             # PWA manifest
-│   ├── icons/                    # Icônes PWA (à créer par designer)
-│   └── sw.js                     # Service Worker (généré au build)
-│
-├── next.config.ts                # Config Next.js + PWA
-├── tailwind.config.js            # Config Tailwind
-├── tsconfig.json                 # TypeScript strict
-└── package.json
+â”œâ”€â”€ app/                          # Next.js App Router
+â”‚   â”œâ”€â”€ admin/                    # Espace admin (role canonique admin)
+â”‚   â”‚   â”œâ”€â”€ layout.tsx            # Layout admin + navigation latÃ©rale
+â”‚   â”‚   â”œâ”€â”€ page.tsx              # Vue d'ensemble admin
+â”‚   â”‚   â”œâ”€â”€ analytics/            # Analytics EdTech
+â”‚   â”‚   â”œâ”€â”€ ai-monitoring/        # Monitoring IA (tokens, qualitÃ©)
+â”‚   â”‚   â”œâ”€â”€ audit-log/            # Journal d'audit
+â”‚   â”‚   â”œâ”€â”€ config/               # ParamÃ¨tres plateforme
+â”‚   â”‚   â”œâ”€â”€ content/              # Gestion contenu
+â”‚   â”‚   â”œâ”€â”€ feedback/             # Retours utilisateurs
+â”‚   â”‚   â”œâ”€â”€ moderation/           # ModÃ©ration IA
+â”‚   â”‚   â””â”€â”€ users/                # Gestion utilisateurs
+â”‚   â”œâ”€â”€ api/                      # API Routes Next.js (proxy backend)
+â”‚   â”‚   â”œâ”€â”€ auth/                 # sync-cookie, check-cookie
+â”‚   â”‚   â”œâ”€â”€ challenges/           # generate-ai-stream (POST JSON â†’ proxy SSE backend)
+â”‚   â”‚   â”œâ”€â”€ exercises/            # generate-ai-stream (POST JSON â†’ proxy SSE backend)
+â”‚   â”‚   â”œâ”€â”€ chat/                 # stream (chatbot)
+â”‚   â”‚   â””â”€â”€ sentry-status/
+â”‚   â”œâ”€â”€ badges/page.tsx
+â”‚   â”œâ”€â”€ challenge/[id]/page.tsx
+â”‚   â”œâ”€â”€ challenges/page.tsx
+â”‚   â”œâ”€â”€ changelog/page.tsx
+â”‚   â”œâ”€â”€ dashboard/page.tsx        # Surface analytique principale adulte, entree secondaire pour apprenant
+â”‚   â”œâ”€â”€ home-learner/page.tsx     # Surface apprenant dediee et point d'entree par defaut (NI-13)
+â”‚   â”œâ”€â”€ exercises/page.tsx + [id]/page.tsx
+â”‚   â”œâ”€â”€ forgot-password/page.tsx
+â”‚   â”œâ”€â”€ leaderboard/page.tsx
+â”‚   â”œâ”€â”€ login/page.tsx
+â”‚   â”œâ”€â”€ offline/page.tsx
+â”‚   â”œâ”€â”€ onboarding/page.tsx
+â”‚   â”œâ”€â”€ profile/page.tsx
+â”‚   â”œâ”€â”€ register/page.tsx
+â”‚   â”œâ”€â”€ reset-password/page.tsx
+â”‚   â”œâ”€â”€ settings/page.tsx
+â”‚   â”œâ”€â”€ verify-email/page.tsx
+â”‚   â”œâ”€â”€ layout.tsx                # Layout racine
+â”‚   â”œâ”€â”€ page.tsx                  # Accueil
+â”‚   â”œâ”€â”€ error.tsx / global-error.tsx / not-found.tsx
+â”‚   â””â”€â”€ globals.css               # Styles globaux + variables thÃ¨mes CSS
+â”‚
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ accessibility/            # AccessibilityToolbar, WCAGAudit (dev)
+â”‚   â”œâ”€â”€ admin/                    # Modales CRUD (Exercise, Challenge, Badge)
+â”‚   â”œâ”€â”€ auth/                     # ProtectedRoute, EmailVerification
+â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid
+â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver, ChallengeModal
+â”‚   â”‚   â””â”€â”€ visualizations/       # Renderers (Pattern, Sequence, Visual, Deductionâ€¦)
+â”‚   â”œâ”€â”€ dashboard/                # Widgets dashboard (Stats, Recommendations, Levelâ€¦)
+â”‚   â”œâ”€â”€ exercises/                # ExerciseCard, ExerciseSolver, AIGenerator
+â”‚   â”œâ”€â”€ feedback/                 # FeedbackFab, FeedbackModal
+â”‚   â”œâ”€â”€ home/                     # Hero, QuickStart, features section
+â”‚   â”œâ”€â”€ layout/                   # PageLayout, PageHeader, PageSection, PageGrid,
+â”‚   â”‚                             # EmptyState, LoadingState, Header, Footer, PageTransition
+â”‚   â”œâ”€â”€ locale/                   # LanguageSelector, LocaleInitializer
+â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, IntlProvider
+â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
+â”‚   â”œâ”€â”€ shared/                   # Composants partagÃ©s cross-domaine
+â”‚   â”‚   â””â”€â”€ AIGeneratorBase.tsx   # Base UI partagÃ©e (exercises + challenges AIGenerator)
+â”‚   â”œâ”€â”€ spatial/                  # SpatialBackground, Starfield, Planet, Particles, DinoFloating, UnicornFloating
+â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
+â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
+â”‚
+â”œâ”€â”€ hooks/                        # 43 hooks React (majoritairement React Query)
+â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
+â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
+â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
+â”‚   â”œâ”€â”€ useChallenge(s).ts        # DÃ©fis logiques
+â”‚   â”œâ”€â”€ useBadges.ts / useBadgesProgress.ts
+â”‚   â”œâ”€â”€ useUserStats.ts / useProgressStats.ts / useNextReview.ts
+â”‚   â”œâ”€â”€ useRecommendations.ts
+â”‚   â”œâ”€â”€ useLeaderboard.ts
+â”‚   â”œâ”€â”€ useChat.ts
+â”‚   â”œâ”€â”€ useProfile.ts / useSettings.ts
+â”‚   â”œâ”€â”€ useAcademyStats.ts
+â”‚   â”œâ”€â”€ useSubmitAnswer.ts / useCompletedItems.ts
+â”‚   â”œâ”€â”€ usePaginatedContent.ts
+â”‚   â”œâ”€â”€ useChallengeTranslations.ts / useChallengesProgress.ts
+â”‚   â””â”€â”€ useAdmin*.ts              # 12 hooks admin (Overview, Users, Exercises,
+â”‚                                 # Challenges, Badges, Reports, Moderation,
+â”‚                                 # Config, AuditLog, Feedback, EdTechAnalytics,
+â”‚                                 # AiStats)
+â”‚
+â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ chat/                     # Types + mapping historique API chat (`README.md`)
+â”‚   â”œâ”€â”€ api/client.ts             # Client HTTP (fetch + CSRF + auth)
+â”‚   â”œâ”€â”€ constants/                # Constantes centralisÃ©es (exercises, challenges, badges)
+â”‚   â”œâ”€â”€ stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
+â”‚   â”œâ”€â”€ spacedReviewSession.ts    # handoff review-safe entre dashboard F04 et solver
+â”‚   â”œâ”€â”€ hooks/                    # Hooks utilitaires (useAccessibleAnimation, useKeyboardNavigation)
+â”‚   â”œâ”€â”€ utils/
+â”‚   â”‚   â”œâ”€â”€ cn.ts                 # clsx + tailwind-merge (source de vÃ©ritÃ© interne)
+â”‚   â”‚   â””â”€â”€ format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
+â”‚   â”œâ”€â”€ utils.ts                  # Re-export de cn â€” TOUJOURS importer depuis @/lib/utils
+â”‚   â””â”€â”€ validation/               # SchÃ©mas de validation (dashboard, exercise, next review F04â€¦)
+â”‚
+â”œâ”€â”€ messages/
+â”‚   â”œâ”€â”€ fr.json                   # Traductions franÃ§aises
+â”‚   â””â”€â”€ en.json                   # Traductions anglaises
+â”‚
+â”œâ”€â”€ types/                        # Types TypeScript partagÃ©s
+â”œâ”€â”€ scripts/i18n/                 # Scripts vÃ©rification traductions
+â”œâ”€â”€ public/
+â”‚   â”œâ”€â”€ manifest.json             # PWA manifest
+â”‚   â”œâ”€â”€ icons/                    # IcÃ´nes PWA (Ã  crÃ©er par designer)
+â”‚   â””â”€â”€ sw.js                     # Service Worker (gÃ©nÃ©rÃ© au build)
+â”‚
+â”œâ”€â”€ next.config.ts                # Config Next.js + PWA
+â”œâ”€â”€ tailwind.config.js            # Config Tailwind
+â”œâ”€â”€ tsconfig.json                 # TypeScript strict
+â””â”€â”€ package.json
 ```
 
 ---
@@ -152,42 +153,42 @@ frontend/
 
 ### Server vs Client components
 
-- **Défaut** : Server Components dans App Router
-- **`"use client"`** : Requis pour interactivité (état, hooks, events)
+- **DÃ©faut** : Server Components dans App Router
+- **`"use client"`** : Requis pour interactivitÃ© (Ã©tat, hooks, events)
 - **Hooks** : Toujours `"use client"`
-- Les pages admin utilisent toutes `"use client"` (données dynamiques)
+- Les pages admin utilisent toutes `"use client"` (donnÃ©es dynamiques)
 
 ### State management
 
 ```
-┌─────────────────────────────────────────────┐
-│ TanStack Query v5 — Server state (API data) │
-│  cache, invalidation, pagination, mutations  │
-└─────────────────────────────────────────────┘
-┌─────────────────────────────────────────────┐
-│ Zustand — Client state (persisté localStorage)│
-│  thème, locale, préférences accessibilité    │
-└─────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ TanStack Query v5 â€” Server state (API data) â”‚
+â”‚  cache, invalidation, pagination, mutations  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Zustand â€” Client state (persistÃ© localStorage)â”‚
+â”‚  thÃ¨me, locale, prÃ©fÃ©rences accessibilitÃ©    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Client API
 
-`lib/api/client.ts` — wrapper centralisé :
+`lib/api/client.ts` â€” wrapper centralisÃ© :
 
-- Injection automatique du token Bearer (cookie → header)
+- Injection automatique du token Bearer (cookie â†’ header)
 - CSRF token (`X-CSRF-Token` depuis cookie `csrf_token`)
-- Gestion d'erreurs typées (`ApiClientError`)
-- Refresh automatique du token expiré
+- Gestion d'erreurs typÃ©es (`ApiClientError`)
+- Refresh automatique du token expirÃ©
 
 ### Routing API (proxy)
 
 Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
 
-- Éviter d'exposer l'URL backend en CORS direct
-- Gérer le streaming SSE (génération IA) côté serveur
+- Ã‰viter d'exposer l'URL backend en CORS direct
+- GÃ©rer le streaming SSE (gÃ©nÃ©ration IA) cÃ´tÃ© serveur
 - Synchroniser les cookies entre domaines (cross-domain prod)
 
-Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (même origine), comme les flux génération IA — sans réutiliser leurs dispatchers d’événements (schéma différent). Détail : `lib/chat/README.md`.
+Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (mÃªme origine), comme les flux gÃ©nÃ©ration IA â€” sans rÃ©utiliser leurs dispatchers dâ€™Ã©vÃ©nements (schÃ©ma diffÃ©rent). DÃ©tail : `lib/chat/README.md`.
 
 La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/backendUrl.ts` :
 
@@ -236,7 +237,8 @@ Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ce
   - `moderateur`
   - `admin`
 - La source de verite frontend est `lib/auth/userRoles.ts`
-- `ProtectedRoute` porte les gardes de role avec `allowedRoles`
+- `frontend/proxy.ts` porte le premier niveau de boundary serveur sur `/home-learner`, `/dashboard` et `/admin`
+- `ProtectedRoute` garde les memes regles comme fallback client avec `allowedRoles`
 - `NI-13` impose :
 - `/home-learner` comme point d'entree par defaut pour `apprenant`
 - `/dashboard` comme surface analytique normale pour les roles adultes
@@ -275,7 +277,7 @@ Contrainte produit importante :
 ## Scripts disponibles
 
 ```bash
-# Développement
+# DÃ©veloppement
 npm run dev              # Serveur dev (Turbopack)
 npm run build            # Build production
 npm start                # Serveur production
@@ -290,8 +292,8 @@ npm run test:coverage    # Vitest + coverage
 npm run test:e2e         # Playwright (E2E)
 
 # i18n
-npm run i18n:check       # Cohérence clés FR/EN
-npm run i18n:extract     # Détecter strings hardcodées
+npm run i18n:check       # CohÃ©rence clÃ©s FR/EN
+npm run i18n:extract     # DÃ©tecter strings hardcodÃ©es
 npm run i18n:validate    # Valider structure JSON
 ```
 
@@ -307,20 +309,20 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:10000   # Dev (API Starlette)
 
 ---
 
-## Déploiement (Render.com)
+## DÃ©ploiement (Render.com)
 
 - **Build** : `cd frontend && npm install && npm run build`
 - **Start** : `cd frontend && npm start`
 - **HTTPS** : Fourni automatiquement par Render
-- **PWA** : Service Worker généré au build (désactivé en dev)
+- **PWA** : Service Worker gÃ©nÃ©rÃ© au build (dÃ©sactivÃ© en dev)
 
 ---
 
-## Références
+## RÃ©fÃ©rences
 
-- [Design System](DESIGN_SYSTEM.md) — composants layout standardisés
-- [Accessibilité](ACCESSIBILITY.md) — WCAG 2.1 AAA, 5 modes
-- [Animations](ANIMATIONS.md) — composants spatiaux
-- [PWA](PWA.md) — configuration Progressive Web App
-- [i18n](../02-FEATURES/I18N.md) — internationalisation next-intl
-- [Thèmes](../02-FEATURES/THEMES.md) — 7 thèmes, themeStore
+- [Design System](DESIGN_SYSTEM.md) â€” composants layout standardisÃ©s
+- [AccessibilitÃ©](ACCESSIBILITY.md) â€” WCAG 2.1 AAA, 5 modes
+- [Animations](ANIMATIONS.md) â€” composants spatiaux
+- [PWA](PWA.md) â€” configuration Progressive Web App
+- [i18n](../02-FEATURES/I18N.md) â€” internationalisation next-intl
+- [UX Surfaces](UX_SURFACES.md) - home learner, dashboard, roles et boundaries

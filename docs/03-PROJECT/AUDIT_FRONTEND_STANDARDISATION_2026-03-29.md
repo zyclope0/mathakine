@@ -2,7 +2,7 @@
 
 > Généré le 2026-03-29 via `/octo:extract` (deep mode)
 > Stack : Next.js 15 + TypeScript + Tailwind v4 + Radix UI
-> Version frontend : 3.5.0-alpha.1
+> Version frontend : 3.6.0-alpha.1
 
 ---
 
@@ -24,11 +24,11 @@
 
 | Métrique               | Valeur                         |
 | ---------------------- | ------------------------------ |
-| Composants TSX         | 126                            |
+| Composants TSX         | 136                            |
 | Fichiers de tests      | 293                            |
 | Hooks custom           | 43                             |
 | Routes Next.js         | 20+                            |
-| Thèmes couleur         | 7                              |
+| Thèmes couleur         | 8                              |
 | Animations keyframes   | 12                             |
 | Variables CSS (tokens) | 80+                            |
 | Couverture tokens      | ~82% (18% hardcodé edge cases) |
@@ -36,7 +36,7 @@
 
 ### Points forts
 
-- **Système de tokens CSS complet** : 80+ variables CSS dans `globals.css` (48 KB), couvrant 7 thèmes avec dark mode
+- **Système de tokens CSS complet** : 80+ variables CSS dans `globals.css` (48 KB), couvrant 8 thèmes avec dark mode
 - **Composants atomiques propres** : 24 composants UI headless (Radix UI) avec CVA variants
 - **Accessibilité avancée** : 5 modes implémentés (large text, dyslexia, high contrast, reduced motion, TSA/TDAH)
 - **TypeScript strict** : 0 `any` explicite dans les composants UI
@@ -96,7 +96,7 @@ Impact frontend structurel :
 
 - `User.role` est maintenant type sur l'union canonique
 - les helpers de role sont centralises dans `frontend/lib/auth/userRoles.ts`
-- `NI-13` n'est plus un guard local de page ; le boundary apprenant/adulte est porte par `ProtectedRoute`
+- `NI-13` n'est plus un guard local de page ; le boundary apprenant/adulte est maintenant porte par `frontend/proxy.ts`, avec `ProtectedRoute` comme defense en profondeur cote client
 - `/home-learner` devient la home principale des apprenants
 - `/dashboard` reste accessible a l'apprenant comme entree secondaire discrete, sans redevenir la destination par defaut
 

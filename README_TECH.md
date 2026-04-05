@@ -1,11 +1,12 @@
 # Technical README - Mathakine
 
-> Updated: 29/03/2026
+> Updated: 05/04/2026
 
 Visible product train:
-- `3.5.0-alpha.1`
+
+- `3.6.0-alpha.1`
 - source of truth: `CHANGELOG.md` + `frontend/package.json`
-- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.5.0a1`
+- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.6.0a1`
 
 ## Runtime Truth
 
@@ -21,6 +22,7 @@ Visible product train:
 Jalon historique valide ; le dépôt a depuis accumulé d’autres preuves (dont reco **R** ci-dessous). Chiffres = **citations** de clôture documentée ; **re-lancer** les commandes si l’arbre a divergé.
 
 Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial non-bloquant) :
+
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
@@ -50,6 +52,7 @@ Les micro-lots `AT-1` a `AT-4` ont ferme la plupart des findings encore vivants 
 - `AT-4` : vraies suites de tests pour les routes proxy Next.js et clarification des erreurs auth/CSRF/backend de generation IA cote frontend.
 
 Limite assumee :
+
 - le circuit breaker OpenAI reste local au process. Il ameliore la resilience par worker, mais ne constitue pas une coordination distribuee multi-instance.
 
 ## Active Architecture Notes
@@ -102,6 +105,7 @@ Limite assumee :
 ## Iteration E + F + G Outcome
 
 The backend is now materially stronger on:
+
 - bounded typed contracts on auth recovery / verification (E) and auth_service (F1)
 - decomposition of challenge_service create flow (E) and badge_requirement_engine volume (F2)
 - isolated badge requirement validation (E) and admin badge create flow (F3)

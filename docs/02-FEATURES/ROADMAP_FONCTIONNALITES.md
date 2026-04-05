@@ -1,70 +1,70 @@
-# Backlog & Priorisation des Features â€” Mathakine
+﻿# Backlog & Priorisation des Features Ã¢â‚¬â€ Mathakine
 
 > **Document vivant** - Derniere MAJ : 29/03/2026 (F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5)  
-> **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
+> **RÃƒÂ´le** : Source de vÃƒÂ©ritÃƒÂ© unique pour toutes les features ÃƒÂ  implÃƒÂ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
 ---
 
-## Table des matiÃ¨res
+## Table des matiÃƒÂ¨res
 
-1. [MÃ©thodologie de priorisation](#1-mÃ©thodologie-de-priorisation)
-2. [Matrice synthÃ¨se â€” Toutes les features](#2-matrice-synthÃ¨se)
-3. [P0 â€” Impact fort, fondements pÃ©dagogiques solides](#3-p0)
-4. [P1 â€” Haute prioritÃ©](#4-p1) _(dont F30, F31, F32 â€” nouvelles)_
-5. [P2 â€” PrioritÃ© moyenne](#5-p2)
-6. [P3 â€” Investissement long terme](#6-p3)
-7. [P4 â€” Backlog distant](#7-p4)
+1. [MÃƒÂ©thodologie de priorisation](#1-mÃƒÂ©thodologie-de-priorisation)
+2. [Matrice synthÃƒÂ¨se Ã¢â‚¬â€ Toutes les features](#2-matrice-synthÃƒÂ¨se)
+3. [P0 Ã¢â‚¬â€ Impact fort, fondements pÃƒÂ©dagogiques solides](#3-p0)
+4. [P1 Ã¢â‚¬â€ Haute prioritÃƒÂ©](#4-p1) _(dont F30, F31, F32 Ã¢â‚¬â€ nouvelles)_
+5. [P2 Ã¢â‚¬â€ PrioritÃƒÂ© moyenne](#5-p2)
+6. [P3 Ã¢â‚¬â€ Investissement long terme](#6-p3)
+7. [P4 Ã¢â‚¬â€ Backlog distant](#7-p4)
 8. [Features implementees (historique)](#8-features-implementees)
-9. [RÃ©fÃ©rences scientifiques](#9-rÃ©fÃ©rences-scientifiques)
+9. [RÃƒÂ©fÃƒÂ©rences scientifiques](#9-rÃƒÂ©fÃƒÂ©rences-scientifiques)
 
 ---
 
-## 1. MÃ©thodologie de priorisation
+## 1. MÃƒÂ©thodologie de priorisation
 
-### 1.1 Axes d'Ã©valuation (1â€“5)
+### 1.1 Axes d'ÃƒÂ©valuation (1Ã¢â‚¬â€œ5)
 
-| Axe                        | Description                                                     | 1            | 5                 |
-| -------------------------- | --------------------------------------------------------------- | ------------ | ----------------- |
-| **D** â€” DifficultÃ©      | Effort d'implÃ©mentation estimÃ©                                | Â½ jour      | 2+ semaines       |
-| **G** â€” Gain utilisateur | Impact direct sur l'engagement et la satisfaction               | NÃ©gligeable | Transformateur    |
-| **E** â€” EdTech           | Valeur pÃ©dagogique scientifiquement documentÃ©e (voir Ã‚Â§1.2) | CosmÃ©tique  | Effet fort > 0.6d |
-| **R** â€” Risque           | Risque technique ou de rÃ©gression                              | Aucun        | Critique          |
-| **B** â€” Business         | RÃ©tention / acquisition / diffÃ©renciation marchÃ©             | Nul          | DÃ©cisif          |
+| Axe                            | Description                                                              | 1              | 5                 |
+| ------------------------------ | ------------------------------------------------------------------------ | -------------- | ----------------- |
+| **D** Ã¢â‚¬â€ DifficultÃƒÂ©    | Effort d'implÃƒÂ©mentation estimÃƒÂ©                                     | Ã‚Â½ jour      | 2+ semaines       |
+| **G** Ã¢â‚¬â€ Gain utilisateur | Impact direct sur l'engagement et la satisfaction                        | NÃƒÂ©gligeable | Transformateur    |
+| **E** Ã¢â‚¬â€ EdTech           | Valeur pÃƒÂ©dagogique scientifiquement documentÃƒÂ©e (voir Ãƒâ€šÃ‚Â§1.2) | CosmÃƒÂ©tique  | Effet fort > 0.6d |
+| **R** Ã¢â‚¬â€ Risque           | Risque technique ou de rÃƒÂ©gression                                     | Aucun          | Critique          |
+| **B** Ã¢â‚¬â€ Business         | RÃƒÂ©tention / acquisition / diffÃƒÂ©renciation marchÃƒÂ©                | Nul            | DÃƒÂ©cisif        |
 
-### 1.2 Ã‰chelle EdTech â€” Base scientifique
+### 1.2 Ãƒâ€°chelle EdTech Ã¢â‚¬â€ Base scientifique
 
-L'axe EdTech est **le seul Ã  Ãªtre Ã©valuÃ© Ã  partir de donnÃ©es factuelles**, pas d'intuitions produit.
+L'axe EdTech est **le seul ÃƒÂ  ÃƒÂªtre ÃƒÂ©valuÃƒÂ© ÃƒÂ  partir de donnÃƒÂ©es factuelles**, pas d'intuitions produit.
 
-| Score | Signification      | CritÃ¨re                                                                                  |
-| ----- | ------------------ | ----------------------------------------------------------------------------------------- |
-| **5** | Preuve trÃ¨s forte | MÃ©ta-analyse, effet mesurÃ© d Ã¢â€°Â¥ 0.6 (Cohen), rÃ©pliquÃ© dans plusieurs populations |
-| **4** | Preuve forte       | Effet mesurÃ© d = 0.4â€“0.6, ou consensus dans la littÃ©rature EdTech peer-reviewed       |
-| **3** | Preuve modÃ©rÃ©e   | BÃ©nÃ©fice documentÃ© mais conditionnel, population spÃ©cifique ou effet indirect         |
-| **2** | Preuve faible      | Engagement documentÃ©, mais impact sur l'apprentissage mixte ou non mesurÃ©               |
-| **1** | Pas de preuve      | Principalement cosmÃ©tique, spÃ©culatif ou motivation extrinsÃ¨que non corroborÃ©e        |
+| Score | Signification        | CritÃƒÂ¨re                                                                                                |
+| ----- | -------------------- | --------------------------------------------------------------------------------------------------------- |
+| **5** | Preuve trÃƒÂ¨s forte | MÃƒÂ©ta-analyse, effet mesurÃƒÂ© d ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥ 0.6 (Cohen), rÃƒÂ©pliquÃƒÂ© dans plusieurs populations |
+| **4** | Preuve forte         | Effet mesurÃƒÂ© d = 0.4Ã¢â‚¬â€œ0.6, ou consensus dans la littÃƒÂ©rature EdTech peer-reviewed              |
+| **3** | Preuve modÃƒÂ©rÃƒÂ©e | BÃƒÂ©nÃƒÂ©fice documentÃƒÂ© mais conditionnel, population spÃƒÂ©cifique ou effet indirect                 |
+| **2** | Preuve faible        | Engagement documentÃƒÂ©, mais impact sur l'apprentissage mixte ou non mesurÃƒÂ©                           |
+| **1** | Pas de preuve        | Principalement cosmÃƒÂ©tique, spÃƒÂ©culatif ou motivation extrinsÃƒÂ¨que non corroborÃƒÂ©e                |
 
-**RÃ©fÃ©rences de base utilisÃ©es pour le scoring** :
+**RÃƒÂ©fÃƒÂ©rences de base utilisÃƒÂ©es pour le scoring** :
 
-- Hattie (2009) â€” _Visible Learning_ : mÃ©ta-analyse de 800+ mÃ©ta-analyses (>50 000 Ã©tudes)
-- Cepeda et al. (2006) â€” Pratique distribuÃ©e et espacÃ©e â€” _Psychological Bulletin_
+- Hattie (2009) Ã¢â‚¬â€ _Visible Learning_ : mÃƒÂ©ta-analyse de 800+ mÃƒÂ©ta-analyses (>50 000 ÃƒÂ©tudes)
+- Cepeda et al. (2006) Ã¢â‚¬â€ Pratique distribuÃƒÂ©e et espacÃƒÂ©e Ã¢â‚¬â€ _Psychological Bulletin_
 - Hattie & Timperley (2007) - Pouvoir du feedback - _Review of Educational Research_
-- VanLehn (2011) â€” Tuteurs IA vs tuteurs humains â€” _Educational Psychologist_
-- Bjork (1994) â€” Desirable difficulties in learning
+- VanLehn (2011) Ã¢â‚¬â€ Tuteurs IA vs tuteurs humains Ã¢â‚¬â€ _Educational Psychologist_
+- Bjork (1994) Ã¢â‚¬â€ Desirable difficulties in learning
 - Sweller (1988) - Theorie de la charge cognitive - _Cognitive Science_
-- Deci & Ryan (2000) â€” ThÃ©orie de l'autodÃ©termination (SDT)
+- Deci & Ryan (2000) Ã¢â‚¬â€ ThÃƒÂ©orie de l'autodÃƒÂ©termination (SDT)
 - Mayer (2001) - Multimedia learning theory
-- Kivetz et al. (2006) â€” Goal-gradient hypothesis â€” _Journal of Marketing Research_
+- Kivetz et al. (2006) Ã¢â‚¬â€ Goal-gradient hypothesis Ã¢â‚¬â€ _Journal of Marketing Research_
 
-> **Convention** : `[PROPOSITION]` = feature suggÃ©rÃ©e par l'IA, non issue des docs existants. Ã€ valider produit avant implÃ©mentation.
+> **Convention** : `[PROPOSITION]` = feature suggÃƒÂ©rÃƒÂ©e par l'IA, non issue des docs existants. Ãƒâ‚¬ valider produit avant implÃƒÂ©mentation.
 
 ### 1.3 Formule de score composite
 
 ```
-Score = (G Ãƒâ€” 1.5) + (E Ãƒâ€” 2) + B Ã¢Ë†â€™ (D Ãƒâ€” 0.8) Ã¢Ë†â€™ (R Ãƒâ€” 0.7)
+Score = (G ÃƒÆ’Ã¢â‚¬â€ 1.5) + (E ÃƒÆ’Ã¢â‚¬â€ 2) + B ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ (D ÃƒÆ’Ã¢â‚¬â€ 0.8) ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ (R ÃƒÆ’Ã¢â‚¬â€ 0.7)
 ```
 
-Un score Ã©levÃ© indique une feature Ã  haute valeur et faible coÃ»t/risque. Le score **ne remplace pas** le jugement â€” il oriente la discussion.
+Un score ÃƒÂ©levÃƒÂ© indique une feature ÃƒÂ  haute valeur et faible coÃƒÂ»t/risque. Le score **ne remplace pas** le jugement Ã¢â‚¬â€ il oriente la discussion.
 
 ### 1.4 Rituel de mise a jour apres chaque lot
 
@@ -84,50 +84,50 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 
 _Vue consolidee du backlog et du deja livre. Legende : D=Difficulte, G=Gain, E=EdTech, R=Risque, B=Business._
 
-| #   | Feature                                                                  | Statut reel code                                                                                           | D   | G   | E   | R   | B   | Score    | Priorite |
-| --- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | --- | --- | --- | --- | --- | -------- | -------- |
-| F01 | Rendu Markdown/KaTeX explications                                        | [DONE]                                                                                                     | 2   | 4   | 5   | 1   | 3   | **16.8** | P0       |
-| F02 | Defis quotidiens (defi du jour)                                          | [DONE]                                                                                                     | 3   | 5   | 4   | 2   | 5   | **16.9** | P0       |
-| F03 | Test de diagnostic initial                                               | [DONE]                                                                                                     | 3   | 4   | 5   | 2   | 4   | **16.0** | P0       |
-| F04 | Revisions espacees (SM-2)                                                | [PARTIAL] exercice livre end-to-end ; defis + F23 restent hors scope                                       | 4   | 4   | 5   | 2   | 4   | **14.8** | P0       |
-| F30 | [PROP] Effet Protege (corriger erreur IA)                                | [BACKLOG]                                                                                                  | 4   | 4   | 5   | 2   | 4   | **15.4** | P1       |
-| F31 | [PROP] Exemples resolus progressifs (Fading)                             | [BACKLOG]                                                                                                  | 3   | 4   | 5   | 2   | 3   | **15.2** | P1       |
-| F32 | [PROP] Mode Pratique Entrelacee (Interleaving)                           | [DONE]                                                                                                     | 2   | 3   | 5   | 2   | 3   | **14.5** | P1       |
-| F05 | Adaptation dynamique de difficulte                                       | [DONE]                                                                                                     | 4   | 4   | 5   | 3   | 4   | **13.9** | P1       |
-| F06 | Conditions d'obtention badges visibles                                   | [DONE]                                                                                                     | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
-| F07 | Courbe d'evolution temporelle                                            | [DONE]                                                                                                     | 3   | 4   | 3   | 2   | 3   | **11.2** | P1       |
-| F08 | Objectifs personnalises                                                  | [BACKLOG]                                                                                                  | 3   | 3   | 3   | 1   | 3   | **11.1** | P1       |
-| F09 | Dashboard parent                                                         | [BACKLOG]                                                                                                  | 4   | 4   | 3   | 2   | 5   | **11.4** | P1       |
-| F10 | [PROP] Mode focus / session ciblee                                       | [BACKLOG]                                                                                                  | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
-| F11 | [PROP] Partage progression -> parents (lien)                             | [BACKLOG]                                                                                                  | 2   | 3   | 3   | 1   | 4   | **12.5** | P1       |
-| F12 | Radar chart par discipline                                               | [DONE]                                                                                                     | 2   | 3   | 3   | 1   | 2   | **10.9** | P1       |
-| F13 | Deblocage automatique badges temps reel                                  | [DONE]                                                                                                     | 2   | 3   | 3   | 1   | 3   | **11.5** | P1       |
-| F33 | Feedback Growth Mindset (copywriting)                                    | [DONE]                                                                                                     | 1   | 3   | 3   | 1   | 2   | **11.4** | P1       |
-| F14 | Monitoring IA - persistance DB                                           | [PARTIAL]                                                                                                  | 2   | 2   | 1   | 1   | 3   | **6.9**  | P2       |
-| F15 | Preference page d'accueil (connexion)                                    | [BACKLOG]                                                                                                  | 1   | 2   | 1   | 1   | 1   | **5.7**  | P2       |
-| F16 | Heatmap d'activite                                                       | [BACKLOG]                                                                                                  | 3   | 3   | 2   | 1   | 3   | **9.1**  | P2       |
-| F17 | Celebrations visuelles ameliorees                                        | [BACKLOG]                                                                                                  | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
-| F18 | Ligues hebdomadaires (upgrade leaderboard)                               | [BACKLOG] (leaderboard deja present)                                                                       | 4   | 4   | 1   | 2   | 4   | **8.9**  | P2       |
-| F19 | Notifications push + email                                               | [BACKLOG]                                                                                                  | 4   | 3   | 2   | 2   | 4   | **8.1**  | P2       |
-| F20 | Normalisation niveaux de difficulte                                      | [PARTIAL] produit visible neutralise, legacy technique conserve                                            | 4   | 3   | 2   | 3   | 3   | **6.9**  | P2       |
-| F21 | Badges secrets                                                           | [BACKLOG]                                                                                                  | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
-| F22 | Suppression utilisateur admin (RGPD)                                     | [DONE]                                                                                                     | 2   | 1   | 1   | 2   | 3   | **4.7**  | P2       |
-| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy)                   | [DONE]                                                                                                     | 1   | 2   | 1   | 1   | 4   | **7.5**  | P2       |
-| F36 | [UX][TECH] Flash auth au refresh                                         | [BACKLOG]                                                                                                  | 2   | 2   | 1   | 1   | 3   | **7.2**  | P2       |
-| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | [BACKLOG] actif                                                                                            | 3   | 3   | 4   | 2   | 3   | **11.7** | P2       |
-| F38 | [UX][Gamification] Progression compte coherente & historique des gains   | [PARTIAL] runtime recale ; lecture produit du ledger encore manquante                                      | 3   | 4   | 2   | 2   | 4   | **10.2** | P1       |
-| F23 | [PROP] Exercices adaptatifs SR+IA                                        | [BACKLOG]                                                                                                  | 4   | 5   | 5   | 3   | 5   | **17.1** | P2\*     |
-| F24 | Tuteur IA contextuel                                                     | [BACKLOG]                                                                                                  | 5   | 5   | 5   | 3   | 5   | **16.1** | P3       |
-| F25 | Mode classe / enseignant                                                 | [BACKLOG]                                                                                                  | 5   | 4   | 4   | 3   | 5   | **14.9** | P3       |
-| F26 | Filtres et tri badges                                                    | [DONE]                                                                                                     | 2   | 2   | 1   | 1   | 2   | **6.4**  | P3       |
-| F27 | Optimisation re-renders exercices/defis                                  | [BACKLOG]                                                                                                  | 3   | 2   | 1   | 2   | 2   | **4.8**  | P3       |
-| F28 | Mode aventure / histoire narrative                                       | [BACKLOG]                                                                                                  | 5   | 5   | 3   | 3   | 5   | **13.1** | P4       |
-| F29 | Personnalisation avatar / profil                                         | [BACKLOG]                                                                                                  | 3   | 3   | 1   | 1   | 2   | **7.1**  | P4       |
-| F34 | Module Sciences - Curiosites (Vrai/Faux, format court)                   | [BACKLOG] prototype seulement                                                                              | 3   | 4   | 2   | 2   | 4   | **10.4** | P4       |
-| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars                         | [PARTIAL] visible neutralise ; `progression_rank` + `thematic_title` livres ; aliases legacy encore servis | 4   | 3   | 1   | 3   | 5   | **6.2**  | P1\*     |
-| F40 | Leaderboard â€” position de l'utilisateur hors top 50                    | [DONE]                                                                                                     | 2   | 4   | 2   | 1   | 3   | **10.7** | P2       |
-| F41 | Leaderboard â€” filtre temporel (semaine / mois / tout)                  | [DONE]                                                                                                     | 3   | 4   | 1   | 2   | 3   | **7.2**  | P2       |
-| F42 | Architecture difficultÃ© â€” sÃ©paration Ã¢ge et niveau sur 2 axes       | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite                                    | 4   | 3   | 3   | 3   | 4   | **9.2**  | P2       |
+| #   | Feature                                                                      | Statut reel code                                                                                           | D   | G   | E   | R   | B   | Score    | Priorite |
+| --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --- | --- | --- | --- | --- | -------- | -------- |
+| F01 | Rendu Markdown/KaTeX explications                                            | [DONE]                                                                                                     | 2   | 4   | 5   | 1   | 3   | **16.8** | P0       |
+| F02 | Defis quotidiens (defi du jour)                                              | [DONE]                                                                                                     | 3   | 5   | 4   | 2   | 5   | **16.9** | P0       |
+| F03 | Test de diagnostic initial                                                   | [DONE]                                                                                                     | 3   | 4   | 5   | 2   | 4   | **16.0** | P0       |
+| F04 | Revisions espacees (SM-2)                                                    | [PARTIAL] exercice livre end-to-end ; defis + F23 restent hors scope                                       | 4   | 4   | 5   | 2   | 4   | **14.8** | P0       |
+| F30 | [PROP] Effet Protege (corriger erreur IA)                                    | [BACKLOG]                                                                                                  | 4   | 4   | 5   | 2   | 4   | **15.4** | P1       |
+| F31 | [PROP] Exemples resolus progressifs (Fading)                                 | [BACKLOG]                                                                                                  | 3   | 4   | 5   | 2   | 3   | **15.2** | P1       |
+| F32 | [PROP] Mode Pratique Entrelacee (Interleaving)                               | [DONE]                                                                                                     | 2   | 3   | 5   | 2   | 3   | **14.5** | P1       |
+| F05 | Adaptation dynamique de difficulte                                           | [DONE]                                                                                                     | 4   | 4   | 5   | 3   | 4   | **13.9** | P1       |
+| F06 | Conditions d'obtention badges visibles                                       | [DONE]                                                                                                     | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
+| F07 | Courbe d'evolution temporelle                                                | [DONE]                                                                                                     | 3   | 4   | 3   | 2   | 3   | **11.2** | P1       |
+| F08 | Objectifs personnalises                                                      | [BACKLOG]                                                                                                  | 3   | 3   | 3   | 1   | 3   | **11.1** | P1       |
+| F09 | Dashboard parent                                                             | [BACKLOG]                                                                                                  | 4   | 4   | 3   | 2   | 5   | **11.4** | P1       |
+| F10 | [PROP] Mode focus / session ciblee                                           | [BACKLOG]                                                                                                  | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
+| F11 | [PROP] Partage progression -> parents (lien)                                 | [BACKLOG]                                                                                                  | 2   | 3   | 3   | 1   | 4   | **12.5** | P1       |
+| F12 | Radar chart par discipline                                                   | [DONE]                                                                                                     | 2   | 3   | 3   | 1   | 2   | **10.9** | P1       |
+| F13 | Deblocage automatique badges temps reel                                      | [DONE]                                                                                                     | 2   | 3   | 3   | 1   | 3   | **11.5** | P1       |
+| F33 | Feedback Growth Mindset (copywriting)                                        | [DONE]                                                                                                     | 1   | 3   | 3   | 1   | 2   | **11.4** | P1       |
+| F14 | Monitoring IA - persistance DB                                               | [PARTIAL]                                                                                                  | 2   | 2   | 1   | 1   | 3   | **6.9**  | P2       |
+| F15 | Preference page d'accueil (connexion)                                        | [BACKLOG]                                                                                                  | 1   | 2   | 1   | 1   | 1   | **5.7**  | P2       |
+| F16 | Heatmap d'activite                                                           | [BACKLOG]                                                                                                  | 3   | 3   | 2   | 1   | 3   | **9.1**  | P2       |
+| F17 | Celebrations visuelles ameliorees                                            | [BACKLOG]                                                                                                  | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
+| F18 | Ligues hebdomadaires (upgrade leaderboard)                                   | [BACKLOG] (leaderboard deja present)                                                                       | 4   | 4   | 1   | 2   | 4   | **8.9**  | P2       |
+| F19 | Notifications push + email                                                   | [BACKLOG]                                                                                                  | 4   | 3   | 2   | 2   | 4   | **8.1**  | P2       |
+| F20 | Normalisation niveaux de difficulte                                          | [PARTIAL] produit visible neutralise, legacy technique conserve                                            | 4   | 3   | 2   | 3   | 3   | **6.9**  | P2       |
+| F21 | Badges secrets                                                               | [BACKLOG]                                                                                                  | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
+| F22 | Suppression utilisateur admin (RGPD)                                         | [DONE]                                                                                                     | 2   | 1   | 1   | 2   | 3   | **4.7**  | P2       |
+| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy)                       | [DONE]                                                                                                     | 1   | 2   | 1   | 1   | 4   | **7.5**  | P2       |
+| F36 | [UX][TECH] Flash auth au refresh                                             | [BACKLOG]                                                                                                  | 2   | 2   | 1   | 1   | 3   | **7.2**  | P2       |
+| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard     | [BACKLOG] actif                                                                                            | 3   | 3   | 4   | 2   | 3   | **11.7** | P2       |
+| F38 | [UX][Gamification] Progression compte coherente & historique des gains       | [PARTIAL] runtime recale ; lecture produit du ledger encore manquante                                      | 3   | 4   | 2   | 2   | 4   | **10.2** | P1       |
+| F23 | [PROP] Exercices adaptatifs SR+IA                                            | [BACKLOG]                                                                                                  | 4   | 5   | 5   | 3   | 5   | **17.1** | P2\*     |
+| F24 | Tuteur IA contextuel                                                         | [BACKLOG]                                                                                                  | 5   | 5   | 5   | 3   | 5   | **16.1** | P3       |
+| F25 | Mode classe / enseignant                                                     | [BACKLOG]                                                                                                  | 5   | 4   | 4   | 3   | 5   | **14.9** | P3       |
+| F26 | Filtres et tri badges                                                        | [DONE]                                                                                                     | 2   | 2   | 1   | 1   | 2   | **6.4**  | P3       |
+| F27 | Optimisation re-renders exercices/defis                                      | [BACKLOG]                                                                                                  | 3   | 2   | 1   | 2   | 2   | **4.8**  | P3       |
+| F28 | Mode aventure / histoire narrative                                           | [BACKLOG]                                                                                                  | 5   | 5   | 3   | 3   | 5   | **13.1** | P4       |
+| F29 | Personnalisation avatar / profil                                             | [BACKLOG]                                                                                                  | 3   | 3   | 1   | 1   | 2   | **7.1**  | P4       |
+| F34 | Module Sciences - Curiosites (Vrai/Faux, format court)                       | [BACKLOG] prototype seulement                                                                              | 3   | 4   | 2   | 2   | 4   | **10.4** | P4       |
+| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars                             | [PARTIAL] visible neutralise ; `progression_rank` + `thematic_title` livres ; aliases legacy encore servis | 4   | 3   | 1   | 3   | 5   | **6.2**  | P1\*     |
+| F40 | Leaderboard Ã¢â‚¬â€ position de l'utilisateur hors top 50                    | [DONE]                                                                                                     | 2   | 4   | 2   | 1   | 3   | **10.7** | P2       |
+| F41 | Leaderboard Ã¢â‚¬â€ filtre temporel (semaine / mois / tout)                  | [DONE]                                                                                                     | 3   | 4   | 1   | 2   | 3   | **7.2**  | P2       |
+| F42 | Architecture difficultÃƒÂ© Ã¢â‚¬â€ sÃƒÂ©paration ÃƒÂ¢ge et niveau sur 2 axes | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite                                    | 4   | 3   | 3   | 3   | 4   | **9.2**  | P2       |
 
 > _F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04._
 > _F39 : le visible produit est maintenant neutralise. Les migrations additives `progression_rank` et `thematic_title` sont livrees ; les aliases legacy restent intentionnellement servis pendant la transition._
@@ -186,116 +186,116 @@ Lecture simple :
 
 ---
 
-## 3. P0 â€” Impact fort, fondements pÃ©dagogiques solides {#3-p0}
+## 3. P0 Ã¢â‚¬â€ Impact fort, fondements pÃƒÂ©dagogiques solides {#3-p0}
 
-Ces quatre features combinent un score composite Ã©levÃ© ET un bÃ©nÃ©fice pÃ©dagogique scientifiquement robuste. Elles constituent le cÅ“ur de la valeur Ã©ducative de Mathakine.
+Ces quatre features combinent un score composite ÃƒÂ©levÃƒÂ© ET un bÃƒÂ©nÃƒÂ©fice pÃƒÂ©dagogique scientifiquement robuste. Elles constituent le cÃ…â€œur de la valeur ÃƒÂ©ducative de Mathakine.
 
 ---
 
-### F01 â€” Rendu Markdown/KaTeX dans les explications
+### F01 Ã¢â‚¬â€ Rendu Markdown/KaTeX dans les explications
 
-**Source** : [ROADMAP Ã‚Â§4.7](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§4.7](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 16.8 | D=2, G=4, E=5, R=1, B=3
 
-**ProblÃ¨me** : Les explications post-rÃ©ponse (exercices et dÃ©fis) sont du texte brut. Les formules mathÃ©matiques (`aÂ³+bÂ³`) et les Ã©tapes structurÃ©es sont illisibles.
+**ProblÃƒÂ¨me** : Les explications post-rÃƒÂ©ponse (exercices et dÃƒÂ©fis) sont du texte brut. Les formules mathÃƒÂ©matiques (`aÃ‚Â³+bÃ‚Â³`) et les ÃƒÂ©tapes structurÃƒÂ©es sont illisibles.
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
 - Mayer (2001) - _Multimedia Learning_ : la segmentation et la mise en forme du texte reduisent la charge cognitive extrinseque et ameliorent la comprehension (effet mesure).
 - Sweller (1988) - Cognitive Load Theory : l'organisation visuelle de l'information reduit la charge cognitive irrelevante.
-- La lisibilitÃ© de l'explication est un vecteur direct du transfert d'apprentissage.
+- La lisibilitÃƒÂ© de l'explication est un vecteur direct du transfert d'apprentissage.
 
 **Ce qu'il faut faire** :
 
-- IntÃ©grer `react-markdown` + `remark-math` + `rehype-katex` (ou `react-katex`) dans `ExerciseSolver` et `ChallengeSolver`
-- Appliquer le rendu dans le bloc "Explication" de la rÃ©ponse
+- IntÃƒÂ©grer `react-markdown` + `remark-math` + `rehype-katex` (ou `react-katex`) dans `ExerciseSolver` et `ChallengeSolver`
+- Appliquer le rendu dans le bloc "Explication" de la rÃƒÂ©ponse
 - Style CSS pour les formules math (KaTeX CSS)
-- Optionnel : accordÃ©on "voir plus" si explication > 300 mots
+- Optionnel : accordÃƒÂ©on "voir plus" si explication > 300 mots
 
-**Effort estimÃ©** : 1-2 jours
+**Effort estimÃƒÂ©** : 1-2 jours
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© â€” composant `frontend/components/ui/MathText.tsx` (react-markdown + remark-math + rehype-katex), intÃ©grÃ© dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver` et `DiagnosticSolver`
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© Ã¢â‚¬â€ composant `frontend/components/ui/MathText.tsx` (react-markdown + remark-math + rehype-katex), intÃƒÂ©grÃƒÂ© dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver` et `DiagnosticSolver`
 
 ---
 
-### F02 â€” DÃ©fis quotidiens (dÃ©fi du jour) Ã¢Å“â€¦
+### F02 Ã¢â‚¬â€ DÃƒÂ©fis quotidiens (dÃƒÂ©fi du jour) ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 
-**Source** : [ROADMAP Ã‚Â§3.2](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§3.2](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 16.9 | D=3, G=5, E=4, R=2, B=5
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© (Mars 2026)
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© (Mars 2026)
 
-**Valeur pÃ©dagogique (E=4)** :
+**Valeur pÃƒÂ©dagogique (E=4)** :
 
-- Cepeda et al. (2006) â€” La pratique distribuÃ©e (daily sessions) produit une meilleure rÃ©tention que la pratique massÃ©e, indÃ©pendamment du temps total (d = 0.46-0.71).
-- Deci & Ryan (2000) â€” SDT : les dÃ©fis quotidiens optionnels, adaptÃ©s au niveau, soutiennent le besoin de compÃ©tence sans pression externe (contrairement aux streaks punitifs).
+- Cepeda et al. (2006) Ã¢â‚¬â€ La pratique distribuÃƒÂ©e (daily sessions) produit une meilleure rÃƒÂ©tention que la pratique massÃƒÂ©e, indÃƒÂ©pendamment du temps total (d = 0.46-0.71).
+- Deci & Ryan (2000) Ã¢â‚¬â€ SDT : les dÃƒÂ©fis quotidiens optionnels, adaptÃƒÂ©s au niveau, soutiennent le besoin de compÃƒÂ©tence sans pression externe (contrairement aux streaks punitifs).
 
-**Conception implÃ©mentÃ©e** : 3 dÃ©fis par jour (volume_exercises, specific_type, logic_challenge), bonus XP, expiration minuit, pas de punition si manquÃ©.
+**Conception implÃƒÂ©mentÃƒÂ©e** : 3 dÃƒÂ©fis par jour (volume_exercises, specific_type, logic_challenge), bonus XP, expiration minuit, pas de punition si manquÃƒÂ©.
 
-**RÃ©fÃ©rence technique complÃ¨te** : [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md)
+**RÃƒÂ©fÃƒÂ©rence technique complÃƒÂ¨te** : [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md)
 
 ---
 
-### F03 â€” Test de diagnostic initial
+### F03 Ã¢â‚¬â€ Test de diagnostic initial
 
-**Source** : [ROADMAP Ã‚Â§3.5](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§3.5](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 16.0 | D=3, G=4, E=5, R=2, B=4
 
-**ProblÃ¨me** : L'onboarding collecte les prÃ©fÃ©rences (classe, Ã¢ge, rythme) mais pas le niveau rÃ©el. Les premiÃ¨res recommandations peuvent Ãªtre inadaptÃ©es, dÃ©gradant le moment critique des 5 premiÃ¨res minutes.
+**ProblÃƒÂ¨me** : L'onboarding collecte les prÃƒÂ©fÃƒÂ©rences (classe, ÃƒÂ¢ge, rythme) mais pas le niveau rÃƒÂ©el. Les premiÃƒÂ¨res recommandations peuvent ÃƒÂªtre inadaptÃƒÂ©es, dÃƒÂ©gradant le moment critique des 5 premiÃƒÂ¨res minutes.
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
-- Hattie (2009) â€” _Formative assessment_ : d = 0.90 (un des effets les plus Ã©levÃ©s en Ã©ducation). Identifier le niveau rÃ©el avant l'enseignement est la condition prÃ©alable Ã  toute personnalisation efficace.
+- Hattie (2009) Ã¢â‚¬â€ _Formative assessment_ : d = 0.90 (un des effets les plus ÃƒÂ©levÃƒÂ©s en ÃƒÂ©ducation). Identifier le niveau rÃƒÂ©el avant l'enseignement est la condition prÃƒÂ©alable ÃƒÂ  toute personnalisation efficace.
 - Sweller (1988) - L'alignement entre difficulte et competence previent la surcharge cognitive (exercices trop faciles = ennui, trop difficiles = anxiete).
-- _Assessment for learning_ (Black & Wiliam, 1998) : le diagnostic prÃ©alable est la fondation de l'apprentissage adaptatif.
+- _Assessment for learning_ (Black & Wiliam, 1998) : le diagnostic prÃƒÂ©alable est la fondation de l'apprentissage adaptatif.
 
-**Algorithme adaptatif (Item Response Theory simplifiÃ©)** :
+**Algorithme adaptatif (Item Response Theory simplifiÃƒÂ©)** :
 
 ```
-1. Commencer au niveau mÃ©dian
-2. Correct Ã¢â€ â€™ question plus difficile (niveau +1)
-3. Incorrect Ã¢â€ â€™ question plus facile (niveau -1)
-4. ArrÃªt : 2 erreurs consÃ©cutives au mÃªme niveau Ã¢â€ â€™ niveau Ã©tabli
-5. DurÃ©e max : 10 questions, ~5 minutes
+1. Commencer au niveau mÃƒÂ©dian
+2. Correct ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ question plus difficile (niveau +1)
+3. Incorrect ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ question plus facile (niveau -1)
+4. ArrÃƒÂªt : 2 erreurs consÃƒÂ©cutives au mÃƒÂªme niveau ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ niveau ÃƒÂ©tabli
+5. DurÃƒÂ©e max : 10 questions, ~5 minutes
 ```
 
 **Output** :
 
 - `initial_level` par type d'exercice (addition, soustraction, multiplication, division, logique)
-- StockÃ© dans `diagnostic_results` (table dÃ©diÃ©e, scores JSONB par type)
-- Alimente immÃ©diatement les recommandations
+- StockÃƒÂ© dans `diagnostic_results` (table dÃƒÂ©diÃƒÂ©e, scores JSONB par type)
+- Alimente immÃƒÂ©diatement les recommandations
 
-**Effort estimÃ©** : 3-5 jours
+**Effort estimÃƒÂ©** : 3-5 jours
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© le 04/03/2026
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© le 04/03/2026
 
-**RÃ©fÃ©rence technique complÃ¨te** : [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
+**RÃƒÂ©fÃƒÂ©rence technique complÃƒÂ¨te** : [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
 
-**Ce qui est branchÃ©** :
+**Ce qui est branchÃƒÂ©** :
 
 - Table `diagnostic_results` (migration `20260304_diagnostic`)
 - Service IRT (`app/services/diagnostic_service.py`) : algo adaptatif, 10 questions, 4 types
 - Endpoints `/api/diagnostic/status|start|question|answer|complete`
 - Page `/diagnostic` (accessible depuis onboarding et Settings)
-- Section "Ã‰valuation de niveau" dans Settings (affiche date + niveaux par type)
-- Recommandations : `RecommendationService` lit le diagnostic via `get_latest_score()` et affine la difficultÃ© mÃ©diane
+- Section "Ãƒâ€°valuation de niveau" dans Settings (affiche date + niveaux par type)
+- Recommandations : `RecommendationService` lit le diagnostic via `get_latest_score()` et affine la difficultÃƒÂ© mÃƒÂ©diane
 
-**Ce qui reste Ã  cÃ¢bler (backlog F03-suite)** :
+**Ce qui reste ÃƒÂ  cÃƒÂ¢bler (backlog F03-suite)** :
 
-| Lacune                                                                                                       | Impact                                                                                         | PrioritÃ© | Statut                                                                                            |
-| ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `/api/exercises/generate` ignore le niveau diagnostic                                                        | Un utilisateur scorant InitiÃ© reÃ§oit des exercices selon `age_group`, pas son niveau rÃ©el   | Moyen     | Ã¢Å“â€¦ RÃ©solu 06/03/2026 â€” `adaptive_difficulty_service` cÃ¢blÃ© en Ã©tape 1 de la cascade    |
-| `preferred_difficulty` stocke des age_group (`"adulte"`) mais le service attendait des DifficultyLevels      | Zyclope (adulte) tombait en fallback PADAWAN malgrÃ© son profil                                | Moyen     | Ã¢Å“â€¦ RÃ©solu 06/03/2026 â€” `_PREF_DIFFICULTY_TO_ORDINAL` Ã©largi aux deux formes              |
-| Mode de rÃ©ponse QCM/saisie libre calculÃ© sur la difficultÃ© de l'exercice, pas le niveau rÃ©el utilisateur | Un utilisateur INITIE pouvait se voir forcer la saisie libre si l'exercice Ã©tait GRAND_MAITRE | Moyen     | Ã¢Å“â€¦ RÃ©solu 06/03/2026 â€” Frontend lit les scores IRT via `useIrtScores()`, dÃ©cide par type |
-| Types non couverts IRT (MIXTE, FRACTIONS) sans proxy de niveau                                               | Pas d'adaptation pour ces types                                                                | Moyen     | Ã¢Å“â€¦ RÃ©solu 06/03/2026 â€” Proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)      |
-| Dashboard (`/`) ne lit pas `has_completed`                                                                   | Pas de message de confirmation "ton niveau a Ã©tÃ© Ã©tabli"                                    | Faible    | Ã¢ÂÂ³ Backlog                                                                                     |
-| GÃ©nÃ©ration IA (`/api/ai/generate`) ignore le diagnostic                                                    | MÃªme problÃ¨me que le gÃ©nÃ©rateur interne                                                    | Moyen     | Ã¢ÂÂ³ Backlog                                                                                     |
+| Lacune                                                                                                               | Impact                                                                                             | PrioritÃƒÂ© | Statut                                                                                                              |
+| -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `/api/exercises/generate` ignore le niveau diagnostic                                                                | Un utilisateur scorant InitiÃƒÂ© reÃƒÂ§oit des exercices selon `age_group`, pas son niveau rÃƒÂ©el | Moyen       | ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ RÃƒÂ©solu 06/03/2026 Ã¢â‚¬â€ `adaptive_difficulty_service` cÃƒÂ¢blÃƒÂ© en ÃƒÂ©tape 1 de la cascade |
+| `preferred_difficulty` stocke des age_group (`"adulte"`) mais le service attendait des DifficultyLevels              | Zyclope (adulte) tombait en fallback PADAWAN malgrÃƒÂ© son profil                                  | Moyen       | ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ RÃƒÂ©solu 06/03/2026 Ã¢â‚¬â€ `_PREF_DIFFICULTY_TO_ORDINAL` ÃƒÂ©largi aux deux formes               |
+| Mode de rÃƒÂ©ponse QCM/saisie libre calculÃƒÂ© sur la difficultÃƒÂ© de l'exercice, pas le niveau rÃƒÂ©el utilisateur | Un utilisateur INITIE pouvait se voir forcer la saisie libre si l'exercice ÃƒÂ©tait GRAND_MAITRE   | Moyen       | ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ RÃƒÂ©solu 06/03/2026 Ã¢â‚¬â€ Frontend lit les scores IRT via `useIrtScores()`, dÃƒÂ©cide par type  |
+| Types non couverts IRT (MIXTE, FRACTIONS) sans proxy de niveau                                                       | Pas d'adaptation pour ces types                                                                    | Moyen       | ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ RÃƒÂ©solu 06/03/2026 Ã¢â‚¬â€ Proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)         |
+| Dashboard (`/`) ne lit pas `has_completed`                                                                           | Pas de message de confirmation "ton niveau a ÃƒÂ©tÃƒÂ© ÃƒÂ©tabli"                                  | Faible      | ÃƒÂ¢Ã‚ÂÃ‚Â³ Backlog                                                                                                 |
+| GÃƒÂ©nÃƒÂ©ration IA (`/api/ai/generate`) ignore le diagnostic                                                        | MÃƒÂªme problÃƒÂ¨me que le gÃƒÂ©nÃƒÂ©rateur interne                                                | Moyen       | ÃƒÂ¢Ã‚ÂÃ‚Â³ Backlog                                                                                                 |
 
 ---
 
-### F04 â€” RÃ©visions espacÃ©es (algorithme SM-2)
+### F04 Ã¢â‚¬â€ RÃƒÂ©visions espacÃƒÂ©es (algorithme SM-2)
 
-**Source** : [ROADMAP Ã‚Â§3.3](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§3.3](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 14.8 | D=4, G=4, E=5, R=2, B=4
 
 **Statut actuel** : [PARTIAL] exercice livre end-to-end (`F04-P1`..`F04-P5`) ; restent hors scope de ce train :
@@ -305,29 +305,29 @@ Ces quatre features combinent un score composite Ã©levÃ© ET un bÃ©nÃ©fic
 - distinction analytics plus fine pour `spaced-review`
 - couplage futur F23 (`SR + IA`)
 
-**Valeur pÃ©dagogique (E=5) â€” La preuve la plus robuste en Ã©ducation** :
+**Valeur pÃƒÂ©dagogique (E=5) Ã¢â‚¬â€ La preuve la plus robuste en ÃƒÂ©ducation** :
 
-- Ebbinghaus (1885, rÃ©pliquÃ© 100+ fois) â€” Courbe de l'oubli : sans rÃ©vision, 70% d'une connaissance est oubliÃ©e en 24h, 90% en une semaine.
-- Cepeda et al. (2006) â€” _Psychological Bulletin_ : mÃ©ta-analyse de 317 Ã©tudes. La pratique espacÃ©e amÃ©liore la rÃ©tention de 200%+ sur le long terme vs pratique massÃ©e.
-- Kornell & Bjork (2008) â€” Spacing + interleaving : effet particuliÃ¨rement fort en mathÃ©matiques (g = 0.43).
+- Ebbinghaus (1885, rÃƒÂ©pliquÃƒÂ© 100+ fois) Ã¢â‚¬â€ Courbe de l'oubli : sans rÃƒÂ©vision, 70% d'une connaissance est oubliÃƒÂ©e en 24h, 90% en une semaine.
+- Cepeda et al. (2006) Ã¢â‚¬â€ _Psychological Bulletin_ : mÃƒÂ©ta-analyse de 317 ÃƒÂ©tudes. La pratique espacÃƒÂ©e amÃƒÂ©liore la rÃƒÂ©tention de 200%+ sur le long terme vs pratique massÃƒÂ©e.
+- Kornell & Bjork (2008) Ã¢â‚¬â€ Spacing + interleaving : effet particuliÃƒÂ¨rement fort en mathÃƒÂ©matiques (g = 0.43).
 - _L'algorithme SM-2 (Wozniak, 1987) est le fondement de SuperMemo, Anki et DuoLingo._
 
-**Algorithme SM-2 adaptÃ©** :
+**Algorithme SM-2 adaptÃƒÂ©** :
 
 ```
-Intervalles de rÃ©vision :
-- 1Ã¨re rÃ©vision : J+1
-- 2Ã¨me rÃ©vision : J+3
-- 3Ã¨me rÃ©vision : J+7
-- Suivantes : intervalle Ãƒâ€” ease_factor
+Intervalles de rÃƒÂ©vision :
+- 1ÃƒÂ¨re rÃƒÂ©vision : J+1
+- 2ÃƒÂ¨me rÃƒÂ©vision : J+3
+- 3ÃƒÂ¨me rÃƒÂ©vision : J+7
+- Suivantes : intervalle ÃƒÆ’Ã¢â‚¬â€ ease_factor
 
 Ajustement ease_factor (EF, init 2.5) :
-- RÃ©ponse correcte rapide (qualitÃ© 4-5) : EF + 0.1
-- RÃ©ponse correcte lente (qualitÃ© 3) : EF inchangÃ©
-- RÃ©ponse incorrecte (qualitÃ© 0-2) : EF Ã¢Ë†â€™ 0.2, retour J+1
+- RÃƒÂ©ponse correcte rapide (qualitÃƒÂ© 4-5) : EF + 0.1
+- RÃƒÂ©ponse correcte lente (qualitÃƒÂ© 3) : EF inchangÃƒÂ©
+- RÃƒÂ©ponse incorrecte (qualitÃƒÂ© 0-2) : EF ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ 0.2, retour J+1
 ```
 
-**ModÃ¨le de donnÃ©es** :
+**ModÃƒÂ¨le de donnÃƒÂ©es** :
 
 ```sql
 spaced_repetition_items (
@@ -340,49 +340,49 @@ spaced_repetition_items (
 )
 ```
 
-**IntÃ©gration** : AprÃ¨s chaque tentative d'exercice, mise Ã  jour de l'item SR. Widget "RÃ©visions du jour" sur le dashboard.
+**IntÃƒÂ©gration** : AprÃƒÂ¨s chaque tentative d'exercice, mise ÃƒÂ  jour de l'item SR. Widget "RÃƒÂ©visions du jour" sur le dashboard.
 
-**Effort estimÃ©** : 1-2 semaines (migration + service + UI)
+**Effort estimÃƒÂ©** : 1-2 semaines (migration + service + UI)
 
-**RÃ©fÃ©rence technique (spec)** : [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md)
-
----
-
-## 4. P1 â€” Haute prioritÃ© {#4-p1}
+**RÃƒÂ©fÃƒÂ©rence technique (spec)** : [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md)
 
 ---
 
-### F05 â€” Adaptation dynamique de difficultÃ© Ã¢Å“â€¦
+## 4. P1 Ã¢â‚¬â€ Haute prioritÃƒÂ© {#4-p1}
 
-**Source** : [WORKFLOW_EDUCATION Ã‚Â§2.2](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/WORKFLOW_EDUCATION_REFACTORING.md)  
+---
+
+### F05 Ã¢â‚¬â€ Adaptation dynamique de difficultÃƒÂ© ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+
+**Source** : [WORKFLOW_EDUCATION Ãƒâ€šÃ‚Â§2.2](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/WORKFLOW_EDUCATION_REFACTORING.md)  
 **Score** : 13.9 | D=4, G=4, E=5, R=3, B=4
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
 - Vygotsky (1978) - Zone proximale de developpement : l'apprentissage optimal se situe juste au-dela de la competence actuelle. Trop facile -> ennui. Trop difficile -> anxiete.
-- Bjork (1994) â€” _Desirable difficulties_ : un niveau de dÃ©fi optimal crÃ©e une rÃ©sistance productive (retrieval effort) qui renforce la mÃ©morisation Ã  long terme.
+- Bjork (1994) Ã¢â‚¬â€ _Desirable difficulties_ : un niveau de dÃƒÂ©fi optimal crÃƒÂ©e une rÃƒÂ©sistance productive (retrieval effort) qui renforce la mÃƒÂ©morisation ÃƒÂ  long terme.
 - Csikszentmihalyi (1990) - Etat de _flow_ : atteint quand difficulte ~ competence.
 
-**ImplÃ©mentation (v3.0.0-alpha.3+, MAJ 06/03/2026)** :
+**ImplÃƒÂ©mentation (v3.0.0-alpha.3+, MAJ 06/03/2026)** :
 
-- `app/services/adaptive_difficulty_service.py` â€” rÃ©solution par cascade (IRT > progression > profil > fallback), proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)
-- `server/handlers/exercise_handlers.py` â€” branchement adaptatif (`?adaptive=true` par dÃ©faut, dÃ©sactivable par `?adaptive=false` ou `age_group` explicite)
+- `app/services/adaptive_difficulty_service.py` Ã¢â‚¬â€ rÃƒÂ©solution par cascade (IRT > progression > profil > fallback), proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)
+- `server/handlers/exercise_handlers.py` Ã¢â‚¬â€ branchement adaptatif (`?adaptive=true` par dÃƒÂ©faut, dÃƒÂ©sactivable par `?adaptive=false` ou `age_group` explicite)
 - `app/utils/exercise_generator_helpers.py` -> distracteurs QCM calibres par niveau (INITIE: erreurs +/-1 + inversion, PADAWAN: retenue +/-10, CHEVALIER/MAITRE/GRAND_MAITRE: magnitude en %, `server/exercise_generator_helpers.py` restant un re-export de compatibilite)
-- **Mode QCM vs saisie libre** : dÃ©cidÃ© cÃ´tÃ© frontend par `useIrtScores().resolveIsOpenAnswer(exercise_type)` â€” saisie libre uniquement si niveau IRT = GRAND_MAITRE pour ce type. Le backend gÃ©nÃ¨re toujours les `choices`.
+- **Mode QCM vs saisie libre** : dÃƒÂ©cidÃƒÂ© cÃƒÂ´tÃƒÂ© frontend par `useIrtScores().resolveIsOpenAnswer(exercise_type)` Ã¢â‚¬â€ saisie libre uniquement si niveau IRT = GRAND_MAITRE pour ce type. Le backend gÃƒÂ©nÃƒÂ¨re toujours les `choices`.
 
-**RÃ©fÃ©rence technique complÃ¨te** : [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md)
+**RÃƒÂ©fÃƒÂ©rence technique complÃƒÂ¨te** : [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md)
 
 **Seuils adaptation temps reel** : `completion_rate > 85% ET streak >= 3` -> boost (+1 niveau) ; `completion_rate < 50% ET streak = 0` -> descente (-1 niveau).
 
 **Hors scope F05-suite (backlog)** :
 
-- `/api/ai/generate` â€” mÃªme adaptation pour la gÃ©nÃ©ration IA (SSE, complexitÃ© sÃ©parÃ©e)
+- `/api/ai/generate` Ã¢â‚¬â€ mÃƒÂªme adaptation pour la gÃƒÂ©nÃƒÂ©ration IA (SSE, complexitÃƒÂ© sÃƒÂ©parÃƒÂ©e)
 - Dashboard widget 'ton niveau s'est ajuste' - [DONE] Implemente le 06/03/2026 (`LevelEstablishedWidget` dans l'onglet Vue d'ensemble)
 - Seuils boost/descente configurables via admin
-- **[F05-B1] Saisie libre dÃ©clenchÃ©e par taux de rÃ©ussite rÃ©el, pas uniquement par niveau IRT** : plutÃ´t que le seuil fixe GRAND_MAITRE, dÃ©clencher la saisie libre quand `completion_rate >= 90 % sur les 5 derniÃ¨res tentatives` pour un type donnÃ© â€” indÃ©pendamment du niveau IRT. Fondement : Roediger & Karpicke (2006) Testing Effect + VanLehn (2011) mÃ©ta-analyse tutoring adaptatif. Ã‰viter d'encoder des erreurs en forÃ§ant le recall avant que la rÃ©cupÃ©ration soit automatique.
-- **[F05-B2] Distracteurs QCM plus discriminants, moins dÃ©ductibles** : amÃ©liorer la gÃ©nÃ©ration des `choices` pour Ã©viter les bonnes rÃ©ponses visibles par simple Ã©limination. Cible : 3 distracteurs plausibles, de mÃªme ordre de grandeur, mÃªme format et mÃªme unitÃ© que la bonne rÃ©ponse, issus d'erreurs typiques rÃ©elles (retenue, inversion, confusion opÃ©ratoire, off-by-one, confusion quotient/reste) plutÃ´t que de valeurs trop Ã©loignÃ©es ou structurellement diffÃ©rentes. Ajouter si possible une instrumentation du taux de sÃ©lection des distracteurs pour identifier ceux qui ne trompent jamais. Effort estimÃ© : 1-2 jours. PrioritÃ© produit : moyenne-haute, car impact direct sur la valeur pÃ©dagogique perÃ§ue des exercices.
+- **[F05-B1] Saisie libre dÃƒÂ©clenchÃƒÂ©e par taux de rÃƒÂ©ussite rÃƒÂ©el, pas uniquement par niveau IRT** : plutÃƒÂ´t que le seuil fixe GRAND_MAITRE, dÃƒÂ©clencher la saisie libre quand `completion_rate >= 90 % sur les 5 derniÃƒÂ¨res tentatives` pour un type donnÃƒÂ© Ã¢â‚¬â€ indÃƒÂ©pendamment du niveau IRT. Fondement : Roediger & Karpicke (2006) Testing Effect + VanLehn (2011) mÃƒÂ©ta-analyse tutoring adaptatif. Ãƒâ€°viter d'encoder des erreurs en forÃƒÂ§ant le recall avant que la rÃƒÂ©cupÃƒÂ©ration soit automatique.
+- **[F05-B2] Distracteurs QCM plus discriminants, moins dÃƒÂ©ductibles** : amÃƒÂ©liorer la gÃƒÂ©nÃƒÂ©ration des `choices` pour ÃƒÂ©viter les bonnes rÃƒÂ©ponses visibles par simple ÃƒÂ©limination. Cible : 3 distracteurs plausibles, de mÃƒÂªme ordre de grandeur, mÃƒÂªme format et mÃƒÂªme unitÃƒÂ© que la bonne rÃƒÂ©ponse, issus d'erreurs typiques rÃƒÂ©elles (retenue, inversion, confusion opÃƒÂ©ratoire, off-by-one, confusion quotient/reste) plutÃƒÂ´t que de valeurs trop ÃƒÂ©loignÃƒÂ©es ou structurellement diffÃƒÂ©rentes. Ajouter si possible une instrumentation du taux de sÃƒÂ©lection des distracteurs pour identifier ceux qui ne trompent jamais. Effort estimÃƒÂ© : 1-2 jours. PrioritÃƒÂ© produit : moyenne-haute, car impact direct sur la valeur pÃƒÂ©dagogique perÃƒÂ§ue des exercices.
 
-**DÃ©pendance** : Profite du diagnostic initial (F03) et prÃ©pare les rÃ©visions espacÃ©es (F04).
+**DÃƒÂ©pendance** : Profite du diagnostic initial (F03) et prÃƒÂ©pare les rÃƒÂ©visions espacÃƒÂ©es (F04).
 
 ---
 
@@ -413,98 +413,98 @@ spaced_repetition_items (
 
 ---
 
-### F07 â€” Courbe d'Ã©volution temporelle
+### F07 Ã¢â‚¬â€ Courbe d'ÃƒÂ©volution temporelle
 
-**Source** : [ANALYTICS_PROGRESSION Ã‚Â§1.1](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ANALYTICS_PROGRESSION.md)  
+**Source** : [ANALYTICS_PROGRESSION Ãƒâ€šÃ‚Â§1.1](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ANALYTICS_PROGRESSION.md)  
 **Score** : 11.2 | D=3, G=4, E=3, R=2, B=3
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© le 07/03/2026
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© le 07/03/2026
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Zimmerman & Schunk (2001) â€” _Self-monitoring_ : voir sa progression concrÃ¨te dans le temps active la mÃ©tacognition et renforce la motivation intrinsÃ¨que.
-- Hattie (2009) â€” _Self-reported grades / metacognitive monitoring_ : d = 1.33 (attention : effet de la conscience de sa propre progression, pas du graphique lui-mÃªme).
+- Zimmerman & Schunk (2001) Ã¢â‚¬â€ _Self-monitoring_ : voir sa progression concrÃƒÂ¨te dans le temps active la mÃƒÂ©tacognition et renforce la motivation intrinsÃƒÂ¨que.
+- Hattie (2009) Ã¢â‚¬â€ _Self-reported grades / metacognitive monitoring_ : d = 1.33 (attention : effet de la conscience de sa propre progression, pas du graphique lui-mÃƒÂªme).
 
-**Endpoint implÃ©mentÃ©** : `GET /api/users/me/progress/timeline?period=7d|30d`  
-**DonnÃ©es sources** : `Attempt.created_at`, `Attempt.is_correct`, `Attempt.time_spent`
+**Endpoint implÃƒÂ©mentÃƒÂ©** : `GET /api/users/me/progress/timeline?period=7d|30d`  
+**DonnÃƒÂ©es sources** : `Attempt.created_at`, `Attempt.is_correct`, `Attempt.time_spent`
 
-**Ce qui a Ã©tÃ© fait** :
+**Ce qui a ÃƒÂ©tÃƒÂ© fait** :
 
-- Service dâ€™agrÃ©gation dÃ©diÃ© : `app/services/progress_timeline_service.py` (jours continus, rÃ©sumÃ© global, `by_type`)
+- Service dÃ¢â‚¬â„¢agrÃƒÂ©gation dÃƒÂ©diÃƒÂ© : `app/services/progress_timeline_service.py` (jours continus, rÃƒÂ©sumÃƒÂ© global, `by_type`)
 - Handler + route : `server/handlers/user_handlers.py`, `server/routes/users.py`
 - Hook + widget frontend : `frontend/hooks/useProgressTimeline.ts`, `frontend/components/dashboard/ProgressTimelineWidget.tsx`
-- IntÃ©gration dashboard : onglet Progression (`frontend/app/dashboard/page.tsx`)
+- IntÃƒÂ©gration dashboard : onglet Progression (`frontend/app/dashboard/page.tsx`)
 - Tests : `tests/unit/test_progress_timeline_service.py`, `tests/api/test_progress_endpoints.py`, `frontend/__tests__/unit/hooks/useProgressTimeline.test.tsx`
-- RÃ©fÃ©rence dâ€™implÃ©mentation : [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md)
+- RÃƒÂ©fÃƒÂ©rence dÃ¢â‚¬â„¢implÃƒÂ©mentation : [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md)
 
-**Effort estimÃ©** : 3-5 jours
+**Effort estimÃƒÂ©** : 3-5 jours
 
 ---
 
-### F08 â€” Objectifs personnalisÃ©s
+### F08 Ã¢â‚¬â€ Objectifs personnalisÃƒÂ©s
 
-**Source** : [ROADMAP Ã‚Â§4.2](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§4.2](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 11.1 | D=3, G=3, E=3, R=1, B=3
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Deci & Ryan (2000) â€” SDT : les objectifs auto-dÃ©terminÃ©s (choisis par l'utilisateur, pas imposÃ©s) renforcent la motivation intrinsÃ¨que et le besoin d'autonomie.
-- Locke & Latham (1990) â€” _Goal-setting theory_ : des objectifs spÃ©cifiques et mesurables amÃ©liorent la performance. Effet plus fort quand l'objectif est choisi par l'individu.
+- Deci & Ryan (2000) Ã¢â‚¬â€ SDT : les objectifs auto-dÃƒÂ©terminÃƒÂ©s (choisis par l'utilisateur, pas imposÃƒÂ©s) renforcent la motivation intrinsÃƒÂ¨que et le besoin d'autonomie.
+- Locke & Latham (1990) Ã¢â‚¬â€ _Goal-setting theory_ : des objectifs spÃƒÂ©cifiques et mesurables amÃƒÂ©liorent la performance. Effet plus fort quand l'objectif est choisi par l'individu.
 
-**Types** : Quotidien (ex: 5 exercices/jour), hebdomadaire, de maÃ®trise (ex: "atteindre 80% en division").
+**Types** : Quotidien (ex: 5 exercices/jour), hebdomadaire, de maÃƒÂ®trise (ex: "atteindre 80% en division").
 
-**Effort estimÃ©** : 3-5 jours
+**Effort estimÃƒÂ©** : 3-5 jours
 
 ---
 
-### F09 â€” Dashboard parent
+### F09 Ã¢â‚¬â€ Dashboard parent
 
-**Source** : [ROADMAP Ã‚Â§3.1](ROADMAP_FONCTIONNALITES.md)  
+**Source** : [ROADMAP Ãƒâ€šÃ‚Â§3.1](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 11.4 | D=4, G=4, E=3, R=2, B=5
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Hattie (2009) â€” _Parental involvement_ : d = 0.49. L'implication parentale dans le suivi scolaire a un effet positif mesurable sur les rÃ©sultats.
-- Bryk & Schneider (2002) â€” La confiance famille-institution est un prÃ©dicteur de l'engagement Ã  long terme.
+- Hattie (2009) Ã¢â‚¬â€ _Parental involvement_ : d = 0.49. L'implication parentale dans le suivi scolaire a un effet positif mesurable sur les rÃƒÂ©sultats.
+- Bryk & Schneider (2002) Ã¢â‚¬â€ La confiance famille-institution est un prÃƒÂ©dicteur de l'engagement ÃƒÂ  long terme.
 
 **Architecture minimale (MVP)** :
 
 ```
 Table: parent_child_links (parent_user_id, child_user_id, created_at, permissions JSON)
-Route: /parent/dashboard Ã¢â€ â€™ vue enfants
-Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
+Route: /parent/dashboard ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ vue enfants
+Route: /parent/child/[id] ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ progression dÃƒÂ©taillÃƒÂ©e
 ```
 
-**Effort estimÃ©** : 1-2 semaines
+**Effort estimÃƒÂ©** : 1-2 semaines
 
 ---
 
-### F10 â€” [PROPOSITION] Mode focus / session ciblÃ©e
+### F10 Ã¢â‚¬â€ [PROPOSITION] Mode focus / session ciblÃƒÂ©e
 
-**Source** : Proposition IA â€” non issue des docs existants  
+**Source** : Proposition IA Ã¢â‚¬â€ non issue des docs existants  
 **Score** : 13.5 | D=2, G=4, E=3, R=1, B=3
 
-**Concept** : Permettre de lancer une session ciblÃ©e en 2 clics : "5 multiplications niveau PADAWAN". L'utilisateur choisit type + difficultÃ© + nombre, et est guidÃ© directement dans une suite d'exercices sans navigation.
+**Concept** : Permettre de lancer une session ciblÃƒÂ©e en 2 clics : "5 multiplications niveau PADAWAN". L'utilisateur choisit type + difficultÃƒÂ© + nombre, et est guidÃƒÂ© directement dans une suite d'exercices sans navigation.
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Bjork (1994) â€” _Desirable difficulties_ : l'interleaving (mÃ©lange de types) est bÃ©nÃ©fique, mais la pratique ciblÃ©e sur un type spÃ©cifique est nÃ©cessaire pour la construction de compÃ©tences (blocked practice pour la phase d'acquisition).
-- Deci & Ryan â€” Le choix du type de pratique renforce l'autonomie (SDT).
+- Bjork (1994) Ã¢â‚¬â€ _Desirable difficulties_ : l'interleaving (mÃƒÂ©lange de types) est bÃƒÂ©nÃƒÂ©fique, mais la pratique ciblÃƒÂ©e sur un type spÃƒÂ©cifique est nÃƒÂ©cessaire pour la construction de compÃƒÂ©tences (blocked practice pour la phase d'acquisition).
+- Deci & Ryan Ã¢â‚¬â€ Le choix du type de pratique renforce l'autonomie (SDT).
 
-**Effort estimÃ©** : 1-2 jours (frontend principalement â€” filtres dÃ©jÃ  disponibles en backend)
+**Effort estimÃƒÂ©** : 1-2 jours (frontend principalement Ã¢â‚¬â€ filtres dÃƒÂ©jÃƒÂ  disponibles en backend)
 
 ---
 
-### F11 â€” [PROPOSITION] Partage de progression vers les parents (lien simple)
+### F11 Ã¢â‚¬â€ [PROPOSITION] Partage de progression vers les parents (lien simple)
 
-**Source** : Proposition IA â€” alternative lÃ©gÃ¨re au Dashboard Parent complet (F09)  
+**Source** : Proposition IA Ã¢â‚¬â€ alternative lÃƒÂ©gÃƒÂ¨re au Dashboard Parent complet (F09)  
 **Score** : 12.5 | D=2, G=3, E=3, R=1, B=4
 
-**Concept** : GÃ©nÃ©rer un lien de partage de progression (lecture seule, sans compte requis) permettant au parent de voir les stats de l'enfant sans crÃ©er un espace parent dÃ©diÃ©. Quick win avant l'implÃ©mentation complÃ¨te de F09.
+**Concept** : GÃƒÂ©nÃƒÂ©rer un lien de partage de progression (lecture seule, sans compte requis) permettant au parent de voir les stats de l'enfant sans crÃƒÂ©er un espace parent dÃƒÂ©diÃƒÂ©. Quick win avant l'implÃƒÂ©mentation complÃƒÂ¨te de F09.
 
-**Valeur pÃ©dagogique (E=3)** : MÃªme base que F09 (engagement parental), avec une friction d'adoption beaucoup plus faible.
+**Valeur pÃƒÂ©dagogique (E=3)** : MÃƒÂªme base que F09 (engagement parental), avec une friction d'adoption beaucoup plus faible.
 
-**Effort estimÃ©** : 1-2 jours
+**Effort estimÃƒÂ©** : 1-2 jours
 
 ---
 
@@ -554,167 +554,167 @@ Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
 
 ---
 
-### F30 â€” [PROPOSITION] L'Effet ProtÃ©gÃ© ("Corrige l'erreur de l'IA")
+### F30 Ã¢â‚¬â€ [PROPOSITION] L'Effet ProtÃƒÂ©gÃƒÂ© ("Corrige l'erreur de l'IA")
 
-**Source** : Proposition IA â€” non issue des docs existants  
+**Source** : Proposition IA Ã¢â‚¬â€ non issue des docs existants  
 **Score** : 15.4 | D=4, G=4, E=5, R=2, B=4
 
-> _Score initial proposÃ© : 16.2 (D=3). DifficultÃ© rÃ©visÃ©e Ã  D=4 : gÃ©nÃ©ration IA d'erreurs intentionnelles + composant UI "correction de copie" + vÃ©rification de la justification = pÃ©rimÃ¨tre backend + frontend non nÃ©gligeable._
+> _Score initial proposÃƒÂ© : 16.2 (D=3). DifficultÃƒÂ© rÃƒÂ©visÃƒÂ©e ÃƒÂ  D=4 : gÃƒÂ©nÃƒÂ©ration IA d'erreurs intentionnelles + composant UI "correction de copie" + vÃƒÂ©rification de la justification = pÃƒÂ©rimÃƒÂ¨tre backend + frontend non nÃƒÂ©gligeable._
 
-**ProblÃ¨me** : RÃ©soudre un problÃ¨me mathÃ©matique est un apprentissage actif classique. Mais le niveau ultime de maÃ®trise s'atteint lorsqu'on doit enseigner Ã  quelqu'un d'autre â€” ou corriger ses erreurs.
+**ProblÃƒÂ¨me** : RÃƒÂ©soudre un problÃƒÂ¨me mathÃƒÂ©matique est un apprentissage actif classique. Mais le niveau ultime de maÃƒÂ®trise s'atteint lorsqu'on doit enseigner ÃƒÂ  quelqu'un d'autre Ã¢â‚¬â€ ou corriger ses erreurs.
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
-- Chase et al. (2009) â€” _The ProtÃ©gÃ© Effect_ : Les Ã©tudiants font plus d'efforts et apprennent plus profondÃ©ment quand ils doivent enseigner Ã  un agent virtuel (effet mesurÃ© trÃ¨s fort).
-- Hattie (2009) â€” _Peer Tutoring_ : d = 0.55. L'Ã©valuation des erreurs des autres active une mÃ©tacognition supÃ©rieure Ã  la simple rÃ©solution.
-- La dÃ©tection d'une erreur de logique (et non de calcul) est un exercice de comprÃ©hension conceptuelle profonde, non mÃ©morisable par substitution de pattern.
+- Chase et al. (2009) Ã¢â‚¬â€ _The ProtÃƒÂ©gÃƒÂ© Effect_ : Les ÃƒÂ©tudiants font plus d'efforts et apprennent plus profondÃƒÂ©ment quand ils doivent enseigner ÃƒÂ  un agent virtuel (effet mesurÃƒÂ© trÃƒÂ¨s fort).
+- Hattie (2009) Ã¢â‚¬â€ _Peer Tutoring_ : d = 0.55. L'ÃƒÂ©valuation des erreurs des autres active une mÃƒÂ©tacognition supÃƒÂ©rieure ÃƒÂ  la simple rÃƒÂ©solution.
+- La dÃƒÂ©tection d'une erreur de logique (et non de calcul) est un exercice de comprÃƒÂ©hension conceptuelle profonde, non mÃƒÂ©morisable par substitution de pattern.
 
-**Ce qu'il faut faire** : CrÃ©er un type de dÃ©fi inversÃ©. L'IA prÃ©sente un problÃ¨me et une rÃ©solution Ã©tape par Ã©tape contenant **une seule erreur de logique intentionnelle**. L'Ã©lÃ¨ve doit agir comme le professeur : identifier Ã  quelle Ã©tape l'IA s'est trompÃ©e et expliquer pourquoi.
+**Ce qu'il faut faire** : CrÃƒÂ©er un type de dÃƒÂ©fi inversÃƒÂ©. L'IA prÃƒÂ©sente un problÃƒÂ¨me et une rÃƒÂ©solution ÃƒÂ©tape par ÃƒÂ©tape contenant **une seule erreur de logique intentionnelle**. L'ÃƒÂ©lÃƒÂ¨ve doit agir comme le professeur : identifier ÃƒÂ  quelle ÃƒÂ©tape l'IA s'est trompÃƒÂ©e et expliquer pourquoi.
 
 **Architecture cible** :
 
 - Nouveau `challenge_type` : `error_correction`
 - Champ backend : `steps: [{content, is_error: bool, error_explanation}]`
-- UI : composant "Correction de copie" â€” affichage des Ã©tapes numÃ©rotÃ©es, sÃ©lection de l'Ã©tape erronÃ©e, champ justification
-- Validation : l'Ã©lÃ¨ve doit identifier la bonne Ã©tape ET soumettre une explication (mÃªme courte)
+- UI : composant "Correction de copie" Ã¢â‚¬â€ affichage des ÃƒÂ©tapes numÃƒÂ©rotÃƒÂ©es, sÃƒÂ©lection de l'ÃƒÂ©tape erronÃƒÂ©e, champ justification
+- Validation : l'ÃƒÂ©lÃƒÂ¨ve doit identifier la bonne ÃƒÂ©tape ET soumettre une explication (mÃƒÂªme courte)
 
-**Effort estimÃ©** : 3-5 jours (nouveau type de dÃ©fi + composant UI + prompt IA pour gÃ©nÃ©ration d'erreurs intentionnelles)  
-**PrioritÃ©** : P1 â€” score fort, diffÃ©renciateur pÃ©dagogique unique sur le marchÃ©
+**Effort estimÃƒÂ©** : 3-5 jours (nouveau type de dÃƒÂ©fi + composant UI + prompt IA pour gÃƒÂ©nÃƒÂ©ration d'erreurs intentionnelles)  
+**PrioritÃƒÂ©** : P1 Ã¢â‚¬â€ score fort, diffÃƒÂ©renciateur pÃƒÂ©dagogique unique sur le marchÃƒÂ©
 
 ---
 
-### F31 â€” [PROPOSITION] Exemples rÃ©solus progressifs (Fading Effect)
+### F31 Ã¢â‚¬â€ [PROPOSITION] Exemples rÃƒÂ©solus progressifs (Fading Effect)
 
-**Source** : Proposition IA â€” non issue des docs existants  
+**Source** : Proposition IA Ã¢â‚¬â€ non issue des docs existants  
 **Score** : 15.2 | D=3, G=4, E=5, R=2, B=3
 
-**ProblÃ¨me** : Face Ã  un concept totalement nouveau, faire faire des exercices et sanctionner l'erreur (mÃªme avec correction ensuite) gÃ©nÃ¨re de l'anxiÃ©tÃ© et une surcharge cognitive pour les novices.
+**ProblÃƒÂ¨me** : Face ÃƒÂ  un concept totalement nouveau, faire faire des exercices et sanctionner l'erreur (mÃƒÂªme avec correction ensuite) gÃƒÂ©nÃƒÂ¨re de l'anxiÃƒÂ©tÃƒÂ© et une surcharge cognitive pour les novices.
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
-- Sweller & Cooper (1985) â€” _Worked Example Effect_ : Ã‰tudier des problÃ¨mes dÃ©jÃ  rÃ©solus est **plus efficace pour les novices** que de rÃ©soudre des problÃ¨mes (d = 0.57). RÃ©pliquÃ© extensivement.
-- Renkl (1997) â€” _Fading steps_ : La transition optimale de novice Ã  expert se fait en retirant progressivement les Ã©tapes guidÃ©es â€” l'autonomie croÃ®t naturellement.
-- ComplÃ©mentaire avec F05 (adaptation difficultÃ©) : le fading s'active automatiquement quand l'algorithme dÃ©tecte un concept nouveau (0 tentatives sur ce type).
+- Sweller & Cooper (1985) Ã¢â‚¬â€ _Worked Example Effect_ : Ãƒâ€°tudier des problÃƒÂ¨mes dÃƒÂ©jÃƒÂ  rÃƒÂ©solus est **plus efficace pour les novices** que de rÃƒÂ©soudre des problÃƒÂ¨mes (d = 0.57). RÃƒÂ©pliquÃƒÂ© extensivement.
+- Renkl (1997) Ã¢â‚¬â€ _Fading steps_ : La transition optimale de novice ÃƒÂ  expert se fait en retirant progressivement les ÃƒÂ©tapes guidÃƒÂ©es Ã¢â‚¬â€ l'autonomie croÃƒÂ®t naturellement.
+- ComplÃƒÂ©mentaire avec F05 (adaptation difficultÃƒÂ©) : le fading s'active automatiquement quand l'algorithme dÃƒÂ©tecte un concept nouveau (0 tentatives sur ce type).
 
-**Ce qu'il faut faire** : IntÃ©grer une mÃ©canique de "Fading" dans l'onboarding d'un nouveau concept (dÃ©clenchÃ©e quand l'utilisateur rencontre un sous-type d'exercice pour la premiÃ¨re fois) :
+**Ce qu'il faut faire** : IntÃƒÂ©grer une mÃƒÂ©canique de "Fading" dans l'onboarding d'un nouveau concept (dÃƒÂ©clenchÃƒÂ©e quand l'utilisateur rencontre un sous-type d'exercice pour la premiÃƒÂ¨re fois) :
 
-| Exercice | Mode                  | Description                                                           |
-| -------- | --------------------- | --------------------------------------------------------------------- |
-| 1        | **Fully worked**      | EntiÃ¨rement rÃ©solu par l'IA, l'Ã©lÃ¨ve lit et clique "J'ai compris" |
-| 2        | **Last step missing** | RÃ©solu, mais la derniÃ¨re Ã©tape est Ã  complÃ©ter                   |
-| 3        | **Half faded**        | Seule la premiÃ¨re Ã©tape est donnÃ©e, l'Ã©lÃ¨ve finit                |
-| 4        | **Autonome**          | L'Ã©lÃ¨ve fait tout â€” rÃ©gime normal                                |
+| Exercice | Mode                  | Description                                                                   |
+| -------- | --------------------- | ----------------------------------------------------------------------------- |
+| 1        | **Fully worked**      | EntiÃƒÂ¨rement rÃƒÂ©solu par l'IA, l'ÃƒÂ©lÃƒÂ¨ve lit et clique "J'ai compris" |
+| 2        | **Last step missing** | RÃƒÂ©solu, mais la derniÃƒÂ¨re ÃƒÂ©tape est ÃƒÂ  complÃƒÂ©ter                 |
+| 3        | **Half faded**        | Seule la premiÃƒÂ¨re ÃƒÂ©tape est donnÃƒÂ©e, l'ÃƒÂ©lÃƒÂ¨ve finit              |
+| 4        | **Autonome**          | L'ÃƒÂ©lÃƒÂ¨ve fait tout Ã¢â‚¬â€ rÃƒÂ©gime normal                              |
 
-**Contrainte de conception** : Ne pas pÃ©naliser l'exercice "fully worked" (pas de score de rÃ©ussite/Ã©chec) â€” c'est un mode observation, pas Ã©valuation.
+**Contrainte de conception** : Ne pas pÃƒÂ©naliser l'exercice "fully worked" (pas de score de rÃƒÂ©ussite/ÃƒÂ©chec) Ã¢â‚¬â€ c'est un mode observation, pas ÃƒÂ©valuation.
 
-**Effort estimÃ©** : 3-5 jours (dÃ©clinaison du moteur d'exercices + dÃ©tection "premiÃ¨re fois sur ce sous-type")  
-**PrioritÃ©** : P1 â€” particuliÃ¨rement critique pour la rÃ©tention des utilisateurs en onboarding
+**Effort estimÃƒÂ©** : 3-5 jours (dÃƒÂ©clinaison du moteur d'exercices + dÃƒÂ©tection "premiÃƒÂ¨re fois sur ce sous-type")  
+**PrioritÃƒÂ©** : P1 Ã¢â‚¬â€ particuliÃƒÂ¨rement critique pour la rÃƒÂ©tention des utilisateurs en onboarding
 
 ---
 
-### F32 â€” [PROPOSITION] Mode "Pratique EntrelacÃ©e" (Interleaving) Ã¢Å“â€¦
+### F32 Ã¢â‚¬â€ [PROPOSITION] Mode "Pratique EntrelacÃƒÂ©e" (Interleaving) ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 
-**Source** : Proposition IA â€” non issue des docs existants  
+**Source** : Proposition IA Ã¢â‚¬â€ non issue des docs existants  
 **Score** : 14.5 | D=2, G=3, E=5, R=2, B=3
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© le 07/03/2026
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© le 07/03/2026
 
-> _Score initial proposÃ© : 15.2 (R=1). Risque rÃ©visÃ© Ã  R=2 : le mÃ©lange de types d'exercices interagit avec F05 (adaptation dynamique par type) â€” il faut s'assurer que les niveaux par type sont suffisamment calibrÃ©s avant activation._
+> _Score initial proposÃƒÂ© : 15.2 (R=1). Risque rÃƒÂ©visÃƒÂ© ÃƒÂ  R=2 : le mÃƒÂ©lange de types d'exercices interagit avec F05 (adaptation dynamique par type) Ã¢â‚¬â€ il faut s'assurer que les niveaux par type sont suffisamment calibrÃƒÂ©s avant activation._
 
-**ProblÃ¨me** : Les Ã©lÃ¨ves ont tendance Ã  enchaÃ®ner un seul type d'exercice (ex : 10 additions d'affilÃ©e â€” _Blocked Practice_). Le cerveau se met en pilote automatique et n'apprend pas Ã  **choisir la bonne stratÃ©gie**, compÃ©tence clÃ© en Ã©valuation.
+**ProblÃƒÂ¨me** : Les ÃƒÂ©lÃƒÂ¨ves ont tendance ÃƒÂ  enchaÃƒÂ®ner un seul type d'exercice (ex : 10 additions d'affilÃƒÂ©e Ã¢â‚¬â€ _Blocked Practice_). Le cerveau se met en pilote automatique et n'apprend pas ÃƒÂ  **choisir la bonne stratÃƒÂ©gie**, compÃƒÂ©tence clÃƒÂ© en ÃƒÂ©valuation.
 
-**Valeur pÃ©dagogique (E=5)** :
+**Valeur pÃƒÂ©dagogique (E=5)** :
 
-- Rohrer & Taylor (2007) â€” _Interleaved Practice_ : MÃ©langer les types de problÃ¨mes force le cerveau Ã  identifier la stratÃ©gie avant de l'appliquer. **RÃ©tention Ã  long terme amÃ©liorÃ©e de +43%** par rapport Ã  la pratique bloquÃ©e.
-- Kornell & Bjork (2008) â€” Effet particuliÃ¨rement fort en mathÃ©matiques : spacing + interleaving combinÃ©s produisent les meilleures performances (g = 0.43).
-- **Attention** : L'interleaving est contre-intuitif â€” les Ã©lÃ¨ves ont l'impression d'apprendre moins bien pendant la session (mais retiennent mieux). Ã€ accompagner d'une explication pÃ©dagogique dans l'UI.
+- Rohrer & Taylor (2007) Ã¢â‚¬â€ _Interleaved Practice_ : MÃƒÂ©langer les types de problÃƒÂ¨mes force le cerveau ÃƒÂ  identifier la stratÃƒÂ©gie avant de l'appliquer. **RÃƒÂ©tention ÃƒÂ  long terme amÃƒÂ©liorÃƒÂ©e de +43%** par rapport ÃƒÂ  la pratique bloquÃƒÂ©e.
+- Kornell & Bjork (2008) Ã¢â‚¬â€ Effet particuliÃƒÂ¨rement fort en mathÃƒÂ©matiques : spacing + interleaving combinÃƒÂ©s produisent les meilleures performances (g = 0.43).
+- **Attention** : L'interleaving est contre-intuitif Ã¢â‚¬â€ les ÃƒÂ©lÃƒÂ¨ves ont l'impression d'apprendre moins bien pendant la session (mais retiennent mieux). Ãƒâ‚¬ accompagner d'une explication pÃƒÂ©dagogique dans l'UI.
 
-**Ce qui a Ã©tÃ© fait** :
+**Ce qui a ÃƒÂ©tÃƒÂ© fait** :
 
-- Endpoint dÃ©diÃ© : `GET /api/exercises/interleaved-plan?length=10` (`server/handlers/exercise_handlers.py`, `server/routes/exercises.py`)
-- Service d'agrÃ©gation : `app/services/interleaved_practice_service.py` (fenÃªtre 7 jours, Ã©ligibilitÃ© `>=2 tentatives` et `>=60%`, plan round-robin sans doublons consÃ©cutifs)
-- Gestion mÃ©tier explicite : `InterleavedNotEnoughVariety` -> `409` avec code `not_enough_variety`
+- Endpoint dÃƒÂ©diÃƒÂ© : `GET /api/exercises/interleaved-plan?length=10` (`server/handlers/exercise_handlers.py`, `server/routes/exercises.py`)
+- Service d'agrÃƒÂ©gation : `app/services/interleaved_practice_service.py` (fenÃƒÂªtre 7 jours, ÃƒÂ©ligibilitÃƒÂ© `>=2 tentatives` et `>=60%`, plan round-robin sans doublons consÃƒÂ©cutifs)
+- Gestion mÃƒÂ©tier explicite : `InterleavedNotEnoughVariety` -> `409` avec code `not_enough_variety`
 - Quick Action dashboard : 3e CTA dans `QuickStartActions` + instrumentation analytics `quick_start_click` type `interleaved`
-- EntrÃ©e session : page `frontend/app/exercises/interleaved/page.tsx` (plan, fallback 409, gÃ©nÃ©ration 1er exercice, redirection)
-- Progression session : `ExerciseSolver` en mode `session=interleaved` (progression, bouton "Exercice suivant", Ã©cran de fin)
-- i18n FR/EN : clÃ©s `dashboard.quickStart.interleaved*` et `exercises.solver.session*`
-- Correctif critique F05/F32 : `POST /api/exercises/generate` passe en `@optional_auth`, ce qui active correctement la rÃ©solution adaptative `age_group` quand `adaptive=true`
+- EntrÃƒÂ©e session : page `frontend/app/exercises/interleaved/page.tsx` (plan, fallback 409, gÃƒÂ©nÃƒÂ©ration 1er exercice, redirection)
+- Progression session : `ExerciseSolver` en mode `session=interleaved` (progression, bouton "Exercice suivant", ÃƒÂ©cran de fin)
+- i18n FR/EN : clÃƒÂ©s `dashboard.quickStart.interleaved*` et `exercises.solver.session*`
+- Correctif critique F05/F32 : `POST /api/exercises/generate` passe en `@optional_auth`, ce qui active correctement la rÃƒÂ©solution adaptative `age_group` quand `adaptive=true`
 
-**Durcissements post-implÃ©mentation (08/03/2026)** :
+**Durcissements post-implÃƒÂ©mentation (08/03/2026)** :
 
-- analytics EdTech `interleaved` ramenÃ©es Ã  une sÃ©mantique session : `first_attempt` n'est Ã©mis qu'une seule fois au premier exercice soumis, avec persistance `sessionStorage`
-- flux de session durci : `POST /api/exercises/generate` ne renvoie plus de `200` sans `id` quand `save=true` ; en cas d'Ã©chec, le frontend affiche un toast et conserve l'Ã©tat de session
-- dette DRY rÃ©duite : la rÃ©solution adaptive `age_group` est factorisÃ©e dans `_resolve_adaptive_age_group_if_needed()` pour Ã©viter la divergence entre `generate_exercise` et `generate_exercise_api`
-- quality gate restaurÃ© : `black app/ server/ tests/ --check` repasse au vert ; nettoyage UTF-8 de `tests/unit/test_adaptive_difficulty_service.py` et hygiÃ¨ne repo (`frontend/junit.xml`, `.gitignore`, import inutilisÃ©)
+- analytics EdTech `interleaved` ramenÃƒÂ©es ÃƒÂ  une sÃƒÂ©mantique session : `first_attempt` n'est ÃƒÂ©mis qu'une seule fois au premier exercice soumis, avec persistance `sessionStorage`
+- flux de session durci : `POST /api/exercises/generate` ne renvoie plus de `200` sans `id` quand `save=true` ; en cas d'ÃƒÂ©chec, le frontend affiche un toast et conserve l'ÃƒÂ©tat de session
+- dette DRY rÃƒÂ©duite : la rÃƒÂ©solution adaptive `age_group` est factorisÃƒÂ©e dans `_resolve_adaptive_age_group_if_needed()` pour ÃƒÂ©viter la divergence entre `generate_exercise` et `generate_exercise_api`
+- quality gate restaurÃƒÂ© : `black app/ server/ tests/ --check` repasse au vert ; nettoyage UTF-8 de `tests/unit/test_adaptive_difficulty_service.py` et hygiÃƒÂ¨ne repo (`frontend/junit.xml`, `.gitignore`, import inutilisÃƒÂ©)
 
 **Tests** :
 
 - `tests/unit/test_interleaved_practice_service.py`
-- `tests/api/test_exercise_endpoints.py` (auth, `409 not_enough_variety`, succÃ¨s `200`, non-rÃ©gression `adaptive=true` sans `age_group` explicite)
+- `tests/api/test_exercise_endpoints.py` (auth, `409 not_enough_variety`, succÃƒÂ¨s `200`, non-rÃƒÂ©gression `adaptive=true` sans `age_group` explicite)
 
-**Effort rÃ©alisÃ©** : ~1-2 jours  
-**DÃ©pendance** : F05 exploitÃ© (difficultÃ© adaptative conservÃ©e)  
-**PrioritÃ©** : P1 â€” quick win fort, effort modÃ©rÃ©, impact pÃ©dagogique Ã©levÃ©
+**Effort rÃƒÂ©alisÃƒÂ©** : ~1-2 jours  
+**DÃƒÂ©pendance** : F05 exploitÃƒÂ© (difficultÃƒÂ© adaptative conservÃƒÂ©e)  
+**PrioritÃƒÂ©** : P1 Ã¢â‚¬â€ quick win fort, effort modÃƒÂ©rÃƒÂ©, impact pÃƒÂ©dagogique ÃƒÂ©levÃƒÂ©
 
 ---
 
-### F33 â€” Feedback "Growth Mindset" Ã¢Å“â€¦
+### F33 Ã¢â‚¬â€ Feedback "Growth Mindset" ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 
-**Source** : Proposition IA â€” non issue des docs existants  
+**Source** : Proposition IA Ã¢â‚¬â€ non issue des docs existants  
 **Score** : 11.4 | D=1, G=3, E=3, R=1, B=2
 
-> _Score initial proposÃ© : 13.0 (E=4). EdTech rÃ©visÃ© Ã  E=3 : les Ã©tudes Dweck sont robustes mais les interventions de Growth Mindset par texte seul ont des effets faibles sans accompagnement long terme. Yeager et al. (2019) mesure des effets sur populations dÃ©favorisÃ©es spÃ©cifiques â€” le transfert Ã  une plateforme gÃ©nÃ©raliste est conditionnel._
+> _Score initial proposÃƒÂ© : 13.0 (E=4). EdTech rÃƒÂ©visÃƒÂ© ÃƒÂ  E=3 : les ÃƒÂ©tudes Dweck sont robustes mais les interventions de Growth Mindset par texte seul ont des effets faibles sans accompagnement long terme. Yeager et al. (2019) mesure des effets sur populations dÃƒÂ©favorisÃƒÂ©es spÃƒÂ©cifiques Ã¢â‚¬â€ le transfert ÃƒÂ  une plateforme gÃƒÂ©nÃƒÂ©raliste est conditionnel._
 
-**Statut** : Ã¢Å“â€¦ ImplÃ©mentÃ© le 07/03/2026
+**Statut** : ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ImplÃƒÂ©mentÃƒÂ© le 07/03/2026
 
-**ProblÃ¨me** : Un message "Faux" ou un feedback nÃ©gatif brutal lors d'un Ã©chec peut renforcer un _Fixed Mindset_ ("Je suis nul en maths"). Ce biais est particuliÃ¨rement fort chez les enfants 8-14 ans.
+**ProblÃƒÂ¨me** : Un message "Faux" ou un feedback nÃƒÂ©gatif brutal lors d'un ÃƒÂ©chec peut renforcer un _Fixed Mindset_ ("Je suis nul en maths"). Ce biais est particuliÃƒÂ¨rement fort chez les enfants 8-14 ans.
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Dweck (2006) â€” _Mindset Theory_ : Valoriser l'effort et la stratÃ©gie plutÃ´t que l'intelligence innÃ©e ou le rÃ©sultat brut amÃ©liore la rÃ©silience face Ã  l'Ã©chec.
-- Yeager et al. (2019) : Une simple intervention Growth Mindset a des effets mesurables sur les rÃ©sultats en maths chez les Ã©lÃ¨ves dÃ©favorisÃ©s.
-- **Nuance** : L'effet est conditionnel et nÃ©cessite de la cohÃ©rence dans tout le parcours utilisateur â€” un seul message ne suffit pas.
+- Dweck (2006) Ã¢â‚¬â€ _Mindset Theory_ : Valoriser l'effort et la stratÃƒÂ©gie plutÃƒÂ´t que l'intelligence innÃƒÂ©e ou le rÃƒÂ©sultat brut amÃƒÂ©liore la rÃƒÂ©silience face ÃƒÂ  l'ÃƒÂ©chec.
+- Yeager et al. (2019) : Une simple intervention Growth Mindset a des effets mesurables sur les rÃƒÂ©sultats en maths chez les ÃƒÂ©lÃƒÂ¨ves dÃƒÂ©favorisÃƒÂ©s.
+- **Nuance** : L'effet est conditionnel et nÃƒÂ©cessite de la cohÃƒÂ©rence dans tout le parcours utilisateur Ã¢â‚¬â€ un seul message ne suffit pas.
 
-**Ce qui a Ã©tÃ© fait** (modifications de texte + micro-UI) :
+**Ce qui a ÃƒÂ©tÃƒÂ© fait** (modifications de texte + micro-UI) :
 
-| Avant                    | AprÃ¨s                                                                                                                             |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| "Mauvaise rÃ©ponse"      | "Pas encore ! La prochaine sera la bonne."                                                                                         |
-| "Incorrect"              | "Ton cerveau est en train d'apprendre !"                                                                                           |
-| Score affichÃ© seulement | Valoriser aussi le **temps passÃ©** sur un dÃ©fi difficile                                                                         |
-| â€”                      | Tooltips de chargement : _"Savais-tu que ton cerveau crÃ©e de nouvelles connexions exactement au moment oÃ¹ tu fais une erreur ?"_ |
+| Avant                      | AprÃƒÂ¨s                                                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| "Mauvaise rÃƒÂ©ponse"      | "Pas encore ! La prochaine sera la bonne."                                                                                             |
+| "Incorrect"                | "Ton cerveau est en train d'apprendre !"                                                                                               |
+| Score affichÃƒÂ© seulement | Valoriser aussi le **temps passÃƒÂ©** sur un dÃƒÂ©fi difficile                                                                         |
+| Ã¢â‚¬â€                    | Tooltips de chargement : _"Savais-tu que ton cerveau crÃƒÂ©e de nouvelles connexions exactement au moment oÃƒÂ¹ tu fais une erreur ?"_ |
 
-**Contrainte** : CohÃ©rence avec les textes de feedback existants dans `fr.json` / `en.json`. Ne pas sur-positiver au point de perdre la valeur informative du feedback (Hattie & Timperley, 2007 â€” le feedback doit rester prÃ©cis).
+**Contrainte** : CohÃƒÂ©rence avec les textes de feedback existants dans `fr.json` / `en.json`. Ne pas sur-positiver au point de perdre la valeur informative du feedback (Hattie & Timperley, 2007 Ã¢â‚¬â€ le feedback doit rester prÃƒÂ©cis).
 
-**ImplÃ©mentation** :
+**ImplÃƒÂ©mentation** :
 
-- Messages FR/EN alignÃ©s Growth Mindset (`frontend/messages/fr.json`, `frontend/messages/en.json`)
-- Feedback d'Ã©chec harmonisÃ© dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver`
-- Bloc partagÃ© factorisÃ© : `frontend/components/ui/GrowthMindsetHint.tsx` (industrialisation, no-DRY)
+- Messages FR/EN alignÃƒÂ©s Growth Mindset (`frontend/messages/fr.json`, `frontend/messages/en.json`)
+- Feedback d'ÃƒÂ©chec harmonisÃƒÂ© dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver`
+- Bloc partagÃƒÂ© factorisÃƒÂ© : `frontend/components/ui/GrowthMindsetHint.tsx` (industrialisation, no-DRY)
 
-**Effort rÃ©alisÃ©** : ~Â½ jour  
-**PrioritÃ©** : P1 â€” quick win absolu, risque technique faible, impact psychologique documentÃ©
+**Effort rÃƒÂ©alisÃƒÂ©** : ~Ã‚Â½ jour  
+**PrioritÃƒÂ©** : P1 Ã¢â‚¬â€ quick win absolu, risque technique faible, impact psychologique documentÃƒÂ©
 
 ---
 
-## 5. P2 â€” PrioritÃ© moyenne {#5-p2}
+## 5. P2 Ã¢â‚¬â€ PrioritÃƒÂ© moyenne {#5-p2}
 
 | Feature                                                                            | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **F14 - Monitoring IA persistance DB**                                             | [PARTIAL] Le runtime monitoring et l'admin read-only existent deja (`token_tracker`, `generation_metrics`, `/admin/ai-monitoring`) ainsi que la persistance DB des runs harness. Le backlog restant porte sur une persistance DB complete des metriques runtime live, aujourd'hui surtout en memoire process.                                                                                                                                                                                                                                                                                                                                                                                   |
-| **F15 â€” PrÃ©fÃ©rence page d'accueil**                                            | Champ `login_redirect_preference` sur `User`. Option dans ParamÃ¨tres. ~Â½ jour.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **F16 â€” Heatmap d'activitÃ©**                                                    | Calendrier GitHub-style sur Dashboard/Profil. `react-calendar-heatmap`. Endpoint : `GET /api/users/me/activity/heatmap`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **F17 â€” CÃ©lÃ©brations visuelles amÃ©liorÃ©es**                                  | Confettis au dÃ©blocage badge, modal avec partage. DÃ©sactivable (accessibilitÃ©).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **F15 Ã¢â‚¬â€ PrÃƒÂ©fÃƒÂ©rence page d'accueil**                                    | Champ `login_redirect_preference` sur `User`. Option dans ParamÃƒÂ¨tres. ~Ã‚Â½ jour.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **F16 Ã¢â‚¬â€ Heatmap d'activitÃƒÂ©**                                              | Calendrier GitHub-style sur Dashboard/Profil. `react-calendar-heatmap`. Endpoint : `GET /api/users/me/activity/heatmap`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **F17 Ã¢â‚¬â€ CÃƒÂ©lÃƒÂ©brations visuelles amÃƒÂ©liorÃƒÂ©es**                      | Confettis au dÃƒÂ©blocage badge, modal avec partage. DÃƒÂ©sactivable (accessibilitÃƒÂ©).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | **F18 - Ligues hebdomadaires**                                                     | Le leaderboard existe deja (top 50, filtres, surfaces de lecture), mais pas encore les ligues / saisons hebdomadaires. Le backlog porte sur les groupes, promotions/relegations et resets periodiques. Score EdTech=1 : engagement, pas d'apprentissage direct.                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **F19 â€” Notifications push + email**                                             | Rappel inactivitÃ©, streak en danger, badge proche. Voir [ROADMAP Ã‚Â§4.1](ROADMAP_FONCTIONNALITES.md). Infrastructure Ã  dÃ©finir (service push web + SMTP).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **F20 â€” Normalisation niveaux de difficultÃ©**                                   | Remplacer nomenclature Star Wars par libellÃ©s universels. Voir [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) et le manifeste technique associÃ©. Migration enum risquÃ©e â€” Ã  planifier soigneusement.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **F21 â€” Badges secrets**                                                         | Badges cachÃ©s dÃ©bloquÃ©s pour comportements inattendus (ex: "Noctambule" aprÃ¨s minuit). Variable reward (Skinner) â€” engagement Ã©levÃ©.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **F19 Ã¢â‚¬â€ Notifications push + email**                                         | Rappel inactivitÃƒÂ©, streak en danger, badge proche. Voir [ROADMAP Ãƒâ€šÃ‚Â§4.1](ROADMAP_FONCTIONNALITES.md). Infrastructure ÃƒÂ  dÃƒÂ©finir (service push web + SMTP).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **F20 Ã¢â‚¬â€ Normalisation niveaux de difficultÃƒÂ©**                             | Remplacer nomenclature Star Wars par libellÃƒÂ©s universels. Voir [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) et le manifeste technique associÃƒÂ©. Migration enum risquÃƒÂ©e Ã¢â‚¬â€ ÃƒÂ  planifier soigneusement.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **F21 Ã¢â‚¬â€ Badges secrets**                                                     | Badges cachÃƒÂ©s dÃƒÂ©bloquÃƒÂ©s pour comportements inattendus (ex: "Noctambule" aprÃƒÂ¨s minuit). Variable reward (Skinner) Ã¢â‚¬â€ engagement ÃƒÂ©levÃƒÂ©.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | **F22 - Suppression utilisateur admin (RGPD)**                                     | [DONE] `DELETE /api/admin/users/{id}` existe deja cote admin. Le code supprime physiquement l'utilisateur avec cascade (pas un simple soft delete) et bloque l'auto-suppression admin.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **F35 â€” [TECH] Redaction secrets logs DB Ã¢Å“â€¦**                               | ImplÃ©mentÃ© le 07/03/2026. `app/db/base.py` loggue dÃ©sormais une URL redigÃ©e via `redact_database_url_for_log()` (credentials et query params masquÃ©s). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests).                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **F36 â€” [UX][TECH] Flash auth au refresh**                                       | Artefact visuel observÃ© aprÃ¨s refresh: pendant ~0.5s, le frontend semble repasser par un Ã©tat "non connectÃ©" avant rehydratation correcte de la session. Backend session validÃ©: login OK, session conservÃ©e aprÃ¨s refresh et aprÃ¨s idle prolongÃ©. Cible: supprimer le flash sans changer la chaÃ®ne de session/cookies. Piste probable: bootstrap auth frontend (`ProtectedRoute`, `current-user`, `validate-token`, `sync-cookie`). Ouvrir un lot dÃ©diÃ© seulement si le symptÃ´me devient gÃªnant ou s'accompagne d'une redirection parasite/perte de session.                                                                                                                     |
+| **F35 Ã¢â‚¬â€ [TECH] Redaction secrets logs DB ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦**                  | ImplÃƒÂ©mentÃƒÂ© le 07/03/2026. `app/db/base.py` loggue dÃƒÂ©sormais une URL redigÃƒÂ©e via `redact_database_url_for_log()` (credentials et query params masquÃƒÂ©s). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests).                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **F36 Ã¢â‚¬â€ [UX][TECH] Flash auth au refresh**                                   | Artefact visuel observÃƒÂ© aprÃƒÂ¨s refresh: pendant ~0.5s, le frontend semble repasser par un ÃƒÂ©tat "non connectÃƒÂ©" avant rehydratation correcte de la session. Backend session validÃƒÂ©: login OK, session conservÃƒÂ©e aprÃƒÂ¨s refresh et aprÃƒÂ¨s idle prolongÃƒÂ©. Cible: supprimer le flash sans changer la chaÃƒÂ®ne de session/cookies. Piste probable: bootstrap auth frontend (`ProtectedRoute`, `current-user`, `validate-token`, `sync-cookie`). Ouvrir un lot dÃƒÂ©diÃƒÂ© seulement si le symptÃƒÂ´me devient gÃƒÂªnant ou s'accompagne d'une redirection parasite/perte de session.                                                                                         |
 | **F37 - [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard** | Clarifier la portee des filtres temporels dans le dashboard. Conclusion de l'analyse UX : un controle = un perimetre visible. Les widgets temporels doivent avoir un selecteur local ou une periode partagee explicite ; les widgets cumules doivent afficher un badge de portee (`Cumule`, `Tous les temps`) plutot qu'un faux selecteur. Les vues journalieres redondantes dans `Progression` doivent etre rationalisees au profit d'un widget complementaire (ex : regularite de pratique). Si l'on veut une coherence temporelle complete de l'onglet `Progression`, ouvrir ensuite un lot dedie data/hooks/backend pour exposer une periode explicite sur les widgets aujourd'hui cumules. |
 | **F38 - [UX][Gamification] Progression compte coherente & historique des gains**   | [PARTIAL] Le moteur persistant, le ledger `point_events`, le calcul niveau/XP/rang et plusieurs surfaces de lecture existent deja. Le backlog F38 porte maintenant sur la surface produit coherente : historique des gains, lecture par source et presentation compte explicite.                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **F23 â€” [PROP] Exercices adaptatifs SR+IA**                                      | GÃ©nÃ©rer des exercices IA ciblÃ©s sur les concepts Ã  rÃ©viser selon la courbe SR (F04). Score composite trÃ¨s Ã©levÃ© (17.1) mais **dÃ©pend de F04**. DÃ©bloquÃ© aprÃ¨s F04.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **F23 Ã¢â‚¬â€ [PROP] Exercices adaptatifs SR+IA**                                  | GÃƒÂ©nÃƒÂ©rer des exercices IA ciblÃƒÂ©s sur les concepts ÃƒÂ  rÃƒÂ©viser selon la courbe SR (F04). Score composite trÃƒÂ¨s ÃƒÂ©levÃƒÂ© (17.1) mais **dÃƒÂ©pend de F04**. DÃƒÂ©bloquÃƒÂ© aprÃƒÂ¨s F04.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -884,37 +884,37 @@ Route: /parent/child/[id] Ã¢â€ â€™ progression dÃ©taillÃ©e
 
 ---
 
-## 6. P3 â€” Investissement long terme {#6-p3}
+## 6. P3 Ã¢â‚¬â€ Investissement long terme {#6-p3}
 
-### F24 â€” Tuteur IA contextuel
+### F24 Ã¢â‚¬â€ Tuteur IA contextuel
 
 **Score** : 16.1 | D=5, G=5, E=5, R=3, B=5
 
-**Valeur pÃ©dagogique (E=5) â€” parmi les plus fortes en EdTech** :
+**Valeur pÃƒÂ©dagogique (E=5) Ã¢â‚¬â€ parmi les plus fortes en EdTech** :
 
-- VanLehn (2011) â€” _Educational Psychologist_ : Les systÃ¨mes de tutoriels intelligents (ITS) atteignent d = 0.55â€“0.66 par rapport aux classes classiques. Seul le tutorat humain individuel fait mieux (d Ã¢â€°Ë† 2.0).
-- _Scaffolding_ cognitif (Wood et al., 1976) : l'aide contextuelle qui s'adapte aux erreurs est plus efficace que les explications gÃ©nÃ©riques.
-- RÃ¨gle critique : **ne pas donner la rÃ©ponse directement** â€” guider par questions socratiques.
+- VanLehn (2011) Ã¢â‚¬â€ _Educational Psychologist_ : Les systÃƒÂ¨mes de tutoriels intelligents (ITS) atteignent d = 0.55Ã¢â‚¬â€œ0.66 par rapport aux classes classiques. Seul le tutorat humain individuel fait mieux (d ÃƒÂ¢Ã¢â‚¬Â°Ã‹â€  2.0).
+- _Scaffolding_ cognitif (Wood et al., 1976) : l'aide contextuelle qui s'adapte aux erreurs est plus efficace que les explications gÃƒÂ©nÃƒÂ©riques.
+- RÃƒÂ¨gle critique : **ne pas donner la rÃƒÂ©ponse directement** Ã¢â‚¬â€ guider par questions socratiques.
 
-**DiffÃ©rence vs chatbot actuel** : Le chatbot actuel est gÃ©nÃ©rique. Un tuteur IA contextuel connaÃ®t l'exercice en cours, le niveau de l'utilisateur et l'historique d'erreurs sur ce type de problÃ¨me.
+**DiffÃƒÂ©rence vs chatbot actuel** : Le chatbot actuel est gÃƒÂ©nÃƒÂ©rique. Un tuteur IA contextuel connaÃƒÂ®t l'exercice en cours, le niveau de l'utilisateur et l'historique d'erreurs sur ce type de problÃƒÂ¨me.
 
-**Effort estimÃ©** : 2-4 semaines (intÃ©gration LLM contextuel + design pÃ©dagogique)
+**Effort estimÃƒÂ©** : 2-4 semaines (intÃƒÂ©gration LLM contextuel + design pÃƒÂ©dagogique)
 
 ---
 
-### F25 â€” Mode classe / enseignant
+### F25 Ã¢â‚¬â€ Mode classe / enseignant
 
 **Score** : 14.9 | D=5, G=4, E=4, R=3, B=5
 
-**Valeur pÃ©dagogique (E=4)** : L'enseignant mÃ©diateur amplifie les effets de la plateforme (Hattie, d = 0.45 pour _teacher-student relationships_). L'assignation ciblÃ©e d'exercices + les rapports par classe sont des outils pÃ©dagogiques Ã  fort impact.
+**Valeur pÃƒÂ©dagogique (E=4)** : L'enseignant mÃƒÂ©diateur amplifie les effets de la plateforme (Hattie, d = 0.45 pour _teacher-student relationships_). L'assignation ciblÃƒÂ©e d'exercices + les rapports par classe sont des outils pÃƒÂ©dagogiques ÃƒÂ  fort impact.
 
-**Architecture requise** : Table `classes`, `class_memberships`, `assignments`, routes `/teacher/`. IntÃ©gration d'export CSV (dÃ©jÃ  partiellement disponible).
+**Architecture requise** : Table `classes`, `class_memberships`, `assignments`, routes `/teacher/`. IntÃƒÂ©gration d'export CSV (dÃƒÂ©jÃƒÂ  partiellement disponible).
 
-**Effort estimÃ©** : 3-6 semaines
+**Effort estimÃƒÂ©** : 3-6 semaines
 
 ---
 
-### F26 â€” Filtres et tri badges
+### F26 Ã¢â‚¬â€ Filtres et tri badges
 
 **Statut** : [DONE] present dans le code au 23/03/2026
 
@@ -934,65 +934,65 @@ La feature reste documentee ici pour garder visible le travail deja livre, meme 
 
 ---
 
-### F27 â€” Optimisation re-renders exercices/dÃ©fis
+### F27 Ã¢â‚¬â€ Optimisation re-renders exercices/dÃƒÂ©fis
 
 Flash visible avant stabilisation des pages. Pistes : `placeholderData` TanStack Query, `useMemo` sur les params de query. ~3-5 jours (profiling + corrections).
 
 ---
 
-## 7. P4 â€” Backlog distant {#7-p4}
+## 7. P4 Ã¢â‚¬â€ Backlog distant {#7-p4}
 
-### F28 â€” Mode aventure / histoire narrative
+### F28 Ã¢â‚¬â€ Mode aventure / histoire narrative
 
 **Score** : 13.1 | D=5, G=5, E=3, R=3, B=5
 
-**Valeur pÃ©dagogique (E=3)** :
+**Valeur pÃƒÂ©dagogique (E=3)** :
 
-- Situated learning (Lave & Wenger, 1991) : les maths contextualisÃ©es dans une narration rÃ©elle amÃ©liorent le transfert des connaissances.
-- Mais : l'effet de la gamification narrative sur les rÃ©sultats acadÃ©miques est modÃ©rÃ© et conditionnel (Mayer, 2019 â€” _Computer games don't improve learning_).
+- Situated learning (Lave & Wenger, 1991) : les maths contextualisÃƒÂ©es dans une narration rÃƒÂ©elle amÃƒÂ©liorent le transfert des connaissances.
+- Mais : l'effet de la gamification narrative sur les rÃƒÂ©sultats acadÃƒÂ©miques est modÃƒÂ©rÃƒÂ© et conditionnel (Mayer, 2019 Ã¢â‚¬â€ _Computer games don't improve learning_).
 
-**Concept** : Progression narrative oÃ¹ les maths servent l'histoire ("Le vaisseau a besoin de 150 unitÃ©s de carburant, tu as 3 rÃ©servoirs de 45 chacun..."). RÃ©compenses dÃ©bloquant la suite.
+**Concept** : Progression narrative oÃƒÂ¹ les maths servent l'histoire ("Le vaisseau a besoin de 150 unitÃƒÂ©s de carburant, tu as 3 rÃƒÂ©servoirs de 45 chacun..."). RÃƒÂ©compenses dÃƒÂ©bloquant la suite.
 
-**Effort estimÃ©** : 4-8 semaines (design narratif + nouveau type de contenu)
+**Effort estimÃƒÂ©** : 4-8 semaines (design narratif + nouveau type de contenu)
 
 ---
 
-### F29 â€” Personnalisation avatar / profil
+### F29 Ã¢â‚¬â€ Personnalisation avatar / profil
 
 **Score** : 7.1 | D=3, G=3, E=1, R=1, B=2
 
-Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la valeur aux points gagnÃ©s. Score EdTech=1 : pas de bÃ©nÃ©fice pÃ©dagogique documentÃ©.
+Avatars, titres, cadres de profil dÃƒÂ©bloquables avec les points. Donne de la valeur aux points gagnÃƒÂ©s. Score EdTech=1 : pas de bÃƒÂ©nÃƒÂ©fice pÃƒÂ©dagogique documentÃƒÂ©.
 
 ---
 
-### F34 â€” Module Sciences â€” CuriositÃ©s scientifiques (Labo des Sciences)
+### F34 Ã¢â‚¬â€ Module Sciences Ã¢â‚¬â€ CuriositÃƒÂ©s scientifiques (Labo des Sciences)
 
 **Score** : 10.4 | D=3, G=4, E=2, R=2, B=4
 
 **Philosophie** :
 
-1. **ZÃ©ro punition** : Si l'Ã©lÃ¨ve clique sur "Faux" (alors que c'est Vrai), pas de croix rouge agressive. IcÃ´ne ampoule bleue douce + texte Â« Et non, c'est pourtant vrai ! Â». Objectif : apprendre un fait amusant, pas Ã©valuer.
-2. **Explication gratifiante** : L'explication apparaÃ®t dans un encart en dessous, sans quitter la page (pas de pop-up ou changement d'Ã©cran brutal).
-3. **Format rapide** : Format "TikTok/Shorts" appliquÃ© Ã  l'Ã©ducation. L'Ã©lÃ¨ve enchaÃ®ne ~10 anecdotes scientifiques en 3 minutes, gagne de l'XP sans impression de "travailler".
+1. **ZÃƒÂ©ro punition** : Si l'ÃƒÂ©lÃƒÂ¨ve clique sur "Faux" (alors que c'est Vrai), pas de croix rouge agressive. IcÃƒÂ´ne ampoule bleue douce + texte Ã‚Â« Et non, c'est pourtant vrai ! Ã‚Â». Objectif : apprendre un fait amusant, pas ÃƒÂ©valuer.
+2. **Explication gratifiante** : L'explication apparaÃƒÂ®t dans un encart en dessous, sans quitter la page (pas de pop-up ou changement d'ÃƒÂ©cran brutal).
+3. **Format rapide** : Format "TikTok/Shorts" appliquÃƒÂ© ÃƒÂ  l'ÃƒÂ©ducation. L'ÃƒÂ©lÃƒÂ¨ve enchaÃƒÂ®ne ~10 anecdotes scientifiques en 3 minutes, gagne de l'XP sans impression de "travailler".
 
 **Contenu** :
 
-- Affirmation scientifique (ex. Â« Le Soleil pourrait contenir environ un million de Terres Â»)
+- Affirmation scientifique (ex. Ã‚Â« Le Soleil pourrait contenir environ un million de Terres Ã‚Â»)
 - Boutons Vrai / Faux
-- RÃ©ponse correcte : icÃ´ne check verte, Â« Exactement ! +X XP Â»
-- RÃ©ponse incorrecte : icÃ´ne ampoule bleue, Â« Et non, c'est pourtant vrai ! Â» (ou Â« Et oui, c'est bien faux ! Â» selon le cas)
-- Encart explicatif avec fait dÃ©taillÃ© + bouton Â« Fait suivant Â»
+- RÃƒÂ©ponse correcte : icÃƒÂ´ne check verte, Ã‚Â« Exactement ! +X XP Ã‚Â»
+- RÃƒÂ©ponse incorrecte : icÃƒÂ´ne ampoule bleue, Ã‚Â« Et non, c'est pourtant vrai ! Ã‚Â» (ou Ã‚Â« Et oui, c'est bien faux ! Ã‚Â» selon le cas)
+- Encart explicatif avec fait dÃƒÂ©taillÃƒÂ© + bouton Ã‚Â« Fait suivant Ã‚Â»
 
 **Technique** :
 
 - Nouveau type de contenu (table `science_facts` ou extension `challenges` avec `challenge_type=science`)
-- CatÃ©gories : Astronomie, Biologie, Physique, Chimie, etc.
-- Badge catÃ©gorie, compteur sÃ©rie, XP par fait
-- Design : glassmorphism, thÃ¨me sombre cohÃ©rent Mathakine
+- CatÃƒÂ©gories : Astronomie, Biologie, Physique, Chimie, etc.
+- Badge catÃƒÂ©gorie, compteur sÃƒÂ©rie, XP par fait
+- Design : glassmorphism, thÃƒÂ¨me sombre cohÃƒÂ©rent Mathakine
 
-**Prototype** : [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) â€” HTML statique (Tailwind, Font Awesome, JS vanilla). Ã€ intÃ©grer en Next.js + API.
+**Prototype** : [../assets/prototypes/F34_SCIENCES_PROTOTYPE.html](../assets/prototypes/F34_SCIENCES_PROTOTYPE.html) Ã¢â‚¬â€ HTML statique (Tailwind, Font Awesome, JS vanilla). Ãƒâ‚¬ intÃƒÂ©grer en Next.js + API.
 
-**Effort estimÃ©** : 1â€“2 semaines (modÃ¨le + API + page `/sciences` + intÃ©gration design system)
+**Effort estimÃƒÂ©** : 1Ã¢â‚¬â€œ2 semaines (modÃƒÂ¨le + API + page `/sciences` + intÃƒÂ©gration design system)
 
 ---
 
@@ -1018,7 +1018,7 @@ Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la v
 | Espace admin complet (role admin canonique, alias DB legacy `archiviste`) | 16/02/2026                         | [ADMIN_ESPACE_PROPOSITION](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ADMIN_ESPACE_PROPOSITION.md)               |
 | Auth complet (inscription, email, login, reset)                           | Jan-Fev 2026                       | [AUTH_FLOW](AUTH_FLOW.md)                                                                                                        |
 | Sessions actives + revocation                                             | 16/02/2026                         | SITUATION_FEATURES (archive)                                                                                                     |
-| Leaderboard (top 50, enrichissement avatar / sÃ©rie / badges)             | 25/03/2026                         | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md)                                                                                    |
+| Leaderboard (top 50, enrichissement avatar / sÃƒÂ©rie / badges)           | 25/03/2026                         | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md)                                                                                    |
 | Badges - refonte UX (onglets, cartes compactes)                           | 17/02/2026                         | [BADGES_AMELIORATIONS](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/BADGES_AMELIORATIONS.md)                       |
 | Badges - barres de progression (goal-gradient)                            | 16/02/2026                         | [BADGES_AMELIORATIONS](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/BADGES_AMELIORATIONS.md)                       |
 | Badges - B4 reformulation (17 badges)                                     | 17/02/2026                         | Archive : AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES                                                                             |
@@ -1033,21 +1033,21 @@ Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la v
 | Monitoring IA (in-memory)                                                 | 22/02/2026                         | [ROADMAP_FONCTIONNALITES](ROADMAP_FONCTIONNALITES.md) - section 4.6                                                              |
 | Mode maintenance + inscriptions (admin config)                            | 16/02/2026                         | [ADMIN_ESPACE_PROPOSITION](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ADMIN_ESPACE_PROPOSITION.md)               |
 | Streak (basique)                                                          | Fev 2026                           | Integre dans stats utilisateur                                                                                                   |
-| 7 themes visuels                                                          | Fev 2026                           | [THEMES](THEMES.md)                                                                                                              |
+| 8 themes visuels                                                          | Fev 2026                           | [THEMES](THEMES.md)                                                                                                              |
 | PWA (mode hors-ligne partiel)                                             | Fev 2026                           | -                                                                                                                                |
 | Internationalisation FR/EN                                                | Jan 2026                           | [I18N](I18N.md)                                                                                                                  |
 | Accessibilite (5 modes WCAG AAA)                                          | Fev-Mars 2026                      | [ACCESSIBILITY](../04-FRONTEND/ACCESSIBILITY.md)                                                                                 |
 
 ### 8.2 Fondations techniques deja posees mais encore incompletes cote produit
 
-| Feature                                                                 | Borne de verite              | Ce qui existe deja                                                                                                                                                                                                                                                                                    | Ce qui reste a livrer                                                                                                                                                                                                                                              |
-| ----------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **F40 â€” Leaderboard position utilisateur hors top 50**                | PlanifiÃ© 25/03/2026         | Classement top 50 + `is_current_user` flag sur chaque entrÃ©e.                                                                                                                                                                                                                                        | Nouvel endpoint `GET /api/users/me/rank` (COUNT query) + injection rang courant en bas de liste avec sÃ©parateur visuel. Effort S. **Aucun prÃ©requis â€” livrable aprÃ¨s L2 sans F42.** F42 est prÃ©requis de F40-v2 (rang filtrÃ© par groupe d'Ã¢ge) uniquement. |
-| **F41 â€” Leaderboard filtre temporel**                                 | LivrÃ© 24/03/2026 (lot L3-B) | `GET /api/users/leaderboard?period=all\|week\|month` + `GET /api/users/me/rank?period=â€¦` ; agrÃ©gation `SUM(points_delta)` sur `point_events` (fenÃªtres glissantes 7j / 30j UTC) ; sÃ©lecteur pÃ©riode sur la page classement.                                                                     | **DÃ©ploiement produit** : si `point_events` est trÃ¨s peu peuplÃ©, privilÃ©gier le dÃ©faut Â« Tout temps Â» en communication ; surveiller taux de liste vide en Â« 7 jours Â».                                                                                    |
-| **F42 â€” Architecture difficultÃ©/Ã¢ge â€” sÃ©paration des deux axes** | [DONE] 27/03/2026            | P1 : `users.age_group`, profil et API. P2 : `difficulty_tier` sur `exercises` et `logic_challenges`, reco exercices tier Â±1 et scoring dÃ©fis par distance de tier. P3 : runtime exercice 4x3, bridges progression/diagnostic, personalization dÃ©fis IA, boundaries admin/API et documentation F42. | Dette assumÃ©e : les champs legacy (`difficulty`, `mastery_level`, `difficulty_rating`) restent comme couches de compatibilitÃ© et de stockage ; pas de migration de suppression ouverte.                                                                          |
-| **Leaderboard â€” filtre par groupe d'Ã¢ge (utilisateur)**              | Report 25/03/2026 (lot L1)   | Le classement expose `limit` et des champs enrichis ; le paramÃ¨tre `age_group` a Ã©tÃ© **retirÃ©** car il filtrait Ã  tort sur `preferred_difficulty` (difficultÃ© easy/medium/hard â‰  tranche d'Ã¢ge).                                                                                             | DÃ©pend de F42 Phase 1 (colonne `age_group` sur `User`) puis F40.                                                                                                                                                                                                  |
-| F14 - Monitoring IA persistance DB                                      | Code au 23/03/2026           | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness                                                                                                                                                                                     | persistance DB complete des metriques runtime live                                                                                                                                                                                                                 |
-| F38 - Progression gamification compte coherente & historique des gains  | Code au 23/03/2026           | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard`                                                                                                                                | historique utilisateur dedie, agregats par source, UX compte lisible                                                                                                                                                                                               |
+| Feature                                                                               | Borne de verite                | Ce qui existe deja                                                                                                                                                                                                                                                                                          | Ce qui reste a livrer                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **F40 Ã¢â‚¬â€ Leaderboard position utilisateur hors top 50**                          | PlanifiÃƒÂ© 25/03/2026         | Classement top 50 + `is_current_user` flag sur chaque entrÃƒÂ©e.                                                                                                                                                                                                                                            | Nouvel endpoint `GET /api/users/me/rank` (COUNT query) + injection rang courant en bas de liste avec sÃƒÂ©parateur visuel. Effort S. **Aucun prÃƒÂ©requis Ã¢â‚¬â€ livrable aprÃƒÂ¨s L2 sans F42.** F42 est prÃƒÂ©requis de F40-v2 (rang filtrÃƒÂ© par groupe d'ÃƒÂ¢ge) uniquement. |
+| **F41 Ã¢â‚¬â€ Leaderboard filtre temporel**                                           | LivrÃƒÂ© 24/03/2026 (lot L3-B) | `GET /api/users/leaderboard?period=all\|week\|month` + `GET /api/users/me/rank?period=Ã¢â‚¬Â¦` ; agrÃƒÂ©gation `SUM(points_delta)` sur `point_events` (fenÃƒÂªtres glissantes 7j / 30j UTC) ; sÃƒÂ©lecteur pÃƒÂ©riode sur la page classement.                                                               | **DÃƒÂ©ploiement produit** : si `point_events` est trÃƒÂ¨s peu peuplÃƒÂ©, privilÃƒÂ©gier le dÃƒÂ©faut Ã‚Â« Tout temps Ã‚Â» en communication ; surveiller taux de liste vide en Ã‚Â« 7 jours Ã‚Â».                                                                                  |
+| **F42 Ã¢â‚¬â€ Architecture difficultÃƒÂ©/ÃƒÂ¢ge Ã¢â‚¬â€ sÃƒÂ©paration des deux axes** | [DONE] 27/03/2026              | P1 : `users.age_group`, profil et API. P2 : `difficulty_tier` sur `exercises` et `logic_challenges`, reco exercices tier Ã‚Â±1 et scoring dÃƒÂ©fis par distance de tier. P3 : runtime exercice 4x3, bridges progression/diagnostic, personalization dÃƒÂ©fis IA, boundaries admin/API et documentation F42. | Dette assumÃƒÂ©e : les champs legacy (`difficulty`, `mastery_level`, `difficulty_rating`) restent comme couches de compatibilitÃƒÂ© et de stockage ; pas de migration de suppression ouverte.                                                                                      |
+| **Leaderboard Ã¢â‚¬â€ filtre par groupe d'ÃƒÂ¢ge (utilisateur)**                      | Report 25/03/2026 (lot L1)     | Le classement expose `limit` et des champs enrichis ; le paramÃƒÂ¨tre `age_group` a ÃƒÂ©tÃƒÂ© **retirÃƒÂ©** car il filtrait ÃƒÂ  tort sur `preferred_difficulty` (difficultÃƒÂ© easy/medium/hard Ã¢â€°Â  tranche d'ÃƒÂ¢ge).                                                                                 | DÃƒÂ©pend de F42 Phase 1 (colonne `age_group` sur `User`) puis F40.                                                                                                                                                                                                                |
+| F14 - Monitoring IA persistance DB                                                    | Code au 23/03/2026             | monitoring runtime, admin `/admin/ai-monitoring`, token tracker, generation metrics, persistance des runs harness                                                                                                                                                                                           | persistance DB complete des metriques runtime live                                                                                                                                                                                                                                 |
+| F38 - Progression gamification compte coherente & historique des gains                | Code au 23/03/2026             | `point_events`, `GamificationService.apply_points`, calcul niveau/XP/rang, surfaces `/api/users/me`, `/api/badges/stats`, `/api/badges/user`, `/api/users/leaderboard`                                                                                                                                      | historique utilisateur dedie, agregats par source, UX compte lisible                                                                                                                                                                                                               |
 
 ### 8.3 Decision d'architecture - Separation des axes difficulte et groupe d'age (F42)
 
@@ -1094,49 +1094,49 @@ Ils ne sont plus la verite fine unique.
 
 ---
 
-## 9. RÃ©fÃ©rences scientifiques {#9-rÃ©fÃ©rences-scientifiques}
+## 9. RÃƒÂ©fÃƒÂ©rences scientifiques {#9-rÃƒÂ©fÃƒÂ©rences-scientifiques}
 
-| #   | RÃ©fÃ©rence                                                                                                                                                    | Pertinence                                                  |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1   | Hattie, J. (2009). _Visible Learning_. Routledge.                                                                                                              | MÃ©ta-analyse de rÃ©fÃ©rence â€” effets sur l'apprentissage |
-| 2   | Cepeda, N.J. et al. (2006). Distributed practice in verbal recall tasks. _Psychological Bulletin_, 132(3).                                                     | Fondement rÃ©visions espacÃ©es (F04)                        |
-| 3   | Hattie, J. & Timperley, H. (2007). The power of feedback. _Review of Educational Research_, 77(1).                                                             | Fondement feedback enrichi (F01)                            |
-| 4   | VanLehn, K. (2011). The relative effectiveness of human tutoring, intelligent tutoring systems, and other tutoring systems. _Educational Psychologist_, 46(4). | Fondement tuteur IA (F24)                                   |
-| 5   | Sweller, J. (1988). Cognitive load during problem solving. _Cognitive Science_, 12(2).                                                                         | Fondement charge cognitive, mise en forme (F01, F03)        |
-| 6   | Vygotsky, L.S. (1978). _Mind in Society_. Harvard University Press.                                                                                            | Fondement ZPD, adaptation difficultÃ© (F05)                 |
-| 7   | Bjork, R.A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. Shimamura (Eds.), _Metacognition_.               | Fondement desirable difficulties, mode focus (F05, F10)     |
-| 8   | Mayer, R.E. (2001). _Multimedia Learning_. Cambridge University Press.                                                                                         | Fondement rendu Markdown/KaTeX (F01)                        |
-| 9   | Deci, E.L. & Ryan, R.M. (2000). The 'what' and 'why' of goal pursuits. _Psychological Inquiry_, 11(4).                                                         | Fondement SDT, dÃ©fis optionnels (F02, F08)                 |
-| 10  | Kivetz, R. et al. (2006). The goal-gradient hypothesis resurrected. _Journal of Marketing Research_, 43(1).                                                    | Fondement conditions badges visibles (F06)                  |
-| 11  | Black, P. & Wiliam, D. (1998). Assessment and classroom learning. _Assessment in Education_, 5(1).                                                             | Fondement diagnostic initial (F03)                          |
-| 12  | Locke, E.A. & Latham, G.P. (1990). _A Theory of Goal Setting and Task Performance_. Prentice Hall.                                                             | Fondement objectifs personnalisÃ©s (F08)                    |
-| 13  | Lave, J. & Wenger, E. (1991). _Situated Learning_. Cambridge University Press.                                                                                 | Fondement mode aventure (F28)                               |
-| 14  | Zimmerman, B.J. (2002). Becoming a self-regulated learner. _Theory into Practice_, 41(2).                                                                      | Fondement mÃ©tacognition, graphiques progression (F07, F12) |
-| 15  | Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories. _Psychological Science_, 19(6).                                                            | Fondement rÃ©visions espacÃ©es + interleaving (F04, F32)    |
-| 16  | Chase, C. et al. (2009). Teachable agents and the protÃ©gÃ© effect. _Journal of Science Education and Technology_, 18(4).                                      | Fondement Effet ProtÃ©gÃ© (F30)                             |
-| 17  | Rohrer, D. & Taylor, K. (2007). The shuffling of mathematics problems improves learning. _Instructional Science_, 35(6).                                       | Fondement Pratique EntrelacÃ©e (F32)                        |
-| 18  | Sweller, J. & Cooper, G.A. (1985). The use of worked examples as a substitute for problem solving. _Cognition and Instruction_, 2(1).                          | Fondement Fading Effect, exemples rÃ©solus (F31)            |
-| 19  | Renkl, A. (1997). Learning from worked-out examples. _American Educational Research Journal_, 34(3).                                                           | Fondement fading progressif (F31)                           |
-| 20  | Dweck, C.S. (2006). _Mindset: The New Psychology of Success_. Random House.                                                                                    | Fondement Growth Mindset, feedback d'erreur (F33)           |
-| 21  | Yeager, D.S. et al. (2019). A national experiment reveals where a growth mindset improves achievement. _Nature_, 573.                                          | Fondement Growth Mindset appliquÃ© aux maths (F33)          |
+| #   | RÃƒÂ©fÃƒÂ©rence                                                                                                                                                | Pertinence                                                            |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | Hattie, J. (2009). _Visible Learning_. Routledge.                                                                                                              | MÃƒÂ©ta-analyse de rÃƒÂ©fÃƒÂ©rence Ã¢â‚¬â€ effets sur l'apprentissage |
+| 2   | Cepeda, N.J. et al. (2006). Distributed practice in verbal recall tasks. _Psychological Bulletin_, 132(3).                                                     | Fondement rÃƒÂ©visions espacÃƒÂ©es (F04)                              |
+| 3   | Hattie, J. & Timperley, H. (2007). The power of feedback. _Review of Educational Research_, 77(1).                                                             | Fondement feedback enrichi (F01)                                      |
+| 4   | VanLehn, K. (2011). The relative effectiveness of human tutoring, intelligent tutoring systems, and other tutoring systems. _Educational Psychologist_, 46(4). | Fondement tuteur IA (F24)                                             |
+| 5   | Sweller, J. (1988). Cognitive load during problem solving. _Cognitive Science_, 12(2).                                                                         | Fondement charge cognitive, mise en forme (F01, F03)                  |
+| 6   | Vygotsky, L.S. (1978). _Mind in Society_. Harvard University Press.                                                                                            | Fondement ZPD, adaptation difficultÃƒÂ© (F05)                         |
+| 7   | Bjork, R.A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. Shimamura (Eds.), _Metacognition_.               | Fondement desirable difficulties, mode focus (F05, F10)               |
+| 8   | Mayer, R.E. (2001). _Multimedia Learning_. Cambridge University Press.                                                                                         | Fondement rendu Markdown/KaTeX (F01)                                  |
+| 9   | Deci, E.L. & Ryan, R.M. (2000). The 'what' and 'why' of goal pursuits. _Psychological Inquiry_, 11(4).                                                         | Fondement SDT, dÃƒÂ©fis optionnels (F02, F08)                         |
+| 10  | Kivetz, R. et al. (2006). The goal-gradient hypothesis resurrected. _Journal of Marketing Research_, 43(1).                                                    | Fondement conditions badges visibles (F06)                            |
+| 11  | Black, P. & Wiliam, D. (1998). Assessment and classroom learning. _Assessment in Education_, 5(1).                                                             | Fondement diagnostic initial (F03)                                    |
+| 12  | Locke, E.A. & Latham, G.P. (1990). _A Theory of Goal Setting and Task Performance_. Prentice Hall.                                                             | Fondement objectifs personnalisÃƒÂ©s (F08)                            |
+| 13  | Lave, J. & Wenger, E. (1991). _Situated Learning_. Cambridge University Press.                                                                                 | Fondement mode aventure (F28)                                         |
+| 14  | Zimmerman, B.J. (2002). Becoming a self-regulated learner. _Theory into Practice_, 41(2).                                                                      | Fondement mÃƒÂ©tacognition, graphiques progression (F07, F12)         |
+| 15  | Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories. _Psychological Science_, 19(6).                                                            | Fondement rÃƒÂ©visions espacÃƒÂ©es + interleaving (F04, F32)          |
+| 16  | Chase, C. et al. (2009). Teachable agents and the protÃƒÂ©gÃƒÂ© effect. _Journal of Science Education and Technology_, 18(4).                                  | Fondement Effet ProtÃƒÂ©gÃƒÂ© (F30)                                   |
+| 17  | Rohrer, D. & Taylor, K. (2007). The shuffling of mathematics problems improves learning. _Instructional Science_, 35(6).                                       | Fondement Pratique EntrelacÃƒÂ©e (F32)                                |
+| 18  | Sweller, J. & Cooper, G.A. (1985). The use of worked examples as a substitute for problem solving. _Cognition and Instruction_, 2(1).                          | Fondement Fading Effect, exemples rÃƒÂ©solus (F31)                    |
+| 19  | Renkl, A. (1997). Learning from worked-out examples. _American Educational Research Journal_, 34(3).                                                           | Fondement fading progressif (F31)                                     |
+| 20  | Dweck, C.S. (2006). _Mindset: The New Psychology of Success_. Random House.                                                                                    | Fondement Growth Mindset, feedback d'erreur (F33)                     |
+| 21  | Yeager, D.S. et al. (2019). A national experiment reveals where a growth mindset improves achievement. _Nature_, 573.                                          | Fondement Growth Mindset appliquÃƒÂ© aux maths (F33)                  |
 
 ---
 
-## Documents liÃ©s
+## Documents liÃƒÂ©s
 
-> Note de rationalisation (28/03/2026) : les anciennes notes feature isolÃ©es encore utiles pour le contexte ont Ã©tÃ© dÃ©placÃ©es dans `docs/03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/`. La vÃ©ritÃ© active reste portÃ©e par cette roadmap, les docs runtime actives et le code vivant.
+> Note de rationalisation (28/03/2026) : les anciennes notes feature isolÃƒÂ©es encore utiles pour le contexte ont ÃƒÂ©tÃƒÂ© dÃƒÂ©placÃƒÂ©es dans `docs/03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/`. La vÃƒÂ©ritÃƒÂ© active reste portÃƒÂ©e par cette roadmap, les docs runtime actives et le code vivant.
 
-| Sujet                                | Document                                                                                                                                                                      |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Carte du dossier features            | [README.md](README.md)                                                                                                                                                        |
-| SpÃ©cifications graphiques analytics | [ANALYTICS_PROGRESSION.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ANALYTICS_PROGRESSION.md)                                                               |
-| Fondements psychologiques badges     | [BADGES_AMELIORATIONS.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/BADGES_AMELIORATIONS.md)                                                                 |
-| Workflow utilisateur complet         | [WORKFLOW_EDUCATION_REFACTORING.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/WORKFLOW_EDUCATION_REFACTORING.md)                                             |
-| Normalisation difficultÃ©            | [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) + [DIFFICULTY_AND_RANKS_MANIFEST.md](../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)   |
-| Auth flow                            | [AUTH_FLOW.md](AUTH_FLOW.md)                                                                                                                                                  |
-| Admin (pÃ©rimÃ¨tre, sÃ©curitÃ©)      | [ADMIN_ESPACE_PROPOSITION.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ADMIN_ESPACE_PROPOSITION.md), [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) |
-| Analytics EdTech (implÃ©mentÃ©)      | [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md)                                                                                                                                    |
-| Endpoints API                        | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)                                                                                                                              |
-| ThÃ¨mes visuels                      | [THEMES.md](THEMES.md)                                                                                                                                                        |
-| Internationalisation                 | [I18N.md](I18N.md)                                                                                                                                                            |
-| Badges implÃ©mentÃ©s (archive)       | [AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md)                                              |
+| Sujet                                   | Document                                                                                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Carte du dossier features               | [README.md](README.md)                                                                                                                                                        |
+| SpÃƒÂ©cifications graphiques analytics  | [ANALYTICS_PROGRESSION.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ANALYTICS_PROGRESSION.md)                                                               |
+| Fondements psychologiques badges        | [BADGES_AMELIORATIONS.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/BADGES_AMELIORATIONS.md)                                                                 |
+| Workflow utilisateur complet            | [WORKFLOW_EDUCATION_REFACTORING.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/WORKFLOW_EDUCATION_REFACTORING.md)                                             |
+| Normalisation difficultÃƒÂ©             | [DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md) + [DIFFICULTY_AND_RANKS_MANIFEST.md](../00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)   |
+| Auth flow                               | [AUTH_FLOW.md](AUTH_FLOW.md)                                                                                                                                                  |
+| Admin (pÃƒÂ©rimÃƒÂ¨tre, sÃƒÂ©curitÃƒÂ©) | [ADMIN_ESPACE_PROPOSITION.md](../03-PROJECT/archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/ADMIN_ESPACE_PROPOSITION.md), [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) |
+| Analytics EdTech (implÃƒÂ©mentÃƒÂ©)     | [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md)                                                                                                                                    |
+| Endpoints API                           | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)                                                                                                                              |
+| ThÃƒÂ¨mes visuels                       | [THEMES.md](THEMES.md)                                                                                                                                                        |
+| Internationalisation                    | [I18N.md](I18N.md)                                                                                                                                                            |
+| Badges implÃƒÂ©mentÃƒÂ©s (archive)      | [AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md)                                              |

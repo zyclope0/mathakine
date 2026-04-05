@@ -5,10 +5,12 @@ All notable changes to the project are documented in this file.
 The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Visible release source of truth:
+
 - `CHANGELOG.md`
 - `frontend/package.json`
 
 Visible product versioning policy:
+
 - `X.Y.Z-alpha.N`: active prerelease train, integration still moving
 - `X.Y.Z-beta.N`: feature set frozen, stabilization focused
 - `X.Y.Z-rc.N`: release candidate
@@ -28,6 +30,7 @@ Visible product versioning policy:
 - lots G (Residual Contracts and Cleanup): closed (G1-G4)
 
 Active references:
+
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
 - [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
 - [`security / boundaries archive`](docs/03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
@@ -37,9 +40,38 @@ Active references:
 
 ## [Unreleased]
 
+## [3.6.0-alpha.1] - 2026-04-05
+
+### Added
+
+- A dedicated learner home is now shipped as a first-class product surface: `/home-learner` becomes the default entry point for `apprenant`, with a calmer linear layout, quick actions, daily reviews, daily challenges, and progression blocks.
+- Active documentation now includes a dedicated frontend UX surface reference covering learner/adult boundaries, neuro-inclusion rules, and theme truth.
+
+### Changed
+
+- User-facing roles are now canonical across the app and API: `apprenant`, `enseignant`, `moderateur`, `admin`. Legacy Star Wars role names remain only as backend/DB compatibility aliases.
+- `NI-13` is now enforced by both the Next server boundary and the client guard: `frontend/proxy.ts` protects `/home-learner`, `/dashboard`, and `/admin` before render, while `ProtectedRoute` remains defense in depth after hydration.
+- The learner/adult surface split is now explicit:
+  - `apprenant` lands on `/home-learner` after login
+  - `/dashboard` stays available as a secondary analytics surface for the learner
+  - `/admin` now requires authoritative backend truth, not only a locally decoded token
+- The theme system now exposes 8 visible themes instead of 7, with `aurora` replacing legacy `peach` and `unicorn` added as a first-class theme. Theme switching also avoids layered transition jank during light/dark changes.
+- Learner-facing UX is materially calmer and more explicit: dedicated learner cards/layout, disabled-button guidance on validation, review-safe solver flow, post-answer feedback animation guards, and stable anchored sections on `/home-learner`.
+
+### Fixed
+
+- Logging out now clears the visible authenticated UI state immediately instead of requiring a manual reload.
+- Admin role editing now preloads and displays the current canonical role correctly in the modal instead of showing an empty select.
+- Server-side auth boundary now rejects inactive users on protected truth-building paths.
+
+### Notes
+
+- This remains an `alpha` release, not `beta`: the visible product keeps evolving on audience surfaces, role strategy, and UI/UX governance. The feature set is stronger and more coherent, but not yet frozen.
+
 ## [3.5.0-alpha.1] - 2026-03-29
 
 ### Added
+
 - F04 spaced repetition is now shipped end-to-end for exercises:
   - SM-2 persistence on `submit_answer`
   - derived user summary in `GET /api/users/stats`
@@ -50,22 +82,26 @@ Active references:
 - The exercise solver now supports `?session=spaced-review` with a review-safe handoff and post-submit continuation to the next due card.
 
 ### Changed
+
 - `GET /api/users/stats` now includes an actionable spaced-repetition summary aligned with active, non-archived exercises only.
 - The product now surfaces explanatory feedback after a spaced review submission while still hiding hints and explanations before the learner answers.
 - The dashboard overview review surfaces were simplified for lower cognitive load: calmer background treatment, reduced hover noise, denser F04 layout, and clearer Quick Start affordances.
 
 ### Fixed
+
 - Multiple-choice exercise options are now keyboard reachable even before any choice is selected.
 - Spaced repetition timing edge cases (`0`, `None`, `NaN`, negative values) no longer risk over-rewarding a submission as a "fast correct" answer.
 - The frontend spaced-review flow now stays review-safe end-to-end instead of reloading a spoiler-bearing standard exercise payload.
 
 ### Notes
+
 - This opens a new visible minor alpha train because F04 is now materially available to end users, not only as backend groundwork.
 - Remaining F04 follow-ups are documented as bounded reserves, not blockers: challenge integration, richer review analytics separation, optional remaining-card session meter, and future F23 coupling.
 
 ## [3.4.0-alpha.1] - 2026-03-27
 
 ### Changed
+
 - Frontend proxy routes now resolve the Python backend through a shared `frontend/lib/api/backendUrl.ts` helper instead of four divergent local implementations.
 - Exercise AI SSE now emits an explicit terminal `done` event on controlled success, validation failure and persistence failure paths, aligning the contract more closely with challenges.
 - A targeted `react-hooks/exhaustive-deps` review was completed on the treated frontend scope: real latent bugs were fixed (`LocaleInitializer`, `CategoryAccuracyChart`) and intentional disables were documented instead of removed blindly.
@@ -82,6 +118,7 @@ Active references:
 - Visible Star Wars references have been removed from the main product surfaces that still exposed them (chat, emails, admin labels, recommendations, targeted schema wording).
 
 ### Added
+
 - Frontend tests now cover `LocaleInitializer` (`html[lang]` synchronization) and `CategoryAccuracyChart` (i18n rerender of radar labels).
 - Frontend tests now cover the real Next proxy routes for `/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream` and `/api/challenges/generate-ai-stream`.
 - Frontend tests now cover AI generation request preflight and HTTP failure mapping (`csrf_token_missing`, `http_401`, `http_403`, `http_backend`).
@@ -93,6 +130,7 @@ Active references:
 - Post-F42 observability now includes structured logs for exercise attempts and adaptive-context resolution, plus a read-only admin cohort endpoint for account progression.
 
 ### Fixed
+
 - Production proxy configuration now fails fast on malformed or loopback backend URLs instead of silently drifting to unusable values.
 - The flaky unit test for `AdminAiMonitoringPage` was stabilized by removing unnecessary heavy runtime imports and mocking non-essential UI/layout wrappers.
 - `auto_correct_challenge` no longer risks calling `.upper()` on `None` when pattern auto-correction cannot infer an answer.
@@ -104,12 +142,14 @@ Active references:
 - Account progression cohort observability now derives level/rank from `total_points`, avoiding stale snapshots when persisted gamification columns lag behind the current curve semantics.
 
 ### Notes
+
 - This opens a new visible minor prerelease train because F42 changed user-visible pedagogical calibration, challenge personalization behavior, public rank identity, and documentation truth in a material way.
 - Legacy backend fields such as `difficulty`, `mastery_level`, `difficulty_rating`, and `jedi_rank` remain intentionally in place as compatibility/storage layers; they are no longer the canonical pedagogical or public-display model by themselves.
 
 ## [3.3.0-alpha.3] - 2026-03-25
 
 ### Added
+
 - Logic challenges: `SubmitChallengeAttemptResult` exposes `points_earned` when the gamification ledger successfully records the award.
 - `GET /api/challenges/stats`: catalog breakdown (totals, by type, difficulty, age group) with semantics aligned to active challenges.
 - Dashboard: combined category accuracy view mixing exercises and challenges, challenges progress widget refinements, dedicated radar chart component, `useChallengesStats` hook and widget/chart unit tests.
@@ -118,50 +158,61 @@ Active references:
 - Frontend API types: `ChallengesStats` / `ChallengeCatalogStatBucket`; `ChallengeAttemptResponse.message` optional to match runtime payloads.
 
 ### Changed
+
 - Challenge filtering and stats: `active_only` uses consistent `is_active` / `is_archived` rules across list, count, and aggregate stats; stats use a single aggregate query where relevant.
 
 ### Fixed
+
 - Challenge attempt unit test: mock three nested savepoints (progress, streak, daily) to match `challenge_attempt_service` orchestration.
 
 ## [3.3.0-alpha.2] - 2026-03-24
 
 ### Added
+
 - Gamification: awarding account points on successful **standard exercise** submissions via ledger source `exercise_completed` (aligned with daily challenges and badges).
 
 ### Changed
+
 - Challenges listing (`random` order): replace `ORDER BY RANDOM()` fallback with a count + deterministic `id` offset strategy to avoid full-table random sorts under load.
 - Frontend: **Exercises** and **Challenges** list sort preference (`random` / `recent`) persisted in the browser across refresh (SSR-safe restore).
 
 ### Fixed
+
 - Gamification: PostgreSQL uses a row-level lock when granting points to reduce parallel double-award risk; SQLite test sessions remain compatible (no `FOR UPDATE`).
 
 ### Security
+
 - Email service logs redact recipient addresses and SMTP usernames (masked identifiers).
 - Test harness: hosted database URLs (e.g. Render, AWS, Supabase, Neon, Railway) are never auto-adopted as `TEST_DATABASE_URL` solely because the database name contains `test`; stricter parity checks between test and production DB configuration.
 
 ### Notes
+
 - Documentation: roadmap updates including MVP challenge track note (`docs/02-FEATURES/`).
 - Formatting: `black` alignment on touched Python modules in this train.
 
 ## [3.3.0-alpha.1] - 2026-03-22
 
 ### Changed
+
 - The AI stack is now governed explicitly by workload (`assistant_chat`, `exercises_ai`, `challenges_ai`) with fail-closed model policies and a single runtime governance reference in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`.
 - AI exercise/challenge generation flows now use clearer frontend architecture, stricter end-state handling, and direct CTAs to reopen the newly created resource from the generation widget.
 - The project now includes bounded runtime AI observability plus offline/live comparative evaluation campaigns and persisted harness run visibility in admin monitoring.
 
 ### Fixed
+
 - The public assistant no longer misroutes generic requests such as "create an exercise" to image generation.
 - Exercise and challenge AI streams now expose safe user-facing errors and avoid false success when validation or persistence fails.
 - Runtime AI cost tracking is now more honest on challenge failures/fallbacks and uses bounded in-memory retention for admin monitoring.
 
 ### Notes
+
 - This bump opens a new visible prerelease train because the AI refactor changed user-visible behavior, reliability, and operational governance beyond a simple `alpha.N` bugfix.
 - The product remains in alpha: costs shown in admin are still runtime estimates, not accounting truth.
 
 ## [3.2.0-alpha.1] - 2026-03-20
 
 ### Changed
+
 - Backend maturity iteration `I` and recommendation iteration `R` are now both closed and reflected in the active governance documentation.
 - The recommendation engine now exposes materially improved visible product behaviour:
   - canonical exercise-type normalization
@@ -174,10 +225,12 @@ Active references:
 - Active docs now distinguish clearly between internal backend remediation iterations and visible product release numbering.
 
 ### Fixed
+
 - Visible version references were realigned after historical drift in the late `3.1.0-alpha.*` prerelease notes.
 - Recommendation serving and recommendation UI reasons now follow the structured post-R baseline documented in the active project docs.
 
 ### Notes
+
 - This is intentionally **not** `3.2.0` stable: the current engine is a stronger deterministic heuristic recommender, not a fully learned or feature-complete recommender.
 - Current cited post-R baseline:
   - recommendation targeted tests: `40 passed`
@@ -187,11 +240,13 @@ Active references:
 ## [3.1.0-alpha.8] - 2026-03-11
 
 ### Changed
+
 - Backend consolidation release centered on `challenge`, `admin` and `badge`, with thinner handlers and explicit application facades across the HTTP boundaries in scope.
 - Admin read/mutate/config/content endpoints and badge endpoints now go through dedicated application services without changing public HTTP contracts.
 - API proof tests were extended on admin content and badge endpoints to verify the real mutate/public route wiring.
 
 ### Fixed
+
 - Fixture namespace collisions between auth/admin fixtures and global cleanup were removed.
 - Challenge tests that depended on nondeterministic `challenges[0]` selection now use a stable fixture with a known `correct_answer`.
 - Local stability improved by excluding `tests/api/test_admin_auth_stability.py` from standard gates while it still launches `pytest` from inside `pytest`.
@@ -199,11 +254,13 @@ Active references:
 ## [3.1.0-alpha.7] - 2026-03-09
 
 ### Changed
+
 - Backend reliability release centered on `exercise`, `auth` and `user`, with thinner handlers, clearer application services and preserved HTTP boundaries.
 - Account management became more robust for profile, sessions, GDPR export and self-delete flows.
 - Authentication flows for login, refresh, verification, forgot/reset and post-reset invalidation were reindustrialized without changing public contracts.
 
 ### Fixed
+
 - Older access and refresh tokens issued before password reset are now rejected.
 - Other active sessions are revoked after password reset.
 - Password change from settings now uses the same revocation mechanism.
@@ -213,23 +270,28 @@ Active references:
 ## [3.1.0-alpha.6] - 2026-03-07
 
 ### Historical note
+
 - Earlier `3.1.0-alpha.1` to `3.1.0-alpha.4` prerelease steps existed before the detailed entries below; they are not expanded in this changelog and remain part of the condensed prerelease history.
 
 ### Added
+
 - F07: progression timeline via `GET /api/users/me/progress/timeline`
 - F32: interleaved session via `GET /api/exercises/interleaved-plan`
 - F35: DB URL secret redaction at startup
 
 ### Changed
+
 - Dashboard progression and visualizations were harmonized.
 - `POST /api/exercises/generate` better supports adaptive `age_group` resolution.
 
 ## [3.1.0-alpha.5] - 2026-03-06
 
 ### Fixed
+
 - CI database initialization: corrected alembic.ini path resolution and robust fallback for "already exists" errors during create_all.
 
 ### Changed
+
 - The root docs, architecture reference, setup guide, testing guide and project index now reflect the closure of `Production Hardening`.
 - The detailed `Production Hardening` execution notes were archived; a single active recap now defines the iteration truth.
 - The diagnostic feature documentation now reflects the signed `state_token` contract and the removal of `correct_answer` from `/api/diagnostic/question`.
@@ -258,6 +320,7 @@ Active references:
 - Lots G (Residual Contracts and Cleanup) are now closed: G1 `AuthenticateWithSessionResult`, G2 success_rate cluster in volume, G3 admin exercise create flow, G4 sync_db_session via db_boundary (19 services).
 
 ### Fixed
+
 - Documentation no longer presents `Production Hardening` as still active.
 - Documentation no longer presents `app/api/endpoints/*` as a live runtime perimeter.
 - Documentation no longer presents the pre-hardening backend baseline (`823 passed, 2 skipped`, coverage gate `62 %`) as the current truth.
@@ -267,6 +330,7 @@ Active references:
 - Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
+
 - Current verified backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
 - Current measured local coverage on `app` + `server`: `71 %`
 - Current backend CI coverage gate: `63 %`
@@ -275,6 +339,7 @@ Active references:
 ## [2.1.0] - 2026-02-06
 
 ### Added
+
 - random ordering and hide-completed options for exercises and challenges
 - badge overhaul
 - AI chatbot
@@ -283,10 +348,9 @@ Active references:
 - accessibility options
 
 ### Security
+
 - CSRF, rate limiting, CORS, secure headers and JWT validation
 
 ## [2.0.0] and earlier
 
 Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.
-
-

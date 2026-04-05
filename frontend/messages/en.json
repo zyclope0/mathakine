@@ -1931,7 +1931,18 @@
     "title": "What's new",
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
-    "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "alphaNote": "Mathakine remains in alpha: the product is stable in use, but surfaces and flows are still evolving.",
+    "release_3_6_0_alpha_1": {
+      "version": "v3.6.0-alpha.1",
+      "date": "April 5, 2026",
+      "items": [
+        "My space is now the real learner home, with a calmer structure: quick actions, reviews, challenges, and progress in one clear flow.",
+        "Visible user roles are now clear and business-oriented: Learner, Teacher, Moderator, and Admin.",
+        "The learner/adult boundary is more robust: /home-learner, /dashboard, and /admin are filtered before render, while the learner still keeps discreet secondary access to the dashboard.",
+        "The theme system now exposes 8 visible themes, with Aurora replacing the old Peach theme and a full Unicorn theme.",
+        "Theme changes and light/dark switching are smoother, without the previous layered color-jank effect."
+      ]
+    },
     "release_3_5_0_alpha_1": {
       "version": "v3.5.0-alpha.1",
       "date": "March 29, 2026",
@@ -2153,13 +2164,6 @@
         "Dedicated API proofs added for admin content endpoints and public/user badge endpoints in scope.",
         "Auth/admin fixtures and non-deterministic challenge tests stabilized on the current tree.",
         "Primarily a technical release: hardening, documentation alignment, and backend iteration closure."
-      ]
-    },
-    "release_3_1_0_alpha_9": {
-      "version": "v3.1.0-alpha.9",
-      "date": "March 6, 2026",
-      "items": [
-        "Historical entry removed from visible product meaning: this CI fix remained an internal milestone, not a user-facing release."
       ]
     }
   },

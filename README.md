@@ -2,16 +2,16 @@
 
 Gamified mathematics learning platform with a Next.js frontend and a Starlette/SQLAlchemy backend.
 
-[![Version](https://img.shields.io/badge/version-3.5.0--alpha.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.6.0--alpha.1-blue.svg)](CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](CHANGELOG.md)
 [![Tests](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml/badge.svg)](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 
 ## Product Status
 
-- visible release: `3.5.0-alpha.1`
+- visible release: `3.6.0-alpha.1`
 - release source of truth: `CHANGELOG.md` and `frontend/package.json`
-- note: `pyproject.toml` now carries the aligned Python package metadata version `3.5.0a1`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
+- note: `pyproject.toml` now carries the aligned Python package metadata version `3.6.0a1`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
 
 ## Key Capabilities
 
@@ -64,13 +64,13 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 
 - targeted recommendation tests: `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` -> **`40 passed`**
 - standard backend gate (same command as above): **`991 passed, 2 skipped`**
-- *(Micro-lot R7b, doc-only: root README alignment; no test rerun.)*
+- _(Micro-lot R7b, doc-only: root README alignment; no test rerun.)_
 
 ## Versioning Rule
 
 - visible product releases follow SemVer prerelease stages
-- current visible train: `3.5.0-alpha.1`
-- moving from `3.4.0-alpha.1` to `3.5.0-alpha.1` opens a new minor prerelease train because F04 is now shipped end-to-end for exercises with visible dashboard entry, review flow, and solver integration
+- current visible train: `3.6.0-alpha.1`
+- moving from `3.5.0-alpha.1` to `3.6.0-alpha.1` opens a new minor prerelease train because learner/adult surface routing, canonical roles, neuro-inclusion UX, and the visible theme system changed materially for end users
 - moving directly to `3.2.0` stable would be misleading in the current context
 - while still in `alpha`, incrementing `alpha.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists
 - internal iterations (`I`, `R`, etc.) are engineering milestones, not product versions
@@ -141,6 +141,7 @@ cd frontend && npx tsc --noEmit
 ```
 
 Important:
+
 - `tests/api/test_admin_auth_stability.py` is not a standard gate while it still launches `pytest` from inside `pytest`
 - on Windows, repeated coverage runs should use a dedicated `COVERAGE_FILE` to avoid false `.coverage` lock failures
 
@@ -149,4 +150,3 @@ Important:
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md)
 - [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
 - [docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
-

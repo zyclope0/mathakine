@@ -27,25 +27,22 @@
 - `FFI-L10` : prochain lot critique (`ChallengeSolver`)
 - `FFI-L11` a `FFI-L13` : ouverts, apres stabilisation solver
 
-**Etat NI (worktree local relu au 2026-04-03)**
+**Etat NI (verite terrain au 2026-04-05)**
 
-- `NI-1` : fait localement
-- `NI-2` : fait localement
-- `NI-3` : fait localement
-- `NI-4` : backlog
-- `NI-5` : a faire
-- `NI-6` : fait localement
-- `NI-7` : fait localement
-- `NI-8` : fait localement
+- `NI-1` a `NI-13` : livres, commites et pousses
+- `/home-learner` est la home principale apprenant
+- `/dashboard` reste une surface secondaire discrete pour `apprenant`
+- `proxy.ts` + `ProtectedRoute` portent le boundary partage
+- la doc active frontend/NI a ete realignee sur la version visible `3.6.0-alpha.1`
 
 ### 1. Prochain ordre recommande
 
 ```text
-1. Stabiliser / integrer proprement les travaux NI locaux si l'objectif est de les garder
-2. FFI-L10 : split ChallengeSolver
-3. FFI-L11 : couleurs semantiques hardcodees
-4. FFI-L12 : split Header.tsx
-5. FFI-L13 : doc design system + clarification chatbot
+1. FFI-L10 : split ChallengeSolver
+2. FFI-L11 : couleurs semantiques hardcodees
+3. FFI-L12 : split Header.tsx
+4. FFI-L13 : clarification chatbot + derniers residus design system
+5. Lot roles phase 2 : decider si `parent` devient un role metier distinct
 ```
 
 ### 2. Gardes-fous frontend
@@ -77,7 +74,8 @@
 
 - `/home-learner` = home apprenant
 - `/dashboard` = surface analytique adulte, accessible secondairement a l'apprenant
-- `ProtectedRoute` porte les restrictions de roles avec `allowedRoles`
+- `proxy.ts` porte maintenant le premier niveau de boundary sur `/home-learner`, `/dashboard` et `/admin`
+- `ProtectedRoute` reste le fallback client et la defense en profondeur
 - `useAuth.ts` derive la route post-login via helper partage
 - `Header.tsx` n'utilise plus de strings legacy dans sa logique metier
 - l'apprenant garde `/home-learner` comme home par defaut, avec un acces discret a `/dashboard` via le menu profil
@@ -90,14 +88,14 @@
    - `docs/00-REFERENCE/USER_ROLE_NOMENCLATURE.md`
    - `app/core/user_roles.py`
    - `frontend/lib/auth/userRoles.ts`
-4. `home-learner` reste la home principale de l'apprenant ; `/dashboard` n'est qu'une entree secondaire discrete tant qu'aucun boundary serveur n'existe.
+4. `home-learner` reste la home principale de l'apprenant ; `/dashboard` reste une entree secondaire discrete meme apres durcissement serveur.
 
 ### 3. Suite recommandee
 
-1. Stabiliser et pousser le lot `roles canoniques + NI-13`.
-2. Durcir `NI-13` cote serveur/middleware pour ne plus dependre uniquement du guard frontend.
-3. Decider separement si `parent` devient un vrai role metier distinct.
-4. Migrer plus tard l'enum SQL legacy `padawan / maitre / gardien / archiviste` une fois la phase compat terminee.
+1. Lot `roles canoniques + NI-13` : pousse et stabilise en prod.
+2. Decider separement si `parent` devient un vrai role metier distinct.
+3. Migrer plus tard l'enum SQL legacy `padawan / maitre / gardien / archiviste` une fois la phase compat terminee.
+4. Garder `3.6.0-alpha.1` comme train visible jusqu'au prochain lot UX/produit materialisant une nouvelle release.
 
 ---
 

@@ -1,166 +1,123 @@
-# Animations Spatiales — Mathakine
+﻿# Animations Frontend - Mathakine
 
-> Dernière mise à jour : 22/02/2026  
-> Composants dans `frontend/components/spatial/`
-
-Système d'animations d'arrière-plan pour l'immersion visuelle. S'adaptent aux 7 thèmes et respectent toutes les préférences d'accessibilité (Focus Mode, reduced motion).
-
----
-
-## Composants
-
-### `SpatialBackground`
-
-Conteneur orchestrateur — inclut tous les composants ci-dessous. Intégré dans `app/layout.tsx` pour être présent sur toutes les pages.
-
-```tsx
-import { SpatialBackground } from "@/components/spatial/SpatialBackground";
-// Intégré dans app/layout.tsx — rien à faire dans les pages
-```
+> Statut : reference active
+> Updated : 2026-04-05
+> Scope : motion visible, decor spatial, garde-fous a11y
 
 ---
 
-### `Starfield` — z-index `-10`
+## Verite actuelle
 
-Champ d'étoiles multi-couches avec effet de profondeur (canvas + `requestAnimationFrame`).
+Les animations Mathakine sont separees en deux familles :
 
-| Couche | Étoiles | Vitesse | Taille | Opacité |
-|---|---|---|---|---|
-| Lointaine | 100 | 0.5 | 1px | 0.8 |
-| Moyenne | 150 | 1.0 | 1.5px | 0.6 |
-| Proche | 200 | 2.0 | 2px | 0.4 |
+1. **Motion UI**
+   - `Header.tsx`
+   - `PageTransition.tsx`
+   - `InstallPrompt.tsx`
+   - widgets dashboard qui utilisent `useAccessibleAnimation()`
 
-```tsx
-// Modifier le nombre d'étoiles
-// components/spatial/Starfield.tsx
-const layers = [
-  { count: 100, speed: 0.5, size: 1, opacity: 0.8 },
-  // ...
-];
-```
+2. **Decor spatial**
+   - `Starfield.tsx`
+   - `Planet.tsx`
+   - `Particles.tsx`
+   - `DinoFloating.tsx`
+   - `UnicornFloating.tsx`
 
----
-
-### `Planet` — z-index `-5`
-
-Planète rotative (0.5°/frame) avec cratères 3D et 6 symboles mathématiques en orbite (∑∫π∞√Δ, rotation 20s). Sur le thème Dinosaures, remplacée par un T-Rex emoji.
-
-```tsx
-// Modifier la vitesse de rotation
-// components/spatial/Planet.tsx
-const rotationSpeed = 0.5; // degrés par frame
-```
+Le conteneur decoratif commun est `SpatialBackground.tsx`.
 
 ---
 
-### `Particles` — z-index `-8`
+## Regle EdTech
 
-50 particules flottantes avec rebond sur les bords, opacité et taille variables.
+Pendant la phase de reflexion apprenant, le decor ne doit pas prendre le dessus.
 
-```tsx
-// Modifier le nombre de particules
-// components/spatial/Particles.tsx
-const particleCount = 50;
-```
+Concretement :
 
----
-
-### `DinoFloating` — z-index `-5`
-
-Emoji 🦕 flottant en haut à gauche — **visible uniquement avec le thème Dinosaures**. Animation `dino-bob` (balancement doux).
+- les surfaces apprenant utilisent `LearnerLayout` / `LearnerCard`
+- `data-learner-context` neutralise les lifts et bruits interactifs non essentiels
+- le feedback anime ne se declenche qu'apres la reponse
+- le decor spatial se coupe en `focusMode` ou `reducedMotion`
 
 ---
 
-## Adaptation aux 7 thèmes
+## Composants decoratifs
 
-| Thème | Étoiles | Planète | Particules | Spécial |
-|---|---|---|---|---|
-| Spatial | Blanc brillant | Violet | Violet subtil | — |
-| Minimaliste | Noir | Noir | Noir subtil | — |
-| Océan | Blanc brillant | Bleu ciel | Bleu subtil | — |
-| Dune | Ambre/Sable | Ambre | Ambre subtil | — |
-| Forêt | Blanc | Vert menthe | Vert subtil | — |
-| Lumière | Blanc | Pêche/Orange | Pêche subtil | — |
-| Dinosaures | Vert lime | T-Rex emoji | Vert lime | DinoFloating actif |
+| Composant         | Role                      | Notes                                  |
+| ----------------- | ------------------------- | -------------------------------------- |
+| `Starfield`       | fond etoiles              | adapte ses couleurs au theme           |
+| `Planet`          | objet decoratif principal | `dino` et `unicorn` ont un rendu dedie |
+| `Particles`       | profondeur douce          | theme-aware                            |
+| `DinoFloating`    | accent theme dino         | visible uniquement sur `dino`          |
+| `UnicornFloating` | accent theme licorne      | visible uniquement sur `unicorn`       |
 
----
-
-## Accessibilité
-
-Tous les composants vérifient au rendu :
-```tsx
-// Retourne null si focus mode ou reduced motion actif
-if (focusMode || reducedMotion) return null;
-```
-
-- **Mode Focus TSA/TDAH** (`Alt+F`) : tous désactivés → `null`
-- **Reduced Motion** (store ou `prefers-reduced-motion`) : tous désactivés → `null`
-- **Performance** : canvas avec `clearRect` propre, nettoyage des event listeners au démontage
+Le decor suit maintenant **8 themes**, pas 7.
 
 ---
 
-## Animations CSS (`app/globals.css`)
+## Motion UI
 
-```css
-@keyframes pulse-ring { /* Anneau planète */ }
-@keyframes orbit-0 { /* ∑ */ }
-@keyframes orbit-1 { /* ∫ */ }
-@keyframes orbit-2 { /* π */ }
-@keyframes orbit-3 { /* ∞ */ }
-@keyframes orbit-4 { /* √ */ }
-@keyframes orbit-5 { /* Δ */ }
-@keyframes dino-bob { /* Dinosaure flottant */ }
-```
+Les surfaces globales les plus exposees utilisent `LazyMotion` + `domAnimation` :
 
-Durée orbites : 20s, easing : `linear`.
+- `frontend/components/layout/Header.tsx`
+- `frontend/components/layout/PageTransition.tsx`
+- `frontend/components/pwa/InstallPrompt.tsx`
 
----
+Objectif :
 
-## Ajouter un nouveau thème
-
-1. **`Starfield.tsx`** — ajouter dans `starColors` :
-```tsx
-const starColors: Record<string, string> = {
-  // thèmes existants...
-  nouveauTheme: "rgba(R, G, B, ",
-};
-```
-
-2. **`Planet.tsx`** — ajouter dans `planetColors` :
-```tsx
-const planetColors: Record<string, { bg: string; glow: string }> = {
-  nouveauTheme: {
-    bg: "radial-gradient(...)",
-    glow: "rgba(...)",
-  },
-};
-```
-
-3. **`Particles.tsx`** — ajouter dans `themeColors` :
-```tsx
-const themeColors: Record<string, string> = {
-  nouveauTheme: "rgba(R, G, B, 0.3)",
-};
-```
-
-> Voir aussi [Thèmes](../02-FEATURES/THEMES.md) pour la procédure complète d'ajout de thème (CSS variables + themeStore).
+- garder des transitions lisibles
+- reduire le cout motion
+- respecter les preferences d'accessibilite
 
 ---
 
-## Ordre z-index
+## Accessibilite motion
 
-```
--10 : Starfield       (arrière-plan)
- -8 : Particles       (milieu)
- -5 : Planet, DinoFloating (avant-plan décoratif)
-  0+: Contenu principal
-```
+La source de verite est `frontend/lib/hooks/useAccessibleAnimation.ts`.
+
+Le hook combine :
+
+- preference store `reducedMotion`
+- preference store `focusMode`
+- preference systeme `prefers-reduced-motion`
+- garde SSR-safe
+
+Nuance importante :
+
+- sur les charts dashboard, `useAccessibleAnimation({ respectFocusMode: false })`
+  permet de respecter `reducedMotion` et la preference systeme sans bloquer
+  inutilement l'animation juste parce que `focusMode` est active ailleurs
 
 ---
 
-## Évolutions possibles
+## Feedback anime apprenant
 
-- Étoiles filantes occasionnelles
-- Variation des tailles des symboles orbitants
-- Effets de brillance (scintillement) sur les étoiles
-- Optimisation mobile (réduire le count de particules/étoiles sur petit écran)
+Deux classes sont actives :
+
+- `.feedback-success-animate`
+- `.feedback-error-animate`
+
+Usage :
+
+- feedback post-reponse dans les solveurs
+- une seule fois
+- coupe automatiquement sous `prefers-reduced-motion: reduce`
+
+Ces animations sont considerees acceptables parce qu'elles arrivent **apres**
+la reponse, pas pendant la reflexion.
+
+---
+
+## A ne pas faire
+
+- reintroduire un sweep global sur tous les boutons/cartes
+- ajouter des animations de reflexion dans les solveurs apprenant
+- ignorer `useAccessibleAnimation()` sur les composants motion
+- documenter encore 7 themes ou l'ancien theme `peach`
+
+---
+
+## References
+
+- [ACCESSIBILITY.md](ACCESSIBILITY.md)
+- [THEMES.md](../02-FEATURES/THEMES.md)
+- [UX_SURFACES.md](UX_SURFACES.md)

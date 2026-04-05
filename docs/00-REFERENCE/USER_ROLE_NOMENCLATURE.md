@@ -1,7 +1,7 @@
-# Nomenclature des roles utilisateur
+﻿# Nomenclature des roles utilisateur
 
 > Statut : reference active
-> Date : 2026-04-04
+> Date : 2026-04-05
 > Scope : roles utilisateur uniquement
 
 ---
@@ -77,8 +77,14 @@ Le boundary apprenant/adulte s'appuie sur ces roles canoniques :
 - `apprenant` peut encore ouvrir `/dashboard` depuis une entree discrete du menu profil
 - `enseignant`, `moderateur`, `admin` conservent l'acces normal au dashboard
 
-L'implementation active utilise un guard partage et type cote frontend,
-pas une redirection ad hoc locale a la page.
+L'implementation active utilise maintenant :
+
+- un boundary serveur partage via `frontend/proxy.ts`
+- un fallback client via `frontend/components/auth/ProtectedRoute.tsx`
+
+Le proxy Next protege `/home-learner`, `/dashboard` et `/admin` avant rendu,
+sans changer la politique produit : le dashboard reste une surface secondaire
+autorisee pour `apprenant`.
 
 ---
 
@@ -97,6 +103,6 @@ Les references suivantes peuvent encore exister sans contradiction :
 
 - Backend : `app/core/user_roles.py`
 - Frontend : `frontend/lib/auth/userRoles.ts`
-- Boundary apprenant/adulte : `frontend/components/auth/ProtectedRoute.tsx`
+- Boundary apprenant/adulte : `frontend/proxy.ts` + `frontend/components/auth/ProtectedRoute.tsx`
 - Doc securite admin : `docs/02-FEATURES/ADMIN_FEATURE_SECURITE.md`
 - Modele de donnees : `docs/00-REFERENCE/DATA_MODEL.md`
