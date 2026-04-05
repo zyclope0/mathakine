@@ -138,7 +138,8 @@ export function ContentListProgressiveFilterToolbar({
   const panelId = `${baseId}-advanced-panel`;
   const regionTitleId = `${baseId}-advanced-title`;
 
-  const showTypeChip = typeFilterValue !== "all";
+  // En mode chips inline, le type actif est déjà visible via la chip colorée — pas de doublonnage
+  const showTypeChip = typeFilterValue !== "all" && !showTypeChipsInline;
   const showAgeChip = ageFilterValue !== "all";
   const hasSummaryChips = showTypeChip || showAgeChip;
 
@@ -214,7 +215,7 @@ export function ContentListProgressiveFilterToolbar({
       {/* Chips type inline — accès direct, icône + label, 1 clic (NI/enfant) */}
       {showTypeChipsInline && (
         <div
-          className="flex flex-wrap items-center gap-1.5"
+          className="flex flex-wrap items-center gap-2"
           role="group"
           aria-label={labels.typeHeading}
         >
@@ -226,7 +227,8 @@ export function ContentListProgressiveFilterToolbar({
               onFilterAdjust();
             }}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
+              "transition-colors active:scale-95 touch-manipulation",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               typeFilterValue === "all"
                 ? "bg-primary text-primary-foreground border-primary"
@@ -250,7 +252,8 @@ export function ContentListProgressiveFilterToolbar({
                   onFilterAdjust();
                 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
+                  "transition-colors active:scale-95 touch-manipulation",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                   isActive
                     ? "bg-primary text-primary-foreground border-primary"
@@ -298,13 +301,13 @@ export function ContentListProgressiveFilterToolbar({
         </div>
       ) : null}
 
-      {/* Panneau secondaire : types, âge, reset */}
+      {/* Panneau secondaire : âge, ordre, masquer (+ types si non exposés en inline) */}
       <div
         id={panelId}
         role="region"
         aria-labelledby={regionTitleId}
         hidden={!panelOpen}
-        className="border-t border-border/60 pt-3 space-y-4"
+        className="border-t border-border/60 pt-3 space-y-3"
       >
         <h2 id={regionTitleId} className="sr-only">
           {labels.advancedRegionLabel}

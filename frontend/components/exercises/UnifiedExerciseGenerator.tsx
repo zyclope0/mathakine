@@ -140,13 +140,16 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
             >
               {t("generator.iaModeLabel")}
             </label>
-            <TooltipProvider delayDuration={200}>
+            <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle
-                    className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-help"
+                  <button
+                    type="button"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label={t("generator.iaModeHelpAriaLabel")}
-                  />
+                  >
+                    <HelpCircle className="h-3.5 w-3.5" aria-hidden />
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
@@ -177,10 +180,7 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
             onClick={handleGenerate}
             disabled={isGenerating}
             size="sm"
-            className={cn(
-              "h-9 transition-all",
-              isIAEnabled && "shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_20%,transparent)]"
-            )}
+            className="h-9 transition-all"
           >
             {isGenerating ? (
               <>
