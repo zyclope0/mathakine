@@ -48,7 +48,7 @@ export default function HomePage() {
   return (
     <PageLayout>
       {/* Hero Section */}
-      <section className="text-center py-8 md:py-12 space-y-4" aria-labelledby="hero-title">
+      <section className="text-center py-6 md:py-12 space-y-4" aria-labelledby="hero-title">
         <div
           className={cn(
             "flex flex-col items-center",
@@ -108,13 +108,13 @@ export default function HomePage() {
       {/* Stats de l'Académie — visiteurs non-connectés uniquement (NI-6)
           Guard !isAuthLoading : évite le flash du widget pendant la résolution de la query auth */}
       {!isAuthLoading && !isAuthenticated && (
-        <section className="py-4" aria-label="Statistiques de l'Académie">
+        <section className="py-2" aria-label="Statistiques de l'Académie">
           <AcademyStatsWidgetLazy />
         </section>
       )}
 
       {/* Fonctionnalités — layout asymétrique (NI-6) */}
-      <section className="py-8 md:py-16 space-y-8 md:space-y-12" aria-labelledby="features-title">
+      <section className="pt-4 pb-8 md:pt-6 md:pb-16 space-y-6 md:space-y-12" aria-labelledby="features-title">
         <div className="space-y-2">
           <h2 id="features-title" className="text-2xl md:text-3xl font-bold">
             {t("features.title")}
