@@ -109,13 +109,11 @@ function CircularProgress({
 /* ── Nœud de constellation ───────────────────────────────────────────────── */
 function ConstellationNode({
   challenge,
-  index,
   getTypeDisplay,
   t,
   reducedMotion,
 }: {
   challenge: DailyChallenge;
-  index: number;
   getTypeDisplay: (type: string | null) => string;
   t: ReturnType<typeof useTranslations>;
   reducedMotion: boolean;
@@ -173,14 +171,6 @@ function ConstellationNode({
         <p className="text-center text-xs font-medium leading-snug text-muted-foreground line-through">
           {label}
         </p>
-
-        {/* Numéro de nœud */}
-        <span
-          className="text-[9px] font-semibold uppercase tracking-widest text-primary/40"
-          aria-hidden="true"
-        >
-          {String(index + 1).padStart(2, "0")}
-        </span>
       </div>
     );
   }
@@ -227,13 +217,6 @@ function ConstellationNode({
         </p>
       </div>
 
-      {/* Numéro de nœud — décoration constellation */}
-      <span
-        className="text-[9px] font-semibold uppercase tracking-widest text-primary/40"
-        aria-hidden="true"
-      >
-        {String(index + 1).padStart(2, "0")}
-      </span>
     </Link>
   );
 }
@@ -385,11 +368,10 @@ export function StudentChallengesBoard() {
 
       {/* Grille constellation — 3 nœuds */}
       <div className="relative grid grid-cols-3 gap-3" role="list">
-        {challenges.map((challenge, index) => (
+        {challenges.map((challenge) => (
           <ConstellationNode
             key={challenge.id}
             challenge={challenge}
-            index={index}
             getTypeDisplay={getTypeDisplay}
             t={t}
             reducedMotion={shouldReduceMotion}
