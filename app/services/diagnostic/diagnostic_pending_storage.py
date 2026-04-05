@@ -14,7 +14,7 @@ import secrets
 import time
 from typing import Any, Dict, Optional, Tuple
 
-from app.core.config import settings
+from app.core.config import _is_production, settings
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -22,14 +22,6 @@ logger = get_logger(__name__)
 _PENDING_STATE_TTL_SEC = 60 * 60
 _pending_state_memory: Dict[str, Tuple[float, Dict[str, Any]]] = {}
 _pending_state_redis_client = None
-
-
-def _is_production() -> bool:
-    return (
-        settings.ENVIRONMENT == "production"
-        or settings.NODE_ENV == "production"
-        or settings.MATH_TRAINER_PROFILE == "prod"
-    )
 
 
 def _get_pending_state_redis_client():
