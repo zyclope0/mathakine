@@ -208,9 +208,10 @@ export default function DashboardPage() {
           description={t("description")}
           actions={
             <>
-              {shouldShowHeaderTimeRange(activeTab) ? (
+              {/* TimeRangeSelector : visibility:hidden (conserve l'espace) évite le layout shift au changement d'onglet */}
+              <div className={shouldShowHeaderTimeRange(activeTab) ? undefined : "invisible pointer-events-none"} aria-hidden={!shouldShowHeaderTimeRange(activeTab)}>
                 <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
-              ) : null}
+              </div>
               <ExportButton snapshot={exportSnapshot} />
               <Button
                 variant="ghost"

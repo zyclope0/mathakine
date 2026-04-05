@@ -31,12 +31,12 @@ export function PageHeader({
     <div
       className={cn("flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4", className)}
     >
-      <div className="flex-1">
-        <h1 className={cn("text-3xl font-bold text-foreground mb-2", "flex items-center gap-2")}>
-          {Icon && <Icon className="h-8 w-8 text-primary" aria-hidden="true" />}
-          {title}
+      <div className="flex-1 min-w-0">
+        <h1 className="text-3xl font-bold text-foreground flex items-center gap-2 leading-tight">
+          {Icon && <Icon className="h-8 w-8 text-primary shrink-0" aria-hidden="true" />}
+          <span className="truncate sm:overflow-visible sm:whitespace-normal">{title}</span>
         </h1>
-        {description && <p className="text-muted-foreground mt-2">{description}</p>}
+        {description && <p className="text-muted-foreground mt-1.5 text-sm">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
     </div>
