@@ -48,10 +48,13 @@ export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps)
             <div className="flex-1">
               <CardTitle
                 id={`exercise-title-${exercise.id}`}
-                className="text-lg font-semibold mb-2 flex items-center gap-2"
+                className="text-lg font-semibold mb-2 leading-snug"
               >
                 {exercise.ai_generated && (
-                  <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <Sparkles
+                    className="inline-block h-4 w-4 text-primary mr-1.5 align-middle shrink-0"
+                    aria-label={t("card.aiGenerated")}
+                  />
                 )}
                 {exercise.title}
               </CardTitle>
@@ -82,8 +85,8 @@ export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps)
             {/* Badge IA retiré — l'icône Sparkles dans le titre est suffisante (P2 distill) */}
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col flex-1">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4 flex-1">
+        <CardContent className="flex flex-col">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
             <div
               className="flex items-center gap-4"
               role="group"
@@ -115,8 +118,7 @@ export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps)
               )}
             </div>
           </div>
-          {/* CTA pill discret — toujours en bas grâce à mt-auto */}
-          <div className="flex justify-end pt-2 mt-auto border-t border-border/30">
+          <div className="flex justify-end pt-2 mt-3 border-t border-border/30">
             <span
               className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors group-hover:bg-primary/20"
               aria-hidden="true"

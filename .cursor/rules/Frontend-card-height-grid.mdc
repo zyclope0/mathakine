@@ -1,0 +1,47 @@
+---
+description: Règle anti-régression : hauteur des cartes dans une grille Tailwind
+globs: frontend/**/*.tsx
+alwaysApply: false
+---
+
+# Hauteur des cartes dans une grille
+
+## Le problème
+
+`h-full` sur une carte dans une grille `PageGrid` / `grid` Tailwind étire toutes les cartes à la hauteur maximale de la rangée. Résultat : espace vide en bas, cartes allongées artificiellement.
+
+```tsx
+// ❌ MAUVAIS — cascade h-full : wrapper + Card + flex-1 intérieur
+<motion.div className="h-full">          // s'étire à la ligne
+  <Card className="h-full flex flex-col"> // idem
+    <CardContent className="flex-1">      // pousse vers le bas
+```
+
+```tsx
+// ✅ BON — hauteur naturelle, largeur pleine
+<motion.div className="w-full">           // pleine largeur, pas de hauteur forcée
+  <Card className="flex flex-col">        // hauteur naturelle
+    <CardContent>                         // pas de flex-1 sauf si layout CTA en bas explicite
+```
+
+## Règle
+
+- Ne jamais combiner `h-full` sur le wrapper motion + `h-full` sur la `Card` + `flex-1` sur `CardContent`.
+- Si un CTA doit être en bas de carte avec hauteur uniforme : utiliser `min-h` explicite sur la `Card` uniquement, pas `h-full` en cascade.
+- `flex-1` dans `CardContent` n'est justifié que si la carte a une hauteur fixe ou `min-h` définie.
+
+## Icônes inline dans un titre multi-lignes
+
+```tsx
+// ❌ MAUVAIS — flex items-center : l'icône reste en haut quand le titre wrap
+<h3 className="flex items-center gap-2">
+  <Icon />
+  Titre très long qui se coupe sur deux lignes
+</h3>
+
+// ✅ BON — inline-block : l'icône suit le flow du texte
+<h3>
+  <Icon className="inline-block align-middle mr-1.5 shrink-0" />
+  Titre très long qui se coupe sur deux lignes
+</h3>
+```

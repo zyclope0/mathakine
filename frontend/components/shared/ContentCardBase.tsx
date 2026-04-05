@@ -61,13 +61,13 @@ export function ContentCardBase({
           }
         : {})}
       className={cn(
-        "h-full text-left",
+        "w-full text-left",
         onClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
       )}
     >
       <Card
         className={cn(
-          "card-spatial-depth relative group h-full flex flex-col",
+          "card-spatial-depth relative group flex flex-col",
           "transition-all duration-300",
           onClick && "hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.15)]"
         )}
