@@ -144,7 +144,7 @@ function ConstellationNode({
   // Nœuds en attente : Link vers la destination correspondant au type de défi
   if (isCompleted) {
     return (
-      <div className={nodeClasses} role="listitem" aria-label={ariaLabel}>
+      <div className={nodeClasses} aria-label={ariaLabel}>
         {/* Icône complétée avec halo */}
         <div className="relative">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
@@ -181,7 +181,6 @@ function ConstellationNode({
     <Link
       href={href}
       className={nodeClasses}
-      role="listitem"
       aria-label={ariaLabel}
     >
       {/* Icône avec burst conditionnel */}

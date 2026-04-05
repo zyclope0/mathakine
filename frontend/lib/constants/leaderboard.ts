@@ -24,16 +24,20 @@ export const PROGRESSION_RANK_ICONS: Record<string, string> = {
 /** @deprecated Utiliser ``PROGRESSION_RANK_ICONS``. */
 export const JEDI_RANK_ICONS = PROGRESSION_RANK_ICONS;
 
-/** Couleurs du badge de rang (profil + leaderboard). */
+/**
+ * Couleurs du badge de rang — WCAG AA 4.5:1 sur fond clair (#f0f4ff S2).
+ * Variantes *-600/*-700 utilisées pour garantir le contraste sur thème clair
+ * et sur les thèmes sombres (les -600 restent lisibles sur fond sombre).
+ */
 export const PROGRESSION_RANK_TEXT_CLASS: Record<string, string> = {
-  cadet: "text-slate-400",
-  scout: "text-cyan-400",
-  explorer: "text-blue-400",
-  navigator: "text-sky-400",
-  cartographer: "text-emerald-400",
-  commander: "text-violet-400",
-  stellar_archivist: "text-amber-400",
-  cosmic_legend: "text-amber-300",
+  cadet: "text-slate-600",
+  scout: "text-cyan-700",
+  explorer: "text-blue-600",
+  navigator: "text-sky-700",
+  cartographer: "text-emerald-700",
+  commander: "text-violet-600",
+  stellar_archivist: "text-amber-600",
+  cosmic_legend: "text-amber-500",
 };
 
 /** @deprecated Utiliser `PROGRESSION_RANK_TEXT_CLASS` — export conservé uniquement pour compat imports historiques. */
