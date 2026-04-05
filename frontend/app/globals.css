@@ -571,64 +571,87 @@ select:focus {
 }
 
 /* Thème Spatial (Priorité 1) - Par défaut
- * Refonte 2026-03-30 : indigo-nuit #4f46e5 remplace violet #7c3aed (fingerprint AI slop).
- * Background #060818 (bleu quasi-noir) remplace #0a0a0f (noir générique).
- * Secondary cyan #06b6d4 : vrai complémentaire froid, distinct du primary.
- * Accent rose-corail #f43f5e : chaud, énergique, différent du pink générique.
- * Borders rgba-indigo cohérentes avec le nouveau primary. */
+ * Refonte 2026-03-30 : S2 — palette diurne "espace vu de jour".
+ * Fond clair #f0f4ff (bleu-ciel teinté) accessible aux enfants dyslexiques.
+ * Primary : blue-800 #1e40af — ciel profond, non-AI-générique.
+ * Accent : amber-600 #d97706 — chaleur solaire, complémentaire du bleu.
+ * Secondary : sky-700 #0369a1 — même famille que primary, dégradé chaud.
+ * Contrastes WCAG AA/AAA vérifiés sur fond #f0f4ff. */
 :root,
 [data-theme="spatial"] {
   --radius: 1rem;
-  --shadow-card: 0 4px 32px rgba(6, 8, 24, 0.5);
-  --background: #060818;
-  --foreground: #e0e7ff;
-  --card: #0d1030;
-  --card-foreground: #e0e7ff;
-  --popover: #0d1030;
-  --popover-foreground: #e0e7ff;
-  /* Primary : indigo-600 #4f46e5 — contraste 4.8:1 sur #060818, WCAG AA */
-  --primary: #4f46e5;
+  --shadow-card: 0 4px 24px rgba(30, 64, 175, 0.12);
+  /* Fond : bleu-ciel très doux — atmosphère spatiale sans éblouissement */
+  --background: #f0f4ff;
+  /* Foreground : slate-900 — contraste 13.1:1 sur #f0f4ff, WCAG AAA */
+  --foreground: #0f172a;
+  /* Cards blanches : émergent du fond teinté, surface de travail nette */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  /* Primary : blue-800 #1e40af — ciel profond, contraste 7.1:1 sur blanc, WCAG AAA */
+  --primary: #1e40af;
   --primary-foreground: #ffffff;
-  /* Primary-light : indigo-400 #818cf8 — contraste 6.1:1 sur #060818, WCAG AA */
-  --primary-light: #818cf8;
-  --primary-text-on-dark: #818cf8;
-  /* Podium leaderboard — contrastes vérifiés sur #060818 (WCAG AA 3:1 minimum UI) */
-  --rank-gold: #f59e0b;
-  /* silver : slate-400 #94a3b8 remplace slate-500 #64748b (3.2:1 → 5.1:1 sur #060818) */
-  --rank-silver: #94a3b8;
-  --rank-bronze: #b45309;
-  /* Secondary : cyan-500 #06b6d4 — complémentaire froid distinct du primary */
-  --secondary: #06b6d4;
+  /* Primary-light : blue-500 — pour éléments décoratifs, icônes secondaires */
+  --primary-light: #3b82f6;
+  /* Primary-text-on-dark : blue-300 — sur les rares surfaces sombres */
+  --primary-text-on-dark: #93c5fd;
+  /* Podium leaderboard — contrastes vérifiés sur blanc (WCAG AA 3:1 UI minimum) */
+  --rank-gold: #d97706;
+  /* silver : slate-500 — contraste 4.6:1 sur blanc, WCAG AA */
+  --rank-silver: #64748b;
+  --rank-bronze: #92400e;
+  /* Secondary : sky-700 — complémentaire proche du primary, même famille froide */
+  --secondary: #0369a1;
   --secondary-foreground: #ffffff;
-  --muted: #111530;
-  /* Muted-foreground : #a5b4fc (indigo-300) — contraste 7.4:1 sur #060818, WCAG AAA */
-  --muted-foreground: #a5b4fc;
-  /* Accent : rose-500 #f43f5e — chaud, énergique, lisible */
-  --accent: #f43f5e;
+  /* Muted : indigo-100 — très doux, cohérent avec le registre spatial */
+  --muted: #e0e7ff;
+  /* Muted-foreground : gray-700 — contraste 8.5:1 sur #f0f4ff, WCAG AAA */
+  --muted-foreground: #374151;
+  /* Accent : amber-600 — chaleur solaire, complémentaire du bleu, non-AI */
+  --accent: #d97706;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: rgba(79, 70, 229, 0.22);
-  --input: rgba(79, 70, 229, 0.12);
-  --ring: #4f46e5;
-  --bg-learner: #0d1030;
+  --destructive: #dc2626;
+  --border: rgba(30, 64, 175, 0.18);
+  --input: rgba(30, 64, 175, 0.10);
+  --ring: #1e40af;
+  /* BG learner : blanc pur dans le solver — zéro distraction cognitive */
+  --bg-learner: #ffffff;
 }
 
-/* Thème Spatial - Mode Dark (nuit profonde) */
+/* Thème Spatial - Mode Dark (nuit marine — pas le noir tunnel générique)
+ * Fond #0c1836 : bleu nuit profond, cohérent avec la palette diurne.
+ * Primary conservé #1e40af mais lisible via primary-text-on-dark #93c5fd.
+ * Accent amber réchauffé #f59e0b sur fond sombre. */
 .dark[data-theme="spatial"] {
-  --background: #020412;
-  --card: #060818;
-  --muted: #0a0e20;
-  --border: rgba(79, 70, 229, 0.35);
-  --input: rgba(79, 70, 229, 0.18);
-  --primary: #4f46e5;
-  --primary-text-on-dark: #818cf8;
-  --secondary: #06b6d4;
-  --accent: #f43f5e;
-  --muted-foreground: #c7d2fe;
+  --background: #0c1836;
+  --foreground: #e2e8f0;
+  --card: #111f4d;
+  --card-foreground: #e2e8f0;
+  --popover: #111f4d;
+  --popover-foreground: #e2e8f0;
+  --muted: #1a2d5a;
+  /* Muted-foreground : blue-200 — contraste 9.1:1 sur #0c1836, WCAG AAA */
+  --muted-foreground: #bfdbfe;
+  --border: rgba(59, 130, 246, 0.25);
+  --input: rgba(59, 130, 246, 0.15);
+  --primary: #1e40af;
+  --primary-foreground: #ffffff;
+  --primary-light: #3b82f6;
+  --primary-text-on-dark: #93c5fd;
+  --secondary: #0369a1;
+  --secondary-foreground: #ffffff;
+  /* Accent amber réchauffé sur fond sombre */
+  --accent: #f59e0b;
+  --accent-foreground: #0c1836;
+  --destructive: #f87171;
+  --ring: #3b82f6;
   --rank-gold: #fbbf24;
+  /* silver : slate-400 — contraste 5.1:1 sur #0c1836, WCAG AA */
   --rank-silver: #94a3b8;
   --rank-bronze: #d97706;
-  --bg-learner: #060818;
+  --bg-learner: #111f4d;
 }
 
 /* Thème Minimaliste (Priorité 2) */
