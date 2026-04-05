@@ -1202,13 +1202,13 @@ select:focus {
 /* ─── Tokens visuels spatiaux (canvas + planète) ───────────────────────────── */
 [data-theme="spatial"],
 .dark[data-theme="spatial"] {
-  /* Indigo-nuit : cohérent avec le nouveau primary #4f46e5 */
-  --spatial-particle-rgb: 79 70 229;
+  /* S2 — aligné sur palette diurne : blue-800 #1e40af + blue-500 #3b82f6 + amber #d97706 */
+  --spatial-particle-rgb: 30 64 175;
   --spatial-star-rgb: 224 231 255;
-  --spatial-planet-glow-rgb: 79 70 229;
-  --spatial-planet-color-1-rgb: 79 70 229;
-  --spatial-planet-color-2-rgb: 99 102 241;
-  --spatial-planet-color-3-rgb: 6 182 212;
+  --spatial-planet-glow-rgb: 30 64 175;
+  --spatial-planet-color-1-rgb: 30 64 175;
+  --spatial-planet-color-2-rgb: 59 130 246;
+  --spatial-planet-color-3-rgb: 217 119 6;
   --spatial-dino-symbol-rgb: 132 204 22;
 }
 
