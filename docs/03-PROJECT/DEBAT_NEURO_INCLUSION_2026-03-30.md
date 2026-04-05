@@ -609,7 +609,7 @@ Dettes rÃ©siduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la m
 
 ## Lots FFI restants (post-sprint NI complet) -- 2026-03-30
 
-> Tous les lots NI-1 a NI-13 sont livres. Les lots U2 et U4 (FFI neuro-inclusion) sont livres.
+> Tous les lots NI-1 a NI-13 sont livres. Les lots U2, U3, U4 et S2 (FFI neuro-inclusion) sont livres.
 > Ce qui reste est classe par priorite produit.
 
 ### Lots front actionnables prochains
@@ -625,6 +625,49 @@ Dettes rÃ©siduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la m
 
 | ID | Fichier                           | Probleme                                                        | Priorite |
 | -- | --------------------------------- | --------------------------------------------------------------- | -------- |
-| P1 | frontend/app/api/chat/route.ts    | Routes chat sans authentification (cout OpenAI non controle)    | P1       |
-| P1 | .env.example                      | REDIS_URL absente -- crash demarrage prod                       | P1       |
+| SEC-1 | frontend/app/api/chat/route.ts | Routes chat sans authentification (cout OpenAI non controle) -- route proxifiee vers backend, mais le backend lui-meme n'authentifie pas non plus. Risque reel. | P1       |
+| ~~P1~~ | ~~.env.example~~              | ~~REDIS_URL absente~~ -- documente et code guard existant (config.py). Faux positif partiel : la ligne est commentee dans .env.example avec instructions. | **RESOLU** |
 | RD | dashboard parent                  | Tableau de bord parent minimal -- premiere brique payante        | Backlog  |
+
+
+---
+
+## Audit FFI -- bilan challenge 2026-03-30
+
+> Relecture systematique post-sprint. Chaque item verifie dans le code reel.
+
+### Lots livres -- confirmes RESOLU
+
+| ID  | Lot                              | Preuve runtime                                                                |
+| --- | -------------------------------- | ----------------------------------------------------------------------------- |
+| U2  | Jargon + onboarding ExerciseSolver | ExerciseSolverHint.tsx + hook useFirstVisitHint + cles exerciseSolverHintSeen |
+| U3  | Onboarding ChallengeSolver       | ChallengeSolverHint.tsx + cle challengeSolverHintSeen + 8 tests verts     |
+| U4  | Filtres progressifs exercises    | ContentListProgressiveFilterToolbar.tsx + badge + resume etat actif         |
+| S2  | Theme spatial diurne             | globals.css -- fond #f0f4ff, primary #1e40af, accent amber #d97706          |
+
+### Faux positifs confirmes
+
+| ID  | Item                  | Verdict                                                                                                                     |
+| --- | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| ENV-1 | REDIS_URL manquante | **Faux positif** : .env.example contient la doc + instructions TLS. config.py:_validate_production_settings() leve ValueError si absent en prod. Aucun crash silencieux possible. |
+
+### Dettes residuelles reelles -- non bloquantes prod
+
+| ID  | Surface                       | Nature                                                               | Priorite |
+| --- | ----------------------------- | -------------------------------------------------------------------- | -------- |
+| U2b | Solvers (hint)                | Hint irrevocable : pas de re-acces une fois dismiss. Dette produit assumee. | P3  |
+| O1  | ExerciseSolverChoices.tsx   | <input> raw (non-shadcn) -- classes Tailwind custom, fonctionnel mais hors design system | P3 |
+
+### Risque actif -- bloquant prod
+
+| ID    | Fichier                          | Probleme reel                                                         | Priorite |
+| ----- | -------------------------------- | --------------------------------------------------------------------- | -------- |
+| SEC-1 | rontend/app/api/chat/route.ts | Route POST /api/chat sans auth. Proxifiee vers backend. Backend non authentifie non plus. Cout OpenAI non controle. | **P1** |
+
+**Action requise SEC-1** : avant push prod, ajouter verification JWT dans la route Next.js /api/chat/route.ts (lire cookie ccess_token, valider signature, rejeter 401 si absent/expiré).
+
+### Backlog produit
+
+| ID | Description                                  | Priorite |
+| -- | -------------------------------------------- | -------- |
+| RD | Tableau de bord parent minimal -- 1ere brique payante | Backlog |
