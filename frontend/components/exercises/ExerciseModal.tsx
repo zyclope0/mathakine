@@ -191,10 +191,7 @@ function ExerciseModalContent({
             {/* U2 — Aide de première visite : même clé localStorage que ExerciseSolver.
                 Un enfant qui a déjà vu le hint dans le solver full-page ne le revoit pas ici. */}
             {!hasSubmitted && (
-              <ExerciseSolverHint
-                isOpenAnswer={isOpenAnswer}
-                hasHint={!!exercise.hint}
-              />
+              <ExerciseSolverHint isOpenAnswer={isOpenAnswer} hasHint={!!exercise.hint} />
             )}
 
             {/* NI-10 — Indice avant les choix : visible sans scroll sur mobile.

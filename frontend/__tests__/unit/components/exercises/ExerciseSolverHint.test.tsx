@@ -26,7 +26,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 function renderHint(props: { isOpenAnswer?: boolean; hasHint?: boolean } = {}) {
   return render(
     <Wrapper>
-      <ExerciseSolverHint isOpenAnswer={props.isOpenAnswer ?? false} hasHint={props.hasHint ?? true} />
+      <ExerciseSolverHint
+        isOpenAnswer={props.isOpenAnswer ?? false}
+        hasHint={props.hasHint ?? true}
+      />
     </Wrapper>
   );
 }

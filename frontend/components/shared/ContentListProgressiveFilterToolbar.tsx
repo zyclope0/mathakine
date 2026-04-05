@@ -136,7 +136,10 @@ export function ContentListProgressiveFilterToolbar({
 
   const orderActive = orderValue !== CONTENT_LIST_ORDER.RANDOM;
   const stateSummaryParts: string[] = [];
-  if (orderActive) stateSummaryParts.push(orderValue === CONTENT_LIST_ORDER.RECENT ? labels.orderRecent : labels.orderRandom);
+  if (orderActive)
+    stateSummaryParts.push(
+      orderValue === CONTENT_LIST_ORDER.RECENT ? labels.orderRecent : labels.orderRandom
+    );
   if (hideCompleted) stateSummaryParts.push(labels.hideCompleted);
   const showStateSummary = !panelOpen && stateSummaryParts.length > 0;
 
@@ -318,7 +321,10 @@ export function ContentListProgressiveFilterToolbar({
           </div>
 
           <div className="space-y-1.5 min-w-0">
-            <label htmlFor={`${baseId}-order`} className="text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor={`${baseId}-order`}
+              className="text-xs font-medium text-muted-foreground"
+            >
               {labels.orderLabel}
             </label>
             <Select
