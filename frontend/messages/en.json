@@ -1161,7 +1161,7 @@
       "30days": "Last 30 days",
       "90days": "Last 3 months",
       "all": "All"
-    },
+    }
   },
   "badges": {
     "title": "Badges and Rewards",
