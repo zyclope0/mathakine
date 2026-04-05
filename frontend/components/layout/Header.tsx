@@ -78,13 +78,6 @@ export function Header() {
       ]
     : [];
 
-  // Assistant toujours en fin, comme affordance globale
-  const navigation = [
-    ...navPrimary,
-    ...navSecondary,
-    { name: tHome("hero.ctaAssistant"), href: "#", icon: MessageCircle, isAssistant: true },
-  ];
-
   const isActive = (href: string) => {
     if (href === "/") {
       return pathname === "/";
@@ -115,7 +108,7 @@ export function Header() {
                 className="flex items-center transition-opacity hover:opacity-80"
                 aria-label="Retour à l'accueil — Mathakine"
               >
-                <LogoMathakine className="h-8 w-auto" alt="" />
+                <LogoMathakine className="h-8 w-auto" />
               </Link>
             </div>
 
@@ -131,7 +124,7 @@ export function Header() {
                     className={cn(
                       "px-3 py-2 text-sm font-medium rounded-md transition-colors",
                       isActive(item.href)
-                        ? "bg-primary/10 text-primary-on-dark"
+                        ? "bg-primary/10 text-primary"
                         : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
                     )}
                     aria-current={isActive(item.href) ? "page" : undefined}
@@ -157,7 +150,7 @@ export function Header() {
                   className={cn(
                     "px-3 py-2 text-sm rounded-md transition-colors",
                     isActive(item.href)
-                      ? "bg-primary/10 text-primary-on-dark font-medium"
+                      ? "bg-primary/10 text-primary font-medium"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
                   )}
                   aria-current={isActive(item.href) ? "page" : undefined}
@@ -173,7 +166,7 @@ export function Header() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium ml-1"
+                className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium"
                 onClick={() => setChatOpen(true)}
                 aria-haspopup="dialog"
                 aria-label={tHome("hero.ctaAssistant")}
@@ -197,8 +190,8 @@ export function Header() {
                         variant="ghost"
                         size="sm"
                         className="flex items-center gap-2 h-9 px-3"
-                        aria-label={`Menu utilisateur: ${user?.username}`}
-                        aria-haspopup="true"
+                        aria-label={`Menu utilisateur : ${user?.username}`}
+                        aria-haspopup="menu"
                       >
                         <div className="flex items-center gap-2">
                           <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -279,8 +272,9 @@ export function Header() {
                 size="sm"
                 className="md:hidden"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Ouvrir le menu"
+                aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-nav-menu"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" aria-hidden="true" />
@@ -296,6 +290,7 @@ export function Header() {
             <AnimatePresence>
               {mobileMenuOpen && (
                 <m.div
+                  id="mobile-nav-menu"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -303,38 +298,11 @@ export function Header() {
                   className="md:hidden border-t border-border overflow-hidden"
                   role="menu"
                 >
-                  <div className="space-y-2 py-4">
-                    {navigation.map((item, index) => {
+                  <div className="space-y-1 py-4">
+                    {/* Primaire mobile */}
+                    {navPrimary.map((item, index) => {
                       const Icon = "icon" in item ? item.icon : undefined;
-                      const isAssistant = "isAssistant" in item && item.isAssistant;
                       const transition = createTransition({ duration: 0.15, delay: index * 0.05 });
-
-                      if (isAssistant) {
-                        return (
-                          <m.div
-                            key="assistant"
-                            initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
-                            animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
-                            transition={transition}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10"
-                              onClick={() => {
-                                setChatOpen(true);
-                                setMobileMenuOpen(false);
-                              }}
-                              aria-haspopup="dialog"
-                              role="menuitem"
-                            >
-                              {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                              {item.name}
-                            </Button>
-                          </m.div>
-                        );
-                      }
-
                       return (
                         <m.div
                           key={item.href}
@@ -346,10 +314,10 @@ export function Header() {
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
                             className={cn(
-                              "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                              "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
                               isActive(item.href)
-                                ? "bg-primary/10 text-primary-on-dark"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                                ? "bg-primary/10 text-primary"
+                                : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
                             )}
                             role="menuitem"
                             aria-current={isActive(item.href) ? "page" : undefined}
@@ -360,12 +328,73 @@ export function Header() {
                         </m.div>
                       );
                     })}
+
+                    {/* Séparateur primaire / secondaire */}
+                    {navSecondary.length > 0 && (
+                      <div className="my-1 border-t border-border/60" role="separator" />
+                    )}
+
+                    {/* Secondaire mobile — ton atténué */}
+                    {navSecondary.map((item, index) => {
+                      const transition = createTransition({
+                        duration: 0.15,
+                        delay: (navPrimary.length + index) * 0.05,
+                      });
+                      return (
+                        <m.div
+                          key={item.href}
+                          initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
+                          animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
+                          transition={transition}
+                        >
+                          <Link
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                              isActive(item.href)
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                            )}
+                            role="menuitem"
+                            aria-current={isActive(item.href) ? "page" : undefined}
+                          >
+                            {item.name}
+                          </Link>
+                        </m.div>
+                      );
+                    })}
+
+                    {/* Assistant — toujours en dernier */}
+                    <m.div
+                      initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
+                      animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
+                      transition={createTransition({
+                        duration: 0.15,
+                        delay: (navPrimary.length + navSecondary.length) * 0.05,
+                      })}
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 mt-1"
+                        onClick={() => {
+                          setChatOpen(true);
+                          setMobileMenuOpen(false);
+                        }}
+                        aria-haspopup="dialog"
+                        role="menuitem"
+                      >
+                        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                        {tHome("hero.ctaAssistant")}
+                      </Button>
+                    </m.div>
                     <m.div
                       initial={!shouldReduceMotion ? { opacity: 0 } : false}
                       animate={!shouldReduceMotion ? { opacity: 1 } : false}
                       transition={createTransition({
                         duration: 0.15,
-                        delay: navigation.length * 0.05,
+                        delay: (navPrimary.length + navSecondary.length + 1) * 0.05,
                       })}
                       className="pt-2 border-t border-border"
                     >
