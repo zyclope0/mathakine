@@ -232,41 +232,34 @@ export default function DashboardPage() {
         {/* Contenu organisé par onglets pour réduire la densité */}
         {stats && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList
-              className="grid h-14 w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
-              aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}
-            >
-              <TabsTrigger value="overview" className="flex items-center gap-2 text-sm">
-                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">
-                  {t("tabs.overview", { default: "Vue d'ensemble" })}
-                </span>
-                <span className="sm:hidden">{t("tabs.overviewShort", { default: "Vue" })}</span>
-              </TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex items-center gap-2 text-sm">
-                <Zap className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">
-                  {t("tabs.recommendations", { default: "Recommandations" })}
-                </span>
-                <span className="sm:hidden">
-                  {t("tabs.recommendationsShort", { default: "Recommandés" })}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="progress" className="flex items-center gap-2 text-sm">
-                <TrendingUp className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">
-                  {t("tabs.progress", { default: "Progression" })}
-                </span>
-                <span className="sm:hidden">{t("tabs.progressShort")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center gap-2 text-sm">
-                <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">
-                  {t("tabs.profile", { default: "Mon Profil" })}
-                </span>
-                <span className="sm:hidden">{t("tabs.profileShort", { default: "Profil" })}</span>
-              </TabsTrigger>
-            </TabsList>
+            {/* Wrapper scrollable : évite l'overflow sur mobile (<640px) sans casser le layout desktop */}
+            <div className="w-full overflow-x-auto pb-1 -mb-1 no-scrollbar">
+              <TabsList
+                className="inline-flex h-11 w-max min-w-full sm:w-full sm:max-w-3xl"
+                aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}
+              >
+                <TabsTrigger value="overview" className="flex flex-1 items-center gap-1.5 px-3 text-sm">
+                  <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline">{t("tabs.overview", { default: "Vue d'ensemble" })}</span>
+                  <span className="sm:hidden">{t("tabs.overviewShort", { default: "Vue" })}</span>
+                </TabsTrigger>
+                <TabsTrigger value="recommendations" className="flex flex-1 items-center gap-1.5 px-3 text-sm">
+                  <Zap className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline">{t("tabs.recommendations", { default: "Recommandations" })}</span>
+                  <span className="sm:hidden">{t("tabs.recommendationsShort", { default: "Recos" })}</span>
+                </TabsTrigger>
+                <TabsTrigger value="progress" className="flex flex-1 items-center gap-1.5 px-3 text-sm">
+                  <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline">{t("tabs.progress", { default: "Progression" })}</span>
+                  <span className="sm:hidden">{t("tabs.progressShort")}</span>
+                </TabsTrigger>
+                <TabsTrigger value="profile" className="flex flex-1 items-center gap-1.5 px-3 text-sm">
+                  <BarChart3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline">{t("tabs.profile", { default: "Mon Profil" })}</span>
+                  <span className="sm:hidden">{t("tabs.profileShort", { default: "Profil" })}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Onglet Vue d'ensemble — Parcours guidé + Défis du jour + Série en cours */}
             <TabsContent value="overview" className="space-y-6">

@@ -1297,6 +1297,15 @@ select:focus {
   --spatial-dino-symbol-rgb: 196 181 253;
 }
 
+/* Masque la scrollbar tout en conservant le scroll (tabs mobile, listes horizontales) */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / Webkit */
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

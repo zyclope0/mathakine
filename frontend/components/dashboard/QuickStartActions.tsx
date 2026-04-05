@@ -146,7 +146,7 @@ export function QuickStartActions() {
         <Link
           href="/exercises/interleaved"
           onClick={handleInterleavedClick}
-          className="dashboard-card-surface-interactive--calm group flex flex-col gap-2 p-4 sm:p-5 opacity-90"
+          className="dashboard-card-surface-interactive--calm group flex flex-col gap-2 p-4 sm:p-5"
           data-quick-start="interleaved"
         >
           <div className="flex items-start gap-3">
@@ -157,7 +157,7 @@ export function QuickStartActions() {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-foreground">{t("interleavedCta")}</p>
                 <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide leading-none">
-                  Mémorisation
+                  {t("interleavedBadge")}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-0.5 leading-snug">
