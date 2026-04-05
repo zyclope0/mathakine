@@ -46,24 +46,21 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
       initial="initial"
       animate="animate"
       transition={transition}
-      className="flex-1 min-h-0 flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
+      className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       <Card
         className={cn(
-          "flex-1 min-h-0 flex flex-col rounded-2xl border shadow-sm",
+          "rounded-2xl border",
           currentStreak > 0 ? "border-warning/40 bg-warning/10" : "dashboard-card-surface--calm"
         )}
       >
-        <CardHeader className="pb-3 flex-shrink-0">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+            <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
               <motion.div
                 animate={
                   !shouldReduceMotion && currentStreak > 0
-                    ? {
-                        rotate: [0, -10, 10, -10, 0],
-                        scale: [1, 1.1, 1],
-                      }
+                    ? { rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }
                     : {}
                 }
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -86,32 +83,35 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
           </div>
         </CardHeader>
 
-        <CardContent className="flex-grow">
-          <div className="flex items-baseline gap-3 mb-3">
-            <div
+        <CardContent className="pt-1 pb-4 space-y-1">
+          {/* Chiffre principal — taille réduite, hiérarchie relative au contenu */}
+          <div className="flex items-baseline gap-2">
+            <span
               className={cn(
-                "text-7xl font-black tabular-nums leading-none",
+                "text-5xl font-bold tabular-nums leading-none",
                 currentStreak > 0 ? "text-warning" : "text-muted-foreground"
               )}
             >
               {currentStreak}
-            </div>
-            <div className="text-sm text-muted-foreground">
+            </span>
+            <span className="text-sm text-muted-foreground">
               {t("days", { count: currentStreak })}
-            </div>
-          </div>
-
-          <div className="text-sm text-muted-foreground flex items-center gap-2">
-            <span>{t("best")}:</span>
-            <span className="font-semibold text-foreground">
-              {highestStreak} {t("days", { count: highestStreak })}
             </span>
           </div>
 
+          {/* Meilleure série — contexte immédiat, sans séparateur */}
+          <p className="text-sm text-muted-foreground">
+            {t("best")}:{" "}
+            <span className="font-semibold text-foreground">
+              {highestStreak} {t("days", { count: highestStreak })}
+            </span>
+          </p>
+
+          {/* Message motivationnel — inline, pas de border-t */}
           {currentStreak > 0 && (
-            <div className="mt-4 pt-4 pb-2 border-t border-border text-sm text-muted-foreground leading-snug">
+            <p className="text-sm text-muted-foreground leading-snug pt-1">
               {t("keepGoing")}
-            </div>
+            </p>
           )}
         </CardContent>
       </Card>

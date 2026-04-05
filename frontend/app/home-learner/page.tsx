@@ -236,10 +236,9 @@ function HomeLearnerContent() {
 
       {/* Progression — après les CTA, pas en concurrence */}
       <section id="section-progress" aria-labelledby="progress-heading" className="scroll-mt-20">
-        <h2
-          id="progress-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
-        >
+        {/* Heading sr-only : ancre chip navigation conservée, pas de doublon visuel
+            avec les titres internes de StreakWidget et LevelIndicator. */}
+        <h2 id="progress-heading" className="sr-only">
           {t("progress.heading")}
         </h2>
 
