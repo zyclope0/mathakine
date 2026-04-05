@@ -1296,7 +1296,7 @@
   },
   "leaderboard": {
     "title": "Classement",
-    "description": "Compare ton classement aux autres apprenants selon les points",
+    "description": "Qui grimpe le plus vite ? Résous des défis pour monter dans le classement !",
     "loading": "Chargement du classement...",
     "emptyState": {
       "title": "Le classement est vide pour le moment.",
@@ -1307,11 +1307,14 @@
     "ranking": "Classement par points",
     "rank": "Rang",
     "level": "Niveau",
-    "you": "Vous",
+    "you": "Toi",
     "streakStat": "Série en jours",
     "badgesStat": "Badges obtenus",
+    "podiumSeparator": "Podium",
+    "topTenSeparator": "Top 10",
+    "restSeparator": "Suite du classement",
     "yourRank": {
-      "separator": "Votre position"
+      "separator": "Ta position"
     },
     "period": {
       "label": "Période",

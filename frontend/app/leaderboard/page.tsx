@@ -38,16 +38,28 @@ import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function RankBadge({ rank, label }: { rank: number; label: string }) {
+  const isPodium = rank >= 1 && rank <= 3;
+  const medalClass = cn(
+    "flex-shrink-0 text-center leading-none",
+    isPodium ? "w-10" : "w-10 flex items-center justify-center"
+  );
+
   if (RANK_MEDALS[rank]) {
     return (
-      <span className="flex-shrink-0 w-10 text-center text-2xl leading-none" aria-label={label}>
+      <span
+        className={cn(
+          medalClass,
+          rank === 1 ? "text-4xl" : rank === 2 ? "text-3xl" : "text-2xl"
+        )}
+        aria-label={label}
+      >
         {RANK_MEDALS[rank]}
       </span>
     );
   }
   return (
-    <span className="flex-shrink-0 w-10 flex items-center justify-center" aria-label={label}>
-      <span className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center font-mono text-sm text-muted-foreground">
+    <span className={medalClass} aria-label={label}>
+      <span className="h-8 w-8 rounded-full bg-muted/40 flex items-center justify-center font-mono text-sm text-muted-foreground">
         {rank}
       </span>
     </span>
@@ -83,81 +95,112 @@ function LeaderboardRow({
   const rankCanon = canonicalProgressionRankBucket(bucketRaw);
   const rankClass = PROGRESSION_RANK_TEXT_CLASS[rankCanon] ?? "text-muted-foreground";
   const rankReadable = progressionRankLabel(bucketRaw);
+  const isPodium = entry.rank >= 1 && entry.rank <= 3;
 
   return (
     <motion.li
       variants={rowVariants}
       custom={entry.rank}
-      {...(!shouldReduceMotion ? { whileHover: { y: -2 } } : {})}
+      {...(!shouldReduceMotion ? { whileHover: { y: -1 } } : {})}
       className={cn(
-        "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3",
-        "cursor-default transition-shadow duration-300",
-        "hover:shadow-md hover:shadow-primary/5",
+        "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4",
+        isPodium ? "py-4" : "py-3",
+        "cursor-default transition-colors duration-200",
         !isLast && "border-b border-border/40",
+        "border-l-4",
         entry.is_current_user
-          ? "bg-primary/10 border-l-4 border-l-primary"
-          : cn(leaderboardPodiumSurfaceClass(entry.rank), "border-l-4 border-l-transparent")
+          ? "bg-primary/10 border-l-primary"
+          : cn(leaderboardPodiumSurfaceClass(entry.rank), "border-l-transparent")
       )}
     >
       <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
 
       <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
 
-      <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-        <span
-          className={cn(
-            "font-semibold truncate max-w-[40vw] sm:max-w-none",
-            entry.is_current_user ? "text-foreground" : "text-foreground/90"
+      <div className="flex-1 min-w-0">
+        {/* Ligne 1 : nom + toi + streak + badges */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className={cn(
+              "font-semibold truncate max-w-[40vw] sm:max-w-none",
+              isPodium ? "text-base" : "text-sm",
+              entry.is_current_user ? "text-foreground" : "text-foreground/90"
+            )}
+          >
+            {entry.username}
+          </span>
+          {entry.is_current_user && (
+            <span
+              className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
+              aria-label={tYou}
+            >
+              {tYou}
+            </span>
           )}
-        >
-          {entry.username}
-        </span>
-        <span
-          className={cn("flex-shrink-0 text-base leading-none", rankClass)}
-          title={rankReadable}
-          aria-label={rankReadable}
-        >
-          {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
-        </span>
-        {entry.is_current_user && (
+          {entry.current_streak > 0 && (
+            <span
+              className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
+              title={tStreak}
+              aria-label={tStreak}
+            >
+              <Flame className="h-3.5 w-3.5 text-orange-400 shrink-0" aria-hidden />
+              {entry.current_streak}
+            </span>
+          )}
+          {entry.badges_count > 0 && (
+            <span
+              className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
+              title={tBadges}
+              aria-label={tBadges}
+            >
+              <Award className="h-3.5 w-3.5 text-amber-500/90 shrink-0" aria-hidden />
+              {entry.badges_count}
+            </span>
+          )}
+        </div>
+        {/* Ligne 2 : rang progression + niveau — label permanent, visible */}
+        <div className="flex items-center gap-1.5 mt-0.5">
           <span
-            className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
-            aria-label={tYou}
+            className={cn("text-xs leading-none", rankClass)}
+            aria-label={rankReadable}
           >
-            {tYou}
+            {PROGRESSION_RANK_ICONS[rankCanon] ?? "🌟"}
           </span>
-        )}
-        {entry.current_streak > 0 && (
-          <span
-            className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
-            title={tStreak}
-            aria-label={tStreak}
-          >
-            <Flame className="h-3.5 w-3.5 text-orange-400 shrink-0" aria-hidden />
-            {entry.current_streak}
+          <span className="text-xs text-muted-foreground">
+            {rankReadable}
           </span>
-        )}
-        {entry.badges_count > 0 && (
-          <span
-            className="flex items-center gap-0.5 flex-shrink-0 text-xs text-muted-foreground"
-            title={tBadges}
-            aria-label={tBadges}
-          >
-            <Award className="h-3.5 w-3.5 text-amber-500/90 shrink-0" aria-hidden />
-            {entry.badges_count}
+          <span className="text-xs text-muted-foreground/50 hidden sm:inline">·</span>
+          <span className="hidden sm:inline text-xs text-muted-foreground">
+            {tLevel} {entry.current_level}
           </span>
-        )}
+        </div>
       </div>
 
-      <span className="hidden sm:block flex-shrink-0 text-sm text-muted-foreground">
-        {tLevel} {entry.current_level}
-      </span>
-
-      <span className="flex-shrink-0 text-sm sm:text-base font-bold text-amber-400 tabular-nums">
+      <span
+        className={cn(
+          "flex-shrink-0 font-bold tabular-nums",
+          isPodium ? "text-base sm:text-lg" : "text-sm sm:text-base",
+          entry.rank === 1
+            ? "text-[var(--rank-gold)]"
+            : entry.rank === 2
+              ? "text-[var(--rank-silver)]"
+              : entry.rank === 3
+                ? "text-[var(--rank-bronze)]"
+                : "text-amber-400"
+        )}
+      >
         {entry.total_points.toLocaleString()}
-        <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>
+        <span className="text-xs font-normal opacity-60 ml-0.5">pts</span>
       </span>
     </motion.li>
+  );
+}
+
+function SectionSeparator({ label }: { label: string }) {
+  return (
+    <li role="separator" aria-label={label} className="leaderboard-section-separator list-none">
+      {label}
+    </li>
   );
 }
 
@@ -194,19 +237,19 @@ export default function LeaderboardPage() {
         hidden: { opacity: 0 },
         show: {
           opacity: 1,
-          transition: { staggerChildren: 0.055, delayChildren: 0.03 },
+          transition: { staggerChildren: 0.045, delayChildren: 0.02 },
         },
       };
 
   const rowVariants: Variants = shouldReduceMotion
     ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
     : {
-        hidden: { opacity: 0, y: 10, scale: 0.98 },
+        hidden: { opacity: 0, y: 8, scale: 0.99 },
         show: (rank: number) => ({
           opacity: 1,
           y: 0,
-          scale: typeof rank === "number" && rank >= 1 && rank <= 3 ? 1.02 : 1,
-          transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
+          scale: typeof rank === "number" && rank >= 1 && rank <= 3 ? 1.01 : 1,
+          transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
         }),
       };
 
@@ -216,7 +259,7 @@ export default function LeaderboardPage() {
         <PageHeader title={t("title")} description={t("description")} icon={Trophy} />
 
         <PageSection>
-          <Card className="card-spatial-depth overflow-hidden">
+          <Card className="overflow-hidden border-border/60">
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 space-y-0">
               <CardTitle className="flex items-center gap-2">
                 <Medal className="h-5 w-5 text-amber-400" aria-hidden />
@@ -281,21 +324,37 @@ export default function LeaderboardPage() {
                     animate="show"
                     className="list-none m-0 p-0"
                   >
-                    {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
-                      <LeaderboardRow
-                        key={`${entry.rank}-${entry.username}`}
-                        entry={entry}
-                        isLast={idx === leaderboard.length - 1 && !showMyRankFooter}
-                        tLevel={t("level")}
-                        tYou={t("you")}
-                        tRank={t("rank")}
-                        tStreak={t("streakStat")}
-                        tBadges={t("badgesStat")}
-                        rowVariants={rowVariants}
-                        shouldReduceMotion={Boolean(shouldReduceMotion)}
-                        progressionRankLabel={progressionRankLabel}
-                      />
-                    ))}
+                    {leaderboard.map((entry: LeaderboardEntry, idx: number) => {
+                      const isLastEntry = idx === leaderboard.length - 1 && !showMyRankFooter;
+                      const showPodiumSep = idx === 0;
+                      const showTopTenSep = entry.rank === 4;
+                      const showRestSep = entry.rank === 11;
+
+                      return [
+                        showPodiumSep && (
+                          <SectionSeparator key="sep-podium" label={t("podiumSeparator")} />
+                        ),
+                        showTopTenSep && (
+                          <SectionSeparator key="sep-top10" label={t("topTenSeparator")} />
+                        ),
+                        showRestSep && (
+                          <SectionSeparator key="sep-rest" label={t("restSeparator")} />
+                        ),
+                        <LeaderboardRow
+                          key={`${entry.rank}-${entry.username}`}
+                          entry={entry}
+                          isLast={isLastEntry}
+                          tLevel={t("level")}
+                          tYou={t("you")}
+                          tRank={t("rank")}
+                          tStreak={t("streakStat")}
+                          tBadges={t("badgesStat")}
+                          rowVariants={rowVariants}
+                          shouldReduceMotion={Boolean(shouldReduceMotion)}
+                          progressionRankLabel={progressionRankLabel}
+                        />,
+                      ];
+                    })}
                   </motion.ul>
                   {showMyRankFooter && user && myRank ? (
                     <div className="border-t border-border/50 bg-muted/20">
@@ -316,36 +375,47 @@ export default function LeaderboardPage() {
                           label={`${t("rank", { default: "Rang" })} ${myRank.rank}`}
                         />
                         <UserAvatar username={user.username} size="md" />
-                        <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold truncate max-w-[40vw] sm:max-w-none text-foreground">
-                            {user.username}
-                          </span>
-                          {myRankBucketRaw ? (
-                            <span
-                              className={cn(
-                                "flex-shrink-0 text-base leading-none",
-                                PROGRESSION_RANK_TEXT_CLASS[
-                                  canonicalProgressionRankBucket(myRankBucketRaw)
-                                ] ?? "text-muted-foreground"
-                              )}
-                              title={progressionRankLabel(myRankBucketRaw)}
-                              aria-label={progressionRankLabel(myRankBucketRaw)}
-                            >
-                              {PROGRESSION_RANK_ICONS[
-                                canonicalProgressionRankBucket(myRankBucketRaw)
-                              ] ?? "🌟"}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold truncate max-w-[40vw] sm:max-w-none text-foreground text-sm">
+                              {user.username}
                             </span>
+                            <span
+                              className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
+                              aria-label={t("you")}
+                            >
+                              {t("you")}
+                            </span>
+                          </div>
+                          {myRankBucketRaw ? (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span
+                                className={cn(
+                                  "text-xs leading-none",
+                                  PROGRESSION_RANK_TEXT_CLASS[
+                                    canonicalProgressionRankBucket(myRankBucketRaw)
+                                  ] ?? "text-muted-foreground"
+                                )}
+                                aria-label={progressionRankLabel(myRankBucketRaw)}
+                              >
+                                {PROGRESSION_RANK_ICONS[
+                                  canonicalProgressionRankBucket(myRankBucketRaw)
+                                ] ?? "🌟"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {progressionRankLabel(myRankBucketRaw)}
+                              </span>
+                              {user.current_level != null && (
+                                <>
+                                  <span className="text-xs text-muted-foreground/50 hidden sm:inline">·</span>
+                                  <span className="hidden sm:inline text-xs text-muted-foreground">
+                                    {t("level")} {user.current_level}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           ) : null}
-                          <span
-                            className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
-                            aria-label={t("you")}
-                          >
-                            {t("you")}
-                          </span>
                         </div>
-                        <span className="hidden sm:block flex-shrink-0 text-sm text-muted-foreground">
-                          {t("level")} {user.current_level ?? "—"}
-                        </span>
                         <span className="flex-shrink-0 text-sm sm:text-base font-bold text-amber-400 tabular-nums">
                           {myRank.total_points.toLocaleString()}
                           <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>

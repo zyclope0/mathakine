@@ -1297,7 +1297,7 @@
   "leaderboard": {
     "error": "Unable to load leaderboard.",
     "title": "Leaderboard",
-    "description": "See how you rank against other learners by points",
+    "description": "Who's climbing fastest? Solve challenges to rise in the rankings!",
     "loading": "Loading leaderboard...",
     "emptyState": {
       "title": "The leaderboard is empty for now.",
@@ -1310,6 +1310,9 @@
     "you": "You",
     "streakStat": "Day streak",
     "badgesStat": "Badges earned",
+    "podiumSeparator": "Podium",
+    "topTenSeparator": "Top 10",
+    "restSeparator": "Rest of ranking",
     "yourRank": {
       "separator": "Your position"
     },
