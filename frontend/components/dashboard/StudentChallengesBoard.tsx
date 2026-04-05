@@ -130,55 +130,79 @@ function ConstellationNode({
       ? Math.min(100, Math.round((challenge.completed_count / challenge.target_count) * 100))
       : 0;
 
+  const ariaLabel = `${label} — ${isCompleted ? t("completed") : t("pending", { current: challenge.completed_count, target: challenge.target_count })}`;
+
+  const nodeClasses = cn(
+    "flex flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-300",
+    "motion-reduce:transition-none",
+    isCompleted
+      // Nœud terminé : statique, pas de hover (aucune action possible)
+      ? "border-primary/40 bg-primary/[0.08]"
+      // Nœud actif : interactif, hover explicite
+      : "group border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+  );
+
+  // Nœuds complétés : non-cliquables (informatifs)
+  // Nœuds en attente : Link vers la destination correspondant au type de défi
+  if (isCompleted) {
+    return (
+      <div className={nodeClasses} role="listitem" aria-label={ariaLabel}>
+        {/* Icône complétée avec halo */}
+        <div className="relative">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+            <CheckCircle2
+              className={cn("h-6 w-6", !reducedMotion && "animate-[challenge-pop_0.4s_ease-out_both]")}
+              aria-hidden="true"
+            />
+          </div>
+          {!reducedMotion && (
+            <span
+              className="pointer-events-none absolute inset-0 rounded-full bg-primary/30 animate-[challenge-halo_0.6s_ease-out_forwards]"
+              aria-hidden="true"
+            />
+          )}
+          <span
+            className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold bg-primary text-primary-foreground"
+            aria-hidden="true"
+          >
+            +{challenge.bonus_points}
+          </span>
+        </div>
+
+        {/* Label barré */}
+        <p className="text-center text-xs font-medium leading-snug text-muted-foreground line-through">
+          {label}
+        </p>
+
+        {/* Numéro de nœud */}
+        <span
+          className="text-[9px] font-semibold uppercase tracking-widest text-primary/40"
+          aria-hidden="true"
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </div>
+    );
+  }
+
+  // Nœud actif → Link cliquable vers la destination du défi
+  const href = getChallengeHref(challenge);
   return (
-    <div
-      className={cn(
-        "group flex flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-300",
-        "motion-reduce:transition-none",
-        isCompleted
-          ? "border-primary/40 bg-primary/[0.08]"
-          : "border-border/60 bg-card/60 hover:border-primary/30 hover:bg-primary/[0.04]"
-      )}
+    <Link
+      href={href}
+      className={nodeClasses}
       role="listitem"
-      aria-label={`${label} — ${isCompleted ? t("completed") : t("pending", { current: challenge.completed_count, target: challenge.target_count })}`}
+      aria-label={ariaLabel}
     >
       {/* Icône avec burst conditionnel */}
       <div className="relative">
-        <div
-          className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300",
-            isCompleted
-              ? "bg-primary/20 text-primary"
-              : "bg-muted/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
-          )}
-        >
-          {isCompleted ? (
-            <CheckCircle2
-              className={cn(
-                "h-6 w-6",
-                !reducedMotion && "animate-[challenge-pop_0.4s_ease-out_both]"
-              )}
-              aria-hidden="true"
-            />
-          ) : (
-            <IconComponent className="h-6 w-6" aria-hidden="true" />
-          )}
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
+          <IconComponent className="h-6 w-6" aria-hidden="true" />
         </div>
-
-        {/* Halo de complétion — CSS pur */}
-        {isCompleted && !reducedMotion && (
-          <span
-            className="pointer-events-none absolute inset-0 rounded-full bg-primary/30 animate-[challenge-halo_0.6s_ease-out_forwards]"
-            aria-hidden="true"
-          />
-        )}
 
         {/* Badge points */}
         <span
-          className={cn(
-            "absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-            isCompleted ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-          )}
+          className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold bg-muted text-muted-foreground"
           aria-hidden="true"
         >
           +{challenge.bonus_points}
@@ -186,29 +210,22 @@ function ConstellationNode({
       </div>
 
       {/* Label */}
-      <p
-        className={cn(
-          "text-center text-xs font-medium leading-snug",
-          isCompleted ? "text-muted-foreground line-through" : "text-foreground"
-        )}
-      >
+      <p className="text-center text-xs font-medium leading-snug text-foreground">
         {label}
       </p>
 
       {/* Mini barre de progression */}
-      {!isCompleted && (
-        <div className="w-full space-y-1" aria-hidden="true">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
-            <div
-              className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out motion-reduce:transition-none"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="text-center text-[10px] text-muted-foreground tabular-nums">
-            {challenge.completed_count}/{challenge.target_count}
-          </p>
+      <div className="w-full space-y-1" aria-hidden="true">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out motion-reduce:transition-none"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-      )}
+        <p className="text-center text-[10px] text-muted-foreground tabular-nums">
+          {challenge.completed_count}/{challenge.target_count}
+        </p>
+      </div>
 
       {/* Numéro de nœud — décoration constellation */}
       <span
@@ -217,7 +234,7 @@ function ConstellationNode({
       >
         {String(index + 1).padStart(2, "0")}
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -410,6 +427,24 @@ export function StudentChallengesBoard() {
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Détermine la route cible d'un nœud de défi selon son type.
+ * - volume_exercises  → /exercises (liste libre)
+ * - specific_type     → /exercises?type={exercise_type} (filtre pré-appliqué)
+ * - logic_challenge   → /challenges
+ */
+function getChallengeHref(challenge: DailyChallenge): string {
+  if (challenge.challenge_type === "logic_challenge") {
+    return "/challenges";
+  }
+  if (challenge.challenge_type === "specific_type") {
+    const type = (challenge.metadata?.exercise_type ?? "").toLowerCase();
+    return type ? `/exercises?type=${encodeURIComponent(type)}` : "/exercises";
+  }
+  return "/exercises";
+}
+
 function getChallengeLabel(
   c: DailyChallenge,
   getTypeDisplay: (type: string | null) => string,
