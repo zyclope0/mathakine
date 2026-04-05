@@ -617,7 +617,7 @@ Dettes rÃ©siduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la m
 | ID   | Surface                           | Description                                                                                | Priorite | Commande   |
 | ---- | --------------------------------- | ------------------------------------------------------------------------------------------ | -------- | ---------- |
 | U2b  | Solvers                           | Hint irrevocable : ajouter fallback passif via bouton Voir un indice (lot U2 phase 2)      | P3       | /onboard   |
-| U3   | ChallengeSolver                   | Onboarding premiere visite ChallengeSolver (reutilise useFirstVisitHint, lot separe)       | P3       | /onboard   |
+| U3   | ChallengeSolver                   | Onboarding premiere visite ChallengeSolver (reutilise useFirstVisitHint, lot separe)       | **RESOLU** | /onboard   |
 | O1   | ExerciseSolverChoices.tsx         | input raw hors design system -- dette anterieure                                           | P3       | /normalize |
 | S2   | Theme spatial (defaut)            | Palette #7c3aed + #0a0a0f = fingerprint AI 2024 -- decision produit requise                | P3       | /colorize  |
 

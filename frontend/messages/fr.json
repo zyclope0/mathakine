@@ -688,7 +688,17 @@
       "retryLabel": "Réessayer le défi",
       "retry": "Réessayer",
       "nextChallenge": "Défi suivant",
-      "option": "Option {index}"
+      "option": "Option {index}",
+      "hintOverlay": {
+        "title": "Comment ça marche ?",
+        "stepChoose": "Clique sur la bonne réponse",
+        "stepWrite": "Écris ta réponse dans le champ",
+        "stepVisual": "Complète le schéma en cliquant ou en déplaçant les éléments",
+        "stepValidate": "Appuie sur « Valider »",
+        "helpNote": "Bloqué ? Demande un indice !",
+        "dismiss": "OK, je commence !",
+        "dismissAriaLabel": "Fermer l'aide et commencer le défi"
+      }
     },
     "error": {
       "invalidId": "ID de défi invalide",

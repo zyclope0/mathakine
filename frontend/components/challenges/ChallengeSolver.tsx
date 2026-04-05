@@ -37,6 +37,7 @@ import {
 } from "@/lib/utils/visualChallengeUtils";
 import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 import { LearnerCard } from "@/components/learner";
+import { ChallengeSolverHint } from "@/components/challenges/ChallengeSolverHint";
 
 interface ChallengeSolverProps {
   challengeId: number;
@@ -550,6 +551,21 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           </div>
         )}
       </LearnerCard>
+
+      {/* U3 — Aide de première visite : entre l'énoncé et la zone de saisie.
+          Toujours visible sans scroll. Clé localStorage distincte de l'exercice solver. */}
+      {!hasSubmitted && (
+        <ChallengeSolverHint
+          responseMode={
+            showMcq
+              ? "single_choice"
+              : responseMode === "interactive_visual"
+                ? "interactive_visual"
+                : "text"
+          }
+          hasHints={availableHints.length > 0}
+        />
+      )}
 
       {/* Command Bar — Zone de réponse et d'action */}
       {!hasSubmitted && (

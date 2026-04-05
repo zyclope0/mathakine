@@ -688,7 +688,17 @@
       "retryLabel": "Retry challenge",
       "retry": "Retry",
       "nextChallenge": "Next challenge",
-      "option": "Option {index}"
+      "option": "Option {index}",
+      "hintOverlay": {
+        "title": "How does it work?",
+        "stepChoose": "Click the correct answer",
+        "stepWrite": "Type your answer in the field",
+        "stepVisual": "Complete the diagram by clicking or dragging elements",
+        "stepValidate": "Press \"Submit\"",
+        "helpNote": "Stuck? Ask for a hint!",
+        "dismiss": "Got it, let's go!",
+        "dismissAriaLabel": "Close help and start the challenge"
+      }
     },
     "error": {
       "invalidId": "Invalid challenge ID",
