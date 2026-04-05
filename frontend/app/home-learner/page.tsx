@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calculator, Puzzle, Award, Star, BookOpen, Target, TrendingUp } from "lucide-react";
+import { Calculator, Puzzle, Award, BookOpen, Target, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgressStats } from "@/hooks/useProgressStats";
@@ -31,15 +31,25 @@ const EMPTY_SPACED_REPETITION: SpacedRepetitionUserSummary = {
 /**
  * Page d'accueil dédiée aux apprenants (rôle canonique `apprenant`). — NI-4 / NI-13
  *
- * Structure linéaire, colonne unique, zéro onglets :
- *   1. Salutation + mini-index d'ancrage (COGA 4.1.1 — prévisibilité structurelle)
- *   2. "Que veux-tu faire ?" — 3 CTA empilés
- *   3. "Mes révisions du jour" — SpacedRepetitionSummaryWidget
- *   4. "Mes défis" — StudentChallengesBoard (Constellation Board, design OVERDRIVE-C/NI-13)
- *   5. "Ma progression" — Streak + Niveau + Compétences
+ * Structure linéaire, colonne unique, zéro onglets.
  *
- * Mini-index : chips d'ancrage visibles dès le chargement, permettant à l'apprenant
- * de savoir ce qui l'attend avant de scroller (UDL 1.3, W3C COGA 4.1.1).
+ * Ordre des sections — conditionnel selon urgence révisions :
+ *
+ * Cas normal (aucune révision urgente) :
+ *   1. Salutation + mini-index d'ancrage
+ *   2. "Que veux-tu faire ?" — 3 CTA
+ *   3. "À revoir aujourd'hui" — SpacedRepetitionSummaryWidget
+ *   4. "Mes défis du jour" — StudentChallengesBoard
+ *   5. "Ma progression" — Streak + Niveau
+ *
+ * Cas urgent (due_today_count + overdue_count > 0) :
+ *   1. Salutation + mini-index d'ancrage
+ *   2. "À revoir aujourd'hui" — remonté avant les CTA
+ *   3. "Que veux-tu faire ?" — 3 CTA
+ *   4. "Mes défis du jour"
+ *   5. "Ma progression"
+ *
+ * Les chips PAGE_ANCHORS reflètent l'ordre réel affiché.
  * Scroll natif CSS — aucune lib, prefers-reduced-motion respecté par le navigateur.
  */
 export default function HomeLearnerPage() {
@@ -55,13 +65,6 @@ export default function HomeLearnerPage() {
   );
 }
 
-/** Chips d'ancrage — index visuel de la page */
-const PAGE_ANCHORS = [
-  { id: "section-reviews", icon: BookOpen, labelKey: "pageMap.reviews" },
-  { id: "section-challenges", icon: Target, labelKey: "pageMap.challenges" },
-  { id: "section-progress", icon: TrendingUp, labelKey: "pageMap.progress" },
-] as const;
-
 function HomeLearnerContent() {
   const t = useTranslations("homeLearner");
   const { user } = useAuth();
@@ -70,42 +73,52 @@ function HomeLearnerContent() {
 
   const firstName = user?.full_name?.split(" ")[0] ?? user?.username ?? null;
 
-  return (
-    <LearnerLayout maxWidth="2xl">
-      {/* Salutation + mini-index */}
-      <div className="pt-4 pb-2">
-        <h1 className="text-2xl font-bold text-foreground leading-snug">
-          {firstName ? t("greeting", { name: firstName }) : t("greetingGeneric")}
-        </h1>
-        <p className="mt-1 text-base text-muted-foreground">{t("subtitle")}</p>
+  const sr = stats?.spaced_repetition ?? EMPTY_SPACED_REPETITION;
 
-        {/* Mini-index d'ancrage — COGA 4.1.1 prévisibilité structurelle.
-            Chips cliquables → scroll doux vers la section cible.
-            Navigation native <a href="#id">, zéro JS, accessible clavier. */}
-        <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("pageMap.label")}>
-          {PAGE_ANCHORS.map(({ id, icon: Icon, labelKey }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5",
-                "border border-border/60 bg-[var(--bg-learner,var(--card))]",
-                "text-xs font-medium text-muted-foreground",
-                "hover:border-primary/40 hover:text-primary hover:bg-primary/5",
-                "transition-colors duration-150",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              {t(labelKey)}
-            </a>
-          ))}
-        </nav>
-      </div>
+  // Révisions urgentes dès que les stats sont chargées et qu'il y a du travail en attente.
+  // Pendant le chargement (isLoadingStats), on reste en ordre normal pour éviter le layout shift.
+  const hasUrgentReviews =
+    !isLoadingStats && (sr.due_today_count > 0 || sr.overdue_count > 0);
 
-      {/* Actions rapides — colonne unique, boutons pleine largeur */}
+  // Chips d'ancrage reflétant l'ordre réel affiché (COGA 4.1.1 prévisibilité structurelle).
+  // En mode urgent, les Révisions passent avant les CTA dans la liste de chips.
+  const pageAnchors = hasUrgentReviews
+    ? [
+        { id: "section-reviews", icon: BookOpen, labelKey: "pageMap.reviews" as const },
+        { id: "section-actions", icon: Calculator, labelKey: "pageMap.actions" as const },
+        { id: "section-challenges", icon: Target, labelKey: "pageMap.challenges" as const },
+        { id: "section-progress", icon: TrendingUp, labelKey: "pageMap.progress" as const },
+      ]
+    : [
+        { id: "section-actions", icon: Calculator, labelKey: "pageMap.actions" as const },
+        { id: "section-reviews", icon: BookOpen, labelKey: "pageMap.reviews" as const },
+        { id: "section-challenges", icon: Target, labelKey: "pageMap.challenges" as const },
+        { id: "section-progress", icon: TrendingUp, labelKey: "pageMap.progress" as const },
+      ];
+
+  const reviewsSection = (
+    <section id="section-reviews" aria-labelledby="reviews-heading" className="scroll-mt-20">
+      <h2
+        id="reviews-heading"
+        className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
+      >
+        {t("reviews.heading")}
+      </h2>
+      <SpacedRepetitionSummaryWidget
+        summary={sr}
+        isLoading={isLoadingStats}
+        hasError={!isLoadingStats && !stats}
+      />
+    </section>
+  );
+
+  const actionsSection = (
+    <section id="section-actions" aria-labelledby="actions-heading">
       <LearnerCard>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+        <h2
+          id="actions-heading"
+          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
+        >
           {t("actions.heading")}
         </h2>
 
@@ -156,22 +169,55 @@ function HomeLearnerContent() {
           </Link>
         </div>
       </LearnerCard>
+    </section>
+  );
 
-      {/* Révisions espacées du jour — toujours rendu pour ne pas casser l'ancrage page-map.
-          isLoading passe le skeleton au widget ; hasError affiche un état d'erreur propre. */}
-      <section id="section-reviews" aria-labelledby="reviews-heading" className="scroll-mt-20">
-        <h2
-          id="reviews-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
-        >
-          {t("reviews.heading")}
-        </h2>
-        <SpacedRepetitionSummaryWidget
-          summary={stats?.spaced_repetition ?? EMPTY_SPACED_REPETITION}
-          isLoading={isLoadingStats}
-          hasError={!isLoadingStats && !stats}
-        />
-      </section>
+  return (
+    <LearnerLayout maxWidth="2xl">
+      {/* Salutation + mini-index */}
+      <div className="pt-4 pb-2">
+        <h1 className="text-2xl font-bold text-foreground leading-snug">
+          {firstName ? t("greeting", { name: firstName }) : t("greetingGeneric")}
+        </h1>
+        <p className="mt-1 text-base text-muted-foreground">{t("subtitle")}</p>
+
+        {/* Mini-index d'ancrage — COGA 4.1.1 prévisibilité structurelle.
+            Chips cliquables → scroll doux vers la section cible.
+            Ordre reflète le rendu réel (urgent = révisions avant CTA).
+            Navigation native <a href="#id">, zéro JS, accessible clavier. */}
+        <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("pageMap.label")}>
+          {pageAnchors.map(({ id, icon: Icon, labelKey }) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5",
+                "border border-border/60 bg-[var(--bg-learner,var(--card))]",
+                "text-xs font-medium text-muted-foreground",
+                "hover:border-primary/40 hover:text-primary hover:bg-primary/5",
+                "transition-colors duration-150",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              {t(labelKey)}
+            </a>
+          ))}
+        </nav>
+      </div>
+
+      {/* Ordre conditionnel : révisions urgentes remontent avant les CTA */}
+      {hasUrgentReviews ? (
+        <>
+          {reviewsSection}
+          {actionsSection}
+        </>
+      ) : (
+        <>
+          {actionsSection}
+          {reviewsSection}
+        </>
+      )}
 
       {/* Défis du jour — Constellation Board (design OVERDRIVE-C / NI-13) */}
       <section
@@ -209,17 +255,6 @@ function HomeLearnerContent() {
           <LevelEstablishedWidget />
         </div>
       </section>
-
-      {/* Lien secondaire — voir tous les badges */}
-      <div className="pb-4">
-        <Link
-          href="/badges"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-        >
-          <Star className="h-4 w-4" aria-hidden="true" />
-          {t("progress.seeBadges")}
-        </Link>
-      </div>
     </LearnerLayout>
   );
 }

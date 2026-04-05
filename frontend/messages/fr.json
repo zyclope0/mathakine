@@ -2239,6 +2239,7 @@
     },
     "pageMap": {
       "label": "Sur cette page",
+      "actions": "Activités",
       "reviews": "Révisions",
       "challenges": "Défis",
       "progress": "Progression"

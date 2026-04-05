@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
  *
  * Différences intentionnelles vs PageLayout global :
  * - maxWidth paramétrable : "4xl" pour exercices (aligné LearnerCard exercise), "5xl" pour défis
- * - gap-12 entre sections : espace généreux pour réduire la charge cognitive
+ * - space-y-8 md:space-y-12 : 32px mobile (urgence lisible), 48px desktop (espace cognitif)
  * - Fond `--background` sur la page, `--bg-learner` porté par LearnerCard (contraste carte/page)
  * - Zéro sidebar, zéro décoration périphérique
  * - Padding horizontal responsive cohérent avec PageLayout
@@ -48,8 +48,9 @@ export function LearnerLayout({ children, className, maxWidth = "4xl" }: Learner
         className={cn(
           "mx-auto",
           MAX_WIDTH_CLASSES[maxWidth],
-          // Espacement vertical généreux entre sections
-          "space-y-12"
+          // Mobile : 32px entre sections (urgence lisible sans scroll excessif)
+          // Desktop : 48px — espace cognitif généreux
+          "space-y-8 md:space-y-12"
         )}
       >
         {children}

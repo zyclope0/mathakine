@@ -2240,6 +2240,7 @@
     },
     "pageMap": {
       "label": "On this page",
+      "actions": "Activities",
       "reviews": "Reviews",
       "challenges": "Challenges",
       "progress": "Progress"
