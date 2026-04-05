@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ADMIN_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <ProtectedRoute allowedRoles={["admin"]}>
+    <ProtectedRoute allowedRoles={ADMIN_ROUTE_ACCESS.allowedRoles}>
       <PageLayout maxWidth="2xl">
         <div className="flex flex-col gap-6 md:flex-row">
           <nav className="flex shrink-0 flex-col gap-1 md:w-48">

@@ -28,7 +28,6 @@ class AdminService:
     get_reports_for_api = AdminStatsService.get_reports_for_api
 
     # ── Users ─────────────────────────────────────────────────────────────
-    ROLE_MAP = AdminUserService.ROLE_MAP
     list_users_for_admin = AdminUserService.list_users_for_admin
     validate_and_patch_user = AdminUserService.validate_and_patch_user
     patch_user_for_admin = AdminUserService.patch_user_for_admin

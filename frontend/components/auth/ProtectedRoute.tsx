@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingState } from "@/components/layout/LoadingState";
-import { getDefaultHomeRoute, normalizeUserRole } from "@/lib/auth/userRoles";
+import { getProtectedRouteRedirect } from "@/lib/auth/routeAccess";
 import type { UserRole } from "@/lib/auth/userRoles";
 
 interface ProtectedRouteProps {
@@ -16,6 +16,7 @@ interface ProtectedRouteProps {
   requireOnboardingCompleted?: boolean;
   /** Rôles canoniques autorisés sur cette surface. */
   allowedRoles?: UserRole[];
+  prioritizeRoleRedirect?: boolean;
   redirectTo?: string;
   /** Redirection si l'utilisateur est authentifié mais n'a pas le bon rôle. */
   redirectAuthenticatedTo?: string;
@@ -27,6 +28,7 @@ export function ProtectedRoute({
   requireFullAccess = false,
   requireOnboardingCompleted = false,
   allowedRoles,
+  prioritizeRoleRedirect = false,
   redirectTo = "/login",
   redirectAuthenticatedTo,
 }: ProtectedRouteProps) {
@@ -48,32 +50,33 @@ export function ProtectedRoute({
   }, [isLoading, user, hasTimedOut]);
 
   const hasCheckedAuth = hasTimedOut || user !== null || !isLoading;
-  const normalizedUserRole = normalizeUserRole(user?.role);
-  const mustRedirectToOnboarding =
-    hasCheckedAuth &&
-    requireOnboardingCompleted &&
-    user &&
-    !user.onboarding_completed_at &&
-    user.access_scope !== "exercises_only";
-  const mustRedirectToExercises =
-    hasCheckedAuth && requireFullAccess && user && user.access_scope === "exercises_only";
-  const mustRedirectToLogin = hasCheckedAuth && requireAuth && !isAuthenticated && user === null;
+  const routeAccessUser =
+    hasCheckedAuth && user !== null
+      ? {
+          isAuthenticated,
+          role: user.role,
+          access_scope: user.access_scope ?? null,
+          onboarding_completed_at: user.onboarding_completed_at ?? null,
+        }
+      : hasCheckedAuth
+        ? { isAuthenticated: false }
+        : null;
+  const redirectTarget = hasCheckedAuth
+    ? getProtectedRouteRedirect(routeAccessUser, {
+        requireAuth,
+        requireFullAccess,
+        requireOnboardingCompleted,
+        allowedRoles,
+        prioritizeRoleRedirect,
+        redirectTo,
+        redirectAuthenticatedTo,
+      })
+    : null;
   const mustRedirectForRole =
-    hasCheckedAuth &&
-    user !== null &&
-    !!allowedRoles &&
-    (normalizedUserRole === null || !allowedRoles.includes(normalizedUserRole));
-  const authenticatedFallbackRoute = redirectAuthenticatedTo ?? getDefaultHomeRoute(user?.role);
-
-  const redirectTarget = mustRedirectToOnboarding
-    ? "/onboarding"
-    : mustRedirectToExercises
-      ? "/exercises"
-      : mustRedirectForRole
-        ? authenticatedFallbackRoute
-        : mustRedirectToLogin
-          ? redirectTo
-          : null;
+    redirectTarget !== null &&
+    redirectTarget !== redirectTo &&
+    redirectTarget !== "/onboarding" &&
+    redirectTarget !== "/exercises";
 
   useEffect(() => {
     if (!redirectTarget) {

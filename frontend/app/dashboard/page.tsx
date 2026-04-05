@@ -12,7 +12,7 @@ import type { TimelinePeriod } from "@/hooks/useProgressTimeline";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
 import { useDailyChallenges } from "@/hooks/useDailyChallenges";
 import { buildDashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
-import { DASHBOARD_ALLOWED_ROLES } from "@/lib/auth/userRoles";
+import { DASHBOARD_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import {
@@ -147,9 +147,9 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <ProtectedRoute
-        requireFullAccess
-        requireOnboardingCompleted
-        allowedRoles={DASHBOARD_ALLOWED_ROLES}
+        requireFullAccess={DASHBOARD_ROUTE_ACCESS.requireFullAccess}
+        requireOnboardingCompleted={DASHBOARD_ROUTE_ACCESS.requireOnboardingCompleted}
+        allowedRoles={DASHBOARD_ROUTE_ACCESS.allowedRoles}
       >
         <PageLayout>
           <PageHeader
@@ -181,9 +181,9 @@ export default function DashboardPage() {
   if (error) {
     return (
       <ProtectedRoute
-        requireFullAccess
-        requireOnboardingCompleted
-        allowedRoles={DASHBOARD_ALLOWED_ROLES}
+        requireFullAccess={DASHBOARD_ROUTE_ACCESS.requireFullAccess}
+        requireOnboardingCompleted={DASHBOARD_ROUTE_ACCESS.requireOnboardingCompleted}
+        allowedRoles={DASHBOARD_ROUTE_ACCESS.allowedRoles}
       >
         <PageLayout>
           <EmptyState
@@ -197,9 +197,9 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute
-      requireFullAccess
-      requireOnboardingCompleted
-      allowedRoles={DASHBOARD_ALLOWED_ROLES}
+      requireFullAccess={DASHBOARD_ROUTE_ACCESS.requireFullAccess}
+      requireOnboardingCompleted={DASHBOARD_ROUTE_ACCESS.requireOnboardingCompleted}
+      allowedRoles={DASHBOARD_ROUTE_ACCESS.allowedRoles}
     >
       <PageLayout>
         {/* En-tête */}

@@ -157,6 +157,8 @@ def get_current_user_payload(username: str, payload: dict) -> Optional[Dict[str,
         user = get_user_by_username(db, username)
         if user is None:
             return None
+        if not getattr(user, "is_active", True):
+            return None
         if _is_token_revoked_by_password_reset(payload, user):
             return None
         from app.services.users.user_service import UserService

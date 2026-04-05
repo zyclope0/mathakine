@@ -33,13 +33,6 @@ from app.utils.email_verification import generate_verification_token
 class AdminUserService:
     """Opérations admin pour la gestion des utilisateurs."""
 
-    ROLE_MAP = {
-        CanonicalUserRole.APPRENANT.value: UserRole.PADAWAN,
-        CanonicalUserRole.ENSEIGNANT.value: UserRole.MAITRE,
-        CanonicalUserRole.MODERATEUR.value: UserRole.GARDIEN,
-        CanonicalUserRole.ADMIN.value: UserRole.ARCHIVISTE,
-    }
-
     @staticmethod
     def list_users_for_admin(
         db: Session,
@@ -113,7 +106,7 @@ class AdminUserService:
                     f"Rôle invalide. Valeurs canoniques: {valid_roles}.",
                     400,
                 )
-            new_role = cls.ROLE_MAP[normalized_role.value]
+            new_role = to_legacy_user_role_enum(normalized_role)
 
         if is_active is None and new_role is None:
             return None, "Fournissez is_active et/ou role à modifier.", 400

@@ -1,30 +1,35 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  getProtectedRouteRedirect,
+  getRouteAccessRequirementsForPath,
+} from "@/lib/auth/routeAccess";
+import { resolveRouteAccessUser } from "@/lib/auth/server/routeSession";
 
-export function proxy(request: NextRequest) {
-  // Routes publiques qui ne nécessitent pas d'authentification
-  const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/about"];
-  const { pathname } = request.nextUrl;
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const requirements = getRouteAccessRequirementsForPath(pathname);
 
-  // Si c'est une route publique, laisser passer
-  if (publicRoutes.includes(pathname) || pathname.startsWith("/api/auth")) {
+  if (!requirements) {
     return NextResponse.next();
   }
 
-  // Pour les routes protégées, la vérification se fait côté client
-  // via le composant ProtectedRoute
-  return NextResponse.next();
+  const accessToken = request.cookies.get("access_token")?.value;
+  const session = await resolveRouteAccessUser(pathname, accessToken);
+
+  if (session.state === "indeterminate") {
+    return NextResponse.next();
+  }
+
+  const redirectTarget = getProtectedRouteRedirect(session.user, requirements);
+  if (!redirectTarget) {
+    return NextResponse.next();
+  }
+
+  const redirectUrl = new URL(redirectTarget, request.url);
+  return NextResponse.redirect(redirectUrl);
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/home-learner/:path*", "/dashboard/:path*", "/admin/:path*"],
 };

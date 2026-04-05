@@ -171,6 +171,40 @@ async def test_get_current_user_invalid_token(client):
     assert response.status_code == 401
 
 
+async def test_get_current_user_inactive_account_returns_401(client, test_user_data):
+    """Un compte désactivé ne doit plus être résolu par /api/users/me avec un ancien token."""
+    await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
+
+    login_response = await client.post(
+        "/api/auth/login",
+        json={
+            "username": test_user_data["username"],
+            "password": test_user_data["password"],
+        },
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    from app.core.db_boundary import sync_db_session
+    from app.models.user import User
+
+    with sync_db_session() as db:
+        user = (
+            db.query(User).filter(User.username == test_user_data["username"]).first()
+        )
+        assert user is not None
+        user.is_active = False
+        db.commit()
+
+    response = await client.get(
+        "/api/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
+
+
 async def test_forgot_password_success(client, test_user_data):
     """Test demande réinitialisation mot de passe - utilisateur existant"""
     await client.post("/api/users/", json=test_user_data)

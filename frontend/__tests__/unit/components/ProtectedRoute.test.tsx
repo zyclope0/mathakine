@@ -137,4 +137,34 @@ describe("ProtectedRoute", () => {
     expect(screen.getByText("Mon espace apprenant")).toBeInTheDocument();
     expect(replaceMock).not.toHaveBeenCalled();
   });
+
+  it("redirige un role adulte vers /dashboard sur /home-learner avant l'onboarding", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: {
+        id: 11,
+        role: "enseignant",
+        access_scope: "full",
+        onboarding_completed_at: null,
+      },
+      isLoading: false,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(
+      <ProtectedRoute
+        requireOnboardingCompleted
+        allowedRoles={["apprenant"]}
+        prioritizeRoleRedirect
+        redirectAuthenticatedTo="/dashboard"
+      >
+        <div>Home learner</div>
+      </ProtectedRoute>,
+      { wrapper: TestWrapper }
+    );
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith("/dashboard");
+    });
+    expect(screen.queryByText("Home learner")).not.toBeInTheDocument();
+  });
 });

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AdminAcademyStatsSection } from "@/components/admin/AdminAcademyStatsSection";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ADMIN_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { useAdminOverview } from "@/hooks/useAdminOverview";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
@@ -60,7 +61,7 @@ export default function AdminPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin"]}>
+    <ProtectedRoute allowedRoles={ADMIN_ROUTE_ACCESS.allowedRoles}>
       <PageLayout>
         <PageHeader title="Espace Admin" description="Vue d'ensemble de la plateforme" />
 

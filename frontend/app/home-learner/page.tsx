@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgressStats } from "@/hooks/useProgressStats";
 import { useUserStats } from "@/hooks/useUserStats";
+import { HOME_LEARNER_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LearnerLayout } from "@/components/learner/LearnerLayout";
 import { LearnerCard } from "@/components/learner/LearnerCard";
@@ -44,9 +45,10 @@ const EMPTY_SPACED_REPETITION: SpacedRepetitionUserSummary = {
 export default function HomeLearnerPage() {
   return (
     <ProtectedRoute
-      requireOnboardingCompleted
-      allowedRoles={["apprenant"]}
-      redirectAuthenticatedTo="/dashboard"
+      requireOnboardingCompleted={HOME_LEARNER_ROUTE_ACCESS.requireOnboardingCompleted}
+      allowedRoles={HOME_LEARNER_ROUTE_ACCESS.allowedRoles}
+      prioritizeRoleRedirect={HOME_LEARNER_ROUTE_ACCESS.prioritizeRoleRedirect}
+      redirectAuthenticatedTo={HOME_LEARNER_ROUTE_ACCESS.redirectAuthenticatedTo}
     >
       <HomeLearnerContent />
     </ProtectedRoute>
