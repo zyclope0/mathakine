@@ -1409,15 +1409,18 @@ select:focus {
     animation: lb-breathe 3.8s ease-in-out infinite;
   }
 
-  /* Pulse-once sur la ligne de l'utilisateur courant (1 seule fois à l'entrée) */
+  /* Pulse-once sur la ligne de l'utilisateur courant (1 seule fois à l'entrée).
+     Part du fond bg-primary/10 (10%), monte à 28%, revient à 10%.
+     animation-fill-mode: forwards : le fond final correspond au fond Tailwind,
+     pas de flash ni de conflit de spécificité. */
   @keyframes lb-pulse-once {
     0%   { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
-    30%  { background-color: color-mix(in srgb, var(--primary) 28%, transparent); }
+    35%  { background-color: color-mix(in srgb, var(--primary) 28%, transparent); }
     100% { background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
   }
 
   .lb-row-self {
-    animation: lb-pulse-once 1.4s ease-out forwards;
+    animation: lb-pulse-once 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   /* Scroll-driven reveal : lignes entrent par le bas au passage du viewport */

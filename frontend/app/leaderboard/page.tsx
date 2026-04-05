@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,8 @@ function AnimatedPoints({
           : "text-amber-400";
 
   return (
+    // aria-live="off" : empêche les lecteurs d'écran d'annoncer chaque tick
+    // aria-label sur le span parent expose la valeur finale sémantique
     <span
       className={cn(
         "flex-shrink-0 font-bold tabular-nums",
@@ -96,9 +98,10 @@ function AnimatedPoints({
         colorClass
       )}
       aria-label={`${value} points`}
+      aria-live="off"
     >
       {displayed.toLocaleString()}
-      <span className="text-xs font-normal opacity-60 ml-0.5">pts</span>
+      <span className="text-xs font-normal opacity-60 ml-0.5" aria-hidden>pts</span>
     </span>
   );
 }
@@ -164,11 +167,11 @@ function LeaderboardRow({
     >
       <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
 
-      {/* Halo conditionnel — wrapper div uniquement si halo actif */}
+      {/* Halo conditionnel — inline-flex pour préserver l'alignement vertical dans le flex row */}
       {avatarHaloClass ? (
-        <div className={avatarHaloClass}>
+        <span className={cn("inline-flex flex-shrink-0", avatarHaloClass)}>
           <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
-        </div>
+        </span>
       ) : (
         <UserAvatar username={entry.username} size="md" avatarUrl={entry.avatar_url} />
       )}
@@ -235,7 +238,8 @@ function LeaderboardRow({
 
 function SectionSeparator({ label }: { label: string }) {
   return (
-    <li role="separator" aria-label={label} className="leaderboard-section-separator list-none">
+    // li dans ul — role=separator invalide ici, le texte visible suffit à communiquer la section
+    <li className="leaderboard-section-separator list-none" aria-hidden="true">
       {label}
     </li>
   );
@@ -371,22 +375,15 @@ export default function LeaderboardPage() {
                     animate="show"
                     className="list-none m-0 p-0"
                   >
-                    {leaderboard.map((entry: LeaderboardEntry, idx: number) => {
+                    {leaderboard.flatMap((entry: LeaderboardEntry, idx: number) => {
                       const isLastEntry = idx === leaderboard.length - 1 && !showMyRankFooter;
-                      const showPodiumSep = idx === 0;
-                      const showTopTenSep = entry.rank === 4;
-                      const showRestSep = entry.rank === 11;
+                      const nodes: React.ReactNode[] = [];
 
-                      return [
-                        showPodiumSep && (
-                          <SectionSeparator key="sep-podium" label={t("podiumSeparator")} />
-                        ),
-                        showTopTenSep && (
-                          <SectionSeparator key="sep-top10" label={t("topTenSeparator")} />
-                        ),
-                        showRestSep && (
-                          <SectionSeparator key="sep-rest" label={t("restSeparator")} />
-                        ),
+                      if (idx === 0)       nodes.push(<SectionSeparator key="sep-podium" label={t("podiumSeparator")} />);
+                      if (entry.rank === 4)  nodes.push(<SectionSeparator key="sep-top10" label={t("topTenSeparator")} />);
+                      if (entry.rank === 11) nodes.push(<SectionSeparator key="sep-rest"  label={t("restSeparator")} />);
+
+                      nodes.push(
                         <LeaderboardRow
                           key={`${entry.rank}-${entry.username}`}
                           entry={entry}
@@ -399,8 +396,10 @@ export default function LeaderboardPage() {
                           rowVariants={rowVariants}
                           shouldReduceMotion={Boolean(shouldReduceMotion)}
                           progressionRankLabel={progressionRankLabel}
-                        />,
-                      ];
+                        />
+                      );
+
+                      return nodes;
                     })}
                   </motion.ul>
 

@@ -4,29 +4,40 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * Anime un nombre de 0 vers `target` sur `duration` ms.
- * - Easing : ease-out-expo (décélération rapide → chiffres "tombe en place")
- * - prefers-reduced-motion : valeur finale affichée immédiatement, 0 animation
+ * - Easing : ease-out-expo (décélération rapide → chiffres "tombent en place")
+ * - prefers-reduced-motion : réactif (matchMedia listener) — si l'utilisateur
+ *   active la préférence en cours de session, le hook passe immédiatement à la
+ *   valeur finale sans animation
  * - Rejoue l'animation à chaque changement de `target` (ex: changement de période)
  */
 export function useCountUp(target: number, duration = 700): number {
   const [current, setCurrent] = useState(0);
-  const rafRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const prefersReduced =
+  const [prefersReduced, setPrefersReduced] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
+      : false
+  );
+
+  const rafRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+
+  // Écoute les changements de la préférence système en temps réel
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     if (prefersReduced) {
-      setCurrent(target); // Intentional direct setState in effect — prefers-reduced-motion fast-path
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      setCurrent(target);
       return;
     }
 
-    // Annule l'animation précédente si target change pendant le compte
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-    }
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     startTimeRef.current = null;
     setCurrent(0);
 
