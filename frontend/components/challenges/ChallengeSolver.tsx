@@ -1,41 +1,34 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  XCircle,
-  ArrowLeft,
-  CheckCircle,
-  Lightbulb,
-  AlertCircle,
-  RotateCcw,
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Lightbulb } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { debugLog } from "@/lib/utils/debug";
+import { useTranslations } from "next-intl";
+import { useThemeStore } from "@/lib/stores/themeStore";
+import { useChallenges } from "@/hooks/useChallenges";
+import { useChallenge } from "@/hooks/useChallenge";
+import { LearnerCard } from "@/components/learner";
+import { ChallengeSolverHint } from "@/components/challenges/ChallengeSolverHint";
+import { ChallengeSolverStatus } from "@/components/challenges/ChallengeSolverStatus";
+import { ChallengeSolverHeader } from "@/components/challenges/ChallengeSolverHeader";
+import { ChallengeSolverContent } from "@/components/challenges/ChallengeSolverContent";
+import { ChallengeSolverHintsPanel } from "@/components/challenges/ChallengeSolverHintsPanel";
+import { ChallengeSolverFeedback } from "@/components/challenges/ChallengeSolverFeedback";
 import {
   getChallengeTypeDisplay,
   getAgeGroupDisplay,
   getAgeGroupColor,
 } from "@/lib/constants/challenges";
-import { useThemeStore } from "@/lib/stores/themeStore";
-import { useChallenges } from "@/hooks/useChallenges";
-import { useChallenge } from "@/hooks/useChallenge";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { debugLog } from "@/lib/utils/debug";
-import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
-import { useTranslations } from "next-intl";
-import { MathText } from "@/components/ui/MathText";
-import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
-import { LearnerCard } from "@/components/learner";
-import { ChallengeSolverHint } from "@/components/challenges/ChallengeSolverHint";
 import {
   getChallengeHintsArray,
   getChallengeVisualAnswerModel,
   isChallengeAnswerEmpty,
   getChallengeTextInputKind,
+  normalizeChallengeChoices,
 } from "@/lib/challenges/challengeSolver";
 
 interface ChallengeSolverProps {
@@ -49,7 +42,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   const { submitAnswer, isSubmitting, submitResult, getHint, setHints } = useChallenges();
   const { challenge, isLoading, error } = useChallenge(challengeId);
 
-  // Debug logs (uniquement en développement)
+  // ─── Debug (dev only) ──────────────────────────────────────────────────────
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       debugLog("[ChallengeSolver] State:", {
@@ -61,6 +54,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     }
   }, [challengeId, isLoading, challenge, error]);
 
+  // ─── State ─────────────────────────────────────────────────────────────────
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [, setShowExplanation] = useState(false);
@@ -68,42 +62,37 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   const [availableHints, setAvailableHints] = useState<string[]>([]);
   const [puzzleOrder, setPuzzleOrder] = useState<string[]>([]);
   const [visualSelections, setVisualSelections] = useState<Record<number, string>>({});
-  const [retryKey, setRetryKey] = useState<number>(0); // Clé pour forcer la réinitialisation des visualisations
+  const [retryKey, setRetryKey] = useState<number>(0);
   const startTimeRef = useRef<number>(0);
+
   useEffect(() => {
     startTimeRef.current = Date.now();
   }, []);
 
-  // Initialiser les indices disponibles
+  // ─── Effects ───────────────────────────────────────────────────────────────
+
+  // Initialise les indices disponibles à chaque changement de défi
   useEffect(() => {
     if (challenge?.hints) {
-      const hintsArray = getChallengeHintsArray(challenge.hints);
-      setAvailableHints(hintsArray);
-      // Réinitialiser les indices du hook quand on change de défi
+      setAvailableHints(getChallengeHintsArray(challenge.hints));
       setHints([]);
     } else {
       setAvailableHints([]);
     }
   }, [challenge, setHints]);
 
-  // Mettre à jour l'état quand le résultat arrive
+  // Marque comme soumis + callback quand le résultat arrive
   useEffect(() => {
     if (submitResult) {
       setHasSubmitted(true);
       if (submitResult.is_correct) {
         setShowExplanation(true);
-
-        // L'invalidation est déjà gérée dans useChallenges.ts dans onSuccess de la mutation
-        // On peut juste appeler le callback si fourni
-        if (onChallengeCompleted) {
-          onChallengeCompleted();
-        }
+        onChallengeCompleted?.();
       }
     }
   }, [submitResult, onChallengeCompleted]);
 
-  // Réinitialiser l'état quand le défi change (dépendance sur l'id pour éviter
-  // un reset si l'objet challenge est recréé sans changement de contenu)
+  // Réinitialise l'état à chaque changement de défi (id uniquement)
   useEffect(() => {
     if (challenge) {
       setUserAnswer("");
@@ -114,14 +103,13 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       setVisualSelections({});
       startTimeRef.current = Date.now();
     }
-    // exhaustive-deps: id seul (voir commentaire ci-dessus) — éviter reset si l'objet challenge est recréé à contenu identique.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge?.id]);
 
-  // Dérivés visuels — centralisés via helper pur (doit être avant tout early return)
+  // ─── Dérivés visuels (avant tout early return) ─────────────────────────────
   const visualModel = challenge ? getChallengeVisualAnswerModel(challenge, visualSelections) : null;
 
-  // Syncer visualSelections multi-position vers userAnswer (doit être avant tout early return)
+  // Syncer les sélections multi-position vers userAnswer
   useEffect(() => {
     if (!visualModel?.hasVisualButtons || !visualModel.visualPositions.length) return;
     if (visualModel.visualPositions.length < 2) return;
@@ -132,26 +120,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     visualModel?.derivedUserAnswerFromSelections,
   ]);
 
-  // Fonction pour réessayer le défi
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
   const handleRetry = () => {
     setUserAnswer("");
     setHasSubmitted(false);
     setShowExplanation(false);
-    // Réinitialiser l'ordre du puzzle pour permettre une nouvelle tentative
     setPuzzleOrder([]);
-    // Incrémenter la clé pour forcer la réinitialisation des visualisations
     setRetryKey((prev) => prev + 1);
-    // Réinitialiser le timer
     startTimeRef.current = Date.now();
-    // Note: On garde les indices utilisés pour que l'utilisateur puisse les voir
-    // mais il peut toujours demander de nouveaux indices
   };
 
-  // Callbacks mémorisés pour les visualisations
   const handlePuzzleOrderChange = useCallback(
     (order: string[]) => {
       setPuzzleOrder(order);
-      // Pour les puzzles, utiliser l'ordre comme réponse
       if (challenge?.challenge_type?.toLowerCase() === "puzzle") {
         setUserAnswer(order.join(","));
       }
@@ -161,7 +143,6 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   const handleAnswerChange = useCallback(
     (answer: string) => {
-      // Pour les séquences, patterns et déduction, utiliser la réponse directement
       const challengeType = challenge?.challenge_type?.toLowerCase();
       if (
         challengeType === "sequence" ||
@@ -176,25 +157,18 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   const handleRequestHint = async () => {
     if (!challenge || hintsUsed.length >= availableHints.length) return;
-
     const nextHintNumber = hintsUsed.length + 1;
-
     try {
-      // Appel API pour signaler l'utilisation de l'indice (tracking)
       await getHint(challengeId);
     } catch {
-      // Même si l'API échoue, on révèle l'indice local
+      // L'indice local est révélé même si le tracking API échoue
     }
-
-    // Révéler l'indice suivant depuis les indices déjà chargés
     setHintsUsed((prev) => [...prev, nextHintNumber]);
   };
 
   const handleSubmit = async () => {
     if (!userAnswer.trim() || !challenge || hasSubmitted) return;
-
-    const timeSpent = (Date.now() - startTimeRef.current) / 1000; // en secondes
-
+    const timeSpent = (Date.now() - startTimeRef.current) / 1000;
     try {
       await submitAnswer({
         challenge_id: challenge.id,
@@ -203,67 +177,24 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         hints_used: hintsUsed,
       });
     } catch {
-      // L'erreur est déjà gérée par le hook useChallenges
+      // Erreur gérée par le hook useChallenges
     }
   };
 
-  if (isLoading) {
+  // ─── Early returns — status screens ────────────────────────────────────────
+
+  if (isLoading || error || (!challenge && !isLoading && !error)) {
     return (
-      <LearnerCard variant="challenge">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-            <p className="text-muted-foreground">{t("loading")}</p>
-          </div>
-        </div>
-      </LearnerCard>
+      <ChallengeSolverStatus
+        challengeId={challengeId}
+        isLoading={isLoading}
+        error={error}
+        notFound={!challenge && !isLoading && !error}
+      />
     );
   }
 
-  if (error) {
-    return (
-      <LearnerCard variant="challenge">
-        <div className="text-center space-y-4" role="alert" aria-live="assertive">
-          <XCircle className="h-12 w-12 text-destructive mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold text-destructive">{t("error.title")}</h3>
-            <p className="text-muted-foreground mt-2">
-              {error.status === 404 ? t("error.notFound") : error.message || t("error.generic")}
-            </p>
-          </div>
-          <Button asChild variant="outline">
-            <Link href="/challenges">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Link>
-          </Button>
-        </div>
-      </LearnerCard>
-    );
-  }
-
-  if (!challenge && !isLoading && !error) {
-    return (
-      <LearnerCard variant="challenge">
-        <div className="text-center space-y-4" role="alert" aria-live="assertive">
-          <AlertCircle className="h-12 w-12 text-warning mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold text-warning">{t("notFound.title")}</h3>
-            <p className="text-muted-foreground mt-2">
-              {t("notFound.message", { id: challengeId })}
-            </p>
-          </div>
-          <Button asChild variant="outline">
-            <Link href="/challenges">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Link>
-          </Button>
-        </div>
-      </LearnerCard>
-    );
-  }
-
+  // Fallback spinner si challenge toujours absent après les conditions ci-dessus
   if (!challenge) {
     return (
       <LearnerCard variant="challenge">
@@ -277,12 +208,14 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     );
   }
 
+  // ─── Dérivés post-guard ────────────────────────────────────────────────────
+
   const ageGroupColor = getAgeGroupColor(challenge.age_group, theme);
   const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
+  const choicesArray = normalizeChallengeChoices(challenge);
 
-  // Dérivés visuels (visualModel est non-null ici car challenge est défini)
   const {
     responseMode,
     showMcq,
@@ -292,7 +225,6 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     isVisualMultiComplete,
   } = visualModel!;
 
-  // Dérivé "vide de réponse" via helper pur
   const isAnswerEmpty = isChallengeAnswerEmpty({
     hasVisualButtons,
     visualPositions,
@@ -301,215 +233,45 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   });
 
   const isDisabled = isSubmitting || hasSubmitted || isAnswerEmpty;
-
-  // Catégorie de placeholder pour le champ texte fallback
   const textInputKind = getChallengeTextInputKind(challenge.challenge_type);
+
+  // ─── Rendu principal ───────────────────────────────────────────────────────
 
   return (
     <>
       <LearnerCard variant="challenge">
-        {/* Bouton Retour */}
-        <Link
-          href="/challenges"
-          className="text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t("back")}
-        </Link>
+        <ChallengeSolverHeader
+          challengeId={challenge.id}
+          title={challenge.title}
+          ageGroupDisplay={ageGroupDisplay}
+          ageGroupColor={ageGroupColor}
+          typeDisplay={typeDisplay}
+          difficultyRating={challenge.difficulty_rating}
+        />
 
-        {/* En-tête : Défi #XXXX discret, titre star, tags */}
-        <p className="text-sm text-muted-foreground font-mono">
-          {t("challengeNumber", { id: challenge.id })}
-        </p>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mt-2 mb-6">
-          {challenge.title || t("noTitle")}
-        </h1>
-        <div className="flex flex-wrap gap-2 mb-6">
-          <Badge variant="outline" className={ageGroupColor}>
-            {ageGroupDisplay}
-          </Badge>
-          <Badge variant="outline">{typeDisplay}</Badge>
-          {challenge.difficulty_rating && (
-            <Badge
-              variant="outline"
-              className="bg-purple-500/20 text-purple-400 border-purple-500/30"
-            >
-              ⭐ {challenge.difficulty_rating.toFixed(1)}/5
-            </Badge>
-          )}
-        </div>
+        <ChallengeSolverContent
+          challenge={challenge}
+          retryKey={retryKey}
+          onPuzzleOrderChange={handlePuzzleOrderChange}
+          onAnswerChange={handleAnswerChange}
+        />
 
-        {/* Description et contenu */}
-        <div className="space-y-4">
-          {challenge.description && (
-            <div className="bg-muted/50 border border-border rounded-xl p-4">
-              <MathText size="lg" className="text-foreground">
-                {challenge.description}
-              </MathText>
-            </div>
-          )}
-          {challenge.question && challenge.question !== challenge.description && (
-            <div className="bg-muted/50 border border-border rounded-xl p-4">
-              <MathText size="lg" className="text-foreground font-medium">
-                {challenge.question}
-              </MathText>
-            </div>
-          )}
+        <ChallengeSolverHintsPanel hintsUsed={hintsUsed} availableHints={availableHints} />
 
-          {challenge.image_url && (
-            <div className="flex justify-center">
-              <div className="relative w-full max-w-2xl aspect-video rounded-xl overflow-hidden border border-border">
-                <Image
-                  src={challenge.image_url}
-                  alt={t("challengeImage")}
-                  fill
-                  className="object-contain rounded-xl"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          )}
-
-          {challenge.visual_data && (
-            <div key={`visual-${challenge.id}-${retryKey}`}>
-              <ChallengeVisualRenderer
-                challenge={challenge}
-                onPuzzleOrderChange={handlePuzzleOrderChange}
-                onAnswerChange={handleAnswerChange}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Indices affichés */}
-        {hintsUsed.length > 0 && (
-          <div className="mt-6 bg-muted/50 border border-border rounded-xl p-4">
-            <h3 className="flex items-center gap-2 text-amber-400 font-semibold mb-3">
-              <Lightbulb className="h-5 w-5" />
-              {t("hintsUsed")}
-            </h3>
-            <ul className="space-y-2">
-              {hintsUsed.map((hintIndex) => {
-                const hintText =
-                  hintIndex > 0 && hintIndex <= availableHints.length
-                    ? availableHints[hintIndex - 1]
-                    : null;
-                if (!hintText) return null;
-                return (
-                  <li key={hintIndex} className="flex items-start gap-2">
-                    <span className="text-amber-400 font-bold">{hintIndex}.</span>
-                    <span className="text-foreground">{hintText}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
-        {/* Feedback après soumission */}
         {hasSubmitted && (
-          <div
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            className={cn(
-              "mt-6 rounded-xl p-4 border",
-              isCorrect
-                ? "bg-emerald-500/10 border-emerald-500/30 feedback-success-animate"
-                : "bg-red-500/10 border-red-500/30 feedback-error-animate"
-            )}
-          >
-            <div className="flex items-start gap-4">
-              {isCorrect ? (
-                <CheckCircle className="h-8 w-8 text-emerald-400 flex-shrink-0 mt-1" />
-              ) : (
-                <XCircle className="h-8 w-8 text-red-400 flex-shrink-0 mt-1" />
-              )}
-              <div className="flex-1 space-y-2">
-                <h3
-                  className={cn(
-                    "text-lg font-semibold",
-                    isCorrect ? "text-emerald-400" : "text-red-400"
-                  )}
-                >
-                  {isCorrect ? t("correctTitle") : t("incorrectTitle")}
-                </h3>
-                {isCorrect &&
-                  submitResult &&
-                  typeof submitResult.points_earned === "number" &&
-                  submitResult.points_earned > 0 && (
-                    <p
-                      className="text-sm font-medium text-emerald-500/95"
-                      data-testid="challenge-points-earned"
-                    >
-                      {t("pointsEarned", { count: submitResult.points_earned })}
-                    </p>
-                  )}
-                {isCorrect && challenge.solution_explanation && (
-                  <div className="mt-4">
-                    <p className="font-medium text-foreground mb-2">{t("explanationLabel")}</p>
-                    <MathText size="base" className="text-muted-foreground">
-                      {challenge.solution_explanation}
-                    </MathText>
-                  </div>
-                )}
-                {!isCorrect && (
-                  <div className="mt-4">
-                    <GrowthMindsetHint
-                      className="text-muted-foreground mb-3"
-                      supportText={t("tryAgain")}
-                      strategyText={t("tryAgainStrategy")}
-                    />
-                    {availableHints.length > hintsUsed.length && (
-                      <Button
-                        onClick={handleRequestHint}
-                        variant="outline"
-                        size="sm"
-                        className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                        aria-label={t("requestHint", {
-                          current: hintsUsed.length + 1,
-                          total: availableHints.length,
-                        })}
-                      >
-                        <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
-                        {t("seeNextHint")}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Actions post-soumission — le lien "Retour" en haut reste accessible, ici les actions contextuelles uniquement */}
-        {hasSubmitted && (
-          <div className="flex gap-3 pt-8 mt-8 border-t border-border">
-            {!isCorrect && (
-              <Button
-                onClick={handleRetry}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
-                aria-label={t("retryLabel")}
-              >
-                <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
-                {t("retry")}
-              </Button>
-            )}
-            {isCorrect && (
-              <Button
-                asChild
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
-              >
-                <Link href="/challenges">{t("nextChallenge")}</Link>
-              </Button>
-            )}
-          </div>
+          <ChallengeSolverFeedback
+            isCorrect={isCorrect}
+            pointsEarned={submitResult?.points_earned}
+            solutionExplanation={challenge.solution_explanation}
+            hintsUsedCount={hintsUsed.length}
+            availableHintsCount={availableHints.length}
+            onRetry={handleRetry}
+            onRequestHint={handleRequestHint}
+          />
         )}
       </LearnerCard>
 
-      {/* U3 — Aide de première visite : entre l'énoncé et la zone de saisie.
-          Toujours visible sans scroll. Clé localStorage distincte de l'exercice solver. */}
+      {/* U3 — Aide de première visite (entre LearnerCard et Command Bar) */}
       {!hasSubmitted && (
         <ChallengeSolverHint
           responseMode={
@@ -523,7 +285,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         />
       )}
 
-      {/* Command Bar — Zone de réponse et d'action */}
+      {/* Command Bar — Zone de réponse (extraction prévue en lot 3) */}
       {!hasSubmitted && (
         <div
           data-learner-context
@@ -537,46 +299,41 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 role="radiogroup"
                 aria-label="Choix de réponses pour le défi logique"
               >
-                {visualModel!.showMcq &&
-                  (challenge.choices as string[]).map((choice, index) => (
-                    <Button
-                      key={index}
-                      variant={userAnswer === choice ? "default" : "outline"}
-                      onClick={() => setUserAnswer(choice)}
-                      className="h-auto py-4 text-left justify-start"
-                      disabled={hasSubmitted}
-                      role="radio"
-                      aria-checked={userAnswer === choice}
-                      aria-label={`${t("option", { index: index + 1 })}: ${choice}`}
-                      tabIndex={hasSubmitted ? -1 : userAnswer === choice || index === 0 ? 0 : -1}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setUserAnswer(choice);
-                        }
-                        // Navigation par flèches
-                        if (
-                          e.key === "ArrowRight" &&
-                          index < (challenge.choices as string[]).length - 1
-                        ) {
-                          e.preventDefault();
-                          const nextButton = e.currentTarget.parentElement?.children[
-                            index + 1
-                          ] as HTMLElement;
-                          nextButton?.focus();
-                        }
-                        if (e.key === "ArrowLeft" && index > 0) {
-                          e.preventDefault();
-                          const prevButton = e.currentTarget.parentElement?.children[
-                            index - 1
-                          ] as HTMLElement;
-                          prevButton?.focus();
-                        }
-                      }}
-                    >
-                      {choice}
-                    </Button>
-                  ))}
+                {choicesArray.map((choice, index) => (
+                  <Button
+                    key={index}
+                    variant={userAnswer === choice ? "default" : "outline"}
+                    onClick={() => setUserAnswer(choice)}
+                    className="h-auto py-4 text-left justify-start"
+                    disabled={hasSubmitted}
+                    role="radio"
+                    aria-checked={userAnswer === choice}
+                    aria-label={`${t("option", { index: index + 1 })}: ${choice}`}
+                    tabIndex={hasSubmitted ? -1 : userAnswer === choice || index === 0 ? 0 : -1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setUserAnswer(choice);
+                      }
+                      if (e.key === "ArrowRight" && index < choicesArray.length - 1) {
+                        e.preventDefault();
+                        const nextButton = e.currentTarget.parentElement?.children[
+                          index + 1
+                        ] as HTMLElement;
+                        nextButton?.focus();
+                      }
+                      if (e.key === "ArrowLeft" && index > 0) {
+                        e.preventDefault();
+                        const prevButton = e.currentTarget.parentElement?.children[
+                          index - 1
+                        ] as HTMLElement;
+                        prevButton?.focus();
+                      }
+                    }}
+                  >
+                    {choice}
+                  </Button>
+                ))}
               </div>
             ) : hasVisualButtons ? (
               <div className="space-y-4">
