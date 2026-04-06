@@ -611,7 +611,7 @@ select:focus {
   --muted-foreground: #374151;
   /* Accent : amber-600 — chaleur solaire, complémentaire du bleu, non-AI */
   --accent: #d97706;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #431407;
   --destructive: #dc2626;
   --border: rgba(30, 64, 175, 0.18);
   --input: rgba(30, 64, 175, 0.1);
@@ -728,7 +728,7 @@ select:focus {
   --muted-foreground: #cbd5e1;
   /* Accent ajusté pour WCAG 2.1 AA : #0d9488 (teal-600) a un contraste de 4.7:1 avec blanc */
   --accent: #0d9488;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #0c1a2e;
   --destructive: #ef4444;
   --border: rgba(3, 105, 161, 0.2);
   --input: rgba(3, 105, 161, 0.1);
@@ -774,7 +774,7 @@ select:focus {
   --muted: #fef3c7;
   --muted-foreground: #78350f;
   --accent: #d97706;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #431407;
   --destructive: #ef4444;
   --border: #fcd34d;
   --input: #fef3c7;
@@ -827,7 +827,7 @@ select:focus {
   --muted: #d1fae5;
   --muted-foreground: #065f46;
   --accent: #10b981;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #052e16;
   --destructive: #ef4444;
   --border: #6ee7b7;
   --input: #d1fae5;
@@ -890,7 +890,7 @@ select:focus {
   --muted-foreground: #7e22ce;
   /* Accent : sky-500 #0ea5e9 — irisé, froid, contrastant */
   --accent: #0ea5e9;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #0f172a;
   --destructive: #ef4444;
   --border: #f9a8d4;
   --input: #fce7f3;
@@ -944,7 +944,7 @@ select:focus {
   --muted: #fef08a;
   --muted-foreground: #713f12;
   --accent: #ca8a04;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #431407;
   --destructive: #ef4444;
   --border: #a16207;
   --input: #fef08a;
@@ -1010,7 +1010,7 @@ select:focus {
   --muted-foreground: #a21c65;
   /* Accent : sky-400 nacré */
   --accent: #38bdf8;
-  --accent-foreground: #0c4a6e;
+  --accent-foreground: #1e3a5f;
   --destructive: #ef4444;
   --border: #fbcfe8;
   --input: #fce7f3;

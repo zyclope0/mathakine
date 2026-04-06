@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -8,14 +9,35 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
-import { useThemeStore } from "@/lib/stores/themeStore";
+import { readStoredDarkMode } from "@/lib/theme/themeDom";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme } = useThemeStore();
+  // Sync with actual .dark class on <html> instead of guessing from theme name.
+  // This correctly handles all theme × dark-mode combinations.
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
 
-  // Mapper nos thèmes vers les thèmes Sonner
-  const sonnerTheme: ToasterProps["theme"] =
-    theme === "spatial" || theme === "ocean" ? "dark" : "light";
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // Initial sync after hydration — deferred to avoid SSR mismatch
+    const initial = root.classList.contains("dark") || readStoredDarkMode();
+    if (initial !== isDark) {
+      // Intentional setState in effect — post-hydration DOM sync, runs once
+      setIsDark(initial);
+    }
+
+    const observer = new MutationObserver(() => {
+      setIsDark(root.classList.contains("dark"));
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const sonnerTheme: ToasterProps["theme"] = isDark ? "dark" : "light";
 
   return (
     <Sonner
