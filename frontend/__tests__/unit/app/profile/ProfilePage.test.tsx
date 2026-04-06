@@ -1,32 +1,21 @@
-/**
- * Tests de caractérisation pour app/profile/page.tsx.
- *
- * Scope :
- * - !user rend EmptyState
- * - navigation entre sections
- * - section statistics : loading / error / content
- * - badges récents limités à 3
- *
- * FFI-L11.
- */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
 import fr from "@/messages/fr.json";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
+const mockSetTheme = vi.fn();
 
 vi.mock("@/hooks/useAuth");
 vi.mock("@/hooks/useProfile");
 vi.mock("@/hooks/useUserStats");
 vi.mock("@/hooks/useBadges");
 vi.mock("@/lib/stores/themeStore", () => ({
-  useThemeStore: () => ({ setTheme: vi.fn() }),
+  useThemeStore: () => ({ setTheme: mockSetTheme }),
 }));
 vi.mock("@/hooks/useChallengeTranslations", () => ({
-  useAgeGroupDisplay: () => (group: string) => group,
+  useAgeGroupDisplay: () => (group: string | null | undefined) => group ?? "",
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -42,12 +31,10 @@ vi.mock("@/components/dashboard/RecentActivity", () => ({
 }));
 
 import { useAuth } from "@/hooks/useAuth";
+import { useBadges } from "@/hooks/useBadges";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserStats } from "@/hooks/useUserStats";
-import { useBadges } from "@/hooks/useBadges";
 import ProfilePage from "@/app/profile/page";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
@@ -57,7 +44,7 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-function buildUser(overrides = {}) {
+function buildUser(overrides: Record<string, unknown> = {}) {
   return {
     id: 1,
     username: "testuser",
@@ -89,8 +76,10 @@ function mockHooks({
   vi.mocked(useAuth).mockReturnValue({ user } as unknown as ReturnType<typeof useAuth>);
   vi.mocked(useProfile).mockReturnValue({
     updateProfile: vi.fn(),
+    updateProfileAsync: vi.fn(),
     isUpdatingProfile: false,
     changePassword: vi.fn(),
+    changePasswordAsync: vi.fn(),
     isChangingPassword: false,
   } as unknown as ReturnType<typeof useProfile>);
   vi.mocked(useUserStats).mockReturnValue({
@@ -103,152 +92,167 @@ function mockHooks({
   } as unknown as ReturnType<typeof useBadges>);
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("!user → EmptyState", () => {
-    it("rend l'EmptyState quand user est null", () => {
-      mockHooks({ user: null as unknown as ReturnType<typeof buildUser> });
+  it("renders an EmptyState when user is null", () => {
+    mockHooks({ user: null as unknown as ReturnType<typeof buildUser> });
 
-      const { container } = render(<ProfilePage />, { wrapper });
+    const { container } = render(<ProfilePage />, { wrapper });
 
-      // EmptyState doit être rendu (pas de sidebar nav, pas de formulaire)
-      expect(container).toBeDefined();
-      // Aucun champ de formulaire ne doit exister
-      expect(container.querySelector("input")).toBeNull();
+    expect(container.querySelector("input")).toBeNull();
+    expect(screen.getAllByText(fr.profile.error.title).length).toBeGreaterThan(0);
+  });
+
+  it("shows the profile section by default", async () => {
+    mockHooks();
+    render(<ProfilePage />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getAllByText(fr.profile.personalInfo.title).length).toBeGreaterThan(0);
     });
   });
 
-  describe("Navigation entre sections", () => {
-    it("affiche la section profil par défaut", () => {
-      mockHooks();
-      render(<ProfilePage />, { wrapper });
+  it("switches to the accessibility section on click", async () => {
+    const user = userEvent.setup();
+    mockHooks();
+    render(<ProfilePage />, { wrapper });
 
-      // La section profil doit être visible (titre personalInfo)
-      expect(screen.getAllByText(/informations personnelles/i).length).toBeGreaterThan(0);
-    });
+    const accessButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("accessibilit"));
 
-    it("bascule vers la section accessibilité sur clic", async () => {
-      const user = userEvent.setup();
-      mockHooks();
-      render(<ProfilePage />, { wrapper });
+    expect(accessButton).toBeDefined();
 
-      // Desktop sidebar — trouver le bouton "Accessibilité"
-      const accessButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("accessibilit"));
+    if (!accessButton) return;
 
-      if (accessButton) {
-        await user.click(accessButton);
-        // La section accessibilité doit apparaître (select thème)
-        expect(screen.getAllByText(/thème/i).length).toBeGreaterThan(0);
-      }
-    });
+    await user.click(accessButton);
 
-    it("bascule vers la section statistiques sur clic", async () => {
-      const user = userEvent.setup();
-      mockHooks({ stats: { total_exercises: 10, success_rate: 75, recent_activity: [] } });
-      render(<ProfilePage />, { wrapper });
-
-      const statsButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("statistique"));
-
-      if (statsButton) {
-        await user.click(statsButton);
-        // La section doit changer (pas de champ email visible)
-        expect(screen.queryByLabelText(/email/i)).toBeNull();
-      }
+    await waitFor(() => {
+      expect(screen.getAllByText(fr.profile.accessibility.theme).length).toBeGreaterThan(0);
     });
   });
 
-  describe("Section statistics", () => {
-    it("affiche le skeleton en état loading", async () => {
-      const user = userEvent.setup();
-      mockHooks({ isLoadingStats: true, stats: null });
-      render(<ProfilePage />, { wrapper });
+  it("switches to the statistics section on click", async () => {
+    const user = userEvent.setup();
+    mockHooks({ stats: { total_exercises: 10, success_rate: 75, recent_activity: [] } });
+    render(<ProfilePage />, { wrapper });
 
-      const statsButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("statistique"));
-      if (statsButton) {
-        await user.click(statsButton);
-        // Le skeleton existe (div animate-pulse)
-        const { container } = render(<ProfilePage />, { wrapper });
-        expect(container).toBeDefined();
-      }
-    });
+    const statsButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("statistique"));
 
-    it("affiche EmptyState en cas d'erreur", async () => {
-      const user = userEvent.setup();
-      mockHooks({ statsError: new Error("fetch error"), stats: null });
-      render(<ProfilePage />, { wrapper });
+    expect(statsButton).toBeDefined();
 
-      const statsButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("statistique"));
-      if (statsButton) {
-        await user.click(statsButton);
-      }
+    if (!statsButton) return;
 
-      // EmptyState doit apparaître (rendu par ProfileStatisticsSection)
-      expect(screen.getAllByRole("heading").length).toBeGreaterThan(0);
-    });
+    await user.click(statsButton);
 
-    it("affiche le contenu stats quand les données sont disponibles", async () => {
-      const user = userEvent.setup();
-      mockHooks({
-        stats: {
-          total_exercises: 42,
-          success_rate: 80.5,
-          recent_activity: [],
-        },
-      });
-      render(<ProfilePage />, { wrapper });
-
-      const statsButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("statistique"));
-      if (statsButton) {
-        await user.click(statsButton);
-        expect(screen.getByText("42")).toBeDefined();
-      }
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/email/i)).toBeNull();
     });
   });
 
-  describe("Badges récents — limite à 3", () => {
-    it("affiche au maximum 3 badges", async () => {
-      const user = userEvent.setup();
+  it("shows skeleton cards while statistics are loading", async () => {
+    const user = userEvent.setup();
+    mockHooks({ isLoadingStats: true, stats: null });
+    const { container } = render(<ProfilePage />, { wrapper });
 
-      const badges = Array.from({ length: 5 }, (_, i) => ({
-        id: i + 1,
-        name: `Badge ${i + 1}`,
-        description: `Description ${i + 1}`,
-        points: 10,
-        earned_at: `2025-0${i + 1}-01T00:00:00Z`,
-      }));
+    const statsButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("statistique"));
 
-      mockHooks({
-        earnedBadges: badges,
-        stats: { total_exercises: 5, success_rate: 60, recent_activity: [] },
-      });
-      render(<ProfilePage />, { wrapper });
+    expect(statsButton).toBeDefined();
 
-      const statsButton = screen
-        .getAllByRole("button")
-        .find((btn) => btn.textContent?.toLowerCase().includes("statistique"));
-      if (statsButton) {
-        await user.click(statsButton);
-        // On doit avoir au plus 3 titres de badge
-        const badgeTitles = screen
-          .getAllByRole("heading", { level: 3 })
-          .filter((h) => h.textContent?.startsWith("Badge "));
-        expect(badgeTitles.length).toBeLessThanOrEqual(3);
-      }
+    if (!statsButton) return;
+
+    await user.click(statsButton);
+
+    await waitFor(() => {
+      expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows an EmptyState when statistics loading fails", async () => {
+    const user = userEvent.setup();
+    mockHooks({ statsError: new Error("fetch error"), stats: null });
+    render(<ProfilePage />, { wrapper });
+
+    const statsButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("statistique"));
+
+    expect(statsButton).toBeDefined();
+
+    if (!statsButton) return;
+
+    await user.click(statsButton);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(fr.profile.error.title).length).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows statistics content when data is available", async () => {
+    const user = userEvent.setup();
+    mockHooks({
+      stats: {
+        total_exercises: 42,
+        success_rate: 80.5,
+        recent_activity: [],
+      },
+    });
+    render(<ProfilePage />, { wrapper });
+
+    const statsButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("statistique"));
+
+    expect(statsButton).toBeDefined();
+
+    if (!statsButton) return;
+
+    await user.click(statsButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("42")).toBeDefined();
+    });
+  });
+
+  it("limits recent badges to 3 items", async () => {
+    const user = userEvent.setup();
+    const badges = Array.from({ length: 5 }, (_, index) => ({
+      id: index + 1,
+      code: `badge-${index + 1}`,
+      name: `Badge ${index + 1}`,
+      description: `Description ${index + 1}`,
+      points: 10,
+      earned_at: `2025-0${index + 1}-01T00:00:00Z`,
+    }));
+
+    mockHooks({
+      earnedBadges: badges,
+      stats: { total_exercises: 5, success_rate: 60, recent_activity: [] },
+    });
+    render(<ProfilePage />, { wrapper });
+
+    const statsButton = screen
+      .getAllByRole("button")
+      .find((button) => button.textContent?.toLowerCase().includes("statistique"));
+
+    expect(statsButton).toBeDefined();
+
+    if (!statsButton) return;
+
+    await user.click(statsButton);
+
+    await waitFor(() => {
+      const badgeTitles = screen
+        .getAllByRole("heading", { level: 3 })
+        .filter((heading) => heading.textContent?.startsWith("Badge "));
+      expect(badgeTitles.length).toBeLessThanOrEqual(3);
     });
   });
 });

@@ -235,6 +235,7 @@ export function useProfilePageController({
     const safeTheme = safeProfileTheme(migratedTheme);
 
     let cancelled = false;
+
     queueMicrotask(() => {
       if (cancelled) return;
       setPersonalInfo(nextPersonalInfo);

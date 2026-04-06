@@ -106,24 +106,23 @@ export function validateEmailFormat(email: string): "emailRequired" | "emailInva
  * Validation des champs de changement de mot de passe.
  * Retourne un record vide si valide, sinon les clés d'erreur i18n.
  */
+export type PasswordValidationErrorKey =
+  | "currentPasswordRequired"
+  | "newPasswordRequired"
+  | "confirmPasswordRequired"
+  | "passwordMismatch"
+  | "passwordMinLength";
+
 export function validatePasswordFields(data: {
   current_password: string;
   new_password: string;
   confirm_password: string;
-}): Record<
-  string,
-  "currentPasswordRequired" | "newPasswordRequired" | "confirmPasswordRequired" | "passwordMismatch"
-> {
-  const errors: Record<
-    string,
-    | "currentPasswordRequired"
-    | "newPasswordRequired"
-    | "confirmPasswordRequired"
-    | "passwordMismatch"
-  > = {};
+}): Record<string, PasswordValidationErrorKey> {
+  const errors: Record<string, PasswordValidationErrorKey> = {};
 
   if (!data.current_password.trim()) errors.current_password = "currentPasswordRequired";
   if (!data.new_password.trim()) errors.new_password = "newPasswordRequired";
+  else if (data.new_password.length < 8) errors.new_password = "passwordMinLength";
   if (!data.confirm_password.trim()) errors.confirm_password = "confirmPasswordRequired";
   else if (data.new_password !== data.confirm_password)
     errors.confirm_password = "passwordMismatch";
