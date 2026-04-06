@@ -104,7 +104,7 @@ describe("QuickStartActions", () => {
     });
 
     expect(exerciseLink).toHaveAttribute("href", "/exercises/42");
-    expect(challengeLink).toHaveAttribute("href", "/challenges/99");
+    expect(challengeLink).toHaveAttribute("href", "/challenge/99");
   });
 
   it("a les attributs data-quick-start pour instrumentation", () => {

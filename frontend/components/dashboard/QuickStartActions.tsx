@@ -33,7 +33,7 @@ export function QuickStartActions() {
     ? `/exercises/${bestExercise.exercise_id}`
     : "/exercises";
   const challengeHref = bestChallenge?.challenge_id
-    ? `/challenges/${bestChallenge.challenge_id}`
+    ? `/challenge/${bestChallenge.challenge_id}`
     : "/challenges";
 
   useEffect(() => {

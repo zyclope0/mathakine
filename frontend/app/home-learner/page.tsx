@@ -86,7 +86,7 @@ function HomeLearnerContent() {
     ? `/exercises/${firstExerciseRec.exercise_id}`
     : "/exercises";
   const challengeHref = firstChallengeRec?.challenge_id
-    ? `/challenges/${firstChallengeRec.challenge_id}`
+    ? `/challenge/${firstChallengeRec.challenge_id}`
     : "/challenges";
 
   const exerciseRecoLabel =
