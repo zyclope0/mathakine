@@ -274,3 +274,20 @@ export function sortEarnedWithPinned(filteredEarned: Badge[], pinnedBadgeIds: nu
   const rest = filteredEarned.filter((b) => !pinnedBadgeIds.includes(b.id));
   return [...pinned, ...rest];
 }
+
+/**
+ * Calcule la prochaine liste de badges epingles.
+ * Toggle l'id demande et limite la liste a 3 elements.
+ */
+export function getNextPinnedBadgeIds(
+  pinnedBadgeIds: number[],
+  badgeId: number,
+  maxPinned = 3
+): number[] {
+  const isPinned = pinnedBadgeIds.includes(badgeId);
+  if (isPinned) {
+    return pinnedBadgeIds.filter((id) => id !== badgeId);
+  }
+
+  return [...pinnedBadgeIds, badgeId].slice(0, maxPinned);
+}

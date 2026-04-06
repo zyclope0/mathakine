@@ -11,7 +11,11 @@ import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader } from "@/components/layout";
 import { useBadgesPageController } from "@/hooks/useBadgesPageController";
 import type { RarityInfo } from "@/components/badges/BadgeGrid";
-import { getProgressionRankInfo, sortEarnedWithPinned } from "@/lib/badges/badgesPage";
+import {
+  getNextPinnedBadgeIds,
+  getProgressionRankInfo,
+  sortEarnedWithPinned,
+} from "@/lib/badges/badgesPage";
 import { BadgesHeaderStats } from "@/components/badges/BadgesHeaderStats";
 import { BadgesMotivationBanner } from "@/components/badges/BadgesMotivationBanner";
 import { BadgesLastExploitsSection } from "@/components/badges/BadgesLastExploitsSection";
@@ -51,14 +55,7 @@ export default function BadgesPage() {
     inProgress,
     earnedCount,
     isLoading,
-    rankInfo,
   });
-
-  const visibleTotal = availableBadges.filter(
-    (b) => !(b.is_secret === true) || ctrl.earnedBadgeIds.has(b.id)
-  ).length;
-
-  const sortedEarnedFinal = sortEarnedWithPinned(ctrl.filtered.filteredEarned, pinnedBadgeIds);
 
   return (
     <ProtectedRoute requireFullAccess>
@@ -92,7 +89,7 @@ export default function BadgesPage() {
               currentLevel={userStats.current_level ?? 1}
               rankInfo={rankInfo}
               earnedCount={earnedCount}
-              totalCount={visibleTotal}
+              totalCount={ctrl.visibleTotal}
               progressPercent={ctrl.progressPercent}
               statsCompactLabel={t("statsCompact")}
               levelTooltip={t("stats.levelTooltip")}
@@ -181,29 +178,25 @@ export default function BadgesPage() {
         {/* Collection */}
         <BadgesCollectionSection
           filteredEarned={ctrl.filtered.filteredEarned}
-          sortedEarned={sortedEarnedFinal}
+          sortedEarned={sortEarnedWithPinned(ctrl.filtered.filteredEarned, pinnedBadgeIds)}
           earnedBadges={earnedBadges}
           sortBy={ctrl.sortBy}
           rarityMap={rarityMap as Record<string, RarityInfo>}
           pinnedBadgeIds={pinnedBadgeIds}
           onTogglePin={async (badgeId) => {
-            const isPinned = pinnedBadgeIds.includes(badgeId);
-            const next = isPinned
-              ? pinnedBadgeIds.filter((id: number) => id !== badgeId)
-              : [...pinnedBadgeIds, badgeId].slice(0, 3);
-            await pinBadges(next);
+            await pinBadges(getNextPinnedBadgeIds(pinnedBadgeIds, badgeId));
           }}
           collectionExpanded={ctrl.collectionExpanded}
           onToggleExpanded={() => ctrl.setCollectionExpanded(!ctrl.collectionExpanded)}
           isLoading={isLoading}
           error={error instanceof Error ? error : error ? new Error(String(error)) : null}
           hasActiveFilters={ctrl.hasActiveFilters}
-          totalCount={visibleTotal}
+          totalCount={ctrl.visibleTotal}
           title={t("collection.title")}
           formatCount={(earned, total) =>
             t("collection.count", {
               earned,
-              total: total || visibleTotal,
+              total: total || ctrl.visibleTotal,
             })
           }
           errorTitle={t("error.title")}

@@ -25,7 +25,6 @@ import {
   type ProgressMapEntry,
   type FilteredBadgesResult,
   type MotivationInfo,
-  type RankInfo,
   buildProgressMap,
   filterBadges,
   countCloseBadges,
@@ -51,7 +50,6 @@ interface UseBadgesPageControllerArgs {
   inProgress: BadgeProgressItem[];
   earnedCount: number;
   isLoading: boolean;
-  rankInfo: RankInfo;
 }
 
 export interface BadgesPageControllerState {
@@ -90,7 +88,7 @@ export interface BadgesPageControllerState {
   lastExploits: Badge[];
   motivationInfo: MotivationInfo | null;
   progressPercent: number;
-  earnedBadgeIds: Set<number>;
+  visibleTotal: number;
   earnedBadgesList: Badge[];
   lockedBadgesList: Badge[];
 }
@@ -254,7 +252,7 @@ export function useBadgesPageController({
     lastExploits,
     motivationInfo,
     progressPercent,
-    earnedBadgeIds,
+    visibleTotal,
     earnedBadgesList,
     lockedBadgesList,
   };

@@ -1,13 +1,12 @@
 /**
- * Tests de caractérisation de app/badges/page.tsx (BadgesPage).
+ * Characterization tests for app/badges/page.tsx.
  * FFI-L12
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-
-// ─── Mocks ────────────────────────────────────────────────────────────────────
+import BadgesPage from "@/app/badges/page";
 
 vi.mock("@/components/auth/ProtectedRoute", () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -30,8 +29,6 @@ vi.mock("@/hooks/useBadges", () => ({ useBadges: () => mockUseBadges() }));
 vi.mock("@/hooks/useBadgesProgress", () => ({
   useBadgesProgress: () => mockUseBadgesProgress(),
 }));
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeDefaultBadgesData(overrides = {}) {
   return {
@@ -59,8 +56,6 @@ function makeDefaultProgressData(overrides = {}) {
   };
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe("BadgesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -69,28 +64,24 @@ describe("BadgesPage", () => {
     mockUseBadgesProgress.mockReturnValue(makeDefaultProgressData());
   });
 
-  it("affiche LoadingState pendant le chargement", async () => {
+  it("affiche LoadingState pendant le chargement", () => {
     mockUseBadges.mockReturnValue(makeDefaultBadgesData({ isLoading: true }));
-    const { default: BadgesPage } = await import("@/app/badges/page");
     render(<BadgesPage />);
-    // La section collection affiche un LoadingState
     expect(document.body.textContent).toContain("loading");
   });
 
-  it("affiche EmptyState si une erreur survient", async () => {
-    mockUseBadges.mockReturnValue(makeDefaultBadgesData({ error: new Error("Connexion échouée") }));
-    const { default: BadgesPage } = await import("@/app/badges/page");
+  it("affiche EmptyState si une erreur survient", () => {
+    mockUseBadges.mockReturnValue(makeDefaultBadgesData({ error: new Error("Connexion echouee") }));
     render(<BadgesPage />);
     expect(document.body.textContent).toContain("error.title");
   });
 
-  it("affiche le PageHeader avec le titre", async () => {
-    const { default: BadgesPage } = await import("@/app/badges/page");
+  it("affiche le PageHeader avec le titre", () => {
     render(<BadgesPage />);
     expect(document.body.textContent).toContain("title");
   });
 
-  it("affiche BadgesHeaderStats si userStats présent", async () => {
+  it("affiche BadgesHeaderStats si userStats est present", () => {
     mockUseBadges.mockReturnValue(
       makeDefaultBadgesData({
         userStats: {
@@ -100,12 +91,11 @@ describe("BadgesPage", () => {
         },
       })
     );
-    const { default: BadgesPage } = await import("@/app/badges/page");
     render(<BadgesPage />);
     expect(document.body.textContent).toContain("250");
   });
 
-  it("affiche les onglets progression et à débloquer quand données présentes", async () => {
+  it("affiche les onglets progression et a debloquer quand des donnees existent", () => {
     const badge = {
       id: 1,
       code: "b1",
@@ -117,6 +107,7 @@ describe("BadgesPage", () => {
       is_active: true,
       is_secret: false,
     };
+
     mockUseBadgesProgress.mockReturnValue(
       makeDefaultProgressData({
         inProgress: [
@@ -125,36 +116,29 @@ describe("BadgesPage", () => {
       })
     );
     mockUseBadges.mockReturnValue(makeDefaultBadgesData({ availableBadges: [badge] }));
-    const { default: BadgesPage } = await import("@/app/badges/page");
+
     render(<BadgesPage />);
     expect(document.body.textContent).toContain("tabs.inProgressWithCount");
     expect(document.body.textContent).toContain("tabs.toUnlockWithCount");
   });
 
-  it("bouton reset filtres absent par défaut (aucun filtre actif)", async () => {
-    const { default: BadgesPage } = await import("@/app/badges/page");
+  it("n'affiche pas le bouton reset par defaut", () => {
     render(<BadgesPage />);
-    const resetBtn = screen.queryByText("filters.reset");
-    expect(resetBtn).toBeNull();
+    expect(screen.queryByText("filters.reset")).toBeNull();
   });
 
-  it("badgesHeaderStats absent si userStats null", async () => {
+  it("n'affiche pas les stats compactes sans userStats", () => {
     mockUseBadges.mockReturnValue(makeDefaultBadgesData({ userStats: null }));
-    const { default: BadgesPage } = await import("@/app/badges/page");
     render(<BadgesPage />);
-    // statsCompact est le aria-label de la div stats — ne doit pas apparaître
-    const statsRegion = document.querySelector('[aria-label="statsCompact"]');
-    expect(statsRegion).toBeNull();
+    expect(document.querySelector('[aria-label="statsCompact"]')).toBeNull();
   });
 
-  it("section derniers exploits absente si pas de badges earned", async () => {
-    const { default: BadgesPage } = await import("@/app/badges/page");
+  it("n'affiche pas la section derniers exploits sans badges obtenus", () => {
     render(<BadgesPage />);
     expect(screen.queryByText("lastExploits")).toBeNull();
   });
 
-  it("section closest absente si pas de closestBadges", async () => {
-    const { default: BadgesPage } = await import("@/app/badges/page");
+  it("n'affiche pas la section closest sans badges proches", () => {
     render(<BadgesPage />);
     expect(screen.queryByText("closestTitle")).toBeNull();
   });

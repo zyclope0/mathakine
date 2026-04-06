@@ -14,6 +14,11 @@ vi.mock("canvas-confetti", () => ({
   default: vi.fn(),
 }));
 
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+  value: vi.fn(),
+  writable: true,
+});
+
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 function makeBadge(id: number, overrides: Partial<Badge> = {}): Badge {
