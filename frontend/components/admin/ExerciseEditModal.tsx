@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,12 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { Copy, Plus, Trash2 } from "lucide-react";
-import { ADMIN_EXERCISE_TYPES, ADMIN_DIFFICULTIES } from "@/lib/constants/exercises";
+import {
+  ADMIN_EXERCISE_TYPES,
+  ADMIN_DIFFICULTIES,
+  ADMIN_EXERCISE_AGE_GROUP_OPTIONS,
+} from "@/lib/constants/exercises";
+import { normalizeAdminExerciseAgeGroup } from "@/lib/admin/exercises/adminExerciseCoherence";
 
 export interface ExerciseDetail {
   id: number;
@@ -64,7 +69,14 @@ export function ExerciseEditModal({
     setLoading(true);
     api
       .get<ExerciseDetail>(`/api/admin/exercises/${exerciseId}`)
-      .then((res) => setData(res))
+      .then((res) =>
+        setData({
+          ...res,
+          age_group: normalizeAdminExerciseAgeGroup(
+            typeof res.age_group === "string" ? res.age_group : ""
+          ),
+        })
+      )
       .catch(() => toast.error("Erreur de chargement"))
       .finally(() => setLoading(false));
   }, [open, exerciseId]);
@@ -117,6 +129,16 @@ export function ExerciseEditModal({
   };
 
   const choicesList: string[] = Array.isArray(data?.choices) ? [...data.choices] : [];
+
+  const ageSelectOptions = useMemo(() => {
+    if (!data) return [...ADMIN_EXERCISE_AGE_GROUP_OPTIONS];
+    const v = data.age_group.trim();
+    const base = [...ADMIN_EXERCISE_AGE_GROUP_OPTIONS];
+    if (v && !base.some((o) => o.value === v)) {
+      return [...base, { value: v, label: `${v} (hérité)` }];
+    }
+    return base;
+  }, [data]);
 
   const addChoice = () => {
     if (!data) return;
@@ -213,11 +235,18 @@ export function ExerciseEditModal({
               </div>
               <div className="grid gap-2">
                 <Label>Âge</Label>
-                <Input
-                  value={data.age_group}
-                  onChange={(e) => update("age_group", e.target.value)}
-                  placeholder="ex: 8-10"
-                />
+                <Select value={data.age_group} onValueChange={(v) => update("age_group", v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ageSelectOptions.map((a) => (
+                      <SelectItem key={a.value} value={a.value}>
+                        {a.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid gap-2">

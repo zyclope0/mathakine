@@ -26,6 +26,7 @@ import {
   ADMIN_DIFFICULTIES,
   ADMIN_EXERCISE_AGE_GROUP_OPTIONS,
 } from "@/lib/constants/exercises";
+import { DEFAULT_ADMIN_EXERCISE_AGE_GROUP } from "@/lib/admin/exercises/adminExerciseCoherence";
 
 interface ExerciseCreateModalProps {
   open: boolean;
@@ -37,7 +38,7 @@ const initialState = {
   title: "",
   exercise_type: "ADDITION",
   difficulty: "PADAWAN",
-  age_group: "9-11",
+  age_group: DEFAULT_ADMIN_EXERCISE_AGE_GROUP,
   question: "",
   correct_answer: "",
   choices: null as string[] | null,

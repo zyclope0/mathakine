@@ -8,6 +8,8 @@ export interface AdminExercise {
   title: string;
   exercise_type: string;
   difficulty: string;
+  /** F42 pedagogical tier (1..12) when returned by the admin list API — optional until backend ships it. */
+  difficulty_tier?: number | null;
   age_group: string;
   is_archived: boolean;
   attempt_count: number;
