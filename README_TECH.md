@@ -38,7 +38,12 @@ Visible product train:
   - runtime badges page state lives in `frontend/hooks/useBadgesPageController.ts`
   - pure badges page helpers live in `frontend/lib/badges/badgesPage.ts`
   - badges sections live in `frontend/components/badges/`
-- next active frontend architecture priority: `FFI-L13` on `frontend/app/settings/page.tsx`
+- `FFI-L13` is now closed:
+  - `frontend/app/settings/page.tsx` is reduced to a thin settings container (~133 LOC)
+  - runtime settings page state lives in `frontend/hooks/useSettingsPageController.ts` (including derived `visibleSessions` for progressive session disclosure)
+  - pure settings helpers live in `frontend/lib/settings/settingsPage.ts`
+  - settings sections live in `frontend/components/settings/`
+- next active frontend architecture priority: `FFI-L14` on `frontend/app/admin/content/page.tsx`
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

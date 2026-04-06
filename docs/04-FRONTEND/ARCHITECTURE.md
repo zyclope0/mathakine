@@ -7,8 +7,8 @@
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 49 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 158 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 50 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 163 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -69,7 +69,7 @@ frontend/
 â”‚   â”œâ”€â”€ profile/page.tsx         # Container fin du domaine profil (FFI-L11)
 â”‚   â”œâ”€â”€ register/page.tsx
 â”‚   â”œâ”€â”€ reset-password/page.tsx
-â”‚   â”œâ”€â”€ settings/page.tsx
+â”‚   â”œâ”€â”€ settings/page.tsx        # Container fin du domaine paramÃ¨tres (FFI-L13)
 â”‚   â”œâ”€â”€ verify-email/page.tsx
 â”‚   â”œâ”€â”€ layout.tsx                # Layout racine
 â”‚   â”œâ”€â”€ page.tsx                  # Accueil
@@ -93,13 +93,14 @@ frontend/
 â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, NextIntlProvider, AccessScopeSync
 â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
 â”‚   â”œâ”€â”€ profile/                  # Sidebar nav + sections de la page profil
+â”‚   â”œâ”€â”€ settings/                 # Sections page paramÃ¨tres (FFI-L13)
 â”‚   â”œâ”€â”€ shared/                   # Composants partagÃ©s cross-domaine
 â”‚   â”‚   â””â”€â”€ AIGeneratorBase.tsx   # Base UI partagÃ©e (exercises + challenges AIGenerator)
 â”‚   â”œâ”€â”€ spatial/                  # SpatialBackground, Starfield, Planet, Particles, DinoFloating, UnicornFloating
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 47 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 50 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
@@ -110,7 +111,7 @@ frontend/
 â”‚   â”œâ”€â”€ useRecommendations.ts
 â”‚   â”œâ”€â”€ useLeaderboard.ts
 â”‚   â”œâ”€â”€ useChat.ts
-â”‚   â”œâ”€â”€ useProfile.ts / useSettings.ts
+â”‚   â”œâ”€â”€ useProfile.ts / useSettings.ts / useSettingsPageController.ts
 â”‚   â”œâ”€â”€ useAcademyStats.ts
 â”‚   â”œâ”€â”€ useSubmitAnswer.ts / useCompletedItems.ts
 â”‚   â”œâ”€â”€ usePaginatedContent.ts

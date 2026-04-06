@@ -52,14 +52,13 @@ En cas de divergence :
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L11` : livres, commites et pousses
+- `FFI-L1` a `FFI-L13` : livres et commites ; push a confirmer selon l'etat Git courant
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
 
 **Seams architecture encore critiques**
 
-- `frontend/app/settings/page.tsx` ~`788` LOC
 - `frontend/app/admin/content/page.tsx` ~`773` LOC
 - `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
 - `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
@@ -70,12 +69,11 @@ En cas de divergence :
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L13 : modulariser app/settings/page.tsx
-2. FFI-L14 : decouper app/admin/content/page.tsx
-3. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
-4. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-5. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-6. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. FFI-L14 : decouper app/admin/content/page.tsx
+2. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
+3. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+4. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+5. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
 ### 3.1 Sidecar produit documente, hors sequence FFI
@@ -150,10 +148,18 @@ Decision d'execution :
 
 #### FFI-L13 — Modulariser `app/settings/page.tsx`
 
-- but : separer les domaines `profil`, `session`, `diagnostic`, `preferences`
-- definition of done :
-  - sections/containers clairs
-  - i18n et logique formulaire sans entassement dans une mega-page
+- statut :
+  - **livre**
+  - `app/settings/page.tsx` ramene a un container ~`133` LOC
+  - extraction `useSettingsPageController.ts`
+  - extraction `lib/settings/settingsPage.ts`
+  - extraction des sections `components/settings/*`
+  - couverture reelle : page settings + hook controller + helpers purs
+- resultat :
+  - la mega-page settings n'est plus un seam runtime prioritaire au niveau page
+  - navigation sections, formulaires, sessions, diagnostic et donnees sont decouples en vues testables
+- reliquat connu :
+  - `SettingsSecuritySection.tsx` reste une vue dense (confidentialite + sessions actives sur une meme section), mais le container page n'est plus omnibus
 
 #### FFI-L14 — Decouper `app/admin/content/page.tsx`
 

@@ -46,7 +46,8 @@ Active references:
   - `ChallengeSolver` is no longer tracked as a monolithic runtime seam
   - `ProfilePage` is no longer tracked as a mega-page runtime seam
   - `BadgesPage` is no longer tracked as a mega-page runtime seam
-  - the active architecture backlog now starts at `FFI-L13`
+  - `SettingsPage` is no longer tracked as a mega-page runtime seam (`FFI-L13` closed)
+  - the active architecture backlog now starts at `FFI-L14`
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed
@@ -56,6 +57,8 @@ Active references:
 - The profile page refactor now preserves the original password policy on the client (`min 8`), and its controller coverage is now backed by real hook tests instead of helper-only tests mislabeled as hook coverage.
 
 - The badges page refactor now ships with a real thin container plus stable page/controller/helper coverage: repeated dynamic imports were removed from the page tests, the dead `rankInfo` controller input was dropped, and the remaining badge page derivations are more centralized.
+
+- The settings page refactor (`FFI-L13`) now ships with a thin container, `useSettingsPageController`, pure helpers in `lib/settings/settingsPage.ts`, and section components under `components/settings/`; session list slicing (`visibleSessions`) is derived in the controller. Known remainder: `SettingsSecuritySection` stays relatively dense (privacy + active sessions).
 
 ## [3.6.0-alpha.1] - 2026-04-05
 

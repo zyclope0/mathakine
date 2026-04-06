@@ -2,7 +2,7 @@
 
 > Scope : `frontend/hooks/`
 > Updated : 2026-04-06
-> Total : 49 fichiers hooks (dont `hooks/chat/`)
+> Total : 50 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -80,11 +80,11 @@
 
 ## CatÃ©gorie 6 â€” Authentification
 
-| Hook             | RÃ´le                                       | Test | RQ       | DÃ©pendances clÃ©s                              |
-| ---------------- | ------------------------------------------- | ---- | -------- | ----------------------------------------------- |
-| `useAuth.ts`     | Session utilisateur, login, logout, refresh | âŒ   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout` |
-| `useSettings.ts` | PrÃ©fÃ©rences utilisateur                   | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions   |
-| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic) | âœ…   | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
+| Hook                           | RÃ´le                                                                                   | Test | RQ       | DÃ©pendances clÃ©s                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------- | ---- | -------- | -------------------------------------------------------- |
+| `useAuth.ts`                   | Session utilisateur, login, logout, refresh                                             | âŒ   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
+| `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                               | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
+| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
 
 ---
 
@@ -131,9 +131,9 @@
 
 | Statut                 | Nombre |
 | ---------------------- | ------ |
-| âœ… Avec test unitaire | 7      |
+| âœ… Avec test unitaire | 8      |
 | âŒ Sans test unitaire  | ~42    |
-| **Total**              | **49** |
+| **Total**              | **50** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 
