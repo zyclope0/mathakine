@@ -7,8 +7,8 @@
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 47 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 144 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 49 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 158 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -54,7 +54,7 @@ frontend/
 â”‚   â”‚   â”œâ”€â”€ exercises/            # generate-ai-stream (POST JSON â†’ proxy SSE backend)
 â”‚   â”‚   â”œâ”€â”€ chat/                 # stream (chatbot)
 â”‚   â”‚   â””â”€â”€ sentry-status/
-â”‚   â”œâ”€â”€ badges/page.tsx
+â”‚   â”œâ”€â”€ badges/page.tsx          # Container fin du domaine badges (FFI-L12)
 â”‚   â”œâ”€â”€ challenge/[id]/page.tsx
 â”‚   â”œâ”€â”€ challenges/page.tsx
 â”‚   â”œâ”€â”€ changelog/page.tsx
@@ -80,7 +80,7 @@ frontend/
 â”‚   â”œâ”€â”€ accessibility/            # AccessibilityToolbar, WCAGAudit (dev)
 â”‚   â”œâ”€â”€ admin/                    # Modales CRUD (Exercise, Challenge, Badge)
 â”‚   â”œâ”€â”€ auth/                     # ProtectedRoute, EmailVerification
-â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid
+â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid, sections de la page badges
 â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver + blocs split + ChallengeModal
 â”‚   â”‚   â””â”€â”€ visualizations/       # Renderers (Pattern, Sequence, Visual, Deductionâ€¦)
 â”‚   â”œâ”€â”€ dashboard/                # Widgets dashboard (Stats, Recommendations, Levelâ€¦)
@@ -105,7 +105,7 @@ frontend/
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
 â”‚   â”œâ”€â”€ useChallenge(s).ts        # DÃ©fis logiques
 â”‚   â”œâ”€â”€ useChallengeSolverController.ts  # Runtime local du solver de defi (FFI-L10)
-â”‚   â”œâ”€â”€ useBadges.ts / useBadgesProgress.ts
+â”‚   â”œâ”€â”€ useBadges.ts / useBadgesProgress.ts / useBadgesPageController.ts
 â”‚   â”œâ”€â”€ useUserStats.ts / useProgressStats.ts / useNextReview.ts
 â”‚   â”œâ”€â”€ useRecommendations.ts
 â”‚   â”œâ”€â”€ useLeaderboard.ts

@@ -33,7 +33,12 @@ Visible product train:
   - runtime profile state lives in `frontend/hooks/useProfilePageController.ts`
   - pure profile helpers live in `frontend/lib/profile/profilePage.ts`
   - profile sections live in `frontend/components/profile/`
-- next active frontend architecture priority: `FFI-L12` on `frontend/app/badges/page.tsx`
+- `FFI-L12` is now closed:
+  - `frontend/app/badges/page.tsx` is reduced to a thin badges container
+  - runtime badges page state lives in `frontend/hooks/useBadgesPageController.ts`
+  - pure badges page helpers live in `frontend/lib/badges/badgesPage.ts`
+  - badges sections live in `frontend/components/badges/`
+- next active frontend architecture priority: `FFI-L13` on `frontend/app/settings/page.tsx`
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

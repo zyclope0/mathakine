@@ -59,7 +59,6 @@ En cas de divergence :
 
 **Seams architecture encore critiques**
 
-- `frontend/app/badges/page.tsx` ~`981` LOC
 - `frontend/app/settings/page.tsx` ~`788` LOC
 - `frontend/app/admin/content/page.tsx` ~`773` LOC
 - `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
@@ -71,13 +70,12 @@ En cas de divergence :
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L12 : modulariser app/badges/page.tsx
-2. FFI-L13 : modulariser app/settings/page.tsx
-3. FFI-L14 : decouper app/admin/content/page.tsx
-4. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
-5. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-6. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-7. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. FFI-L13 : modulariser app/settings/page.tsx
+2. FFI-L14 : decouper app/admin/content/page.tsx
+3. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
+4. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+5. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+6. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
 ### 3.1 Sidecar produit documente, hors sequence FFI
@@ -135,11 +133,20 @@ Decision d'execution :
 
 #### FFI-L12 — Modulariser `app/badges/page.tsx`
 
-- but : isoler filtres, tabs, stats, grille, interactions badges
-- definition of done :
-  - page orchestratrice fine
-  - sous-composants lisibles
-  - mapping badge/progress/filter plus testable
+- statut :
+  - **livre**
+  - `app/badges/page.tsx` ramene a un container ~`252` LOC
+  - extraction `useBadgesPageController.ts`
+  - extraction `lib/badges/badgesPage.ts`
+  - extraction des sections `components/badges/*`
+  - couverture reelle : page badges + hook controller + helpers purs
+- resultat :
+  - la mega-page badges n'est plus un seam runtime prioritaire
+  - filtres, progression, stats, vitrines et collection sont maintenant separables et testables
+  - la stabilite des tests page badges a ete reverrouillee
+- reliquat connu :
+  - `BadgesProgressTabsSection.tsx` reste une vue dense (~`250` LOC)
+  - `BadgeCard.tsx` reste hors lot et demeure un candidat naturel pour une phase ulterieure
 
 #### FFI-L13 — Modulariser `app/settings/page.tsx`
 

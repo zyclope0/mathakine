@@ -44,7 +44,7 @@
 
 ### Points faibles
 
-- **Monolithes runtime/pages encore lourds** : `app/badges/page.tsx`, `app/settings/page.tsx`, `app/admin/content/page.tsx`
+- **Monolithes runtime/pages encore lourds** : `app/settings/page.tsx`, `app/admin/content/page.tsx`
 - **Plateforme content-list encore trop implicite** : toolbar, generators, cards, pagination et état liste restent dispersés entre `Exercises` et `Challenges`
 - **Dette shell globale** : `Header.tsx` reste massif et le recouvrement `ChatbotFloating` / `ChatbotFloatingGlobal` n'est pas clarifié
 - **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées existent encore, mais ne sont plus la priorité d'exécution tant que les seams d'architecture restent ouverts
@@ -72,7 +72,6 @@ l'extraction du 2026-03-29.
 
 **Encore ouverts (ordre actif révisé)**
 
-- `FFI-L12` : modulariser `app/badges/page.tsx`
 - `FFI-L13` : modulariser `app/settings/page.tsx`
 - `FFI-L14` : decouper `app/admin/content/page.tsx`
 - `FFI-L15` : standardiser la plateforme `content-list`
@@ -250,7 +249,6 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 
 | Surface                                                      | LOC | Responsabilité dominante                        |
 | ------------------------------------------------------------ | --- | ----------------------------------------------- |
-| `app/badges/page.tsx`                                        | 981 | Hub badges + filtres + stats + progression      |
 | `app/settings/page.tsx`                                      | 788 | Paramètres, sécurité, diagnostic, préférences   |
 | `app/admin/content/page.tsx`                                 | 773 | Orchestration admin multi-domaines              |
 | `components/exercises/ExerciseSolver.tsx`                    | 632 | Solveur exercices déjà réduit mais encore dense |
@@ -430,7 +428,6 @@ Composants — états sémantiques :
 
 | Surface                                                    | LOC | Problème actuel                                          |
 | ---------------------------------------------------------- | --- | -------------------------------------------------------- |
-| `app/badges/page.tsx`                                      | 981 | Hub badges trop charge en page unique                    |
 | `app/settings/page.tsx`                                    | 788 | Parametres, securite, diagnostic et preferences entasses |
 | `app/admin/content/page.tsx`                               | 773 | Shell admin multi-CRUD encore trop centralise            |
 | `components/profile/ProfileLearningPreferencesSection.tsx` | 449 | Sous-section profil encore dense, mais page fermee       |
@@ -709,20 +706,25 @@ Reliquat connu :
 
 **Priorite** : P1 | **Effort** : L | **Impact** : lisibilite + testabilite
 
-Objectif :
+Statut :
 
-- isoler la page badges en blocs gouvernables
-- rendre separables filtres, stats, progression et rendering de grille
+- **livre**
+- `app/badges/page.tsx` ramene a un container ~`252` LOC
+- extraction `useBadgesPageController.ts`
+- extraction `lib/badges/badgesPage.ts`
+- extraction des sections `components/badges/*`
+- couverture reelle : page badges + hook controller + helpers purs
 
-Decoupage cible :
+Resultat :
 
-```text
-BadgesPageHeader.tsx
-BadgesStatsStrip.tsx
-BadgesFiltersBar.tsx
-BadgesProgressSection.tsx
-BadgesGridSection.tsx
-```
+- la mega-page badges critique est fermee
+- filtres, stats, progression, collection et vitrines sont maintenant separables et testables
+- les tests de caracterisation page badges ont ete stabilises (plus d'import dynamique repete dans la suite)
+
+Reliquat connu :
+
+- `BadgesProgressTabsSection.tsx` reste une vue dense (~`250` LOC)
+- `BadgeCard.tsx` reste hors lot et demeure un candidat naturel pour une phase ulterieure
 
 #### FFI-L13 - Modulariser `app/settings/page.tsx`
 
@@ -807,7 +809,7 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 9     | FFI-L9 Split ExerciseSolver                                   | P1       | L      | Maintenabilite            | ✅ Livré             |
 | 10    | FFI-L10 Split ChallengeSolver                                 | P1       | L      | Maintenabilite runtime    | ✅ Livré             |
 | 11    | FFI-L11 Modulariser Profile                                   | P1       | L      | Ownership domaine         | ✅ Livré             |
-| 12    | FFI-L12 Modulariser Badges                                    | P1       | L      | Lisibilite page           | À faire              |
+| 12    | FFI-L12 Modulariser Badges                                    | P1       | L      | Lisibilite page           | ✅ Livré             |
 | 13    | FFI-L13 Modulariser Settings                                  | P1       | L      | Robustesse parcours       | À faire              |
 | 14    | FFI-L14 Decouper Admin Content                                | P1       | L      | Frontiere admin           | À faire              |
 | 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | À faire              |
@@ -816,9 +818,9 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L11` sont deja livres : la dette la plus rentable restante est desormais `FFI-L12`
+- `FFI-L1` a `FFI-L12` sont deja livres : la dette la plus rentable restante est desormais `FFI-L13`
 - la priorite n'est plus le polish visuel mais les mega-pages et seams runtime
-- traiter `FFI-L12` a `FFI-L15` avant de rouvrir de gros sweeps cosmetiques
+- traiter `FFI-L13` a `FFI-L15` avant de rouvrir de gros sweeps cosmetiques
 - garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 
 ### Plan initial (historique)

@@ -45,7 +45,8 @@ Active references:
 - Frontend architecture documentation is now aligned on the post-`FFI-L10` truth:
   - `ChallengeSolver` is no longer tracked as a monolithic runtime seam
   - `ProfilePage` is no longer tracked as a mega-page runtime seam
-  - the active architecture backlog now starts at `FFI-L12`
+  - `BadgesPage` is no longer tracked as a mega-page runtime seam
+  - the active architecture backlog now starts at `FFI-L13`
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed
@@ -53,6 +54,8 @@ Active references:
 - The challenge solver retry flow now fully resets multi-position visual selections through `useChallengeSolverController`, matching the expected learner-facing “retry from zero” behavior.
 
 - The profile page refactor now preserves the original password policy on the client (`min 8`), and its controller coverage is now backed by real hook tests instead of helper-only tests mislabeled as hook coverage.
+
+- The badges page refactor now ships with a real thin container plus stable page/controller/helper coverage: repeated dynamic imports were removed from the page tests, the dead `rankInfo` controller input was dropped, and the remaining badge page derivations are more centralized.
 
 ## [3.6.0-alpha.1] - 2026-04-05
 
