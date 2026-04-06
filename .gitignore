@@ -155,6 +155,13 @@ CONFIGURATION_INFOMANIAK.md
 CLAUDE.md
 reports/
 
+# Skills et lock tooling IA (Cursor / Codex agents)
+.agents/
+skills-lock.json
+
+# Artefacts JUnit (tests CI racine — frontend/ déjà couvert)
+junit.xml
+
 # Rapports et logs de nettoyage (temporaires uniquement)
 # NOTE: Les récapitulatifs finaux datés DOIVENT être versionnés !
 NETTOYAGE_*.md

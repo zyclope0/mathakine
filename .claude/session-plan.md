@@ -7,107 +7,212 @@
 
 ---
 
-## Addendum Frontend - 2026-04-03
+## Addendum Frontend Architecture - 2026-04-06
 
 > Ce fichier garde l'historique du plan `CC1` backend.
-> L'addendum ci-dessous sert de **session-plan courant** pour le frontend, afin d'eviter
-> une divergence entre la memoire Claude et les audits projet.
+> L'addendum ci-dessous devient la **source de verite d'execution frontend** pour
+> l'industrialisation / standardisation architecture-first.
 
-### 0. Verite d'execution courante
+### 0. Perimetre actif
 
-**Source de verite frontend**
+Objectif courant :
 
-- `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
-- `docs/03-PROJECT/DEBAT_NEURO_INCLUSION_2026-03-30.md`
-- `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` reste un audit historique, plus un plan actif
+- **industrialiser** le frontend
+- **standardiser** les patterns et contrats
+- **eliminer la duplication residuelle**
+- **sortir les monolithes runtime/pages**
 
-**Etat FFI (commite + pousse)**
+Hors scope par defaut tant qu'ils ne bloquent pas l'architecture :
 
-- `FFI-L1` a `FFI-L9` : livres
-- `FFI-L10` : prochain lot critique (`ChallengeSolver`)
-- `FFI-L11` a `FFI-L13` : ouverts, apres stabilisation solver
+- retouches purement visuelles
+- sweeps cosmetiques de tokens/couleurs
+- nouvelles animations
+- debates de theme / branding
 
-**Etat NI (verite terrain au 2026-04-05)**
+### 1. Sources de verite
 
-- `NI-1` a `NI-13` : livres, commites et pousses
-- `/home-learner` est la home principale apprenant
-- `/dashboard` reste une surface secondaire discrete pour `apprenant`
-- `proxy.ts` + `ProtectedRoute` portent le boundary partage
-- la doc active frontend/NI a ete realignee sur la version visible `3.6.0-alpha.1`
+1. `D:\\Mathakine\\.claude\\session-plan.md` = **plan actif**
+2. `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` = audit + feuille de route frontend a jour
+3. `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` = photographie historique, utile pour le contexte mais **pas** comme plan d'execution ligne a ligne
 
-### 1. Prochain ordre recommande
+En cas de divergence :
+
+- suivre d'abord ce fichier
+- puis realigner les 2 audits projet dans le meme lot documentaire
+
+### 2. Verite terrain frontend au 2026-04-06
+
+**Photographie tree**
+
+- `144` fichiers composants sous `frontend/components`
+- `47` hooks custom sous `frontend/hooks`
+- `8` themes visibles
+- boundary apprenant/adulte et roles canoniques deja stabilises
+
+**Fondations deja livrees**
+
+- `FFI-L1` a `FFI-L10` : livres, commites et pousses
+- roles canoniques + `NI-13` : livres et stabilises
+- `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
+- `lib/validation/` est deja standardise (plus de split `validation/validations`)
+
+**Seams architecture encore critiques**
+
+- `frontend/app/profile/page.tsx` ~`1655` LOC
+- `frontend/app/badges/page.tsx` ~`981` LOC
+- `frontend/app/settings/page.tsx` ~`788` LOC
+- `frontend/app/admin/content/page.tsx` ~`773` LOC
+- `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
+- `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` ~`432` LOC
+- `frontend/components/layout/Header.tsx` ~`394` LOC
+- recouvrement residuel `ChatbotFloating.tsx` / `ChatbotFloatingGlobal.tsx`
+
+### 3. Ordre actif recommande
 
 ```text
-1. FFI-L10 : split ChallengeSolver
-2. FFI-L11 : couleurs semantiques hardcodees
-3. FFI-L12 : split Header.tsx
-4. FFI-L13 : clarification chatbot + derniers residus design system
-5. Lot roles phase 2 : decider si `parent` devient un role metier distinct
+1. FFI-L11 : modulariser app/profile/page.tsx
+2. FFI-L12 : modulariser app/badges/page.tsx
+3. FFI-L13 : modulariser app/settings/page.tsx
+4. FFI-L14 : decouper app/admin/content/page.tsx
+5. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
+6. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+7. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+8. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
-### 1 bis. Prochain ajout produit cible
+### 4. Definition concrete des lots actifs
 
-Apres stabilisation de `3.6.0-alpha.1`, le prochain ajout produit vise :
+#### FFI-L10 — Split `ChallengeSolver`
 
-- role `parent`
-- dashboard parent
-- gestion des enfants lies
+- but : appliquer au solver defi la discipline deja posee sur `ExerciseSolver`
+- statut :
+  - **livre**
+  - helpers purs extraits dans `lib/challenges/challengeSolver.ts`
+  - split `status / header / content / hints / feedback`
+  - extraction `ChallengeSolverCommandBar.tsx`
+  - extraction `useChallengeSolverController.ts`
+- resultat :
+  - `ChallengeSolver.tsx` ramene a un orchestrateur ~`188` LOC
+  - `visualModel!` supprime
+  - tests de non-regression solver/helpers/controller en place
+- reliquat connu :
+  - `ChallengeSolverCommandBar.tsx` reste un seam dense (~`446` LOC), mais le monolithe runtime critique est ferme
 
-Reference de cadrage :
+#### FFI-L11 — Modulariser `app/profile/page.tsx`
 
-- `docs/02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md`
+- but : sortir la plus grosse page UI du repo du mode "mega-page"
+- cible :
+  - sections profil
+  - sections stats / badges / progression
+  - formulaires / modales / derivees memoisees
+- definition of done :
+  - page composee de sections nommees
+  - logique de donnees/hydratation separee des blocs visuels
+  - pas de nouveau helper local anonyme duplique
 
-### 2. Gardes-fous frontend
+#### FFI-L12 — Modulariser `app/badges/page.tsx`
 
-1. **Ne pas sur-declarer "fait"** : distinguer explicitement `commite/pousse`, `local`, `backlog`.
-2. **Dashboard != solver** : ne pas faire passer du hors-scope dashboard comme lot apprenant sans le documenter.
-3. **Neuro-inclusion** : zero mouvement non essentiel pendant la phase de reflexion ; conserver les neutralisations `[data-learner-context]`.
-4. **Industrialisation** : garder `FFI-Lx` comme ordre de reference, pas les anciens audits phase/par phase.
-5. **Docs** : toute evolution NI/FFI doit realigner ces 3 fichiers en meme temps :
-   - `DEBAT_NEURO_INCLUSION_2026-03-30.md`
-   - `AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
-   - `AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md`
+- but : isoler filtres, tabs, stats, grille, interactions badges
+- definition of done :
+  - page orchestratrice fine
+  - sous-composants lisibles
+  - mapping badge/progress/filter plus testable
 
-## Addendum Roles + NI-13 - 2026-04-04
+#### FFI-L13 — Modulariser `app/settings/page.tsx`
 
-> Bloc de reference courant pour le realignement des roles utilisateur et le boundary apprenant/adulte.
+- but : separer les domaines `profil`, `session`, `diagnostic`, `preferences`
+- definition of done :
+  - sections/containers clairs
+  - i18n et logique formulaire sans entassement dans une mega-page
 
-### 0. Verite d'execution courante
+#### FFI-L14 — Decouper `app/admin/content/page.tsx`
 
-- Roles metier actifs :
+- but : sortir l'orchestration admin lourde en slices domaine
+- cible :
+  - exercices
+  - defis
+  - badges
+  - modales / actions
+- definition of done :
+  - page admin = shell d'orchestration
+  - blocs domaine + hooks admin reutilisables
+
+#### FFI-L15 — Standardiser la plateforme content-list
+
+- but : industrialiser le pattern commun `Exercises` / `Challenges`
+- scope :
+  - `ContentListProgressiveFilterToolbar`
+  - cards / compact list
+  - pagination
+  - generator placement
+  - view toggle
+  - hooks de state liste
+- definition of done :
+  - un pattern documente
+  - moins de logique page-specifique repetee
+  - conventions claires pour nouvelles listes contenu
+
+#### FFI-L16 — Split shell/navigation
+
+- but : reduire la dette de shell global
+- scope :
+  - `Header.tsx`
+  - ownership de `ChatbotFloating.tsx` / `ChatbotFloatingGlobal.tsx`
+  - clarifier ce qui appartient au shell, a la home, ou au domaine chatbot
+- definition of done :
+  - navigation desktop/mobile/menu utilisateur separes
+  - plus de recouvrement fonctionnel entre floating chatbots
+
+#### FFI-L17 — Garde-fous architecture
+
+- but : verrouiller la derive
+- cible :
+  - conventions de taille composant/page
+  - tests de non-regression structurels
+  - documentation design system/runtime
+  - regles d'ownership des helpers/constants
+- definition of done :
+  - docs actives alignees
+  - nouveaux seams documentes avant de grossir
+  - choix de patterns shared clairement explicités
+
+### 5. Parent / roles / NI-13
+
+Etat stable a ne pas rouvrir sans besoin produit explicite :
+
+- roles actifs :
   - `apprenant`
   - `enseignant`
   - `moderateur`
   - `admin`
-- Les alias legacy `padawan`, `maitre`, `gardien`, `archiviste` restent limites a la compatibilite backend/DB.
-- `parent` reste documente comme phase 2, non implemente.
+- `parent` reste documente comme **prochain ajout produit**, non implemente
+- `/home-learner` reste la home principale apprenant
+- `/dashboard` reste une surface secondaire discrete pour apprenant
+- `proxy.ts` + `ProtectedRoute` + helpers de roles restent la base a reutiliser
 
-### 1. Boundary NI-13
+Reference produit :
 
-- `/home-learner` = home apprenant
-- `/dashboard` = surface analytique adulte, accessible secondairement a l'apprenant
-- `proxy.ts` porte maintenant le premier niveau de boundary sur `/home-learner`, `/dashboard` et `/admin`
-- `ProtectedRoute` reste le fallback client et la defense en profondeur
-- `useAuth.ts` derive la route post-login via helper partage
-- `Header.tsx` n'utilise plus de strings legacy dans sa logique metier
-- l'apprenant garde `/home-learner` comme home par defaut, avec un acces discret a `/dashboard` via le menu profil
+- `docs/02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md`
 
-### 2. Gardes-fous
+### 6. Gardes-fous d'execution
 
-1. Ne pas reintroduire de comparaison brute `role === "padawan"` dans le code actif.
-2. Toute nouvelle surface protegee doit passer par helpers/guards de roles canoniques.
-3. Toute doc active qui parle des roles utilisateur doit pointer vers :
-   - `docs/00-REFERENCE/USER_ROLE_NOMENCLATURE.md`
-   - `app/core/user_roles.py`
-   - `frontend/lib/auth/userRoles.ts`
-4. `home-learner` reste la home principale de l'apprenant ; `/dashboard` reste une entree secondaire discrete meme apres durcissement serveur.
+1. **Architecture avant apparence** : ne pas glisser un sweep visuel dans un lot FFI actif sans justification technique.
+2. **Page/container fins** : toute page > ~700 LOC ou composant critique > ~400 LOC devient candidat explicite a extraction.
+3. **Pas de duplication de contrat** : constantes, mappings, validation, labels derives ne doivent pas etre redefinis localement si une source centrale existe.
+4. **Helpers de domaine > helpers anonymes inline** : preferer des helpers nommes ou hooks dedies quand une logique depasse quelques branches.
+5. **Aucune reintroduction legacy** : pas de strings de roles legacy dans le code actif ; pas de retour a des contrats implicites.
+6. **Docs frontend a realigner ensemble** pour toute evolution d'architecture :
+   - `session-plan.md`
+   - `AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
+   - `AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md`
 
-### 3. Suite recommandee
+### 7. Gate qualite minimale par lot frontend structurel
 
-1. Lot `roles canoniques + NI-13` : pousse et stabilise en prod.
-2. Decider separement si `parent` devient un vrai role metier distinct.
-3. Migrer plus tard l'enum SQL legacy `padawan / maitre / gardien / archiviste` une fois la phase compat terminee.
-4. Garder `3.6.0-alpha.1` comme train visible jusqu'au prochain lot UX/produit materialisant une nouvelle release.
+1. `cd frontend && npx tsc --noEmit`
+2. `cd frontend && npm run lint`
+3. `cd frontend && npx vitest run <tests touches>`
+4. `cd frontend && npx prettier --check <fichiers touches>`
+5. ajouter des tests de non-regression avant tout decoupage de monolithe critique
 
 ---
 

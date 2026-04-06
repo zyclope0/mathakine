@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 05/04/2026
+> Updated: 06/04/2026
 
 Visible product train:
 
@@ -16,6 +16,19 @@ Visible product train:
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
 - runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — services import sync_db_session via db_boundary (G4); data access is selective (2 repositories) and direct ORM in many services — see `docs/00-REFERENCE/ARCHITECTURE.md` § Data-Layer Doctrine
 - `app/api/endpoints/*` is archived and not part of the active runtime
+
+## Frontend Architecture Truth
+
+- active execution source of truth for frontend industrialization:
+  - `.claude/session-plan.md`
+  - `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
+  - `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` remains historical context only
+- `FFI-L10` is now closed:
+  - `frontend/components/challenges/ChallengeSolver.tsx` is reduced to a thin orchestrator
+  - runtime logic lives in `frontend/hooks/useChallengeSolverController.ts`
+  - answer rendering lives in `frontend/components/challenges/ChallengeSolverCommandBar.tsx`
+  - pure solver derivation lives in `frontend/lib/challenges/challengeSolver.ts`
+- next active frontend architecture priority: `FFI-L11` on `frontend/app/profile/page.tsx`
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

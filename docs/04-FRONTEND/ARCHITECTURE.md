@@ -1,16 +1,17 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> DerniÃ¨re mise Ã  jour : 05/04/2026  
+> DerniÃ¨re mise Ã  jour : 06/04/2026  
 > ValidÃ© contre le code source rÃ©el (post-audit industrialisation)
 
 ---
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 43 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 136 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 47 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 144 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
+- [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
 
 ---
 
@@ -80,7 +81,7 @@ frontend/
 â”‚   â”œâ”€â”€ admin/                    # Modales CRUD (Exercise, Challenge, Badge)
 â”‚   â”œâ”€â”€ auth/                     # ProtectedRoute, EmailVerification
 â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid
-â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver, ChallengeModal
+â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver + blocs split + ChallengeModal
 â”‚   â”‚   â””â”€â”€ visualizations/       # Renderers (Pattern, Sequence, Visual, Deductionâ€¦)
 â”‚   â”œâ”€â”€ dashboard/                # Widgets dashboard (Stats, Recommendations, Levelâ€¦)
 â”‚   â”œâ”€â”€ exercises/                # ExerciseCard, ExerciseSolver, AIGenerator
@@ -89,7 +90,7 @@ frontend/
 â”‚   â”œâ”€â”€ layout/                   # PageLayout, PageHeader, PageSection, PageGrid,
 â”‚   â”‚                             # EmptyState, LoadingState, Header, Footer, PageTransition
 â”‚   â”œâ”€â”€ locale/                   # LanguageSelector, LocaleInitializer
-â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, IntlProvider
+â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, NextIntlProvider, AccessScopeSync
 â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
 â”‚   â”œâ”€â”€ shared/                   # Composants partagÃ©s cross-domaine
 â”‚   â”‚   â””â”€â”€ AIGeneratorBase.tsx   # Base UI partagÃ©e (exercises + challenges AIGenerator)
@@ -97,11 +98,12 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 43 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 47 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
 â”‚   â”œâ”€â”€ useChallenge(s).ts        # DÃ©fis logiques
+â”‚   â”œâ”€â”€ useChallengeSolverController.ts  # Runtime local du solver de defi (FFI-L10)
 â”‚   â”œâ”€â”€ useBadges.ts / useBadgesProgress.ts
 â”‚   â”œâ”€â”€ useUserStats.ts / useProgressStats.ts / useNextReview.ts
 â”‚   â”œâ”€â”€ useRecommendations.ts
@@ -258,6 +260,23 @@ Contrainte produit importante :
 
 - avant soumission, le flow F04 ne doit jamais recharger un payload exercice classique contenant `correct_answer`, `hint` ou `explanation`
 - apres soumission, l'explication peut etre affichee comme feedback pedagogique
+
+### Challenge solver architecture (FFI-L10 clos)
+
+Le solver de defis n'est plus traite comme un monolithe unique.
+
+- `components/challenges/ChallengeSolver.tsx` : container/orchestrateur
+- `hooks/useChallengeSolverController.ts` : etat runtime local, effets, handlers, derives
+- `lib/challenges/challengeSolver.ts` : helpers purs
+- `components/challenges/ChallengeSolverStatus.tsx` : loading / error / not-found
+- `components/challenges/ChallengeSolverHeader.tsx` : titre, badges, retour
+- `components/challenges/ChallengeSolverContent.tsx` : enonce, image, renderer visuel
+- `components/challenges/ChallengeSolverHintsPanel.tsx` : indices reveles
+- `components/challenges/ChallengeSolverFeedback.tsx` : feedback post-submit
+- `components/challenges/ChallengeSolverCommandBar.tsx` : zone de reponse multi-mode
+
+Le seam residuel principal n'est plus `ChallengeSolver.tsx`, mais `ChallengeSolverCommandBar.tsx`,
+qui reste dense tout en gardant un contrat de props pur et borne.
 
 ---
 

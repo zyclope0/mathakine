@@ -1,8 +1,8 @@
 ﻿# Catalogue des hooks React â€” Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-04-05
-> Total : 43 fichiers hooks + 1 dossier `chat/`
+> Updated : 2026-04-06
+> Total : 47 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -30,14 +30,15 @@
 
 ## CatÃ©gorie 2 â€” DÃ©fis logiques
 
-| Hook                         | RÃ´le                                 | Test | RQ    | DÃ©pendances clÃ©s                              |
-| ---------------------------- | ------------------------------------- | ---- | ----- | ----------------------------------------------- |
-| `useChallenges.ts`           | Liste paginÃ©e de dÃ©fis avec filtres | âŒ   | Query | `GET /api/challenges`                           |
-| `useChallenge.ts`            | DÃ©tail d'un dÃ©fi par ID             | âŒ   | Query | `GET /api/challenges/:id`                       |
-| `useAIChallengeGenerator.ts` | GÃ©nÃ©ration SSE de dÃ©fi via IA      | âŒ   | Aucun | `POST /api/challenges/generate-ai-stream` (SSE) |
-| `useChallengesProgress.ts`   | Progression dÃ©fis de l'utilisateur   | âŒ   | Query | `GET /api/challenges/progress`                  |
-| `useChallengesStats.ts`      | Statistiques dÃ©fis (taux, types)     | âœ…  | Query | `GET /api/challenges/stats`                     |
-| `useDailyChallenges.ts`      | DÃ©fis quotidiens du jour             | âŒ   | Query | `GET /api/daily-challenges`                     |
+| Hook                              | RÃ´le                                 | Test | RQ    | DÃ©pendances clÃ©s                              |
+| --------------------------------- | ------------------------------------- | ---- | ----- | ----------------------------------------------- |
+| `useChallenges.ts`                | Liste paginÃ©e de dÃ©fis avec filtres | âŒ   | Query | `GET /api/challenges`                           |
+| `useChallenge.ts`                 | DÃ©tail d'un dÃ©fi par ID             | âŒ   | Query | `GET /api/challenges/:id`                       |
+| `useChallengeSolverController.ts` | Runtime local du solver de dÃ©fi      | ✅   | Aucun | helpers solver + mutations `useChallenges`      |
+| `useAIChallengeGenerator.ts`      | GÃ©nÃ©ration SSE de dÃ©fi via IA      | âŒ   | Aucun | `POST /api/challenges/generate-ai-stream` (SSE) |
+| `useChallengesProgress.ts`        | Progression dÃ©fis de l'utilisateur   | âŒ   | Query | `GET /api/challenges/progress`                  |
+| `useChallengesStats.ts`           | Statistiques dÃ©fis (taux, types)     | âœ…  | Query | `GET /api/challenges/stats`                     |
+| `useDailyChallenges.ts`           | DÃ©fis quotidiens du jour             | âŒ   | Query | `GET /api/daily-challenges`                     |
 
 ---
 
@@ -127,9 +128,9 @@
 
 | Statut                 | Nombre |
 | ---------------------- | ------ |
-| âœ… Avec test unitaire | 7      |
-| âŒ Sans test unitaire  | ~36    |
-| **Total**              | **43** |
+| âœ… Avec test unitaire | 6      |
+| âŒ Sans test unitaire  | ~41    |
+| **Total**              | **47** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 

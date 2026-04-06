@@ -40,6 +40,17 @@ Active references:
 
 ## [Unreleased]
 
+### Changed
+
+- Frontend architecture documentation is now aligned on the post-`FFI-L10` truth:
+  - `ChallengeSolver` is no longer tracked as a monolithic runtime seam
+  - the active architecture backlog now starts at `FFI-L11`
+  - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
+
+### Fixed
+
+- The challenge solver retry flow now fully resets multi-position visual selections through `useChallengeSolverController`, matching the expected learner-facing “retry from zero” behavior.
+
 ## [3.6.0-alpha.1] - 2026-04-05
 
 ### Added

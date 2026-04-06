@@ -8,26 +8,45 @@
 
 **ComplÃ©mentaire Ã  :** [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](./AUDIT_ARCHITECTURE_BACKEND_2026-03.md) (backend â€” terminÃ©)
 
-> **Mise Ã  jour 2026-04-03**
-> Ce document reste utile comme photographie de la dette initiale, mais la source de vÃ©ritÃ©
-> opÃ©rationnelle frontend est dÃ©sormais [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)
-> et sa feuille de route `FFI-L1` Ã  `FFI-L13`.
+> **Mise Ã  jour 2026-04-06**
+> Ce document reste utile comme photographie de la dette initiale, mais il ne doit plus etre
+> utilise comme plan d'execution actif.
 >
-> Depuis cet audit historique, les lots suivants ont dÃ©jÃ  Ã©tÃ© livrÃ©s et poussÃ©s :
-> `FFI-L1` Ã  `FFI-L9` (tokens critiques multi-thÃ¨me, auth/bootstrap, storage, DRY pages contenu,
-> loading/skeletons, cleanup legacy safe, recouvrement gÃ©nÃ©rateurs IA, prÃ©paration solver,
-> split `ExerciseSolver`).
+> Sources de verite actuelles :
 >
-> Mise a jour complementaire 2026-04-05 :
-> le boundary `NI-13` est maintenant structurel cote serveur + frontend (`proxy.ts` + `ProtectedRoute` + roles canoniques),
-> avec `/home-learner` comme surface apprenant principale et `/dashboard` comme surface analytique adulte,
-> accessible secondairement a l'apprenant sans etre son point d'entree par defaut.
-> La verite courante du tree n'est plus 101/32/7 mais 136 composants, 43 hooks et 8 themes visibles.
+> 1. [D:\\Mathakine\\.claude\\session-plan.md](../../.claude/session-plan.md)
+> 2. [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)
 >
-> Les principaux chantiers encore ouverts ne sont donc plus ceux de cet audit pris ligne Ã  ligne,
-> mais surtout :
-> `FFI-L10` split `ChallengeSolver`, `FFI-L11` sweep large des couleurs sÃ©mantiques hardcodÃ©es,
-> `FFI-L12` split `Header.tsx`, `FFI-L13` documentation design system + clarification chatbot.
+> Verite terrain actuelle :
+>
+> - `FFI-L1` a `FFI-L10` sont livres
+> - `NI-13` est structurel cote serveur + client (`proxy.ts` + `ProtectedRoute`)
+> - le tree frontend courant est a `144` composants, `47` hooks et `8` themes visibles
+> - la duplication AIGenerator brute n'est plus le seam principal
+>
+> Seams architecture encore prioritaires :
+>
+> - `app/profile/page.tsx`
+> - `app/badges/page.tsx`
+> - `app/settings/page.tsx`
+> - `app/admin/content/page.tsx`
+> - `ChallengeSolverCommandBar.tsx`
+> - `Header.tsx`
+> - la plateforme shared de listes contenu
+>
+> Ordre actif recommande :
+> `FFI-L11` modulariser `profile`,
+> `FFI-L12` modulariser `badges`,
+> `FFI-L13` modulariser `settings`,
+> `FFI-L14` decouper `admin/content`,
+> `FFI-L15` standardiser la plateforme content-list,
+> `FFI-L16` split shell/navigation,
+> `FFI-L17` garde-fous architecture.
+>
+> Le detail de cet audit conserve volontairement la photographie du `03/03/2026`.
+> Plusieurs constats du corps du document sont donc des **constats d'origine** et non
+> des verites terrain encore actives. Pour l'execution courante, suivre le `session-plan`
+> puis l'audit de standardisation.
 
 ---
 

@@ -24,9 +24,9 @@
 
 | Métrique               | Valeur                         |
 | ---------------------- | ------------------------------ |
-| Composants TSX         | 136                            |
-| Fichiers de tests      | 293                            |
-| Hooks custom           | 43                             |
+| Composants TSX         | 144                            |
+| Fichiers de tests      | 76                             |
+| Hooks custom           | 47                             |
 | Routes Next.js         | 20+                            |
 | Thèmes couleur         | 8                              |
 | Animations keyframes   | 12                             |
@@ -44,17 +44,18 @@
 
 ### Points faibles
 
-- **Dette solver encore élevée** : `ExerciseSolver.tsx` a été réduit ensuite à ~609 LOC, mais `ChallengeSolver.tsx` reste à ~841 LOC et concentre désormais l'essentiel du sujet
-- **18% tokens hardcodés** : couleurs directes Tailwind là où des tokens thème-aware devraient être utilisés
-- **Résidus thème Star Wars** : dette désormais surtout concentrée sur les couches contrat/compat (`types/api.ts`, mappings, clés historiques)
-- **Doublons résiduels** : le recouvrement générateurs IA a été réduit, mais `UnifiedExerciseGenerator` et le duo `ChatbotFloating` / `ChatbotFloatingGlobal` restent des zones à clarifier
+- **Monolithes runtime/pages encore lourds** : `app/profile/page.tsx`, `app/badges/page.tsx`, `app/settings/page.tsx`, `app/admin/content/page.tsx`
+- **Plateforme content-list encore trop implicite** : toolbar, generators, cards, pagination et état liste restent dispersés entre `Exercises` et `Challenges`
+- **Dette shell globale** : `Header.tsx` reste massif et le recouvrement `ChatbotFloating` / `ChatbotFloatingGlobal` n'est pas clarifié
+- **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées existent encore, mais ne sont plus la priorité d'exécution tant que les seams d'architecture restent ouverts
 
 ---
 
-### 1.1 État d'avancement réel — 2026-04-03
+### 1.1 État d'avancement réel — 2026-04-06
 
-La photographie initiale reste utile, mais la feuille de route `FFI-L1` à `FFI-L13`
-a déjà avancé de manière significative depuis l'extraction du 2026-03-29.
+La photographie initiale reste utile, mais le plan actif ne s'arrete plus a `FFI-L13`
+et a deja ete requalifie autour des seams d'architecture les plus rentables depuis
+l'extraction du 2026-03-29.
 
 **Livré, commité et poussé**
 
@@ -67,18 +68,23 @@ a déjà avancé de manière significative depuis l'extraction du 2026-03-29.
 - `FFI-L7` : réduction du vrai recouvrement générateurs IA
 - `FFI-L8` : préparation du split solver
 - `FFI-L9` : split `ExerciseSolver`
-
-**Encore ouverts**
-
 - `FFI-L10` : split `ChallengeSolver`
-- `FFI-L11` : sweep large des couleurs sémantiques hardcodées
-- `FFI-L12` : split `Header.tsx`
-- `FFI-L13` : doc design system + clarification chatbot
+
+**Encore ouverts (ordre actif révisé)**
+
+- `FFI-L11` : modulariser `app/profile/page.tsx`
+- `FFI-L12` : modulariser `app/badges/page.tsx`
+- `FFI-L13` : modulariser `app/settings/page.tsx`
+- `FFI-L14` : decouper `app/admin/content/page.tsx`
+- `FFI-L15` : standardiser la plateforme `content-list`
+- `FFI-L16` : split `Header.tsx` + ownership chatbot flottant
+- `FFI-L17` : garde-fous architecture / tests / doc runtime
 
 **Conséquences visibles**
 
-- `ExerciseSolver.tsx` n'est plus un géant de 848 LOC : le gros du risque runtime est désormais concentré côté défi.
-- La duplication AIGenerator n'est plus le sujet principal ; les prochains lots rentables sont `FFI-L10` puis `FFI-L11` à `FFI-L13`.
+- `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
+- Le risque runtime frontal se concentre désormais surtout dans les mega-pages et dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ContentListProgressiveFilterToolbar`, `Header`).
+- La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
 
@@ -221,26 +227,26 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 | `pagination.tsx`    | nav complexe                                                                  | custom   |
 | `sonner.tsx`        | Toaster wrapper                                                               | Sonner   |
 
-### 3.2 Composants complexes (Top 10 par LOC)
+### 3.2 Surfaces complexes (Top 10 par LOC, pages incluses)
 
-| Composant                                        | LOC | Responsabilité                               |
-| ------------------------------------------------ | --- | -------------------------------------------- |
-| `challenges/ChallengeSolver.tsx`                 | 884 | Solveur défis multi-mode + spaced repetition |
-| `exercises/ExerciseSolver.tsx`                   | 848 | Solveur exercices + session interleaved      |
-| `badges/BadgeCard.tsx`                           | 516 | Carte badge expand/collapse + shimmer        |
-| `diagnostic/DiagnosticSolver.tsx`                | 456 | Questionnaire calibration niveau             |
-| `shared/AIGeneratorBase.tsx`                     | 450 | Base SSE génération IA (réutilisable)        |
-| `admin/BadgeEditModal.tsx`                       | 431 | CRUD badge admin                             |
-| `admin/ChallengeEditModal.tsx`                   | 428 | CRUD défi admin                              |
-| `exercises/ExerciseModal.tsx`                    | 415 | Modal solveur exercice                       |
-| `shared/ContentListProgressiveFilterToolbar.tsx` | 357 | Barre filtres listes                         |
-| `exercises/UnifiedExerciseGenerator.tsx`         | 343 | Générateur exercices (classique + IA)        |
+| Surface                                                      | LOC  | Responsabilité dominante                        |
+| ------------------------------------------------------------ | ---- | ----------------------------------------------- |
+| `app/profile/page.tsx`                                       | 1655 | Profil + stats + préférences + historique       |
+| `app/badges/page.tsx`                                        | 981  | Hub badges + filtres + stats + progression      |
+| `app/settings/page.tsx`                                      | 788  | Paramètres, sécurité, diagnostic, préférences   |
+| `app/admin/content/page.tsx`                                 | 773  | Orchestration admin multi-domaines              |
+| `components/exercises/ExerciseSolver.tsx`                    | 632  | Solveur exercices déjà réduit mais encore dense |
+| `components/challenges/visualizations/VisualRenderer.tsx`    | 625  | Visualisation générique défis                   |
+| `app/admin/ai-monitoring/page.tsx`                           | 587  | Monitoring IA admin                             |
+| `components/challenges/visualizations/CodingRenderer.tsx`    | 572  | Renderer code                                   |
+| `components/badges/BadgeCard.tsx`                            | 534  | Carte badge riche / compacte / expand           |
+| `components/challenges/visualizations/DeductionRenderer.tsx` | 482  | Renderer déduction                              |
 
 ### 3.3 Composants Layout (12 fichiers — `components/layout/`)
 
 | Composant                | Rôle                                        |
 | ------------------------ | ------------------------------------------- |
-| `Header.tsx` (329 LOC)   | Navigation fixe, dropdown user, menu mobile |
+| `Header.tsx` (394 LOC)   | Navigation fixe, dropdown user, menu mobile |
 | `Footer.tsx`             | Liens + info légale                         |
 | `PageLayout.tsx`         | Wrapper max-width + spacing                 |
 | `PageSection.tsx`        | Section avec padding vertical               |
@@ -268,12 +274,13 @@ Lazy loading pour les charts lourds : `DailyExercisesChartLazy`, `ProgressChartL
 | `Particles.tsx`         | Particules flottantes canvas                    |
 | `DinoFloating.tsx`      | Dinosaure flottant (actif seulement thème Dino) |
 
-### 3.6 Doublons identifiés
+### 3.6 Doublons et recouvrements identifiés
 
-| Doublon          | Fichiers                                                   | Problème                                                          |
-| ---------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| AIGenerator      | `exercises/AIGenerator.tsx` + `challenges/AIGenerator.tsx` | Code dupliqué — `AIGeneratorBase` existe mais non utilisé partout |
-| Chatbot floating | `ChatbotFloating.tsx` + `ChatbotFloatingGlobal.tsx`        | Séparation des responsabilités non documentée                     |
+| Recouvrement          | Fichiers / zone                                                                 | Problème réel actuel                                                       |
+| --------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Chatbot flottant      | `ChatbotFloating.tsx` + `ChatbotFloatingGlobal.tsx`                             | Ownership et responsabilité produit encore non documentées                 |
+| Content-list platform | `Exercises`, `Challenges`, toolbar, cards, compact list, generators, pagination | Pattern partagé puissant mais encore trop diffus et peu gouverné           |
+| Shell navigation      | `Header.tsx`                                                                    | Desktop/mobile/menu utilisateur cohabitent encore dans un composant massif |
 
 ---
 
@@ -400,17 +407,23 @@ Composants — états sémantiques :
 
 **Bug** : Les couleurs podium ne s'adaptent pas au thème sélectionné.
 
-### 6.2 Composants géants
+### 6.2 Surfaces runtime/pages encore critiques
 
-| Composant             | LOC | Problème                                |
-| --------------------- | --- | --------------------------------------- |
-| `ChallengeSolver.tsx` | 884 | Multi-state + multi-mode dans 1 fichier |
-| `ExerciseSolver.tsx`  | 848 | Idem                                    |
-| `Header.tsx`          | 329 | Desktop + mobile + dropdowns            |
+| Surface                         | LOC  | Problème actuel                                          |
+| ------------------------------- | ---- | -------------------------------------------------------- |
+| `app/profile/page.tsx`          | 1655 | Mega-page multi-domaines, forte densite d'orchestration  |
+| `app/badges/page.tsx`           | 981  | Hub badges trop charge en page unique                    |
+| `ChallengeSolverCommandBar.tsx` | 446  | Bloc réponse défi encore dense après split du solver     |
+| `app/settings/page.tsx`         | 788  | Parametres, securite, diagnostic et preferences entasses |
+| `app/admin/content/page.tsx`    | 773  | Shell admin multi-CRUD encore trop centralise            |
+| `Header.tsx`                    | 394  | Desktop + mobile + menu utilisateur encore couples       |
 
-### 6.3 AIGenerator dupliqué
+### 6.3 AIGenerator requalifié
 
-`exercises/AIGenerator.tsx` + `challenges/AIGenerator.tsx` coexistent avec `shared/AIGeneratorBase.tsx` — migration non terminée.
+`shared/AIGeneratorBase.tsx` est deja en place et les wrappers domaine sont minces.
+Le recouvrement restant le plus rentable concerne surtout `UnifiedExerciseGenerator.tsx`
+et, plus largement, la plateforme `content-list` (`toolbar`, `generator`, cartes,
+pagination, state liste).
 
 ### 6.4 Chatbot floating ambigu
 
@@ -420,21 +433,17 @@ Composants — états sémantiques :
 
 `User.jedi_rank` et `Badge.star_wars_title` dans `types/api.ts` propagent le legacy partout dans le frontend.
 
-### 6.6 Token `primary-on-dark` absent des thèmes non-Spatial (10 occurrences)
+### 6.6 Token `primary-on-dark` - risque initial levé
 
-`text-primary-on-dark` est utilisé dans 5 fichiers mais `--primary-text-on-dark` n'est défini que dans le thème Spatial :
+Le risque initial a ete corrige : `--primary-text-on-dark` est maintenant defini dans
+tous les themes actifs de `globals.css`.
 
-| Fichier                                        | Usage                     |
-| ---------------------------------------------- | ------------------------- |
-| `app/login/page.tsx` (×3)                      | Liens de navigation auth  |
-| `app/forgot-password/page.tsx`                 | Lien hover                |
-| `app/register/page.tsx`                        | Lien                      |
-| `components/badges/BadgeCard.tsx` (×2)         | Description italique      |
-| `components/challenges/ChallengeCard.tsx` (×2) | Icône Sparkles + badge AI |
-| `components/dashboard/Recommendations.tsx`     | Icône Sparkles            |
+Le sujet n'est donc plus un bug critique de standardisation. La dette residuelle
+concerne surtout :
 
-**Problème** : Sur les thèmes Océan, Forêt, Dune, etc., la classe `text-primary-on-dark` peut hériter d'une valeur non définie.
-**Correction** : Ajouter `--primary-text-on-dark` dans chaque thème, ou remplacer par `text-primary-light` (token présent partout).
+- la surveillance des nouveaux usages pour eviter de reintroduire un contraste hardcode
+- le remplacement progressif des couleurs semantiques encore fixes quand elles bloquent
+  un vrai comportement multi-theme
 
 ---
 
@@ -451,10 +460,10 @@ et leur **vrai scope technique** a partir du code actuellement en place.
 
 | Point initial                 | Statut 2026-03-29         | Requalification                                                                                                                                                                             |
 | ----------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tokens podium theme-aware     | **Maintenu**              | Devient un lot "tokens critiques multi-theme" qui absorbe aussi le bug `primary-on-dark` absent hors Spatial.                                                                               |
+| Tokens podium theme-aware     | **Maintenu**              | Devient un lot "tokens critiques multi-theme". Le sous-risque `primary-on-dark` a ete corrige ; la dette restante est surtout podium/symbolique et couleurs semantiques encore hardcodees.  |
 | 21 residus Star Wars          | **Maintenu, scope borne** | A traiter, mais sans grand sweep destructif. Nettoyer d'abord les couches frontend internes, tout en gardant les alias/types deprecated tant que le contrat backend public les sert encore. |
 | AIGenerator / AIGeneratorBase | **Requalifie**            | Les wrappers `exercises/AIGenerator.tsx` et `challenges/AIGenerator.tsx` sont deja minces. Le vrai recouvrement restant concerne surtout `exercises/UnifiedExerciseGenerator.tsx`.          |
-| Solver x2 trop lourds         | **Confirme**              | Sujet majeur de maintenabilite, mais a decouper en trois temps : preparation commune, split `ExerciseSolver`, puis split `ChallengeSolver`.                                                 |
+| Solver x2 trop lourds         | **Traite**                | `ExerciseSolver` puis `ChallengeSolver` ont ete decoupes. La dette residuelle porte surtout sur quelques sous-composants denses et non plus sur un monolithe runtime unique.                |
 | Header.tsx trop lourd         | **Confirme, depriorise**  | Bon chantier de lisibilite, mais moins urgent que auth/bootstrap, storage, pages contenu et solvers.                                                                                        |
 | 64 couleurs hardcodees        | **Confirme, depriorise**  | Toujours vrai, mais a lancer apres les tokens critiques et les chantiers infra plus rentables.                                                                                              |
 | Chatbot floating ambigu       | **Confirme**              | Ne bloque pas le runtime. A documenter et clarifier dans le lot Design System plutot qu'en hotfix.                                                                                          |
@@ -480,13 +489,13 @@ Objectif :
 
 - ajouter `--rank-gold`, `--rank-silver`, `--rank-bronze` dans chaque theme de `globals.css`
 - remplacer les classes hardcodees du podium dans `lib/constants/leaderboard.ts`
-- definir `--primary-text-on-dark` dans tous les themes, ou migrer les usages vers un token deja universel
+- maintenir les tokens critiques multi-theme sans reintroduire de contraste fixe
 
 Perimetre :
 
 - `frontend/app/globals.css`
 - `frontend/lib/constants/leaderboard.ts`
-- usages `text-primary-on-dark`
+- usages tokens podium / contrastes semantiques critiques
 
 #### FFI-L2 - Consolidation auth / bootstrap API
 
@@ -623,47 +632,131 @@ ExerciseExplanationBlock.tsx
 ExerciseSessionSummary.tsx
 ```
 
-#### FFI-L10 - Split `ChallengeSolver`
+#### FFI-L10 - Split `ChallengeSolver` ✅ Livré
 
 **Priorite** : P1 | **Effort** : L | **Impact** : maintenabilite + testabilite
 
+Résultat :
+
+- lot livre apres stabilisation de `FFI-L8` et `FFI-L9`
+- helpers purs extraits + tests de caracterisation
+- split `status / header / content / hints / feedback`
+- extraction `ChallengeSolverCommandBar` et `useChallengeSolverController`
+- `ChallengeSolver.tsx` ramene a un container ~`188` LOC
+- retry multi-position revalide apres reset `visualSelections`
+
+Seam residuel :
+
+```text
+ChallengeSolver.tsx
+ChallengeSolverStatus.tsx
+ChallengeSolverHeader.tsx
+ChallengeSolverContent.tsx
+ChallengeSolverHintsPanel.tsx
+ChallengeSolverFeedback.tsx
+ChallengeSolverCommandBar.tsx
+useChallengeSolverController.ts
+challengeSolver.ts
+```
+
+Le lot est considere ferme. La dette residuelle la plus visible n'est plus le monolithe
+runtime, mais `ChallengeSolverCommandBar.tsx` (~`446` LOC), qui reste un composant dense
+sans remettre en cause la fermeture de `FFI-L10`.
+
+#### FFI-L11 - Modulariser `app/profile/page.tsx`
+
+**Priorite** : P1 | **Effort** : L | **Impact** : lisibilite + ownership domaine profil
+
 Objectif :
 
-- appliquer la meme discipline a `ChallengeSolver.tsx`
-- ne pas lancer ce lot avant que `FFI-L8` et `FFI-L9` soient stabilises
+- sortir la plus grosse page du repo du mode "mega-page"
+- separer clairement sections, derivees de donnees et interactions utilisateur
 
-#### FFI-L11 - Remplacement large des couleurs semantiques hardcodees
+Decoupage cible :
 
-**Priorite** : P2 | **Effort** : M | **Impact** : cohesion multi-theme
+```text
+ProfileHeaderSection.tsx
+ProfileStatsSection.tsx
+ProfileBadgesSection.tsx
+ProfilePreferencesSection.tsx
+ProfileActivitySection.tsx
+```
+
+#### FFI-L12 - Modulariser `app/badges/page.tsx`
+
+**Priorite** : P1 | **Effort** : L | **Impact** : lisibilite + testabilite
 
 Objectif :
 
-- remplacer les usages de `text-blue-500`, `text-red-500`, `text-green-500`, etc.
-- privilegier les tokens semantiques (`--info`, `--warning`, `--success`, `--destructive`)
-- traiter ce lot apres `FFI-L1` pour eviter de remixer les tokens dans le desordre
+- isoler la page badges en blocs gouvernables
+- rendre separables filtres, stats, progression et rendering de grille
 
-#### FFI-L12 - Decoupage `Header.tsx`
+Decoupage cible :
 
-**Priorite** : P2 | **Effort** : M | **Impact** : lisibilite, isoler la navigation
+```text
+BadgesPageHeader.tsx
+BadgesStatsStrip.tsx
+BadgesFiltersBar.tsx
+BadgesProgressSection.tsx
+BadgesGridSection.tsx
+```
+
+#### FFI-L13 - Modulariser `app/settings/page.tsx`
+
+**Priorite** : P1 | **Effort** : L | **Impact** : robustesse des parcours compte
+
+Objectif :
+
+- sortir `settings` du mode "page omnibus"
+- separer securite, profil, diagnostic et preferences d'accessibilite
 
 Decoupage suggere :
 
 ```
-HeaderDesktop.tsx
-HeaderMobile.tsx
-HeaderUserMenu.tsx
-HeaderActions.tsx
+SettingsProfileSection.tsx
+SettingsSecuritySection.tsx
+SettingsDiagnosticSection.tsx
+SettingsPreferencesSection.tsx
 ```
 
-#### FFI-L13 - Documentation design system et clarification chatbot
+#### FFI-L14 - Decouper `app/admin/content/page.tsx`
 
-**Priorite** : P2 | **Effort** : M | **Impact** : onboarding et gouvernance frontend
+**Priorite** : P1 | **Effort** : L | **Impact** : frontiere admin plus nette
 
 Objectif :
 
-- documenter le design system reel apres stabilisation des chantiers runtime
+- sortir l'orchestration admin lourde dans des slices domaine
+- eviter qu'une page admin devienne le point de recouvrement de plusieurs CRUD
+
+#### FFI-L15 - Standardiser la plateforme content-list
+
+**Priorite** : P1 | **Effort** : M-L | **Impact** : DRY structurel
+
+Objectif :
+
+- industrialiser le pattern commun `Exercises` / `Challenges`
+- expliciter les conventions shared pour toolbar, generator, cards, pagination et state de liste
+- reduire la logique page-specifique encore dupliquee ou implicite
+
+#### FFI-L16 - Split shell/navigation + ownership chatbot
+
+**Priorite** : P2 | **Effort** : M | **Impact** : lisibilite du shell global
+
+Objectif :
+
+- decouper `Header.tsx`
 - clarifier `ChatbotFloating.tsx` vs `ChatbotFloatingGlobal.tsx`
-- publier les conventions de tokens, variants, surfaces et nomenclature composants
+- documenter ce qui appartient au shell, a la home ou au domaine chatbot
+
+#### FFI-L17 - Garde-fous architecture, tests et doc runtime
+
+**Priorite** : P2 | **Effort** : M | **Impact** : non-regression
+
+Objectif :
+
+- verrouiller les conventions apres les gros decoupages
+- documenter les patterns actifs
+- ajouter les tests de structure les plus utiles avant de re-ouvrir des sweeps visuels
 
 ### Gate qualite commune
 
@@ -689,23 +782,28 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 7     | FFI-L7 Requalification AIGenerator / UnifiedExerciseGenerator | P1       | S-M    | DRY cible                 | ✅ Livré             |
 | 8     | FFI-L8 Preparation split solver                               | P1       | M      | Baisse du risque          | ✅ Livré             |
 | 9     | FFI-L9 Split ExerciseSolver                                   | P1       | L      | Maintenabilite            | ✅ Livré             |
-| 10    | FFI-L10 Split ChallengeSolver                                 | P1       | L      | Maintenabilite            | À faire              |
-| 11    | FFI-L11 Couleurs semantiques hardcodees                       | P2       | M      | Cohesion multi-theme      | À faire              |
-| 12    | FFI-L12 Split Header                                          | P2       | M      | Lisibilite                | À faire              |
-| 13    | FFI-L13 Documentation design system + chatbot                 | P2       | M      | Onboarding                | À faire              |
+| 10    | FFI-L10 Split ChallengeSolver                                 | P1       | L      | Maintenabilite runtime    | ✅ Livré             |
+| 11    | FFI-L11 Modulariser Profile                                   | P1       | L      | Ownership domaine         | À faire              |
+| 12    | FFI-L12 Modulariser Badges                                    | P1       | L      | Lisibilite page           | À faire              |
+| 13    | FFI-L13 Modulariser Settings                                  | P1       | L      | Robustesse parcours       | À faire              |
+| 14    | FFI-L14 Decouper Admin Content                                | P1       | L      | Frontiere admin           | À faire              |
+| 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | À faire              |
+| 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | À faire              |
+| 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | À faire              |
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L9` sont deja livrés : la dette la plus rentable restante est désormais `FFI-L10`
-- enchaîner ensuite sur `FFI-L11` a `FFI-L13` seulement après stabilisation du solver défi
-- garder cette feuille de route comme source de vérité d'exécution, le bloc historique ci-dessous ne servant plus qu'au contexte
+- `FFI-L1` a `FFI-L10` sont deja livres : la dette la plus rentable restante est desormais `FFI-L11`
+- la priorite n'est plus le polish visuel mais les mega-pages et seams runtime
+- traiter `FFI-L11` a `FFI-L15` avant de rouvrir de gros sweeps cosmetiques
+- garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 
 ### Plan initial (historique)
 
 > Ce bloc conserve le **plan initial** issu de l'extraction `/octo:extract`.
 > Il reste utile comme trace d'origine et comme justification des constats.
-> **La source de vérité d'exécution est désormais la feuille de route `FFI-L1` à `FFI-L13` ci-dessus.**
-> En cas de divergence, suivre l'ordre `FFI-Lx`.
+> **La source de verite d'execution active est `D:\\Mathakine\\.claude\\session-plan.md`.**
+> En cas de divergence, suivre d'abord le `session-plan`, puis la feuille de route `FFI-L1` a `FFI-L17` ci-dessus.
 
 ### Chantier 1 — Tokens podium thème-aware
 

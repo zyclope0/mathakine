@@ -1,673 +1,782 @@
-﻿# DÃ©bat â€” Neuro-inclusion & EdTech Readiness
+# Neuro-inclusion EdTech - Verite active, backlog ouvert et plan d'implementation
 
-> GÃ©nÃ©rÃ© le 2026-03-30 via `/octo:debate` (4 providers)
-> Motion : Adopter le plan de refonte Neuro-inclusion tel que proposÃ©
-
----
-
-## Contexte
-
-Le plan soumis au dÃ©bat proposait 3 actions strictes pour Ã©radiquer le design "Default B2B SaaS / Vercel-Core" :
-
-1. Modifier `:root` dans `globals.css` (fond slate-50, card 96.1%)
-2. Aplatir les cartes (retirer border + shadow, passer Ã  rounded-3xl)
-3. CrÃ©er un layout tubulaire sur le dashboard (max-w-2xl colonne unique)
+> Mise a jour: 2026-04-06
+> Statut: document actif
+> Portee: ne garder que ce qui reste a faire
+> Remplace le contenu historique de debat, les lots livres et les audits perimes
 
 ---
 
-## Positions des 4 providers
+## 1. Objectif de ce document
 
-### ðŸ”´ Codex â€” ImplÃ©mentation Technique
+Ce document n'est plus un compte-rendu de debat.
 
-**3 erreurs techniques bloquantes identifiÃ©es :**
+Il devient la reference active pour:
 
-- Action 1 : Modifier `:root` brise la cascade multi-thÃ¨me. Le thÃ¨me Spatial a dÃ©jÃ  `--background: #0a0a0f` dans `[data-theme="spatial"]`. Modifier `:root` en slate-50 propage un fond clair sur tous les thÃ¨mes qui n'overrident pas.
-- Action 2 : `card.tsx` a dÃ©jÃ  `border-0`. La shadow est `shadow-[var(--shadow-card)]` (token CSS), pas une classe Tailwind hardcodÃ©e. La "retirer" globalement casse 126 composants.
-- Action 3 : Dashboard Tabs + 16 widgets â†’ layout max-w-2xl = scroll infini et perte de densitÃ© utile pour les adultes.
+1. rappeler les contraintes produit deja arbitrees
+2. consolider le diagnostic UX/UI/A11y/Learning Sciences encore valable
+3. lister uniquement les sujets encore ouverts
+4. prioriser un plan d'implementation detaille et executable
 
-### ðŸŸ¡ Gemini â€” AccessibilitÃ© & Standards EdTech
-
-**Les guardrails sont scientifiquement incomplets :**
-
-- "ZÃ©ro Blanc Pur" n'est pas une norme WCAG â€” c'est une prÃ©fÃ©rence de confort. La variabilitÃ© inter-individuelle TSA/TDAH est extrÃªme.
-- "ZÃ©ro dÃ©limitation visuelle" peut crÃ©er une "soupe visuelle" anxiogÃ¨ne pour les profils TSA qui s'appuient sur les zones fonctionnelles pour s'orienter.
-- La Conception Universelle pour l'Apprentissage (UDL) recommande plusieurs reprÃ©sentations, pas une reprÃ©sentation unique imposÃ©e.
-
-### ðŸŸ¢ Sonnet â€” Recherche UX & Design
-
-**Bonne direction, mauvais niveau d'abstraction :**
-
-- Le plan agit sur le design system global alors qu'il devrait crÃ©er une couche de prÃ©sentation dÃ©diÃ©e au flux apprenant.
-- Il existe dÃ©jÃ  un mode TSA/TDAH dans `globals.css` â€” le plan l'ignore.
-- Solution : `LearnerCard` + `LearnerLayout` spÃ©cifiques aux pages exercice/dÃ©fi. CoÃ»t : 2h. Risque : zÃ©ro rÃ©gression sur l'existant.
-
-### ðŸ”µ Claude/Opus â€” SynthÃ¨se & Arbitrage
-
-**La tension rÃ©elle : global vs ciblÃ©.**
-
-- Le diagnostic est correct (manque de couche design apprenant).
-- La solution globale est incorrecte (effets de bord sur 126 composants).
-- Solution correcte : composants dÃ©diÃ©s au rÃ´le apprenant, tokens `--bg-learner` par thÃ¨me, intÃ©gration ciblÃ©e dans ExerciseSolver et ChallengeSolver.
+Tout ce qui est deja livre ou deja tranche n'est plus detaille ici sauf si cela conditionne un reste a faire.
 
 ---
 
-## Verdict
+## 2. Cadre produit actif a respecter
 
-### Sur les 3 actions proposÃ©es
+### 2.1 Regle de separation education / gamification
 
-| Action                                             | Verdict                     | Motif                                                                    |
-| -------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
-| Action 1 : Modifier `:root` globals.css            | âŒ REJETÃ‰                  | Brise la cascade multi-thÃ¨me (7 thÃ¨mes)                                |
-| Action 2 : Retirer shadow de card.tsx global       | âš ï¸ PARTIELLEMENT ADOPTÃ‰ | `border-0` dÃ©jÃ  en place ; shadow â†’ opt-in via prop `flat?` sur Card |
-| Action 3 : Layout tubulaire sur dashboard existant | âŒ REJETÃ‰                  | Dashboard = outil adulte/parent ; crÃ©er une page apprenant sÃ©parÃ©e    |
+Decision produit explicite:
 
-### Sur les objectifs de la mission
+- les surfaces purement gamification peuvent assumer plus d'overdrive
+- les surfaces ou zones 100 % education ne doivent pas utiliser ce langage visuel
 
-| Objectif                                        | Verdict       | Action correcte                                            |
-| ----------------------------------------------- | ------------- | ---------------------------------------------------------- |
-| Anti "IA-look" / design trop gÃ©nÃ©rique        | âœ… LÃ‰GITIME | `LearnerCard` avec shadow nulle et radius organique        |
-| ZÃ©ro fond blanc Ã©blouissant                   | âœ… LÃ‰GITIME | Token `--bg-learner` lÃ©gÃ¨rement teintÃ© par thÃ¨me       |
-| ZÃ©ro layout surchargÃ© pendant l'apprentissage | âœ… LÃ‰GITIME | `LearnerLayout` max-w-2xl sur pages exercice/dÃ©fi         |
-| Mode focus apprenant                            | âœ… LÃ‰GITIME | Extension du mode TSA/TDAH existant ou `FocusModeProvider` |
+Implications:
 
----
+- `badges`, `leaderboard`, celebrations et certaines surfaces de recompense peuvent etre plus expressives
+- `onboarding`, `diagnostic`, `exercise solver`, `challenge solver`, zones de lecture et de reponse doivent rester calmes, lisibles, peu distrayantes
+- les surfaces hybrides doivent etre strictement bornees pour que la gamification n'ecrase jamais la tache cognitive
 
-## Plan d'action â€” Neuro-inclusion EdTech (version correcte)
+### 2.2 Regle sur la page de decouverte des defis
 
-### NI-1 â€” Composants apprenant dÃ©diÃ©s
+Decision produit explicite:
 
-**PrioritÃ©** : P1 | **Effort** : S-M (1 jour)
+- la page de defis ne trouvera probablement pas un compromis parfait
+- l'objectif n'est pas la purete abstraite
+- l'objectif est un compromis efficace entre epuration, acces rapide et options utiles
 
-- CrÃ©er `frontend/components/learner/LearnerCard.tsx`
-  - Shadow nulle, radius 2xl, fond `--bg-learner`, padding gÃ©nÃ©reux
-  - RÃ©utilise `Card` avec overrides ciblÃ©s
-- CrÃ©er `frontend/components/learner/LearnerLayout.tsx`
-  - `max-w-2xl` centrÃ©, `gap-12`, padding gÃ©nÃ©reux
-  - ZÃ©ro sidebar, flux de lecture unique
+Implications:
 
-### NI-2 â€” Token `--bg-learner` par thÃ¨me
+- il faut reduire le cout d'acces aux filtres et options
+- sans retransformer la page en cockpit surcharge
+- le succes sera un compromis "suffisamment bon", pas une perfection theorique
 
-**PrioritÃ©** : P1 | **Effort** : S (3h)
+### 2.3 Ce document ne rouvre pas les decisions deja prises
 
-Ajouter dans `globals.css` pour chacun des 8 themes :
+Ne sont pas remises en cause ici:
 
-```css
-[data-theme="spatial"] {
-  --bg-learner: #0d0d18;
-}
-[data-theme="ocean"] {
-  --bg-learner: #0e1829;
-}
-[data-theme="minimal"] {
-  --bg-learner: #f5f5f5;
-}
-[data-theme="dune"] {
-  --bg-learner: #fdf4e7;
-}
-[data-theme="forest"] {
-  --bg-learner: #edfbf0;
-}
-[data-theme="aurora"] {
-  --bg-learner: #fdf4fb;
-}
-[data-theme="dino"] {
-  --bg-learner: #fefce4;
-}
-[data-theme="unicorn"] {
-  --bg-learner: #fef5fb;
-}
-```
-
-### NI-3 â€” IntÃ©gration dans ExerciseSolver + ChallengeSolver
-
-**PrioritÃ©** : P1 | **Effort** : S (2h)
-
-- Remplacer `<PageLayout>` par `<LearnerLayout>` dans les pages exercice et dÃ©fi
-- Remplacer les `<Card>` wrappant les questions par `<LearnerCard>`
-- ZÃ©ro modification des composants globaux
-
-### NI-4 â€” Page d'accueil apprenant tubulaire
-
-**PrioritÃ©** : P2 | **Effort** : M (sprint dÃ©diÃ©)
-
-CrÃ©er une page `/home-learner` ou vue enfant dÃ©diÃ©e avec :
-
-- Actions rapides (Exercices, DÃ©fis, Badges)
-- Streak + Niveau
-- Layout `LearnerLayout`, fond `--bg-learner`, zÃ©ro colonne multiple
-
-### NI-5 â€” Opt-in `flat` sur `<Card>`
-
-**PrioritÃ©** : P2 | **Effort** : XS (1h)
-
-```tsx
-// Ajouter prop flat?: boolean Ã  Card
-// flat=true â†’ shadow: none
-// Opt-in progressif lÃ  oÃ¹ pertinent, dÃ©faut global inchangÃ©
-```
+- l'existence d'une couche apprenant dediee
+- l'orientation neuro-inclusive des surfaces d'apprentissage
+- la legitimite d'un registre visuel plus demonstratif sur les surfaces purement gamifiees
 
 ---
 
-## Ce qui N'est PAS Ã  faire
+## 3. Hypotheses explicites utilisees pour le diagnostic
 
-- Modifier `:root` dans `globals.css` â†’ brise les 7 thÃ¨mes
-- Passer `rounded-3xl` en dÃ©faut global sur `card.tsx` â†’ affecte toutes les modales admin
-- Refactoriser le dashboard principal en colonne unique â†’ dÃ©grade l'expÃ©rience adulte/parent
-- Interdire toute dÃ©limitation visuelle â†’ peut crÃ©er une dÃ©sorientation pour certains profils TSA
-
----
-
-## RÃ©capitulatif des lots
-
-| Lot                       | PrioritÃ© | Effort | Impact                                   |
-| ------------------------- | --------- | ------ | ---------------------------------------- |
-| NI-1 Composants apprenant | P1        | S-M    | Couche design flux apprenant             |
-| NI-2 Token --bg-learner   | P1        | S      | Fond teintÃ© par thÃ¨me                  |
-| NI-3 IntÃ©gration Solver  | P1        | S      | Neuro-inclusion lÃ  oÃ¹ l'enfant apprend |
-| NI-4 Page apprenant       | P2        | M      | Accueil tubulaire dÃ©diÃ©                |
-| NI-5 Opt-in flat Card     | P2        | XS     | FlexibilitÃ© design system               |
-
-**Recommandation solo founder** : NI-1 + NI-2 + NI-3 en un seul sprint (1,5 jour).
-RÃ©sultat : les pages exercice et dÃ©fi deviennent neuro-inclusives sans rien casser.
+- Le support evalue est le code du frontend, pas une capture figee.
+- Le perimetre prioritaire est: landing, onboarding, `Mon espace`, page defis, solveur de defi, widgets de progression.
+- La cible provient de `docs/01-GUIDES/GUIDE_UTILISATEUR_MVP.md`: apprenants 5-20 ans, coeur de cible pratique 8-14 ans, autonomie variable, besoins potentiels TDAH, TSA, dyscalculie.
+- Le job-to-be-done principal est: demarrer vite, faire une session courte utile, comprendre quoi faire ensuite, recevoir un feedback non punitif.
+- L'objectif produit principal est: activation rapide, premiere pratique utile, retention par progression visible et revisions.
+- Le typage front passe (`npx tsc --noEmit`).
+- Le lint front n'est pas completement propre (`npm run lint:ci`): warnings React/perf mineurs et derive de formatage.
+- Aucun test Axe ou assertion d'accessibilite automatisee n'a ete detecte dans `frontend/__tests__`.
 
 ---
 
-## Critique design â€” Audit `/critique` (2026-03-30)
+## 4. Reformulation courte
 
-> Session de critique complÃ¨te conduite aprÃ¨s la session FFI-L7â†’L9.
-> PÃ©rimÃ¨tre : page d'accueil (`app/page.tsx`), dashboard (`app/dashboard/page.tsx`), solver exercice (`ExerciseSolver.tsx`).
-> Score Nielsen : **25/40 â€” Acceptable**, amÃ©liorations significatives nÃ©cessaires.
-
-### Diagnostic AI Slop â€” Verdict
-
-L'interface prÃ©sente **6 tells AI slop actifs** :
-
-| Tell                                                                               | Localisation                                        | GravitÃ© |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------- | -------- |
-| Dark mode violet + fond `#0a0a0f` = palette AI 2024-2025                           | ThÃ¨me spatial (dÃ©faut)                            | Ã‰levÃ©e |
-| Glassmorphism systÃ©matique `bg-card/40 backdrop-blur-md`                          | 15+ composants                                      | Ã‰levÃ©e |
-| Hero metric layout (grand nombre + icÃ´ne + label Ã—5)                             | `AcademyStatsWidget`                                | Ã‰levÃ©e |
-| IcÃ´ne `rounded-full bg-primary/10` au-dessus de chaque titre                      | Page accueil (4 cartes), gÃ©nÃ©rateur IA, dashboard | Ã‰levÃ©e |
-| Identical card grid (icon + title + desc Ã—4)                                      | Section features `app/page.tsx`                     | Moyenne  |
-| Sweep effect `::after`/`::before` global sur tous les boutons et toutes les cartes | `globals.css` L.192-278                             | Moyenne  |
-
-Le **thÃ¨me spatial est reconnaissable Ã  100m** comme output Cursor/v0/Bolt. Les 7 autres themes (ocean, forest, dune, aurora, dino, unicorn, minimal) attenuent le probleme â€” mais le theme par defaut reste le premier contact.
-
-Circonstance attÃ©nuante : les 7 thÃ¨mes existent, `prefers-reduced-motion` est gÃ©rÃ© Ã  deux niveaux (CSS + hook React), et le flow de correction post-soumission est de la pÃ©dagogie bien traduite en design.
-
-### Heuristiques Nielsen
-
-| #         | Heuristique                        | Score     | ProblÃ¨me principal                                                                           |
-| --------- | ---------------------------------- | --------- | --------------------------------------------------------------------------------------------- |
-| 1         | VisibilitÃ© du statut systÃ¨me     | 3         | Le bouton Valider ne montre pas de chargement entre clic et rÃ©ponse serveur sur mobile lent  |
-| 2         | Correspondance monde rÃ©el         | 3         | "Mode IA âœ¨", "session entrelacÃ©e" dans les params URL = jargon adulte sur interface enfant |
-| 3         | ContrÃ´le utilisateur              | 3         | Back links prÃ©sents partout ; pas d'undo sur soumission (normal)                             |
-| 4         | CohÃ©rence et standards            | 2         | Solver exercice vs solver dÃ©fi : conventions HTML diffÃ©rentes ; glassmorphism non-uniforme  |
-| 5         | PrÃ©vention des erreurs            | 3         | Validation avant submit, bouton Valider grisÃ© sans rÃ©ponse â€” bien                         |
-| 6         | Reconnaissance plutÃ´t que rappel  | 3         | Choix QCM visibles ; label "Mode IA" sans texte explicatif sur mobile                         |
-| 7         | FlexibilitÃ© et efficacitÃ©        | 2         | Navigation clavier QCM âœ“ ; zÃ©ro raccourci documentÃ© ; gÃ©nÃ©rateur IA mobile dense        |
-| 8         | Design esthÃ©tique et minimaliste  | 2         | Dashboard Overview : 5 widgets simultanÃ©s ; sweep effect global = bruit pur                  |
-| 9         | Aide Ã  la rÃ©cupÃ©ration d'erreur | 3         | Toast errors clairs ; `reviewExerciseError` a deux boutons de sortie â€” bien conÃ§u          |
-| 10        | Aide et documentation              | 1         | Tooltip `HelpCircle` sur "Mode IA" = seule aide contextuelle visible                          |
-| **Total** |                                    | **25/40** | **Acceptable â€” amÃ©liorations significatives nÃ©cessaires**                                 |
-
-### Checklist charge cognitive â€” ExerciseSolver
-
-| Item                   | RÃ©sultat | Note                                                                             |
-| ---------------------- | --------- | -------------------------------------------------------------------------------- |
-| Focus unique           | âœ…       | L'Ã©noncÃ© est la star de la page                                                |
-| Chunking               | âœ…       | Header â†’ Choices â†’ Valider â†’ Feedback                                      |
-| Grouping               | âœ…       | Zones visuellement sÃ©parÃ©es                                                    |
-| HiÃ©rarchie visuelle   | âš ï¸     | Bouton Valider grisÃ© se fond dans le background avant sÃ©lection                |
-| Une chose Ã  la fois   | âœ…       | SÃ©quence claire                                                                 |
-| Choix minimaux         | âœ…       | 4 choix max QCM                                                                  |
-| MÃ©moire de travail    | âœ…       | Pas de mÃ©moire cross-Ã©cran requise                                             |
-| Disclosure progressive | âš ï¸     | Animation backdrop-blur + sweep du board concurrence le feedback post-soumission |
-
-**Score** : 2 Ã©checs â†’ charge cognitive **modÃ©rÃ©e**. Adressable avec NI-1/NI-3.
-
-### Issues prioritaires identifiÃ©es
-
-**[P1] Sweep effect global â€” bruit visuel universel**
-
-- `button::after` + `[data-slot="card"]::before` dans `globals.css` (L.192-278) s'appliquent sur _chaque_ bouton et _chaque_ carte sans exception.
-- Sur les cartes QCM, l'animation de brillance concurrence directement le feedback de sÃ©lection â€” le stimuli dÃ©coratif parasite le stimuli pÃ©dagogique.
-- **Correction** : Supprimer le sweep global. CrÃ©er classe `.hover-sweep` opt-in pour les surfaces marketing uniquement. Le solver ne doit pas animer ses cartes.
-
-**[P1] Absence de couche design apprenant â€” confirme NI-1/NI-3**
-
-- `SolverFocusBoard` utilise `bg-card/90 backdrop-blur-xl` + bordure violette animÃ©e = mÃªme grammaire visuelle que le dashboard admin pendant la rÃ©solution d'exercice.
-- Pour les profils TSA/TDAH : deux stimuli visuels simultanÃ©s (fond flou + bordure colorÃ©e animÃ©e) pendant la rÃ©flexion = charge extraneous.
-- **Correction** : NI-1 + NI-2 + NI-3 du plan existant. `LearnerCard` flat + `--bg-learner` + `LearnerLayout` dans les solvers.
-
-**[P2] Section features page d'accueil â€” template AI Ã  100%**
-
-- `grid grid-cols-2 lg:grid-cols-4` de 4 `Card` identiques avec `rounded-full bg-primary/10` au-dessus de chaque titre.
-- Premier contact pour un parent qui Ã©value la plateforme = perte de confiance immÃ©diate si la page ressemble Ã  10 000 autres SaaS.
-- **Correction** : Casser la grille uniforme. Varier les poids visuels. Une feature mÃ©rite d'Ãªtre grande (apprentissage adaptatif), une peut Ãªtre textuelle, une peut avoir une illustration. Voir NI-6 ci-dessous.
-
-**[P2] AcademyStatsWidget â€” hero metric layout interdit**
-
-- Grille 5 colonnes `grand nombre + icÃ´ne + label`. Ces stats n'ont pas de sens pour l'enfant connectÃ©.
-- **Correction** : Message narratif de confiance pour les visiteurs non-connectÃ©s. Supprimer pour les apprenants authentifiÃ©s. Voir NI-7 ci-dessous.
-
-### Personas â€” Red Flags
-
-**Jordan (enfant de 8 ans, premier contact)**
-
-- Bouton "Valider ma rÃ©ponse" grisÃ© avec `opacity-60` â†’ un enfant pense que le bouton est cassÃ©. Pas de label explicatif du type "Choisis une rÃ©ponse d'abord".
-- L'indice (Lightbulb) est en bas du solver, souvent sous le fold sur mobile â€” l'enfant ne le trouvera pas.
-- Label "Mode IA âœ¨" dans le gÃ©nÃ©rateur : jargon adulte. Un enfant de 8 ans lit "I" "A" sans comprendre.
-- Badge "RÃ©vision" en mode spaced-review : aucune explication de ce que Ã§a signifie.
-
-**Sam (profil TSA/TDAH, sensible aux stimuli)**
-
-- Sweep effect `::before` sur les cartes QCM dÃ©clenche un mouvement au survol _pendant la rÃ©flexion_. `prefers-reduced-motion` le supprime mais seulement si l'utilisateur l'a activÃ© au niveau OS.
-- `bg-card/90 backdrop-blur-xl` du SolverFocusBoard + bordure violette animÃ©e = deux stimuli simultanÃ©s pendant la rÃ©solution. Exactement ce que le dÃ©bat NI a identifiÃ©.
-- Changement `border-color` au survol des cartes QCM pendant que l'enfant lit le choix â€” collision lecture / feedback visuel.
-
-**Parent/Enseignant (dashboard, outil adulte)**
-
-- Dashboard Overview : 5 widgets simultanÃ©ment visibles sans priorisation claire. Pas de lecture Ã©vidente de "par oÃ¹ commencer".
-- `DashboardLastUpdate` affiche "il y a 3h" sans contexte de quoi a Ã©tÃ© mis Ã  jour.
-- `ExportButton` dans l'en-tÃªte Ã  droite â€” invisible sur mobile sans scroll.
+- Cible: enfant ou adolescent apprenant, parfois accompagne d'un parent, avec besoin fort de clarte et de reassurance.
+- Contexte: usage mobile, tablette ou desktop, a la maison ou en revision autonome.
+- Objectif utilisateur: commencer rapidement, pratiquer sans friction, sentir qu'il progresse.
+- Objectif business / integration: activer tot, faire revenir souvent, rendre la progression lisible sans stress.
+- Maturite percue: produit serieux et pertinent sur le fond EdTech, mais encore inegal sur la finition systemique.
 
 ---
 
-## Plan d'action consolidÃ© (post-critique)
+## 5. Diagnostic global
 
-> DÃ©cisions issues des rÃ©ponses Ã  la session critique :
->
-> - Q1 rÃ©ponse C : NI-1/NI-2/NI-3 (couche apprenant) ET quick wins visuels en parallÃ¨le, dans des commits sÃ©parÃ©s
-> - Q2 rÃ©ponse B : Dashboard hors scope â€” prÃ©server tel quel jusqu'Ã  la future page parent/enseignant
-> - Q3 rÃ©ponse A : Page d'accueil Ã  traiter (vitrine externe prioritaire)
+### 5.1 Verdict anti-patterns et "AI slop"
 
-Les lots NI-1 Ã  NI-5 du plan original restent inchangÃ©s. Les lots suivants s'y ajoutent :
+Verdict: `Fail` au niveau systeme, `Pass` local sur certaines surfaces educatives.
 
-### NI-6 â€” Refonte section features page d'accueil
+Nuance importante:
 
-**PrioritÃ©** : P2 | **Effort** : S (3-4h)
+- ce verdict ne condamne pas les surfaces purement gamification, puisque leur niveau d'expressivite est assume par la strategie produit
+- ce verdict sanctionne surtout le fait que des signaux visuels generiques ou artificiels restent portes par la couche partagee et reapparaissent dans des surfaces mixtes ou semi-educatives
 
-- Casser la grille `grid-cols-2 lg:grid-cols-4` uniforme dans `app/page.tsx`
-- Traitement asymÃ©trique : 1 feature grande (apprentissage adaptatif), 2-3 features secondaires Ã  poids rÃ©duit
-- Supprimer les `rounded-full bg-primary/10` icon-containers au-dessus de chaque titre
-- Supprimer `AcademyStatsWidget` pour les utilisateurs authentifiÃ©s ; conserver uniquement pour les visiteurs non-connectÃ©s avec un message narratif (pas de grille de chiffres bruts)
-- Contrainte : zÃ©ro changement aux composants globaux `Card`, `Button`
+Preuves principales:
 
-### NI-7 â€” Suppression du sweep effect global
+- glassmorphism shared UI dans `frontend/app/globals.css`
+- carte "spatial depth" avec lift et sweep dans `frontend/app/globals.css`
+- CTA glow dans `frontend/app/globals.css`
+- gradient text sur le niveau dans `frontend/components/dashboard/LevelIndicator.tsx`
+- suggestions IA cliches dans `frontend/components/shared/AIGeneratorBase.tsx`
+- styles hardcodes violets sur le solveur de defi dans `frontend/components/challenges/ChallengeSolver.tsx`
 
-**PrioritÃ©** : P1 | **Effort** : XS (1h)
+Contrepoids reel:
 
-- Dans `globals.css` : retirer les blocs `button:not(:disabled)::after` et `[data-slot="card"]::before` (sweep effect)
-- CrÃ©er classe utilitaire `.hover-sweep` opt-in avec le mÃªme CSS
-- Appliquer `.hover-sweep` uniquement sur les surfaces marketing oÃ¹ l'effet a du sens (cards de la page d'accueil si conservÃ©es)
-- Contrainte : ne pas toucher `button:not(:disabled):hover { transform: translateY(-2px) }` dans un premier temps â€” problÃ¨me sÃ©parÃ©, effort sÃ©parÃ©
+- `frontend/app/home-learner/page.tsx` est sensiblement plus calme, plus lineaire, plus coherent avec la cible
+- `LearnerLayout` et `LearnerCard` reinstaurent une vraie grammaire "apprentissage d'abord"
 
-### NI-8 â€” Microcopy bouton Valider (affordance)
+### 5.2 Scores de synthese
 
-**PrioritÃ©** : P2 | **Effort** : XS (30min)
+- Score UI: `6/10`
+- Score UX: `6/10`
+- Score Learning Fit: `6/10`
+- Score A11y: `5/10`
+- Score Product Integration Fit: `7/10`
 
-- Ajouter un label `aria-describedby` ou tooltip visible sous le bouton grisÃ© dans `ExerciseSolverChoices.tsx` : "SÃ©lectionne une rÃ©ponse pour continuer"
-- Cible : Jordan (8 ans) qui interprÃ¨te le grisÃ© comme un bug
+### 5.3 Conclusion courte
 
----
+Le produit est bon sur l'intention pedagogique et sur certaines boucles de feedback.
+Il reste penalise par:
 
-## Critique UX terrain â€” 2026-04-04
-
-> Audit conduit aprÃ¨s la session FFI (NI-1 Ã  NI-8 complÃ©tÃ©s).
-> PÃ©rimÃ¨tre Ã©largi : homepage, dashboard, badges, classement, solvers, ExerciseModal.
-> Score Nielsen : **23/40 â€” Acceptable avec lacunes significatives.**
-> Mode d'Ã©valuation : posture neutre, faits vÃ©rifiÃ©s dans le code avant toute conclusion.
-
-### Corrections apportÃ©es au rapport brut avant documentation
-
-Quatre points du rapport ont Ã©tÃ© contestÃ©s et vÃ©rifiÃ©s dans le code :
-
-| Point                                             | Verdict                 | Preuve code                                                                                                                                                                                      |
-| ------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| "ExerciseModal se ferme aprÃ¨s 3s"                | âŒ Inexact              | `setTimeout(3000)` appelle `onExerciseCompleted?.()` ; dans `exercises/page.tsx` ce callback invalide des queries sans fermer la modal                                                           |
-| "`jedi_rank` dans le DOM"                         | âš ï¸ SurestimÃ©        | `jedi_rank` est une prop TypeScript `@deprecated` dans `LevelIndicator.tsx` â€” dette interne non visible Ã  l'utilisateur                                                                       |
-| "Activer `success-pulse`/`error-shake` est mieux" | âš ï¸ Opinion, pas fait | Les keyframes existent et sont inactifs â€” c'est prouvÃ©. Mais les activer sur surface apprenant peut introduire du bruit post-rÃ©flexion (Mayer, 2009 â€” extraneous load). DÃ©cision ouverte. |
-| "Pas de feedback immÃ©diat Valider = P1"          | âš ï¸ Sur-sÃ©vÃ©risÃ©   | Le bouton passe en `disabled` + `Loader2` via `isSubmitting` ; la latence dÃ©pend du cycle React/rÃ©seau. ReclassÃ© P2.                                                                          |
-
-### Heuristiques Nielsen â€” Score terrain
-
-| #         | Heuristique                        | Score     | Finding principal                                                                                                                                                                                                                  |
-| --------- | ---------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1         | VisibilitÃ© du statut systÃ¨me     | **3**     | Spinner + texte sur loading âœ“. Sur mobile lent : dÃ©lai perceptible entre clic Valider et dÃ©clenchement du `Loader2` (`isSubmitting` non immÃ©diat au clic).                                                                    |
-| 2         | Correspondance monde rÃ©el         | **2**     | "session entrelacÃ©e", "spaced-review", "Mode IA âœ¨" â€” jargon adulte sur interface enfant. Badge "RÃ©vision" sans explication.                                                                                                  |
-| 3         | ContrÃ´le utilisateur              | **3**     | Back links prÃ©sents. `handleClose` bloquÃ© pendant `isSubmitting`. `ExerciseModal` : le timeout 3s dÃ©clenche `onExerciseCompleted` (invalidation queries), la modal ne se ferme pas automatiquement â€” comportement acceptable. |
-| 4         | CohÃ©rence et standards            | **2**     | `error-shake` et `success-pulse` dÃ©finis en CSS mais jamais appliquÃ©s. Deux boutons "Retour aux dÃ©fis" dans ChallengeSolver (haut + bas). `border-2` sur feedback erreur exercice vs `border` sur feedback succÃ¨s.             |
-| 5         | PrÃ©vention des erreurs            | **3**     | Bouton Valider grisÃ© + microcopy NI-8 âœ“. `tabIndex` QCM âœ“. Enter vide en open-answer passe silencieusement â€” Ã  corriger.                                                                                                   |
-| 6         | Reconnaissance plutÃ´t que rappel  | **2**     | Bouton "Voir un indice" sous le fold mobile dans ~80% des cas (4 boutons QCM `py-6` â‰ˆ 300px + Valider + microcopy avant l'indice). Navigation : 7 items sans prioritÃ© claire pour un enfant.                                    |
-| 7         | FlexibilitÃ© et efficacitÃ©        | **2**     | Navigation clavier QCM âœ“. ZÃ©ro raccourci documentÃ©. Dashboard : 16 widgets potentiels, pas de priorisation de lecture. ExportButton invisible mobile.                                                                          |
-| 8         | Design esthÃ©tique et minimaliste  | **2**     | Dashboard : 5 widgets simultanÃ©s sans hiÃ©rarchie de lecture. ChallengeSolver : deux blocs "Retour aux dÃ©fis" redondants. `AcademyStatsWidget` : `backdrop-blur-md` dans skeleton ET rendu final (hors NI).                      |
-| 9         | Aide Ã  la rÃ©cupÃ©ration d'erreur | **3**     | Toast errors clairs âœ“. `GrowthMindsetHint` sur mauvaise rÃ©ponse âœ“. `role="alert" aria-live="assertive"` sur les error states âœ“.                                                                                             |
-| 10        | Aide et documentation              | **1**     | Aucune aide contextuelle pendant la rÃ©solution pour un enfant. Pas d'explication "dÃ©fi logique" vs "exercice". Pas d'onboarding. Tooltip HelpCircle sur "Mode IA" = seule aide visible.                                          |
-| **Total** |                                    | **23/40** | **Acceptable â€” dette UX significative pour l'audience enfant**                                                                                                                                                                   |
-
-### Anti-patterns â€” Ã‰tat au 2026-04-04
-
-| Tell AI Slop                                 | Ã‰tat                         | DÃ©tail                                                                                                                        |
-| -------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Violet `#7c3aed` + fond `#0a0a0f`            | âš ï¸ AttÃ©nuÃ©               | ThÃ¨me spatial = palette AI 2024. SauvÃ© par 6 autres thÃ¨mes, mais premier contact encore reconnaissable.                     |
-| Glassmorphism systÃ©matique                  | âœ… CorrigÃ© dans learner     | `AcademyStatsWidget` conserve `backdrop-blur-md` dans skeleton ET rendu normal â€” hors scope NI mais visible en homepage.     |
-| Hero metric layout                           | âœ… SupprimÃ© pour connectÃ©s | Widget conditionnÃ© `!isAuthLoading && !isAuthenticated`. Le widget lui-mÃªme reste hero-metric pour les non-connectÃ©s.       |
-| `rounded-full bg-primary/10` icon-containers | âœ… SupprimÃ© homepage        | Subsiste dans `AcademyStatsWidget` (icÃ´nes stats), `StreakWidget`, `LeaderboardWidget`.                                       |
-| Identical card grid Ã—4                      | âœ… CassÃ© homepage           | Features asymÃ©trique. Listes exercices/dÃ©fis conservent la grille uniforme.                                                  |
-| Sweep effect global                          | âœ… NeutralisÃ© learner       | `translateY(-2px)` reste actif hors `[data-learner-context]`. Dashboard, badges, classement : tous les boutons lÃ¨vent encore. |
-| `error-shake` + `success-pulse`              | âŒ DÃ©finis, jamais utilisÃ©s | CSS mort. DÃ©cision d'activation = choix design ouvert (voir NI-9).                                                            |
-
-### Personas â€” Red Flags terrain
-
-**Jordan (enfant 8-10 ans)**
-
-- Homepage : "Apprendre sÃ©rieusement, sans perdre le plaisir" â€” trop long, prÃ©suppose que l'apprentissage est douloureux pour l'audience cible.
-| U4  | Liste exercices             | ~~4 dropdowns visibles emblée (surcharge choix Schwartz 2004)~~ — **RESOLU 2026-03-30** : progressive disclosure, 1 champ + bouton Plus de filtres, resume etat ordre/masques       | ~~P2~~      |
-- Feedback succÃ¨s : `CheckCircle2` vert + `GrowthMindsetHint`. Correct mais purement chromatique â€” aucun signal positif fort pour un enfant qui vient de rÃ©ussir.
-- Indice : sous le fold mobile. L'enfant bloquÃ© abandonne sans savoir qu'une aide existe.
-- Dashboard tabs : "Vue d'ensemble, Recommandations, Progression, Mon Profil" â€” vocabulaire adulte sans sens pour un enfant de 8 ans.
-- âš ï¸ **Risque d'abandon Ã©levÃ© au 3e exercice.**
-
-**Sam (profil TSA/TDAH)**
-
-- ThÃ¨me Spatial par dÃ©faut : palette Ã©motionnellement neutre/froide. Fond quasi-noir + violet â€” certains profils TSA associent cette palette Ã  de l'anxiÃ©tÃ© (Ludlow, 2012).
-- Zone de rÃ©solution avec `data-learner-context` : correctement neutre. âœ…
-- Header de navigation toujours visible pendant la rÃ©solution : 7 liens + icÃ´nes = fond de distracteurs constants.
-- `badge-card-earned-compact:hover` : transition `max-height 0.3s ease` dans `@media (hover: hover)` **sans** protection `prefers-reduced-motion` â€” bug accessibilitÃ© prouvÃ© dans le code.
-- `ChallengeSolver` : les visualisations interactives (`ChallengeVisualRenderer`) peuvent dÃ©clencher des rendus complexes. Aucune option de simplification visuelle.
-- âš ï¸ **Le flux apprenant est protÃ©gÃ©. Le reste de l'interface ne l'est pas.**
-
-**Parent/Enseignant**
-
-- StatsCards dashboard : toutes au mÃªme poids visuel, hiÃ©rarchie "qu'est-ce qui compte le plus" inexistante.
-- `DashboardLastUpdate` : "il y a 3h" sans contexte de quoi a Ã©tÃ© mis Ã  jour.
-- `ExportButton` invisible mobile.
-- Aucune vue "mes Ã©lÃ¨ves / mon enfant" â€” chemin inexistant.
-- âš ï¸ **Dashboard = outil adulte non finalisÃ©, pas encore outil parent/enseignant.**
+- un cold start encore trop couteux
+- des compromis de decouverte encore instables sur la page defis
+- une frontiere education / gamification pas encore assez enforcee par le design system
+- un socle tactile et A11y en dessous du niveau attendu pour la cible
 
 ---
 
-## Plan d'action â€” NI-9 Ã  NI-13
+## 6. Audit technique `/20`
 
-> Lots issus de l'audit terrain 2026-04-04. ComplÃ¨tent NI-1 Ã  NI-8.
+| Dimension | Score /4 | Probleme principal |
+| --- | ---: | --- |
+| Accessibilite | 2 | Cibles tactiles sous 44x44 sur plusieurs primitives, couverture A11y automatisee absente |
+| Performance percue et technique front | 2 | Systeme global de blur/lift/animation trop large, plus un `setState` synchrone dans un effect |
+| Responsive / touch-first | 2 | Primitives trop compactes, widget defis en 3 colonnes fixes, toolbar IA serree |
+| Theming / coherence des tokens / contraste | 3 | Base de tokens solide, mais plusieurs couleurs et traitements restent hardcodes |
+| Anti-patterns UI | 2 | Les effets "AI-ish" restent visibles dans la couche commune meme si l'overdrive gamification est assume |
+| **Total** | **11/20** | **Acceptable** |
 
-### NI-9 â€” Feedback post-rÃ©ponse : dÃ©cision animations `success-pulse` / `error-shake`
+Rating:
 
-**PrioritÃ©** : P2 | **Effort** : XS | **Statut** : Ã€ faire
+- `11/20` = `Acceptable`
 
-Les keyframes `success-pulse` et `error-shake` sont dÃ©finis dans `globals.css` mais jamais appliquÃ©s.
+Lecture:
 
-DÃ©cision de design documentÃ©e :
-
-- Activer sur surface apprenant = risque d'extraneous load post-rÃ©flexion (Mayer, 2009). Ã€ Ã©valuer.
-- Activer uniquement si `!shouldReduceMotion` et avec durÃ©e courte (â‰¤ 400ms) pour limiter la distraction.
-- Alternative : signal non-cinÃ©tique (couleur + icÃ´ne + son optionnel).
-
-**Scope** : `ExerciseSolverFeedback`, feedback ChallengeSolver.
-**DÃ©cision Ã  prendre** : activer `success-pulse` (scale 1â†’1.03â†’1, 300ms) + `error-shake` (translateX Â±4px, 300ms) sous garde `shouldReduceMotion`.
-
-### NI-10 â€” Indice sous le fold mobile : remonter avant les choix
-
-**PrioritÃ©** : P2 | **Effort** : S | **Statut** : Ã€ faire
-
-Le bouton "Voir un indice" est rendu aprÃ¨s les choix QCM et le bouton Valider. Sur mobile 375px :
-
-- 4 boutons QCM `py-6` â‰ˆ 300px
-- Bouton Valider + microcopy â‰ˆ 80px
-- Total avant l'indice : ~380px â†’ invisible sans scroll
-
-RÃ©fÃ©rence : W3C COGA 2.2 "Provide help for complex information". Un enfant bloquÃ© ne scroll pas pour chercher de l'aide.
-
-**Fix** : DÃ©placer le bouton indice _avant_ les choix (typographie discrÃ¨te, `text-xs text-muted-foreground`, ne concurrence pas les rÃ©ponses) ou sticky en bas de la zone de rÃ©solution.
-
-**Scope** : `ExerciseSolverFeedback` layout, `ExerciseSolver` composition.
-
-### NI-11 â€” Badge hover-reveal : protection `prefers-reduced-motion` manquante
-
-**PrioritÃ©** : P2 | **Effort** : XS | **Statut** : âœ… FAIT 2026-03-30
-
-Dans `globals.css`, le bloc :
-
-```css
-@media (hover: hover) {
-  .badge-card-earned-compact .badge-card-expandable {
-    transition:
-      max-height 0.3s ease,
-      opacity 0.25s ease;
-  }
-}
-```
-
-est hors de tout `@media (prefers-reduced-motion: reduce)`. La transition `max-height` se dÃ©clenche mÃªme si l'utilisateur a activÃ© `prefers-reduced-motion` au niveau OS.
-
-RÃ©fÃ©rence WCAG 2.1 SC 2.3.3 (Animation from Interactions â€” AAA). Pour un profil TSA/TDAH avec `prefers-reduced-motion`, ce mouvement non protÃ©gÃ© est un bug d'accessibilitÃ© rÃ©el.
-
-**Fix** : Encapsuler la transition `max-height` dans `@media (prefers-reduced-motion: no-preference)`.
-
-**Scope** : `globals.css`, bloc `.badge-card-earned-compact`.
-
-### NI-12 â€” `AcademyStatsWidget` : supprimer `backdrop-blur-md`
-
-**PrioritÃ©** : P3 | **Effort** : XS | **Statut** : Ã€ faire
-
-`AcademyStatsWidget.tsx` utilise `backdrop-blur-md` dans :
-
-- Le skeleton loader (`Card className="... backdrop-blur-md"`)
-- Le rendu final (`Card className="... backdrop-blur-md"`)
-
-Ce glassmorphism subsiste aprÃ¨s NI-6 (le composant est conditionnÃ© mais non modifiÃ©). Hors `data-learner-context` mais visible en homepage pour les visiteurs non-connectÃ©s.
-
-**Fix** : Retirer `backdrop-blur-md` des deux `Card`. Remplacer par `bg-card/60` ou fond solide.
-
-**Scope** : `AcademyStatsWidget.tsx`.
-
-### NI-13 â€” Dashboard : vue simplifiÃ©e conditionnelle au rÃ´le
-
-**PrioritÃ©** : P1 | **Effort** : M | **Statut** : Ã€ planifier
-
-Le dashboard prÃ©sente la mÃªme interface au rÃ´le `student` (enfant de 8 ans) et au rÃ´le parent/admin. L'enfant connectÃ© voit : 5 onglets, 16 widgets, graphiques d'axes temporels, bouton export.
-
-C'est la surface la plus visitÃ©e aprÃ¨s la rÃ©solution â€” et la plus mal adaptÃ©e Ã  l'audience principale.
-
-**Fix court terme** : Conditionner l'affichage dans `dashboard/page.tsx` au rÃ´le utilisateur :
-
-- RÃ´le `student` : streak, niveau, bouton "Commencer un exercice", sans onglets Progression / Mon Profil / graphiques.
-- RÃ´le parent/admin : vue actuelle inchangÃ©e.
-
-**Fix long terme** : NI-4 (page apprenant sÃ©parÃ©e).
-
-**Scope** : `app/dashboard/page.tsx`, hooks `useAuth` pour rÃ´le.
+- la base n'est pas mauvaise
+- mais elle n'est pas encore assez stable ni assez propre pour une experience EdTech vraiment haut de gamme
 
 ---
 
-## Mise Ã  jour vÃ©ritÃ© code â€” 2026-04-03
+## 7. Heuristiques UX `/40`
 
-Ce document conserve le dÃ©bat et le plan d'origine. Le bloc ci-dessous reflÃ¨te la rÃ©alitÃ©
-du code relu au 2026-04-03 dans le worktree local.
+| # | Heuristique | Score /4 | Probleme principal |
+| --- | --- | ---: | --- |
+| 1 | Visibilite de l'etat du systeme | 3 | Bons loaders et skeletons, mais onboarding sans progression explicite |
+| 2 | Correspondance systeme / monde reel | 3 | Microcopy globalement simple, mais certains codes visuels restent trop "produit" pour un enfant |
+| 3 | Controle et liberte | 2 | Onboarding sans vraie echappatoire ni relache du tunnel |
+| 4 | Coherence et standards | 2 | Bonne intention de separation, enforcement encore imparfait en shared UI |
+| 5 | Prevention des erreurs | 3 | Garde-fous corrects, prevention faible de la surcharge decisionnelle |
+| 6 | Reconnaissance plutot que rappel | 3 | CTA et reperes visibles, mais le cout de decouverte des defis reste trop eleve |
+| 7 | Flexibilite et efficacite | 1 | Peu d'accelerateurs, peu de fast path expert, compromis encore couteux |
+| 8 | Design esthetique et minimaliste | 2 | Tres correct sur les surfaces calmes, faible sur les surfaces mixtes |
+| 9 | Diagnostic et recuperation d'erreur | 2 | Fallbacks presents mais parfois generiques; global error hors systeme |
+| 10 | Aide et documentation | 2 | Hints et docs existent, mais l'aide contextuelle manque aux moments d'hesitation |
+| **Total** |  | **23/40** | **Acceptable** |
 
-**LÃ©gende**
+Rating:
 
-- âœ… ImplÃ©mentÃ© localement et relu dans le code
-- â³ Ã€ faire ou non confirmÃ© dans le code actuel
-- ðŸ’¤ Backlog assumÃ©
-
-**ConfirmÃ© dans le code**
-
-- `NI-1` : `LearnerCard` et `LearnerLayout` existent et sont bien rÃ©servÃ©s au flux apprenant.
-- `NI-2` : le token `--bg-learner` est bien portÃ© par thÃ¨me et consommÃ© par la couche apprenant.
-- `NI-3` : l'intÃ©gration exercise/challenge est en place ; le dÃ©fi a retrouvÃ© une largeur cohÃ©rente (`5xl`) et le `tabIndex` clavier du QCM est alignÃ© sur le solver exercice.
-- `NI-6` : la section features de la home a Ã©tÃ© refondue ; `AcademyStatsWidget` n'apparaÃ®t plus pour les utilisateurs authentifiÃ©s et est gardÃ© derriÃ¨re `!isAuthLoading && !isAuthenticated`.
-- `NI-7` : le sweep global est passÃ© en opt-in `.hover-sweep`, puis le lift/glow global des boutons et cards a Ã©tÃ© neutralisÃ© dans `[data-learner-context]`.
-- `NI-8` : la microcopy d'affordance sous le bouton Valider est prÃ©sente dans `ExerciseSolver`, `ExerciseModal` et `ChallengeSolver` via `aria-describedby` + texte visible.
-
-**Toujours ouverts**
-
-- `NI-5` : l'opt-in `flat` sur `<Card>` n'est pas encore livrÃ©.
-- `NI-4` : la page apprenant dÃ©diÃ©e reste un backlog produit, pas un quick win.
+- `23/40` = `Acceptable`
 
 ---
 
-## Mise Ã  jour vÃ©ritÃ© code â€” 2026-04-04 (sprint NI-4 Ã  NI-13 + correctifs Octopus)
+## 8. Learning Sciences et charge cognitive
 
-> Audit conduit et corrections appliquÃ©es dans le worktree local puis committÃ©es en lots atomiques.
-> VÃ©rification Octopus Challenge intÃ©grÃ©e â€” 4 points factuels corrigÃ©s.
+### 8.1 Analyse des 3 charges
 
-### Ce qui a Ã©tÃ© livrÃ© dans ce sprint
+#### Charge intrinseque
 
-**NI-4 â€” Page `/home-learner` apprenant** (`app/home-learner/page.tsx`)
+Niveau: `modere`
 
-- `LearnerLayout maxWidth="2xl"`, structure 100 % linÃ©aire, zÃ©ro onglets
-- Page-map chips d'ancrage (COGA 4.1.1 â€” prÃ©visibilitÃ© structurelle) : `#section-reviews`, `#section-challenges`, `#section-progress`
-- `scroll-behavior: smooth` sur `html, body` dans `globals.css` ; `scroll-mt-20` sur chaque section cible
-- `SpacedRepetitionSummaryWidget` + `StudentChallengesBoard` intÃ©grÃ©s
-- Section "RÃ©visions" toujours rendue (ancre jamais morte) : `isLoading` â†’ skeleton, `hasError` â†’ message localisÃ©, fallback `EMPTY_SPACED_REPETITION`
-- Redirection post-login `apprenant -> /home-learner` dans `useAuth.ts`
-- Nav Header : "Mon espace" pour `apprenant`, `Classement` visible dans la navigation principale, `Tableau de bord` relegue au menu profil
+Motif:
 
-**NI-5 â€” Opt-in `flat` sur `<Card>`** (`components/ui/card.tsx`)
+- l'apprentissage des mathematiques et des defis logiques demande deja un effort cognitif reel
+- ce n'est pas supprimable
+- il faut donc surtout limiter la charge parasite
 
-- Prop `flat?: boolean` ; `flat=true â†’ shadow-none` ; dÃ©faut global inchangÃ©
-- 10 visualizations challenge migrÃ©es (`VisualRenderer`, `PuzzleRenderer`, `GraphRenderer`, `DefaultRenderer`, `SequenceRenderer`, `PatternRenderer`)
+#### Charge extrinseque
 
-**NI-9 â€” Animations `success-pulse` / `error-shake`** (`globals.css` + solvers)
+Niveau: `trop eleve`
 
-- DÃ©cision prise : **activÃ©es** (post-rÃ©flexion, durÃ©e â‰¤ 600ms, iteration: 1)
-- `.feedback-success-animate` / `.feedback-error-animate` dans `globals.css`
-- `prefers-reduced-motion: reduce â†’ animation: none !important`
-- `role="status"` + `aria-live="polite"` + `aria-atomic="true"` sur les deux blocs feedback
+Sources principales:
 
-**NI-11 â€” Badge hover-reveal `prefers-reduced-motion`** (`globals.css`)
+- onboarding trop dense
+- page defis avec compromis encore couteux entre acces rapide et options
+- shared UI avec effets visuels trop demonstratifs dans certaines surfaces mixtes
+- primitives compactes qui ralentissent l'interaction sur mobile
 
-- `max-height` transition dans `@media (prefers-reduced-motion: no-preference)` uniquement
-- OpacitÃ© reste animÃ©e (pas de mouvement physique â€” conforme WCAG 2.1 SC 2.3.3)
+#### Charge germane
 
-**NI-12 â€” `AcademyStatsWidget` glassmorphism** (`AcademyStatsWidget.tsx`)
+Niveau: `partiellement bien soutenu`
 
-- `backdrop-blur-md` retirÃ© des deux `Card` (skeleton + rendu)
-- `rounded-full bg-primary/10` icon-containers supprimÃ©s â†’ icÃ´nes directes
-- `hover:scale-105` parasite supprimÃ©
+Points positifs:
 
-**NI-13 â€” Boundary dashboard enfant/adulte** (`proxy.ts` + `ProtectedRoute` + routes frontend)
+- feedback de correction constructif
+- revisions visibles et actionnables
+- progression lisible
+- ton general plutot rassurant
 
-- `proxy.ts` applique maintenant le premier niveau de boundary sur `/home-learner`, `/dashboard` et `/admin`
-- `ProtectedRoute` garde `allowedRoles` avec roles canoniques comme fallback client
-- `/dashboard` reste la surface analytique dense, mais n'est plus interdit a `apprenant`
-- `/home-learner` reste la home principale et protegee pour `apprenant`
-- `apprenant` arrive sur `/home-learner` apres login, puis peut ouvrir `/dashboard` via une entree discrete du menu profil
-- `isStudentView` et widgets apprenant retirÃ©s du dashboard (StudentChallengesBoard deplace dans `/home-learner`)
-- Dashboard adulte par defaut ; boundary partage et type au niveau route serveur + frontend, sans redirect ad hoc locale a la page
+### 8.2 Checklist charge cognitive
 
-### Correctifs Octopus Challenge (audit croisÃ© 2026-04-04)
+| Item | Verdict | Note |
+| --- | --- | --- |
+| Focus unique | Echec | correct sur les solvers, insuffisant sur onboarding et decouverte des defis |
+| Chunking | Echec | onboarding encore trop monobloc |
+| Regroupement visuel | Reussi | bon sur `Mon espace`, plus inegal ailleurs |
+| Hierarchie claire | Echec | surfaces mixtes encore en concurrence interne |
+| Une decision a la fois | Echec | onboarding et certaines zones de decouverte demandent trop d'arbitrages |
+| Nombre de choix limite | Reussi partiel | bien sur les CTA principaux, moins bon sur les surfaces d'exploration |
+| Faible dependance a la memoire de travail | Reussi | peu de memorisation cross-screen |
+| Progressive disclosure | Reussi partiel | bonne direction, compromis encore imparfait sur la page defis |
 
-| Bug Octopus                           | Verdict                     | Correction                                                                                                                                           |
-| ------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| B1 â€” A1 `prefers-reduced-motion`    | âš ï¸ Partiellement rÃ©solu | `transform: none` et `transition: none` existent dÃ©jÃ  dans le bloc reduce ; un rÃ©siduel `box-shadow` hors learner context reste mineur mais rÃ©el |
-| B2 â€” Ancre `#section-reviews` morte | âœ… CorrigÃ©                | Section toujours rendue avec `isLoading`/`hasError`                                                                                                  |
-| B3 â€” TODO role apprenant absent     | âœ… CorrigÃ©                | boundary centralise sur roles canoniques dans `ProtectedRoute`, `useAuth.ts` et `Header.tsx`                                                         |
-| Double bouton "Retour aux dÃ©fis"     | âœ… CorrigÃ©                | Bouton du bas supprimÃ© â€” lien discret haut + actions contextuelles suffisent                                                                      |
+Resultat:
 
-### Dettes rÃ©siduelles connues (non bloquantes)
+- `4 echecs sur 8`
+- Niveau de charge cognitive: `critique`
 
-| ID  | Surface                     | ProblÃ¨me                                                                                                                                                                                 | SÃ©vÃ©ritÃ© |
-| --- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| U1  | Partout                     | Jargon enfant rÃ©siduel Ã  la marge ("session entrelacÃ©e" en interne â€” UI dÃ©jÃ  neutralisÃ©e)                                                                                         | P3          |
-| U2  | Solvers                     | ~~Aucun onboarding contextuel pour un enfant pendant la resolution~~ — **RESOLU 2026-03-30** : ExerciseSolverHint inline, localStorage, solver + modal                                | ~~P2~~      |
-| U2b | Solvers                     | Hint de premiere visite irrevocable : ferme par erreur = disparu. Trajectoire : reutiliser le bouton Voir un indice comme fallback passif (affiche les etapes si jamais soumis). Lot U2 phase 2. | P3          |
-| U4  | Liste exercices             | ~~4 dropdowns visibles emblée (surcharge choix Schwartz 2004)~~ — **RESOLU 2026-03-30** : progressive disclosure, 1 champ + bouton Plus de filtres, resume etat ordre/masques       | ~~P2~~      |
-| S2  | ThÃ¨me spatial              | Palette `#7c3aed` + `#0a0a0f` = fingerprint AI 2024 â€” dÃ©cision produit requise                                                                                                         | P3          |
-| R1  | `dashboard/page.tsx`        | `SpacedRepetitionSummaryWidget` prÃ©sent dans dashboard adulte ET `/home-learner` â€” lÃ©gitime mais non documentÃ©                                                                       | P3          |
-| R2  | Boundary surface protegee   | Boundary NI-13 durci par `proxy.ts` + `ProtectedRoute`. Reserve residuelle : `access_scope` / onboarding restent enrichis via backend sur les routes protegees, pas dans le JWT lui-meme. | P3          |
-| O1  | `ExerciseSolverChoices.tsx` | `<input>` raw hors design system (dette antÃ©rieure, hors scope NI)                                                                                                                       | P3          |
+### 8.3 Lecture pedagogique
+
+L'interface aide reellement l'apprentissage quand elle:
+
+- canalise l'attention sur une seule action
+- donne un feedback immediat
+- n'humilie pas l'erreur
+- montre une progression courte et lisible
+
+Elle cesse d'aider quand elle:
+
+- fait negocier trop de choix avant la premiere valeur
+- demande d'explorer l'interface avant d'apprendre
+- reutilise un langage visuel spectaculaire dans des zones de lecture ou de reponse
 
 ---
 
-## RÃ©capitulatif consolidÃ© â€” tous les lots
+## 9. Adequation a la cible
 
-| Lot                                                            | PrioritÃ© | Effort | Scope                                            | Statut                                          |
-| -------------------------------------------------------------- | --------- | ------ | ------------------------------------------------ | ----------------------------------------------- |
-| NI-1 Composants apprenant (`LearnerCard`, `LearnerLayout`)     | P1        | S-M    | Solvers                                          | âœ… FAIT 2026-03-30                             |
-| NI-2 Token `--bg-learner` par thÃ¨me                           | P1        | S      | `globals.css`                                    | âœ… FAIT 2026-03-30                             |
-| NI-3 IntÃ©gration Solver (exercice + dÃ©fi)                    | P1        | S      | Solvers                                          | âœ… FAIT 2026-03-30                             |
-| NI-4 Page apprenant tubulaire `/home-learner`                  | P2        | M      | Nouvelle page                                    | âœ… FAIT 2026-04-04                             |
-| NI-5 Opt-in `flat` sur `<Card>`                                | P2        | XS     | Design system                                    | âœ… FAIT 2026-04-04                             |
-| NI-6 Refonte section features accueil                          | P2        | S      | `app/page.tsx`                                   | âœ… FAIT 2026-03-30                             |
-| NI-7 Suppression sweep effect global                           | P1        | XS     | `globals.css`                                    | âœ… FAIT 2026-03-30                             |
-| NI-8 Microcopy bouton Valider grisÃ©                           | P2        | XS     | Solvers / modal exercice                         | âœ… FAIT 2026-03-30                             |
-| NI-9 Animations `success-pulse` / `error-shake`                | P2        | XS     | `globals.css` + solvers                          | âœ… FAIT 2026-04-04                             |
-| NI-10 Indice sous le fold mobile                               | P2        | S      | `ExerciseSolverChoices`                          | âœ… FAIT 2026-03-30                             |
-| NI-11 Badge hover-reveal : protection `prefers-reduced-motion` | P2        | XS     | `globals.css`                                    | âœ… FAIT 2026-03-30                             |
-| NI-12 `AcademyStatsWidget` : supprimer `backdrop-blur-md`      | P3        | XS     | `AcademyStatsWidget.tsx`                         | âœ… FAIT 2026-04-04                             |
-| NI-13 Boundary dashboard enfant / adulte                       | P1        | M      | `proxy.ts` + `ProtectedRoute` + routes protegees | âœ… FAIT 2026-04-05 (boundary serveur + client) |
+### 9.1 Reponse courte
 
-**Tous les lots NI-1 Ã  NI-13 sont livrÃ©s et committÃ©s.**
-**Reserve documentee** : `NI-13` est maintenant porte par un proxy + un guard frontend partage. Le dashboard n'est plus interdit a l'apprenant ; il reste simplement de-priorise dans la navigation.
+- Cette interface est-elle adaptee a la cible precise ? `Partiellement`
+- Le ton, la densite informationnelle et les interactions correspondent-ils a son niveau ? `Oui sur certaines surfaces, non de facon uniforme`
+- Les moments de friction sont-ils tolerables ? `Pas toujours`
+- Les feedbacks renforcent-ils l'apprentissage ? `Oui, globalement oui`
 
-Dettes rÃ©siduelles : voir tableau ci-dessus. Aucune n'est bloquante pour la mise en production du flux apprenant.
+### 9.2 Lecture detaillee
 
----
+Ce qui correspond a la cible:
 
-## Lots FFI restants (post-sprint NI complet) -- 2026-03-30
+- ton rassurant
+- feedback non punitif
+- progression visible
+- `Mon espace` plus lisible et plus lineaire
 
-> Tous les lots NI-1 a NI-13 sont livres. Les lots U2, U3, U4 et S2 (FFI neuro-inclusion) sont livres.
-> Ce qui reste est classe par priorite produit.
+Ce qui correspond moins:
 
-### Lots front actionnables prochains
-
-| ID   | Surface                           | Description                                                                                | Priorite | Commande   |
-| ---- | --------------------------------- | ------------------------------------------------------------------------------------------ | -------- | ---------- |
-| U2b  | Solvers                           | Hint irrevocable : ajouter fallback passif via bouton Voir un indice (lot U2 phase 2)      | P3       | /onboard   |
-| U3   | ChallengeSolver                   | Onboarding premiere visite ChallengeSolver (reutilise useFirstVisitHint, lot separe)       | **RESOLU** | /onboard   |
-| O1   | ExerciseSolverChoices.tsx         | input raw hors design system -- dette anterieure                                           | P3       | /normalize |
-| S2   | Theme spatial (defaut)            | Palette #7c3aed + #0a0a0f = fingerprint AI 2024 -- decision produit requise                | **RESOLU** | /colorize  |
-
-### Risques produit prioritaires (hors perimetre NI)
-
-| ID | Fichier                           | Probleme                                                        | Priorite |
-| -- | --------------------------------- | --------------------------------------------------------------- | -------- |
-| SEC-1 | frontend/app/api/chat/route.ts | Routes chat sans authentification (cout OpenAI non controle) -- route proxifiee vers backend, mais le backend lui-meme n'authentifie pas non plus. Risque reel. | P1       |
-| ~~P1~~ | ~~.env.example~~              | ~~REDIS_URL absente~~ -- documente et code guard existant (config.py). Faux positif partiel : la ligne est commentee dans .env.example avec instructions. | **RESOLU** |
-| RD | dashboard parent                  | Tableau de bord parent minimal -- premiere brique payante        | Backlog  |
-
+- onboarding trop exigeant trop tot
+- primitives encore trop petites pour tablette / mobile
+- decouverte des defis encore couteuse en clics et en arbitrage
+- shared UI qui laisse encore entrer des signaux trop "produit demonstratif"
 
 ---
 
-## Audit FFI -- bilan challenge 2026-03-30
+## 10. Integration produit
 
-> Relecture systematique post-sprint. Chaque item verifie dans le code reel.
+### 10.1 Ce que l'interface soutient bien
 
-### Lots livres -- confirmes RESOLU
+- retention via revisions
+- progression pedagogique via feedback et niveau
+- engagement via routines et challenge board
+- sentiment de progression visible
 
-| ID  | Lot                              | Preuve runtime                                                                |
-| --- | -------------------------------- | ----------------------------------------------------------------------------- |
-| U2  | Jargon + onboarding ExerciseSolver | ExerciseSolverHint.tsx + hook useFirstVisitHint + cles exerciseSolverHintSeen |
-| U3  | Onboarding ChallengeSolver       | ChallengeSolverHint.tsx + cle challengeSolverHintSeen + 8 tests verts     |
-| U4  | Filtres progressifs exercises    | ContentListProgressiveFilterToolbar.tsx + badge + resume etat actif         |
-| S2  | Theme spatial diurne             | globals.css -- fond #f0f4ff, primary #1e40af, accent amber #d97706          |
+### 10.2 Ce qu'elle soutient moins bien
 
-### Faux positifs confirmes
+- onboarding / activation initiale
+- passage inscription -> premiere valeur
+- decouverte recurrente efficace des defis
+- coherence de promesse entre neuro-inclusion affichee et shared UI effectivement calme
 
-| ID  | Item                  | Verdict                                                                                                                     |
-| --- | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| ENV-1 | REDIS_URL manquante | **Faux positif** : .env.example contient la doc + instructions TLS. config.py:_validate_production_settings() leve ValueError si absent en prod. Aucun crash silencieux possible. |
+### 10.3 Ruptures UX detectees
 
-### Dettes residuelles reelles -- non bloquantes prod
+- l'onboarding demande trop avant d'apporter une recompense
+- la page defis reste un compromis encore couteux
+- la frontiere education / gamification n'est pas encore assez outillee techniquement
 
-| ID  | Surface                       | Nature                                                               | Priorite |
-| --- | ----------------------------- | -------------------------------------------------------------------- | -------- |
-| U2b | Solvers (hint)                | Hint irrevocable : pas de re-acces une fois dismiss. Dette produit assumee. | P3  |
-| O1  | ExerciseSolverChoices.tsx   | <input> raw (non-shadcn) -- classes Tailwind custom, fonctionnel mais hors design system | P3 |
+### 10.4 Gamification decorative vs utile
 
-### Risque actif -- bloquant prod
+Gamification utile:
 
-| ID    | Fichier                          | Probleme reel                                                         | Priorite |
-| ----- | -------------------------------- | --------------------------------------------------------------------- | -------- |
-| SEC-1 | rontend/app/api/chat/route.ts | Route POST /api/chat sans auth. Proxifiee vers backend. Backend non authentifie non plus. Cout OpenAI non controle. | **P1** |
+- progression visible
+- streak
+- revisions priorisees
+- challenge board si bien borne au contexte
 
-**Action requise SEC-1** : avant push prod, ajouter verification JWT dans la route Next.js /api/chat/route.ts (lire cookie ccess_token, valider signature, rejeter 401 si absent/expiré).
+Gamification decorative ou risquee:
 
-### Backlog produit
+- tout effet shared UI qui fuit vers les surfaces educatives
+- tout code visuel fort qui concurrence une phase de lecture ou de reponse
 
-| ID | Description                                  | Priorite |
-| -- | -------------------------------------------- | -------- |
-| RD | Tableau de bord parent minimal -- 1ere brique payante | Backlog |
+---
+
+## 11. Forces reelles a preserver
+
+- `frontend/app/home-learner/page.tsx` est la surface la plus convaincante du perimetre
+- le ton pedagogique reste majoritairement juste et non punitif
+- la boucle feedback -> tentative -> explication -> progression existe reellement
+- le design system theming et l'architecture front ne sont pas improvises
+- la decision produit de separer education et gamification est saine et doit etre consolidee, pas abandonnee
+
+---
+
+## 12. Faiblesses ouvertes prioritaires
+
+### [P1] Cold start encore trop couteux
+
+- **Probleme exact**
+  - l'onboarding demande trop d'informations avant d'apporter une premiere valeur
+  - reference: `frontend/app/onboarding/page.tsx:95-227`
+- **Pourquoi c'est un probleme pour cette cible**
+  - enfant hesitant ou parent presse doit remplir plusieurs decisions avant de comprendre le benefice
+- **Risque pedagogique / produit**
+  - abandon avant premiere pratique
+  - baisse d'activation
+- **Recommandation concrete**
+  - reduire l'onboarding initial a 1-2 decisions essentielles
+  - decaler objectif et rythme apres la premiere pratique ou apres le diagnostic
+
+### [P1] Decouverte des defis: compromis encore insuffisamment efficace
+
+- **Probleme exact**
+  - la page a deja ete epuree, mais l'acces aux filtres et options reste encore trop couteux pour certains usages
+  - references:
+    - `frontend/app/challenges/page.tsx:167-209`
+    - `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx`
+- **Pourquoi c'est un probleme pour cette cible**
+  - le cout de clic et d'exploration reste sensible pour retrouver rapidement un contenu pertinent
+- **Risque pedagogique / produit**
+  - friction sur la decouverte recurrente
+  - fatigue d'usage
+- **Recommandation concrete**
+  - viser un compromis "good enough"
+  - une action principale immediate
+  - un acces aux filtres avances en une seule ouverture
+  - pas de retour a un header surcharge
+
+### [P1] Frontiere education / gamification encore trop dependante de la discipline humaine
+
+- **Probleme exact**
+  - la regle produit est bonne, mais la couche commune continue de porter des effets visuels trop demonstratifs
+  - references:
+    - `frontend/app/globals.css:1793-1838`
+    - `frontend/app/globals.css:1977-2017`
+    - `frontend/app/globals.css:2066-2114`
+- **Pourquoi c'est un probleme pour cette cible**
+  - si la frontiere n'est pas techniquement outillee, l'overdrive fuit vers les surfaces mixtes
+- **Risque pedagogique / produit**
+  - dilution de la promesse neuro-inclusive
+  - perception de produit composite
+- **Recommandation concrete**
+  - definir et enforced 3 contextes:
+    - `Education Core`
+    - `Hybrid`
+    - `Gamification Shell`
+
+### [P1] Socle tactile et A11y insuffisant
+
+- **Probleme exact**
+  - tailles de controles trop petites sur plusieurs primitives
+  - references:
+    - `frontend/components/ui/button.tsx:21-27`
+    - `frontend/components/ui/select.tsx:33-35`
+    - `frontend/components/ui/switch.tsx:13-23`
+    - `frontend/components/shared/AIGeneratorBase.tsx:151-185`
+- **Pourquoi c'est un probleme pour cette cible**
+  - usage mobile / tablette, motricite variable, fatigue visuelle
+- **Risque pedagogique / produit**
+  - erreurs de tap
+  - lenteur percue
+  - frustration mobile
+- **Recommandation concrete**
+  - imposer un minimum 44x44 sur toutes les primitives interactives
+  - revalider les toolbars compactes
+
+### [P2] Fallbacks et resilience encore inegaux
+
+- **Probleme exact**
+  - certains fallbacks sont corrects localement, mais `global-error` sort completement du design system
+  - reference: `frontend/app/global-error.tsx:17-35`
+- **Pourquoi c'est un probleme pour cette cible**
+  - en cas de rupture, le produit perd sa tonalite rassurante
+- **Risque pedagogique / produit**
+  - perte de confiance
+  - stress
+- **Recommandation concrete**
+  - realigner `global-error`
+  - ajouter des error boundaries localisees sur les surfaces critiques
+
+### [P2] Dette performance et motion dans la couche commune
+
+- **Probleme exact**
+  - transitions et effets globaux trop larges
+  - warning React/perf dans `frontend/lib/hooks/useCountUp.ts:33-64`
+- **Pourquoi c'est un probleme pour cette cible**
+  - jank et bruit visuel sur appareils modestes
+- **Risque pedagogique / produit**
+  - perte de calme
+  - baisse de fluidite
+- **Recommandation concrete**
+  - budget motion par contexte
+  - correction des warnings React significatifs
+
+### [P2] Generateur IA encore trop ambitieux visuellement et ergonomiquement dans le contexte de decouverte
+
+- **Probleme exact**
+  - suggestions narratives cliches + toolbar compacte dense
+  - reference: `frontend/components/shared/AIGeneratorBase.tsx:31-37`, `141-254`
+- **Pourquoi c'est un probleme pour cette cible**
+  - l'outil parait plus demonstratif que guidant
+- **Risque pedagogique / produit**
+  - decouragement ou dispersion
+- **Recommandation concrete**
+  - replier davantage le generateur
+  - reduire le bruit des suggestions
+  - restaurer un vrai second niveau d'usage
+
+### [P3] Some visual hardcodes still bypass tokens
+
+- **Probleme exact**
+  - certains styles utilisent encore des violets ou tons fixes
+  - reference: `frontend/components/challenges/ChallengeSolver.tsx:376-383`
+- **Pourquoi c'est un probleme**
+  - coherence theming moins fiable
+- **Risque**
+  - rendu moins propre sur certains themes
+- **Recommandation concrete**
+  - passer ces styles par tokens semantiques
+
+### [P3] Absence de preuve A11y automatisee
+
+- **Probleme exact**
+  - aucun test Axe detecte
+- **Pourquoi c'est un probleme**
+  - le niveau A11y ne peut pas etre defendu de facon fiable dans la duree
+- **Risque**
+  - regressions silencieuses
+- **Recommandation concrete**
+  - ajouter une couverture minimale Axe sur onboarding, `Mon espace`, page defis et solveurs
+
+---
+
+## 13. Persona red flags
+
+### Jordan - first-timer
+
+- casse sur l'onboarding trop dense
+- ne comprend pas pourquoi il doit fournir autant avant de pratiquer
+- risque d'interpreter certaines zones grisees ou compactes comme des bugs
+
+### Casey - mobile distrait
+
+- casse sur la taille de plusieurs controles
+- paie trop cher l'acces aux options utiles sur la page defis
+- supporte mal les toolbars compactes quand l'attention est basse
+
+### Sam - accessibilite dependante
+
+- beneficie de plusieurs bonnes intentions de structure
+- mais reste penalise par la taille des cibles, l'absence de preuve Axe et les effets partages trop larges
+
+### Riley - stress tester
+
+- verra immediatement que la separation education / gamification existe en intention
+- mais que la couche commune n'interdit pas encore assez les fuites entre contextes
+
+---
+
+## 14. Plan de priorites d'implementation
+
+## Priorite 1 - Activation, acces direct et socle tactile
+
+### 14.1 Chantier A - Simplifier l'onboarding de premiere valeur
+
+**Objectif**
+
+Reduire la friction avant premiere pratique.
+
+**Resultat attendu**
+
+L'utilisateur comprend en moins de 10 secondes:
+
+- ce qu'il doit faire
+- pourquoi on lui demande une information
+- ce qu'il obtient juste apres
+
+**Implementation cible**
+
+1. Redefinir le parcours:
+   - etape 1: classe / systeme scolaire
+   - etape 2: go diagnostic ou go premiere pratique
+2. Deplacer `learningGoal` et `practiceRhythm` dans un moment ulterieur:
+   - apres premiere pratique
+   - ou dans le profil
+3. Ajouter une trace de progression visible:
+   - titre d'etape
+   - phrase de reassurance
+   - resultat immediat attendu
+4. Ajouter un message de valeur avant soumission:
+   - "on adapte tes premiers exercices"
+
+**Fichiers probables**
+
+- `frontend/app/onboarding/page.tsx`
+- `frontend/messages/fr.json`
+- `frontend/messages/en.json`
+
+**Criteres d'acceptation**
+
+- maximum 2 decisions obligatoires avant la premiere valeur
+- aucun champ secondaire ne bloque l'entree dans le produit
+- feedback explicite apres validation
+
+### 14.2 Chantier B - Stabiliser le compromis de la page defis
+
+**Objectif**
+
+Obtenir une page defis efficace, sans viser un ideal impossible.
+
+**Resultat attendu**
+
+L'utilisateur peut:
+
+- lancer un defi vite
+- ouvrir les filtres avances sans friction excessive
+- comprendre la logique de la page sans surcharge
+
+**Implementation cible**
+
+1. Confirmer un fast path principal:
+   - un contenu recommande
+   - ou une action principale unique
+2. Garder les filtres avances accessibles en une seule ouverture
+3. Eviter tout doublonnage entre:
+   - type chips
+   - toolbar
+   - AI generator
+   - liste
+4. Replier davantage le generateur IA si besoin
+5. Mesurer la page sur un critere pragmatique:
+   - nombre d'actions pour atteindre un filtre utile
+   - nombre d'actions pour lancer un defi
+
+**Fichiers probables**
+
+- `frontend/app/challenges/page.tsx`
+- `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx`
+- `frontend/components/challenges/AIGenerator.tsx`
+- `frontend/components/shared/AIGeneratorBase.tsx`
+
+**Criteres d'acceptation**
+
+- acces aux options utiles en une seule ouverture de panneau maximum
+- page lisible sans avoir a comprendre toute la toolbox
+- pas de retour a une densite type cockpit
+
+### 14.3 Chantier C - Elever les primitives a 44x44 minimum
+
+**Objectif**
+
+Rendre le socle tactile compatible avec la cible EdTech.
+
+**Implementation cible**
+
+1. Revoir `Button`:
+   - `default`, `sm`, `lg`, `icon` au-dessus ou egal a 44px sur mobile
+2. Revoir `SelectTrigger`
+3. Revoir `Switch`
+4. Revoir les toolbars compactes qui forcent des hauteurs plus basses
+5. Revalider les pages:
+   - onboarding
+   - home learner
+   - challenges
+   - solver
+
+**Fichiers probables**
+
+- `frontend/components/ui/button.tsx`
+- `frontend/components/ui/select.tsx`
+- `frontend/components/ui/switch.tsx`
+- `frontend/components/shared/AIGeneratorBase.tsx`
+
+**Criteres d'acceptation**
+
+- toutes les cibles interactives principales atteignent 44x44
+- aucune regression severe de layout mobile
+
+---
+
+## Priorite 2 - Enforcer la frontiere education / gamification
+
+### 14.4 Chantier D - Formaliser les contextes visuels
+
+**Objectif**
+
+Arreter de compter sur la seule vigilance manuelle.
+
+**Implementation cible**
+
+Definir trois contextes:
+
+1. `Education Core`
+   - pas de blur decoratif
+   - pas de gradient text heroique
+   - pas de glow CTA
+   - pas de lift non essentiel
+2. `Hybrid`
+   - expressivite limitee
+   - aucune concurrence avec lecture / reponse
+3. `Gamification Shell`
+   - overdrive autorise
+   - celebrations, ranking, badges, rewards
+
+**Actions**
+
+1. Auditer les classes shared UI existantes
+2. Reclasser chaque classe dans un contexte autorise
+3. Renommer ou segreguer les utilitaires
+4. Interdire l'import / usage de certains styles dans les surfaces `Education Core`
+
+**Fichiers probables**
+
+- `frontend/app/globals.css`
+- `frontend/components/shared/ContentCardBase.tsx`
+- `frontend/components/dashboard/LevelIndicator.tsx`
+- `frontend/components/dashboard/StudentChallengesBoard.tsx`
+
+**Criteres d'acceptation**
+
+- un composant educatif ne peut plus heriter par accident d'un style overdrive
+- la shared UI expose explicitement ce qui est reserve a la gamification
+
+### 14.5 Chantier E - Nettoyer les styles shared UI trop demonstratifs
+
+**Objectif**
+
+Supprimer les effets systemiques qui rendent le produit composite.
+
+**Actions**
+
+1. Revoir `card-spatial-depth`
+2. Revoir `dashboard-card-surface`
+3. Revoir `btn-cta-primary`
+4. Revoir les gradients et glows du niveau
+5. Passer les hardcodes couleur sur tokens
+
+**Criteres d'acceptation**
+
+- les surfaces educatives restent stables quel que soit le theme
+- les surfaces gamification gardent le droit a l'expressivite sans contaminer le reste
+
+---
+
+## Priorite 3 - Resilience, preuve A11y et dette technique
+
+### 14.6 Chantier F - Refaire les fallbacks critiques
+
+**Objectif**
+
+Rendre les etats d'erreur coherents avec la promesse produit.
+
+**Actions**
+
+1. Refaire `frontend/app/global-error.tsx`
+2. Verifier `error.tsx`
+3. Ajouter des error boundaries localisees sur:
+   - onboarding
+   - challenges
+   - solveurs
+
+**Criteres d'acceptation**
+
+- aucun fallback critique n'utilise d'inline style hors systeme
+- le ton reste rassurant et actionnable
+
+### 14.7 Chantier G - Ajouter la preuve A11y automatisee
+
+**Objectif**
+
+Sortir de l'opinion et verrouiller les regressions.
+
+**Actions**
+
+1. Ajouter Axe a la suite de tests front
+2. Couvrir au minimum:
+   - onboarding
+   - `Mon espace`
+   - page defis
+   - challenge solver
+3. Ajouter un seuil de non-regression simple en CI
+
+**Criteres d'acceptation**
+
+- au moins un test Axe par surface critique
+- les regressions majeures deviennent visibles avant merge
+
+### 14.8 Chantier H - Corriger les warnings React/performance utiles
+
+**Objectif**
+
+Nettoyer les points qui degradent la fluidite ou la robustesse.
+
+**Actions**
+
+1. Corriger `useCountUp`
+2. supprimer les vars inutilisees detectees par lint
+3. remettre le formatage des fichiers critiques au niveau
+
+**Criteres d'acceptation**
+
+- plus de warning React significatif sur la couche critique
+- base de travail plus stable avant la suite des retouches UX
+
+---
+
+## 15. Ordre recommande d'execution
+
+### Sprint 1 - Obligatoire
+
+1. Simplification onboarding
+2. Rehausse des primitives a 44x44
+3. Ajustement page defis pour compromis plus efficace
+
+### Sprint 2 - Structurant
+
+1. Formalisation des contextes visuels
+2. Nettoyage shared UI
+3. Hardcodes couleur vers tokens
+
+### Sprint 3 - Consolidation
+
+1. Refonte `global-error`
+2. Couverture Axe minimale
+3. Nettoyage lint/perf
+
+---
+
+## 16. Definition of done
+
+Ce document pourra etre considere comme clos quand les conditions suivantes seront vraies:
+
+1. l'onboarding ne demande plus plus de 2 decisions obligatoires avant la premiere valeur
+2. la page defis atteint un compromis d'acces juge efficace par l'equipe produit
+3. toutes les primitives principales respectent 44x44 en contexte mobile
+4. la separation `Education Core / Hybrid / Gamification Shell` est outillee dans la shared UI
+5. `global-error` est aligne sur le design system
+6. une couverture Axe minimale existe sur les surfaces critiques
+7. les warnings React/performance significatifs de la couche critique sont nettoyes
+
+---
+
+## 17. Resume executif
+
+Ce qui reste vraiment a faire n'est pas un grand reset visuel.
+
+C'est un travail de precision sur 4 axes:
+
+1. raccourcir le chemin vers la premiere valeur
+2. rendre les controles reellement adaptables a la cible mobile / neuro-inclusive
+3. transformer la frontiere education / gamification en regle technique, pas seulement en intention
+4. fiabiliser la preuve A11y et les fallbacks
+
+Le produit est deja credible sur le fond pedagogique.
+Le prochain saut de qualite viendra d'une meilleure discipline systemique, pas d'une nouvelle couche decorative.
