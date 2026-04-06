@@ -66,7 +66,7 @@ frontend/
 â”‚   â”œâ”€â”€ login/page.tsx
 â”‚   â”œâ”€â”€ offline/page.tsx
 â”‚   â”œâ”€â”€ onboarding/page.tsx
-â”‚   â”œâ”€â”€ profile/page.tsx
+â”‚   â”œâ”€â”€ profile/page.tsx         # Container fin du domaine profil (FFI-L11)
 â”‚   â”œâ”€â”€ register/page.tsx
 â”‚   â”œâ”€â”€ reset-password/page.tsx
 â”‚   â”œâ”€â”€ settings/page.tsx
@@ -92,6 +92,7 @@ frontend/
 â”‚   â”œâ”€â”€ locale/                   # LanguageSelector, LocaleInitializer
 â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, NextIntlProvider, AccessScopeSync
 â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
+â”‚   â”œâ”€â”€ profile/                  # Sidebar nav + sections de la page profil
 â”‚   â”œâ”€â”€ shared/                   # Composants partagÃ©s cross-domaine
 â”‚   â”‚   â””â”€â”€ AIGeneratorBase.tsx   # Base UI partagÃ©e (exercises + challenges AIGenerator)
 â”‚   â”œâ”€â”€ spatial/                  # SpatialBackground, Starfield, Planet, Particles, DinoFloating, UnicornFloating

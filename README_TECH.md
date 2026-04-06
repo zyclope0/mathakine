@@ -28,7 +28,12 @@ Visible product train:
   - runtime logic lives in `frontend/hooks/useChallengeSolverController.ts`
   - answer rendering lives in `frontend/components/challenges/ChallengeSolverCommandBar.tsx`
   - pure solver derivation lives in `frontend/lib/challenges/challengeSolver.ts`
-- next active frontend architecture priority: `FFI-L11` on `frontend/app/profile/page.tsx`
+- `FFI-L11` is now closed:
+  - `frontend/app/profile/page.tsx` is reduced to a thin orchestrator
+  - runtime profile state lives in `frontend/hooks/useProfilePageController.ts`
+  - pure profile helpers live in `frontend/lib/profile/profilePage.ts`
+  - profile sections live in `frontend/components/profile/`
+- next active frontend architecture priority: `FFI-L12` on `frontend/app/badges/page.tsx`
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

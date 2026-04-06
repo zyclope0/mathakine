@@ -2,7 +2,7 @@
 
 > Scope : `frontend/hooks/`
 > Updated : 2026-04-06
-> Total : 47 fichiers hooks (dont `hooks/chat/`)
+> Total : 48 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -42,17 +42,18 @@
 
 ---
 
-## CatÃ©gorie 3 â€” Dashboard & Progression
+## CatÃ©gorie 3 â€” Profil, Dashboard & Progression
 
-| Hook                     | RÃ´le                                                              | Test | RQ    | DÃ©pendances clÃ©s               |
-| ------------------------ | ------------------------------------------------------------------ | ---- | ----- | -------------------------------- |
-| `useProfile.ts`          | Profil complet de l'utilisateur connectÃ©                          | âŒ   | Query | `GET /api/users/me`              |
-| `useUserStats.ts`        | Stats globales dashboard, incluant le bloc F04 `spaced_repetition` | âŒ   | Query | `GET /api/users/stats`           |
-| `useNextReview.ts`       | Lecture one-shot de la prochaine revision F04 et du resume associe | âŒ   | Aucun | `GET /api/users/me/reviews/next` |
-| `useProgressStats.ts`    | Stats de progression par pÃ©riode                                  | âŒ   | Query | `GET /api/progress/stats`        |
-| `useProgressTimeline.ts` | Timeline de progression historique                                 | âœ…  | Query | `GET /api/progress/timeline`     |
-| `usePaginatedContent.ts` | Pagination gÃ©nÃ©rique rÃ©utilisable                               | âœ…  | Aucun | abstraction interne              |
-| `useIrtScores.ts`        | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                        | âŒ   | Query | `GET /api/progress/irt`          |
+| Hook                          | RÃ´le                                                              | Test | RQ    | DÃ©pendances clÃ©s                                  |
+| ----------------------------- | ------------------------------------------------------------------ | ---- | ----- | --------------------------------------------------- |
+| `useProfilePageController.ts` | Runtime local de la page profil (sections, formulaires, resets)    | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay` |
+| `useProfile.ts`               | Profil complet de l'utilisateur connectÃ©                          | âŒ   | Query | `GET /api/users/me`                                 |
+| `useUserStats.ts`             | Stats globales dashboard, incluant le bloc F04 `spaced_repetition` | âŒ   | Query | `GET /api/users/stats`                              |
+| `useNextReview.ts`            | Lecture one-shot de la prochaine revision F04 et du resume associe | âŒ   | Aucun | `GET /api/users/me/reviews/next`                    |
+| `useProgressStats.ts`         | Stats de progression par pÃ©riode                                  | âŒ   | Query | `GET /api/progress/stats`                           |
+| `useProgressTimeline.ts`      | Timeline de progression historique                                 | âœ…  | Query | `GET /api/progress/timeline`                        |
+| `usePaginatedContent.ts`      | Pagination gÃ©nÃ©rique rÃ©utilisable                               | âœ…  | Aucun | abstraction interne                                 |
+| `useIrtScores.ts`             | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                        | âŒ   | Query | `GET /api/progress/irt`                             |
 
 ---
 

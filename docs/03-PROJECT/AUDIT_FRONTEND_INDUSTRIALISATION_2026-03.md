@@ -19,7 +19,7 @@
 >
 > Verite terrain actuelle :
 >
-> - `FFI-L1` a `FFI-L10` sont livres
+> - `FFI-L1` a `FFI-L11` sont livres
 > - `NI-13` est structurel cote serveur + client (`proxy.ts` + `ProtectedRoute`)
 > - le tree frontend courant est a `144` composants, `47` hooks et `8` themes visibles
 > - la duplication AIGenerator brute n'est plus le seam principal
@@ -27,16 +27,15 @@
 >
 > Seams architecture encore prioritaires :
 >
-> - `app/profile/page.tsx`
 > - `app/badges/page.tsx`
 > - `app/settings/page.tsx`
 > - `app/admin/content/page.tsx`
+> - `components/profile/ProfileLearningPreferencesSection.tsx`
 > - `ChallengeSolverCommandBar.tsx`
 > - `Header.tsx`
 > - la plateforme shared de listes contenu
 >
 > Ordre actif recommande :
-> `FFI-L11` modulariser `profile`,
 > `FFI-L12` modulariser `badges`,
 > `FFI-L13` modulariser `settings`,
 > `FFI-L14` decouper `admin/content`,

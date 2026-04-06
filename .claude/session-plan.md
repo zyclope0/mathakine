@@ -28,6 +28,7 @@ Hors scope par defaut tant qu'ils ne bloquent pas l'architecture :
 - sweeps cosmetiques de tokens/couleurs
 - nouvelles animations
 - debates de theme / branding
+- decisions produit sur la variabilite d'interaction des defis (`challenge_type` vs `response_mode`) tant qu'aucun lot dedie n'est ouvert
 
 ### 1. Sources de verite
 
@@ -51,17 +52,17 @@ En cas de divergence :
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L10` : livres, commites et pousses
+- `FFI-L1` a `FFI-L11` : livres, commites et pousses
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
 
 **Seams architecture encore critiques**
 
-- `frontend/app/profile/page.tsx` ~`1655` LOC
 - `frontend/app/badges/page.tsx` ~`981` LOC
 - `frontend/app/settings/page.tsx` ~`788` LOC
 - `frontend/app/admin/content/page.tsx` ~`773` LOC
+- `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
 - `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
 - `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` ~`432` LOC
 - `frontend/components/layout/Header.tsx` ~`394` LOC
@@ -70,15 +71,32 @@ En cas de divergence :
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L11 : modulariser app/profile/page.tsx
-2. FFI-L12 : modulariser app/badges/page.tsx
-3. FFI-L13 : modulariser app/settings/page.tsx
-4. FFI-L14 : decouper app/admin/content/page.tsx
-5. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
-6. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-7. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-8. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. FFI-L12 : modulariser app/badges/page.tsx
+2. FFI-L13 : modulariser app/settings/page.tsx
+3. FFI-L14 : decouper app/admin/content/page.tsx
+4. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
+5. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+6. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+7. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
+
+### 3.1 Sidecar produit documente, hors sequence FFI
+
+Point a ne pas perdre :
+
+- **F44** - coherence interaction defis (`challenge_type` vs `response_mode`)
+
+Verite terrain :
+
+- le backend calcule `response_mode` apres policy type / difficulte / `choices` / `visual_data`
+- un meme type visible peut donc encore render des interactions differentes (QCM, visuel, ordre, grille, texte libre)
+- c'est **coherent machine**, mais **pas encore totalement coherent end-user**
+
+Decision d'execution :
+
+- **ne pas melanger ce sujet avec FFI-L11 a FFI-L17**
+- le traiter comme **backlog produit / contrat** documente dans `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
+- ne l'ouvrir en implementation que lorsqu'un lot dedie clarifie la matrice cible par type
 
 ### 4. Definition concrete des lots actifs
 
@@ -101,14 +119,19 @@ En cas de divergence :
 #### FFI-L11 — Modulariser `app/profile/page.tsx`
 
 - but : sortir la plus grosse page UI du repo du mode "mega-page"
-- cible :
-  - sections profil
-  - sections stats / badges / progression
-  - formulaires / modales / derivees memoisees
-- definition of done :
-  - page composee de sections nommees
-  - logique de donnees/hydratation separee des blocs visuels
-  - pas de nouveau helper local anonyme duplique
+- statut :
+  - **livre**
+  - `app/profile/page.tsx` ramene a un container ~`191` LOC
+  - extraction `useProfilePageController.ts`
+  - extraction `lib/profile/profilePage.ts`
+  - extraction des sections `components/profile/*`
+  - tests reels en place : page profil + hook controller + helpers purs
+- resultat :
+  - le domaine profil est separe en couches lisibles (container / controller / sections / helpers)
+  - la regression de validation mot de passe (`min 8`) a ete refermee apres refactor
+  - la couverture hook n'est plus un faux positif base uniquement sur des helpers purs
+- reliquat connu :
+  - `ProfileLearningPreferencesSection.tsx` reste un sous-seam dense (~`449` LOC), mais la mega-page critique est fermee
 
 #### FFI-L12 — Modulariser `app/badges/page.tsx`
 
