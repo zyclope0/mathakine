@@ -178,6 +178,7 @@ export function useChallengeSolverController({
     setHasSubmitted(false);
     setShowExplanation(false);
     setPuzzleOrder([]);
+    setVisualSelections({});
     setRetryKey((prev) => prev + 1);
     startTimeRef.current = Date.now();
   };
