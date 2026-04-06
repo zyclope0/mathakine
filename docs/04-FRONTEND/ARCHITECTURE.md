@@ -7,8 +7,8 @@
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 50 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 163 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 51 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 168 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -44,7 +44,7 @@ frontend/
 â”‚   â”‚   â”œâ”€â”€ ai-monitoring/        # Monitoring IA (tokens, qualitÃ©)
 â”‚   â”‚   â”œâ”€â”€ audit-log/            # Journal d'audit
 â”‚   â”‚   â”œâ”€â”€ config/               # ParamÃ¨tres plateforme
-â”‚   â”‚   â”œâ”€â”€ content/              # Gestion contenu
+â”‚   â”‚   â”œâ”€â”€ content/page.tsx      # Container shell + sections `components/admin/content/*` (FFI-L14)
 â”‚   â”‚   â”œâ”€â”€ feedback/             # Retours utilisateurs
 â”‚   â”‚   â”œâ”€â”€ moderation/           # ModÃ©ration IA
 â”‚   â”‚   â””â”€â”€ users/                # Gestion utilisateurs
@@ -78,7 +78,7 @@ frontend/
 â”‚
 â”œâ”€â”€ components/
 â”‚   â”œâ”€â”€ accessibility/            # AccessibilityToolbar, WCAGAudit (dev)
-â”‚   â”œâ”€â”€ admin/                    # Modales CRUD (Exercise, Challenge, Badge)
+â”‚   â”œâ”€â”€ admin/                    # Modales CRUD + `content/` sections page contenu admin
 â”‚   â”œâ”€â”€ auth/                     # ProtectedRoute, EmailVerification
 â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid, sections de la page badges
 â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver + blocs split + ChallengeModal
@@ -100,7 +100,7 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 50 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 51 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)

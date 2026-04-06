@@ -47,7 +47,8 @@ Active references:
   - `ProfilePage` is no longer tracked as a mega-page runtime seam
   - `BadgesPage` is no longer tracked as a mega-page runtime seam
   - `SettingsPage` is no longer tracked as a mega-page runtime seam (`FFI-L13` closed)
-  - the active architecture backlog now starts at `FFI-L14`
+  - `AdminContentPage` is no longer tracked as a mega-page runtime seam (`FFI-L14` closed for frontend structure)
+  - the active architecture backlog now starts at `FFI-L15`
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed
@@ -59,6 +60,8 @@ Active references:
 - The badges page refactor now ships with a real thin container plus stable page/controller/helper coverage: repeated dynamic imports were removed from the page tests, the dead `rankInfo` controller input was dropped, and the remaining badge page derivations are more centralized.
 
 - The settings page refactor (`FFI-L13`) now ships with a thin container, `useSettingsPageController`, pure helpers in `lib/settings/settingsPage.ts`, and section components under `components/settings/`; session list slicing (`visibleSessions`) is derived in the controller. Known remainder: `SettingsSecuritySection` stays relatively dense (privacy + active sessions).
+
+- The admin content page refactor (`FFI-L14`) now ships with a thin container, `useAdminContentPageController`, pure helpers under `lib/admin/content/` and `lib/admin/exercises/adminExerciseCoherence.ts`, and section components under `components/admin/content/`. This closes the **frontend architecture** seam; it does **not** claim final product alignment for admin exercise difficulty until the admin list API reliably exposes `difficulty_tier`. List UI uses transitional neutral labels; edit modals still persist legacy difficulty enum values for API compatibility.
 
 ## [3.6.0-alpha.1] - 2026-04-05
 

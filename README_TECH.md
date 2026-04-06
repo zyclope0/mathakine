@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 06/04/2026
+> Updated: 06/04/2026 (FFI-L14 architecture closure documented)
 
 Visible product train:
 
@@ -43,7 +43,12 @@ Visible product train:
   - runtime settings page state lives in `frontend/hooks/useSettingsPageController.ts` (including derived `visibleSessions` for progressive session disclosure)
   - pure settings helpers live in `frontend/lib/settings/settingsPage.ts`
   - settings sections live in `frontend/components/settings/`
-- next active frontend architecture priority: `FFI-L14` on `frontend/app/admin/content/page.tsx`
+- `FFI-L14` is now closed **for frontend architecture** (not a claim of final product truth on admin exercise difficulty):
+  - `frontend/app/admin/content/page.tsx` is a thin shell (~50 LOC) with `useAdminContentPageController` and `lib/admin/content/adminContentPage.ts`
+  - domains live in `frontend/components/admin/content/*` (tabs, exercises, challenges, badges)
+  - admin exercise list difficulty uses **transitional** neutral labels (`Niveau 1..5` from legacy `difficulty`, `Palier n` when `difficulty_tier` is present on the list payload); Star Wars wording is not promoted as visible product vocabulary
+  - **Known contract/product gap**: final alignment on F42 `difficulty_tier` for the admin exercise list depends on the admin list API exposing that field reliably; exercise edit/create modals still use legacy `ADMIN_DIFFICULTIES` strings for API compatibility
+- next active frontend architecture priority: `FFI-L15` (shared `content-list` platform — toolbar, cards, pagination, list state)
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

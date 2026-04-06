@@ -45,21 +45,20 @@ En cas de divergence :
 
 **Photographie tree**
 
-- `144` fichiers composants sous `frontend/components`
-- `47` hooks custom sous `frontend/hooks`
+- `168` fichiers composants sous `frontend/components`
+- `51` hooks custom sous `frontend/hooks`
 - `8` themes visibles
 - boundary apprenant/adulte et roles canoniques deja stabilises
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L13` : livres et commites ; push a confirmer selon l'etat Git courant
+- `FFI-L1` a `FFI-L14` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
 
 **Seams architecture encore critiques**
 
-- `frontend/app/admin/content/page.tsx` ~`773` LOC
 - `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
 - `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
 - `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` ~`432` LOC
@@ -69,11 +68,10 @@ En cas de divergence :
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L14 : decouper app/admin/content/page.tsx
-2. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
-3. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-4. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-5. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
+2. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+3. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+4. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
 ### 3.1 Sidecar produit documente, hors sequence FFI
@@ -163,15 +161,16 @@ Decision d'execution :
 
 #### FFI-L14 — Decouper `app/admin/content/page.tsx`
 
-- but : sortir l'orchestration admin lourde en slices domaine
-- cible :
-  - exercices
-  - defis
-  - badges
-  - modales / actions
-- definition of done :
-  - page admin = shell d'orchestration
-  - blocs domaine + hooks admin reutilisables
+- statut :
+  - **livre** cote industrialisation frontend (lots A + B + C)
+- resultat :
+  - `app/admin/content/page.tsx` container fin (~`50` LOC) + `useAdminContentPageController` + `lib/admin/content/adminContentPage.ts`
+  - domaines dans `components/admin/content/*` (tabs shell, exercices, defis, badges)
+  - liste exercices : affichage difficulte neutre transitoire (`Niveau 1..5` depuis legacy `difficulty`, `Palier n` si `difficulty_tier` present) — pas de vocabulaire Star Wars comme verite visible produit
+  - audits / README / changelog / manifeste difficulte realignes (lot C)
+- reliquat connu (hors echec du split frontend) :
+  - **contrat / produit** : l'alignement final de la difficulte exercices admin sur `difficulty_tier` F42 n'est pas garanti tant que la **liste admin API** n'expose pas ce champ de facon systematique ; l'UI liste reste alors transitoire
+  - **edition** : les modales exercices conservent les valeurs API legacy (`ADMIN_DIFFICULTIES`) pour compatibilite de persistance
 
 #### FFI-L15 — Standardiser la plateforme content-list
 

@@ -8,38 +8,38 @@
 
 ## Vue d'ensemble
 
-**163 composants TSX** repartis en 23 categories.
+**168 composants TSX** repartis en 23 categories.
 Tous les composants sont `"use client"` sauf indication contraire.
 
 ---
 
 ## CatÃ©gories
 
-| CatÃ©gorie    | Dossier          | Composants | RÃ´le                                    |
-| ------------- | ---------------- | ---------- | ---------------------------------------- |
-| UI de base    | `ui/`            | 21         | Primitives shadcn/ui (Radix)             |
-| Dashboard     | `dashboard/`     | 28         | Widgets stats et visualisations          |
-| DÃ©fis        | `challenges/`    | 23         | Interface dÃ©fis logiques                |
-| Layout        | `layout/`        | 12         | Structure de page                        |
-| Admin         | `admin/`         | 7          | Modales CRUD backoffice                  |
-| Spatial       | `spatial/`       | 6          | Animations et decor theme-aware          |
-| Exercices     | `exercises/`     | 9          | Interface exercices                      |
-| Shared        | `shared/`        | 9          | Composants cross-domaine                 |
-| Providers     | `providers/`     | 4          | Contextes React globaux                  |
-| Home          | `home/`          | 4          | Page d'accueil                           |
-| Badges        | `badges/`        | 11         | Domaine badges et sections de page       |
-| Profile       | `profile/`       | 6          | Sections et navigation de la page profil |
-| Chat          | `chat/`          | 3          | Chatbot assistant                        |
-| Locale        | `locale/`        | 2          | SÃ©lecteur langue + init                 |
-| Theme         | `theme/`         | 2          | ThemeSelectorCompact + DarkModeToggle    |
-| Accessibility | `accessibility/` | 2          | Toolbar + audit WCAG                     |
-| Auth          | `auth/`          | 1          | ProtectedRoute                           |
-| Diagnostic    | `diagnostic/`    | 1          | Composant diagnostic                     |
-| Feedback      | `feedback/`      | 1          | FAB retour utilisateur                   |
-| Settings      | `settings/`      | 6          | Page paramÃ¨tres (sections + SaveButton) |
-| PWA           | `pwa/`           | 1          | Prompt installation                      |
-| Learner       | `learner/`       | 2          | LearnerCard + LearnerLayout              |
-| Racine        | `components/`    | 2          | LogoMathakine, LogoBadge                 |
+| CatÃ©gorie    | Dossier          | Composants | RÃ´le                                      |
+| ------------- | ---------------- | ---------- | ------------------------------------------ |
+| UI de base    | `ui/`            | 21         | Primitives shadcn/ui (Radix)               |
+| Dashboard     | `dashboard/`     | 28         | Widgets stats et visualisations            |
+| DÃ©fis        | `challenges/`    | 23         | Interface dÃ©fis logiques                  |
+| Layout        | `layout/`        | 12         | Structure de page                          |
+| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin |
+| Spatial       | `spatial/`       | 6          | Animations et decor theme-aware            |
+| Exercices     | `exercises/`     | 9          | Interface exercices                        |
+| Shared        | `shared/`        | 9          | Composants cross-domaine                   |
+| Providers     | `providers/`     | 4          | Contextes React globaux                    |
+| Home          | `home/`          | 4          | Page d'accueil                             |
+| Badges        | `badges/`        | 11         | Domaine badges et sections de page         |
+| Profile       | `profile/`       | 6          | Sections et navigation de la page profil   |
+| Chat          | `chat/`          | 3          | Chatbot assistant                          |
+| Locale        | `locale/`        | 2          | SÃ©lecteur langue + init                   |
+| Theme         | `theme/`         | 2          | ThemeSelectorCompact + DarkModeToggle      |
+| Accessibility | `accessibility/` | 2          | Toolbar + audit WCAG                       |
+| Auth          | `auth/`          | 1          | ProtectedRoute                             |
+| Diagnostic    | `diagnostic/`    | 1          | Composant diagnostic                       |
+| Feedback      | `feedback/`      | 1          | FAB retour utilisateur                     |
+| Settings      | `settings/`      | 6          | Page paramÃ¨tres (sections + SaveButton)   |
+| PWA           | `pwa/`           | 1          | Prompt installation                        |
+| Learner       | `learner/`       | 2          | LearnerCard + LearnerLayout                |
+| Racine        | `components/`    | 2          | LogoMathakine, LogoBadge                   |
 
 ---
 
@@ -240,14 +240,21 @@ Composants Radix UI wrappÃ©s avec Tailwind. Ne pas modifier directement â€�
 
 ---
 
-## `admin/` â€” Backoffice (7)
+## `admin/` â€” Backoffice
 
-| Composant                | RÃ´le                                               |
-| ------------------------ | --------------------------------------------------- |
-| `ExerciseModal` (admin)  | CRUD exercice                                       |
-| `ChallengeModal` (admin) | CRUD dÃ©fi                                          |
-| `BadgeModal` (admin)     | CRUD badge                                          |
-| _(+4)_                   | Modales utilisateurs, sessions, config, modÃ©ration |
+Modales CRUD : `ExerciseCreateModal`, `ExerciseEditModal`, `ChallengeCreateModal`, `ChallengeEditModal`, `BadgeCreateModal`, `BadgeEditModal`, `AdminAcademyStatsSection`.
+
+### `admin/content/` â€” Page contenu (FFI-L14)
+
+Shell `/admin/content` : onglets + domaines exercices / dÃ©fis / badges. Reliquat contrat/produit : difficulte liste exercices transitoire tant que la liste admin API ne garantit pas `difficulty_tier` ; modales exercices en valeurs legacy API.
+
+| Composant                | RÃ´le                                   |
+| ------------------------ | --------------------------------------- |
+| `AdminContentTabsNav`    | Tabs shell uniquement (pas de fetch)    |
+| `AdminExercisesSection`  | Liste + filtres + modales exercices     |
+| `AdminChallengesSection` | Liste + filtres + modales dÃ©fis        |
+| `AdminBadgesSection`     | Liste + filtres + modales badges        |
+| `AdminContentSortIcon`   | IcÃ´ne tri colonnes (partagÃ© sections) |
 
 ---
 

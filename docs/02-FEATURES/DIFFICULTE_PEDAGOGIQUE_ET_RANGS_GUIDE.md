@@ -97,15 +97,15 @@ Donc deux apprenants du même âge peuvent recevoir des contenus différents si 
 
 ## Ce Que Veut Dire Chaque Champ
 
-| Champ | Signification | Statut actuel |
-|---|---|---|
-| `age_group` | Enveloppe d'âge pédagogique | Canonique |
-| `pedagogical_band` | Axe fin `discovery / learning / consolidation` | Canonique côté runtime |
-| `difficulty_tier` | Cellule F42 finale `1..12` | Canonique pour la difficulté fine |
-| `difficulty` | Ancienne échelle `INITIE / PADAWAN / CHEVALIER / MAITRE / GRAND_MAITRE` | Legacy de compatibilité |
-| `mastery_level` | Signal de progression `1..5` | Legacy de compatibilité |
-| `difficulty_rating` | Échelle publique `1.0..5.0` des défis | Projection produit |
-| `current_level` / rang public | Progression du compte par points | Gamification, pas difficulté |
+| Champ                         | Signification                                                           | Statut actuel                     |
+| ----------------------------- | ----------------------------------------------------------------------- | --------------------------------- |
+| `age_group`                   | Enveloppe d'âge pédagogique                                             | Canonique                         |
+| `pedagogical_band`            | Axe fin `discovery / learning / consolidation`                          | Canonique côté runtime            |
+| `difficulty_tier`             | Cellule F42 finale `1..12`                                              | Canonique pour la difficulté fine |
+| `difficulty`                  | Ancienne échelle `INITIE / PADAWAN / CHEVALIER / MAITRE / GRAND_MAITRE` | Legacy de compatibilité           |
+| `mastery_level`               | Signal de progression `1..5`                                            | Legacy de compatibilité           |
+| `difficulty_rating`           | Échelle publique `1.0..5.0` des défis                                   | Projection produit                |
+| `current_level` / rang public | Progression du compte par points                                        | Gamification, pas difficulté      |
 
 ---
 
@@ -212,6 +212,16 @@ Conclusion pratique :
 - créer une nouvelle logique parallèle de difficulté
 - utiliser le rang public comme proxy de niveau scolaire
 - exposer un champ legacy brut dans une nouvelle surface produit
+
+---
+
+## Ce Que Voit L’admin — Exercices (`/admin/content`)
+
+État documenté après FFI-L14 (architecture frontend livrée, pas « produit final » sur la difficulté tant que le contrat liste est incomplet) :
+
+- La **liste** n’affiche plus des libellés type Star Wars comme référence lisible : affichage **transitoire** (niveaux neutres ou `Palier n` si `difficulty_tier` est renvoyé par l’API liste).
+- Les **modales** d’édition/création continuent d’utiliser les **valeurs legacy** attendues par l’API pour enregistrer la difficulté.
+- Pour un alignement **définitif** avec le canon F42 (`difficulty_tier`), il faut que la **liste admin** expose ce champ de manière **fiable** ; sinon le gap reste côté **contrat/API**, pas un échec du découpage UI.
 
 ---
 

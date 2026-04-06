@@ -2,7 +2,7 @@
 
 > Scope : `frontend/hooks/`
 > Updated : 2026-04-06
-> Total : 50 fichiers hooks (dont `hooks/chat/`)
+> Total : 51 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -99,20 +99,21 @@
 
 ## CatÃ©gorie 8 â€” Admin
 
-| Hook                         | RÃ´le                                    | Test | RQ               | DÃ©pendances clÃ©s                      |
-| ---------------------------- | ---------------------------------------- | ---- | ---------------- | --------------------------------------- |
-| `useAdminOverview.ts`        | Vue d'ensemble admin                     | âŒ   | Query            | `GET /api/admin/overview`               |
-| `useAdminUsers.ts`           | Gestion utilisateurs admin               | âŒ   | Query + Mutation | `GET/DELETE /api/admin/users`           |
-| `useAdminExercises.ts`       | Gestion exercices admin                  | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/exercises`  |
-| `useAdminChallenges.ts`      | Gestion dÃ©fis admin                     | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/challenges` |
-| `useAdminBadges.ts`          | Gestion badges admin                     | âŒ   | Query + Mutation | `GET/POST /api/admin/badges`            |
-| `useAdminAiStats.ts`         | Statistiques IA (usage, modÃ¨les, coÃ»t) | âŒ   | Query            | `GET /api/admin/ai-stats`               |
-| `useAdminEdTechAnalytics.ts` | Analytics EdTech admin                   | âŒ   | Query            | `GET /api/admin/analytics`              |
-| `useAdminFeedback.ts`        | Feedbacks utilisateurs admin             | âŒ   | Query            | `GET /api/admin/feedback`               |
-| `useAdminModeration.ts`      | ModÃ©ration contenu admin                | âŒ   | Query + Mutation | `GET/POST /api/admin/moderation`        |
-| `useAdminConfig.ts`          | Configuration plateforme admin           | âŒ   | Query + Mutation | `GET/PUT /api/admin/config`             |
-| `useAdminReports.ts`         | Rapports admin (exports)                 | âŒ   | Query            | `GET /api/admin/reports`                |
-| `useAdminAuditLog.ts`        | Journal d'audit admin                    | âŒ   | Query            | `GET /api/admin/audit-log`              |
+| Hook                               | RÃ´le                                         | Test | RQ               | DÃ©pendances clÃ©s                      |
+| ---------------------------------- | --------------------------------------------- | ---- | ---------------- | --------------------------------------- |
+| `useAdminOverview.ts`              | Vue d'ensemble admin                          | âŒ   | Query            | `GET /api/admin/overview`               |
+| `useAdminUsers.ts`                 | Gestion utilisateurs admin                    | âŒ   | Query + Mutation | `GET/DELETE /api/admin/users`           |
+| `useAdminExercises.ts`             | Gestion exercices admin                       | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/exercises`  |
+| `useAdminContentPageController.ts` | Shell query `tab` / `edit` page contenu admin | âœ…  | Aucun            | Parse URL uniquement (FFI-L14)          |
+| `useAdminChallenges.ts`            | Gestion dÃ©fis admin                          | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/challenges` |
+| `useAdminBadges.ts`                | Gestion badges admin                          | âŒ   | Query + Mutation | `GET/POST /api/admin/badges`            |
+| `useAdminAiStats.ts`               | Statistiques IA (usage, modÃ¨les, coÃ»t)      | âŒ   | Query            | `GET /api/admin/ai-stats`               |
+| `useAdminEdTechAnalytics.ts`       | Analytics EdTech admin                        | âŒ   | Query            | `GET /api/admin/analytics`              |
+| `useAdminFeedback.ts`              | Feedbacks utilisateurs admin                  | âŒ   | Query            | `GET /api/admin/feedback`               |
+| `useAdminModeration.ts`            | ModÃ©ration contenu admin                     | âŒ   | Query + Mutation | `GET/POST /api/admin/moderation`        |
+| `useAdminConfig.ts`                | Configuration plateforme admin                | âŒ   | Query + Mutation | `GET/PUT /api/admin/config`             |
+| `useAdminReports.ts`               | Rapports admin (exports)                      | âŒ   | Query            | `GET /api/admin/reports`                |
+| `useAdminAuditLog.ts`              | Journal d'audit admin                         | âŒ   | Query            | `GET /api/admin/audit-log`              |
 
 ---
 
@@ -133,7 +134,7 @@
 | ---------------------- | ------ |
 | âœ… Avec test unitaire | 8      |
 | âŒ Sans test unitaire  | ~42    |
-| **Total**              | **50** |
+| **Total**              | **51** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 
