@@ -1,20 +1,17 @@
 /**
- * Tests de caractérisation — ChallengeSolver.tsx
+ * Characterization tests for ChallengeSolver.tsx.
  *
- * Couvre les états et comportements visibles critiques sans tester le rendu visuel.
- * Les hooks sont mockés ; la logique métier pure est couverte dans challengeSolver.test.ts.
+ * Scope:
+ * - loading / error / not-found states
+ * - first-visit hint visibility
+ * - QCM validation gating
+ * - legacy JSON-string choices compatibility
+ * - visual multi-position submit gating
+ * - baseline answer area visibility before submit
+ * - command bar: QCM mode renders choices
+ * - command bar: visual multi-position renders position labels
  *
- * Cas couverts :
- * 1. État loading
- * 2. État error
- * 3. État not-found
- * 4. ChallengeSolverHint visible avant soumission
- * 5. ChallengeSolverHint absent après soumission
- * 6. Mode QCM : bouton valider désactivé tant qu'aucune réponse n'est sélectionnée
- * 7. Mode visual multi-position : valider désactivé si positions incomplètes
- * 8. Retry après soumission incorrecte réinitialise la réponse
- *
- * FFI-L10 — lot 1 : tests de caractérisation composant
+ * FFI-L10 lot 3 — tests de non-régression après split Command Bar + hook controller.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -26,15 +23,11 @@ import type { Challenge } from "@/types/api";
 import type { ApiClientError } from "@/lib/api/client";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 
-// ─── Mocks modules ────────────────────────────────────────────────────────────
-
 vi.mock("@/hooks/useChallenge");
 vi.mock("@/hooks/useChallenges");
 vi.mock("@/lib/stores/themeStore", () => ({
   useThemeStore: () => ({ theme: "spatial" }),
 }));
-// ChallengeSolverHint s'appuie sur localStorage (déjà mocké dans vitest.setup.ts)
-// ChallengeVisualRenderer est lourd (canvas) — on le stub
 vi.mock("@/components/challenges/visualizations/ChallengeVisualRenderer", () => ({
   ChallengeVisualRenderer: () => <div data-testid="visual-renderer" />,
 }));
@@ -43,28 +36,15 @@ import { useChallenge } from "@/hooks/useChallenge";
 import { useChallenges } from "@/hooks/useChallenges";
 import { ChallengeSolver } from "@/components/challenges/ChallengeSolver";
 
-// ─── Types helpers ────────────────────────────────────────────────────────────
-
-type MockUseChallenges = {
-  submitAnswer: ReturnType<typeof vi.fn>;
-  isSubmitting: boolean;
-  submitResult: { is_correct: boolean; points_earned?: number } | undefined;
-  getHint: ReturnType<typeof vi.fn>;
-  setHints: ReturnType<typeof vi.fn>;
-  challenges: Challenge[];
-  total: number;
-  hasMore: boolean;
-  isFetching: boolean;
-  error: null;
-  hints: string[];
-};
-
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
+type UseChallengesReturn = ReturnType<typeof useChallenges>;
+type SubmitAnswerFn = UseChallengesReturn["submitAnswer"];
+type GetHintFn = UseChallengesReturn["getHint"];
+type SetHintsFn = UseChallengesReturn["setHints"];
 
 function baseChallenge(partial: Partial<Challenge> = {}): Challenge {
   return {
     id: 42,
-    title: "Défi de test",
+    title: "Defi de test",
     description: "Une description",
     challenge_type: "logic",
     age_group: "9-11",
@@ -77,23 +57,29 @@ function baseChallenge(partial: Partial<Challenge> = {}): Challenge {
   } as Challenge;
 }
 
-function defaultUseChallengesMock(): MockUseChallenges {
+function defaultUseChallengesMock(): UseChallengesReturn {
+  const submitAnswer: SubmitAnswerFn = vi.fn(async () => {
+    throw new Error("submitAnswer mock not configured");
+  });
+  const getHint: GetHintFn = vi.fn(async () => []);
+  const setHints: SetHintsFn = vi.fn();
+
   return {
-    submitAnswer: vi.fn(),
+    submitAnswer,
     isSubmitting: false,
     submitResult: undefined,
-    getHint: vi.fn(),
-    setHints: vi.fn(),
+    getHint,
+    isGettingHint: false,
+    setHints,
     challenges: [],
     total: 0,
     hasMore: false,
+    isLoading: false,
     isFetching: false,
     error: null,
     hints: [],
   };
 }
-
-// ─── Wrapper ──────────────────────────────────────────────────────────────────
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
@@ -111,12 +97,9 @@ function renderSolver(challengeId = 42) {
   );
 }
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
   vi.clearAllMocks();
 
-  // localStorage vierge par défaut (ChallengeSolverHint = première visite)
   const store: Record<string, string> = {};
   vi.mocked(localStorage.getItem).mockImplementation((k) => store[k] ?? null);
   vi.mocked(localStorage.setItem).mockImplementation((k, v) => {
@@ -129,9 +112,7 @@ beforeEach(() => {
     Object.keys(store).forEach((k) => delete store[k]);
   });
 
-  // Defaults hooks
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useChallenges).mockReturnValue(defaultUseChallengesMock() as any);
+  vi.mocked(useChallenges).mockReturnValue(defaultUseChallengesMock());
   vi.mocked(useChallenge).mockReturnValue({
     challenge: baseChallenge(),
     isLoading: false,
@@ -139,83 +120,86 @@ beforeEach(() => {
   });
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
-describe("ChallengeSolver — état loading", () => {
-  it("affiche un spinner quand isLoading=true", () => {
+describe("ChallengeSolver - loading state", () => {
+  it("does not render the challenge title while loading", () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: undefined,
       isLoading: true,
       error: null,
     });
+
     renderSolver();
-    // Le spinner Loader2 s'affiche — pas de titre de défi
+
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
   });
 });
 
-describe("ChallengeSolver — état error", () => {
-  it("affiche le titre d'erreur et le bouton retour", () => {
+describe("ChallengeSolver - error state", () => {
+  it("renders the error alert and back link", () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: undefined,
       isLoading: false,
       error: { status: 500, message: "Erreur serveur" } as ApiClientError,
     });
+
     renderSolver();
+
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /retour/i })).toBeInTheDocument();
   });
 
-  it("affiche le message not-found pour status 404", () => {
+  it("renders not-found style error for 404", () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: undefined,
       isLoading: false,
       error: { status: 404, message: "Not found" } as ApiClientError,
     });
+
     renderSolver();
-    const alert = screen.getByRole("alert");
-    expect(alert).toBeInTheDocument();
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 });
 
-describe("ChallengeSolver — état not-found", () => {
-  it("affiche le bloc not-found quand challenge=undefined et pas d'erreur ni de loading", () => {
+describe("ChallengeSolver - not found state", () => {
+  it("renders the not-found block when challenge is missing without error", () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: undefined,
       isLoading: false,
       error: null,
     });
+
     renderSolver();
+
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /retour/i })).toBeInTheDocument();
   });
 });
 
-describe("ChallengeSolver — ChallengeSolverHint", () => {
-  it("affiche le hint d'aide avant soumission (première visite)", async () => {
+describe("ChallengeSolver - first visit hint", () => {
+  it("shows the hint before submit on first visit", async () => {
     renderSolver();
-    // Le hint est un region ARIA
+
     await screen.findByRole("region", { name: /comment/i });
   });
 
-  it("n'affiche pas le hint quand le localStorage indique déjà vu (retour utilisateur)", async () => {
-    // Pré-remplir localStorage = utilisateur qui a déjà dismissé le hint
+  it("does not show the hint when already seen in localStorage", async () => {
     localStorage.setItem(STORAGE_KEYS.challengeSolverHintSeen, "1");
+
     renderSolver();
 
-    // Le hint ne doit pas s'afficher pour cet utilisateur
     await waitFor(() => {
       expect(screen.queryByRole("region", { name: /comment/i })).not.toBeInTheDocument();
     });
   });
 });
 
-describe("ChallengeSolver — mode QCM", () => {
-  it("bouton Valider désactivé tant qu'aucun choix n'est sélectionné", async () => {
+describe("ChallengeSolver - QCM mode", () => {
+  it("keeps validate disabled until one choice is selected", async () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: baseChallenge({
         response_mode: "single_choice",
-        choices: ["Réponse A", "Réponse B", "Réponse C"],
+        choices: ["Reponse A", "Reponse B", "Reponse C"],
       }),
       isLoading: false,
       error: null,
@@ -223,20 +207,17 @@ describe("ChallengeSolver — mode QCM", () => {
 
     renderSolver();
 
-    // Les boutons de choix QCM doivent être présents
-    await screen.findByRole("radio", { name: /Option 1/i });
+    await screen.findByRole("radio", { name: /option 1/i });
 
-    // Le bouton Valider doit être désactivé
-    const validateBtn = screen.getByRole("button", { name: /valider/i });
-    expect(validateBtn).toBeDisabled();
+    expect(screen.getByRole("button", { name: /valider/i })).toBeDisabled();
   });
 
-  it("bouton Valider activé après sélection d'un choix", async () => {
+  it("enables validate after selecting one choice", async () => {
     const user = userEvent.setup();
     vi.mocked(useChallenge).mockReturnValue({
       challenge: baseChallenge({
         response_mode: "single_choice",
-        choices: ["Réponse A", "Réponse B"],
+        choices: ["Reponse A", "Reponse B"],
       }),
       isLoading: false,
       error: null,
@@ -244,24 +225,38 @@ describe("ChallengeSolver — mode QCM", () => {
 
     renderSolver();
 
-    const choiceBtn = await screen.findByRole("radio", { name: /Réponse A/i });
-    await user.click(choiceBtn);
+    const choiceButton = await screen.findByRole("radio", { name: /reponse a/i });
+    await user.click(choiceButton);
 
-    const validateBtn = screen.getByRole("button", { name: /valider/i });
-    expect(validateBtn).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /valider/i })).not.toBeDisabled();
+  });
+
+  it("renders QCM correctly when choices comes as a legacy JSON string", async () => {
+    vi.mocked(useChallenge).mockReturnValue({
+      challenge: baseChallenge({
+        response_mode: "single_choice",
+        choices: '["Reponse A", "Reponse B"]' as unknown as string[],
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    renderSolver();
+
+    expect(await screen.findByRole("radio", { name: /reponse a/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /reponse b/i })).toBeInTheDocument();
   });
 });
 
-describe("ChallengeSolver — mode visual multi-position", () => {
-  it("bouton Valider désactivé tant que toutes les positions ne sont pas remplies", async () => {
-    // 2 positions requises (correct_answer contient "Position 1: ... Position 2: ...")
+describe("ChallengeSolver - visual multi-position mode", () => {
+  it("keeps validate disabled while required positions are incomplete", async () => {
     vi.mocked(useChallenge).mockReturnValue({
       challenge: baseChallenge({
         response_mode: "interactive_visual",
         challenge_type: "visual",
-        correct_answer: "Position 1: cercle rouge, Position 2: carré bleu",
+        correct_answer: "Position 1: cercle rouge, Position 2: carre bleu",
         visual_data: {
-          shapes: ["cercle rouge", "carré bleu", "triangle vert"],
+          shapes: ["cercle rouge", "carre bleu", "triangle vert"],
         },
         choices: null,
       }),
@@ -271,30 +266,109 @@ describe("ChallengeSolver — mode visual multi-position", () => {
 
     renderSolver();
 
-    // Des boutons de sélection visuelle doivent être présents
-    await screen.findByText(/Position 1/i);
+    await screen.findByText(/position 1/i);
 
-    const validateBtn = screen.getByRole("button", { name: /valider/i });
-    expect(validateBtn).toBeDisabled();
+    expect(screen.getByRole("button", { name: /valider/i })).toBeDisabled();
   });
 });
 
-describe("ChallengeSolver — état initial : zone de saisie présente avant soumission", () => {
-  /**
-   * Ces tests vérifient l'état visible AVANT soumission (hasSubmitted=false).
-   * Les tests post-soumission (retry, feedback incorrect) nécessitent une soumission
-   * réelle via mutation — couverts séparément ou via tests E2E.
-   * La logique de retry est couverte par les helpers purs (challengeSolver.test.ts).
-   */
-  it("affiche la zone de saisie (textbox) quand le défi est chargé", async () => {
+describe("ChallengeSolver - initial answer area", () => {
+  it("renders the text input before submit", async () => {
     renderSolver();
-    // La zone de saisie (champ texte fallback) est visible avant soumission
+
     expect(await screen.findByRole("textbox")).toBeInTheDocument();
   });
 
-  it("le bouton Valider est présent avant soumission", async () => {
+  it("renders the validate button before submit", async () => {
     renderSolver();
+
     await screen.findByRole("textbox");
     expect(screen.getByRole("button", { name: /valider/i })).toBeInTheDocument();
+  });
+});
+
+/**
+ * Tests sur la Command Bar extraite en lot 3.
+ * Vérifient que les branches QCM et visual multi-position sont intactes.
+ */
+describe("ChallengeSolver - command bar QCM mode", () => {
+  it("renders all choice buttons in QCM mode", async () => {
+    vi.mocked(useChallenge).mockReturnValue({
+      challenge: baseChallenge({
+        response_mode: "single_choice",
+        choices: ["Option A", "Option B", "Option C"],
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    renderSolver();
+
+    expect(await screen.findByRole("radio", { name: /option a/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /option b/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /option c/i })).toBeInTheDocument();
+  });
+
+  it("enables validate after selecting a choice in QCM mode", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useChallenge).mockReturnValue({
+      challenge: baseChallenge({
+        response_mode: "single_choice",
+        choices: ["Option A", "Option B"],
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    renderSolver();
+
+    const choiceBtn = await screen.findByRole("radio", { name: /option a/i });
+    await user.click(choiceBtn);
+
+    expect(screen.getByRole("button", { name: /valider/i })).not.toBeDisabled();
+  });
+});
+
+describe("ChallengeSolver - command bar visual multi-position mode", () => {
+  it("renders position labels for multi-position challenges", async () => {
+    vi.mocked(useChallenge).mockReturnValue({
+      challenge: baseChallenge({
+        response_mode: "interactive_visual",
+        challenge_type: "visual",
+        correct_answer: "Position 1: cercle rouge, Position 2: carre bleu",
+        visual_data: {
+          shapes: ["cercle rouge", "carre bleu", "triangle vert"],
+        },
+        choices: null,
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    renderSolver();
+
+    await screen.findByText(/position 1/i);
+    expect(screen.getByText(/position 2/i)).toBeInTheDocument();
+  });
+
+  it("keeps validate disabled until all positions are filled", async () => {
+    vi.mocked(useChallenge).mockReturnValue({
+      challenge: baseChallenge({
+        response_mode: "interactive_visual",
+        challenge_type: "visual",
+        correct_answer: "Position 1: cercle rouge, Position 2: carre bleu",
+        visual_data: {
+          shapes: ["cercle rouge", "carre bleu", "triangle vert"],
+        },
+        choices: null,
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    renderSolver();
+
+    await screen.findByText(/position 1/i);
+    expect(screen.getByRole("button", { name: /valider/i })).toBeDisabled();
   });
 });
