@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { useSettings, type UserSession } from "@/hooks/useSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PageLayout, PageHeader } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -34,25 +31,43 @@ import {
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-
-type SettingsSection = "general" | "notifications" | "security" | "data";
+import { useSettingsPageController, type SettingsSection } from "@/hooks/useSettingsPageController";
+import { formatSessionDate, getVisibleSessions } from "@/lib/settings/settingsPage";
 
 function SettingsPageContent() {
-  const { user } = useAuth();
+  const router = useRouter();
   const {
-    updateSettings,
+    activeSection,
+    setActiveSection,
+    languageSettings,
+    setLanguageSettings,
+    notificationSettings,
+    setNotificationSettings,
+    privacySettings,
+    setPrivacySettings,
+    sessions,
+    isLoadingSessions,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    visibleSessionCount,
+    setVisibleSessionCount,
+    diagnosticStatus,
+    sessionToRevoke,
+    setSessionToRevoke,
+    SESSIONS_PAGE_SIZE,
+    handleSaveLanguage,
+    handleSavePrivacy,
+    handleSaveNotifications,
+    handleExportData,
+    handleDeleteAccount,
+    handleRevokeSession,
+    confirmRevokeSession,
     isUpdatingSettings,
-    setOnUpdateSuccess,
-    exportData,
     isExportingData,
-    deleteAccount,
     isDeletingAccount,
-    getSessions,
-    revokeSession,
     isRevokingSession,
-  } = useSettings();
+  } = useSettingsPageController();
 
   const t = useTranslations("settings");
   const tLanguage = useTranslations("settings.language");
@@ -63,172 +78,7 @@ function SettingsPageContent() {
   const tData = useTranslations("settings.data");
   const tActions = useTranslations("settings.actions");
 
-  const [activeSection, setActiveSection] = useState<SettingsSection>("general");
-
-  // États pour les formulaires
-  const [languageSettings, setLanguageSettings] = useState({
-    language_preference: String(
-      user?.accessibility_settings?.language_preference || user?.language_preference || "fr"
-    ),
-    timezone: String(user?.accessibility_settings?.timezone || user?.timezone || "UTC"),
-  });
-
-  const getNotificationPref = (key: string): boolean => {
-    const prefs = user?.accessibility_settings?.notification_preferences;
-    if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
-      return (prefs as Record<string, boolean>)[key] ?? (key === "news" ? false : true);
-    }
-    return key === "news" ? false : true;
-  };
-
-  const [notificationSettings, setNotificationSettings] = useState({
-    achievements: getNotificationPref("achievements"),
-    progress: getNotificationPref("progress"),
-    recommendations: getNotificationPref("recommendations"),
-    news: getNotificationPref("news"),
-  });
-
-  const getPrivacyPref = (key: string, defaultValue: boolean): boolean => {
-    const prefs = user?.accessibility_settings?.privacy_settings;
-    if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
-      return (prefs as Record<string, boolean>)[key] ?? defaultValue;
-    }
-    return defaultValue;
-  };
-
-  const [privacySettings, setPrivacySettings] = useState({
-    is_public_profile: getPrivacyPref("is_public_profile", false),
-    allow_friend_requests: getPrivacyPref("allow_friend_requests", true),
-    show_in_leaderboards: getPrivacyPref("show_in_leaderboards", true),
-    data_retention_consent: getPrivacyPref("data_retention_consent", true),
-    marketing_consent: getPrivacyPref("marketing_consent", false),
-  });
-
-  const router = useRouter();
-  const [sessions, setSessions] = useState<UserSession[]>([]);
-  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const SESSIONS_PAGE_SIZE = 3;
-  const [visibleSessionCount, setVisibleSessionCount] = useState(SESSIONS_PAGE_SIZE);
-  const [diagnosticStatus, setDiagnosticStatus] = useState<{
-    has_completed: boolean;
-    latest: { completed_at: string; scores: Record<string, { difficulty: string }> } | null;
-  } | null>(null);
-
-  const isUpdatingFromServer = useRef(false);
-  const lastSyncedUserId = useRef<number | null>(null);
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (user && (isInitialMount.current || user.id !== lastSyncedUserId.current)) {
-      if (isUpdatingFromServer.current) return;
-
-      setLanguageSettings({
-        language_preference: String(
-          user.accessibility_settings?.language_preference || user.language_preference || "fr"
-        ),
-        timezone: String(user.accessibility_settings?.timezone || user.timezone || "UTC"),
-      });
-      const getPriv = (key: string, def: boolean): boolean => {
-        const p = user.accessibility_settings?.privacy_settings;
-        if (p && typeof p === "object" && !Array.isArray(p)) {
-          return (p as Record<string, boolean>)[key] ?? def;
-        }
-        return def;
-      };
-      setPrivacySettings({
-        is_public_profile: getPriv("is_public_profile", false),
-        allow_friend_requests: getPriv("allow_friend_requests", true),
-        show_in_leaderboards: getPriv("show_in_leaderboards", true),
-        data_retention_consent: getPriv("data_retention_consent", true),
-        marketing_consent: getPriv("marketing_consent", false),
-      });
-      const getPref = (key: string): boolean => {
-        const prefs = user.accessibility_settings?.notification_preferences;
-        if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
-          return (prefs as Record<string, boolean>)[key] ?? (key === "news" ? false : true);
-        }
-        return key === "news" ? false : true;
-      };
-      setNotificationSettings({
-        achievements: getPref("achievements"),
-        progress: getPref("progress"),
-        recommendations: getPref("recommendations"),
-        news: getPref("news"),
-      });
-
-      lastSyncedUserId.current = user.id;
-      isInitialMount.current = false;
-    }
-  }, [user]);
-
-  useEffect(() => {
-    setOnUpdateSuccess(() => {
-      isUpdatingFromServer.current = false;
-    });
-  }, [setOnUpdateSuccess]);
-
-  useEffect(() => {
-    const loadSessions = async () => {
-      setIsLoadingSessions(true);
-      try {
-        const userSessions = await getSessions();
-        setSessions(userSessions);
-      } catch (error) {
-        console.error("Erreur lors du chargement des sessions:", error);
-      } finally {
-        setIsLoadingSessions(false);
-      }
-    };
-    const loadDiagnosticStatus = async () => {
-      try {
-        const status = await api.get<typeof diagnosticStatus>("/api/diagnostic/status");
-        setDiagnosticStatus(status);
-      } catch {
-        // Non bloquant
-      }
-    };
-    loadSessions();
-    loadDiagnosticStatus();
-    // Chargement unique au montage — éviter re-fetch si les callbacks du hook useSettings changent d’identité.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleSaveLanguage = useCallback(() => {
-    if (isUpdatingSettings) return;
-    isUpdatingFromServer.current = true;
-    updateSettings(languageSettings);
-  }, [languageSettings, updateSettings, isUpdatingSettings]);
-
-  const handleSavePrivacy = useCallback(() => {
-    if (isUpdatingSettings) return;
-    isUpdatingFromServer.current = true;
-    updateSettings(privacySettings);
-  }, [privacySettings, updateSettings, isUpdatingSettings]);
-
-  const handleSaveNotifications = useCallback(() => {
-    if (isUpdatingSettings) return;
-    isUpdatingFromServer.current = true;
-    updateSettings({
-      notification_preferences: notificationSettings,
-    });
-  }, [notificationSettings, updateSettings, isUpdatingSettings]);
-
-  const handleExportData = useCallback(() => exportData(), [exportData]);
-
-  const handleDeleteAccount = useCallback(() => {
-    if (showDeleteConfirm) deleteAccount();
-    else setShowDeleteConfirm(true);
-  }, [showDeleteConfirm, deleteAccount]);
-
-  const [sessionToRevoke, setSessionToRevoke] = useState<number | null>(null);
-  const handleRevokeSession = useCallback((sessionId: number) => setSessionToRevoke(sessionId), []);
-  const confirmRevokeSession = useCallback(() => {
-    if (sessionToRevoke !== null) {
-      revokeSession(sessionToRevoke);
-      setSessionToRevoke(null);
-    }
-  }, [sessionToRevoke, revokeSession]);
+  const visibleSessions = getVisibleSessions(sessions, visibleSessionCount);
 
   const languages = [
     { value: "fr", label: "Français" },
@@ -582,7 +432,7 @@ function SettingsPageContent() {
                     </div>
                   ) : (
                     <div className="flex flex-col">
-                      {sessions.slice(0, visibleSessionCount).map((session) => (
+                      {visibleSessions.map((session) => (
                         <div
                           key={session.id}
                           className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0"
@@ -597,7 +447,7 @@ function SettingsPageContent() {
                                 : session.ip_address || tSessions("location")}
                               {" · "}
                               {tSessions("lastActivity")}:{" "}
-                              {format(new Date(session.last_activity), "PPpp", { locale: fr })}
+                              {formatSessionDate(session.last_activity, fr)}
                             </p>
                           </div>
                           {!session.is_current &&
