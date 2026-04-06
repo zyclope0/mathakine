@@ -29,15 +29,14 @@ import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRendere
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
-import {
-  extractShapeChoicesFromVisualData,
-  parsePositionsFromCorrectAnswer,
-  parsePositionsFromQuestion,
-  parsePositionsFromLayout,
-} from "@/lib/utils/visualChallengeUtils";
-import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 import { LearnerCard } from "@/components/learner";
 import { ChallengeSolverHint } from "@/components/challenges/ChallengeSolverHint";
+import {
+  getChallengeHintsArray,
+  getChallengeVisualAnswerModel,
+  isChallengeAnswerEmpty,
+  getChallengeTextInputKind,
+} from "@/lib/challenges/challengeSolver";
 
 interface ChallengeSolverProps {
   challengeId: number;
@@ -78,18 +77,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   // Initialiser les indices disponibles
   useEffect(() => {
     if (challenge?.hints) {
-      // S'assurer que hints est un tableau avec gestion d'erreur JSON
-      let hintsArray: string[] = [];
-      if (Array.isArray(challenge.hints)) {
-        hintsArray = challenge.hints;
-      } else if (typeof challenge.hints === "string") {
-        try {
-          const parsed = JSON.parse(challenge.hints);
-          hintsArray = Array.isArray(parsed) ? parsed : [];
-        } catch {
-          hintsArray = [];
-        }
-      }
+      const hintsArray = getChallengeHintsArray(challenge.hints);
       setAvailableHints(hintsArray);
       // Réinitialiser les indices du hook quand on change de défi
       setHints([]);
@@ -126,41 +114,23 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       setVisualSelections({});
       startTimeRef.current = Date.now();
     }
-    // exhaustive-deps: id seul (voir commentaire ci-dessus) — éviter reset si l’objet challenge est recréé à contenu identique.
+    // exhaustive-deps: id seul (voir commentaire ci-dessus) — éviter reset si l'objet challenge est recréé à contenu identique.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge?.id]);
 
+  // Dérivés visuels — centralisés via helper pur (doit être avant tout early return)
+  const visualModel = challenge ? getChallengeVisualAnswerModel(challenge, visualSelections) : null;
+
   // Syncer visualSelections multi-position vers userAnswer (doit être avant tout early return)
-  const visualPositionsForSync =
-    challenge &&
-    (parsePositionsFromCorrectAnswer(challenge.correct_answer).length > 0
-      ? parsePositionsFromCorrectAnswer(challenge.correct_answer)
-      : parsePositionsFromQuestion(challenge.question).length > 0
-        ? parsePositionsFromQuestion(challenge.question)
-        : parsePositionsFromLayout(challenge.visual_data));
-  const challengeForSync = challenge;
-  const responseModeForSync = challengeForSync
-    ? resolveChallengeResponseMode(challengeForSync)
-    : "open_text";
-  const choicesLen =
-    challengeForSync && Array.isArray(challengeForSync.choices)
-      ? challengeForSync.choices.length
-      : 0;
-  const showMcqForSync = responseModeForSync === "single_choice" && choicesLen > 0;
-  const hasVisualButtonsForSync =
-    challengeForSync?.challenge_type?.toLowerCase() === "visual" &&
-    responseModeForSync === "interactive_visual" &&
-    !showMcqForSync &&
-    extractShapeChoicesFromVisualData(challengeForSync?.visual_data).length >= 2 &&
-    !!challengeForSync?.visual_data;
   useEffect(() => {
-    if (!hasVisualButtonsForSync || !visualPositionsForSync || visualPositionsForSync.length < 2)
-      return;
-    const parts = visualPositionsForSync
-      .filter((p) => visualSelections[p])
-      .map((p) => `Position ${p}: ${visualSelections[p]}`);
-    setUserAnswer(parts.join(", "));
-  }, [visualSelections, visualPositionsForSync, hasVisualButtonsForSync]);
+    if (!visualModel?.hasVisualButtons || !visualModel.visualPositions.length) return;
+    if (visualModel.visualPositions.length < 2) return;
+    setUserAnswer(visualModel.derivedUserAnswerFromSelections);
+  }, [
+    visualModel?.hasVisualButtons,
+    visualModel?.visualPositions,
+    visualModel?.derivedUserAnswerFromSelections,
+  ]);
 
   // Fonction pour réessayer le défi
   const handleRetry = () => {
@@ -312,42 +282,28 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
 
-  // Normaliser choices pour s'assurer que c'est toujours un tableau
-  const choicesArray = Array.isArray(challenge.choices)
-    ? challenge.choices
-    : typeof challenge.choices === "string"
-      ? (() => {
-          try {
-            const parsed = JSON.parse(challenge.choices);
-            return Array.isArray(parsed) ? parsed : [];
-          } catch {
-            return [];
-          }
-        })()
-      : [];
+  // Dérivés visuels (visualModel est non-null ici car challenge est défini)
+  const {
+    responseMode,
+    showMcq,
+    visualChoices,
+    visualPositions,
+    hasVisualButtons,
+    isVisualMultiComplete,
+  } = visualModel!;
 
-  const responseMode = resolveChallengeResponseMode(challenge);
-  const showMcq = responseMode === "single_choice" && choicesArray.length > 0;
+  // Dérivé "vide de réponse" via helper pur
+  const isAnswerEmpty = isChallengeAnswerEmpty({
+    hasVisualButtons,
+    visualPositions,
+    isVisualMultiComplete,
+    userAnswer,
+  });
 
-  // Choix dérivés pour VISUAL (toutes les formes du défi, pas d'orientation)
-  const isVisual = challenge.challenge_type?.toLowerCase() === "visual";
-  const visualChoices =
-    isVisual && challenge.visual_data
-      ? extractShapeChoicesFromVisualData(challenge.visual_data)
-      : [];
-  const visualPositions =
-    parsePositionsFromCorrectAnswer(challenge.correct_answer).length > 0
-      ? parsePositionsFromCorrectAnswer(challenge.correct_answer)
-      : parsePositionsFromQuestion(challenge.question).length > 0
-        ? parsePositionsFromQuestion(challenge.question)
-        : parsePositionsFromLayout(challenge.visual_data);
-  const hasVisualButtons =
-    responseMode === "interactive_visual" &&
-    !showMcq &&
-    visualChoices.length >= 2 &&
-    !!challenge.visual_data;
-  const isVisualMultiComplete =
-    visualPositions.length <= 1 || visualPositions.every((p) => visualSelections[p]);
+  const isDisabled = isSubmitting || hasSubmitted || isAnswerEmpty;
+
+  // Catégorie de placeholder pour le champ texte fallback
+  const textInputKind = getChallengeTextInputKind(challenge.challenge_type);
 
   return (
     <>
@@ -581,42 +537,46 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 role="radiogroup"
                 aria-label="Choix de réponses pour le défi logique"
               >
-                {choicesArray.map((choice, index) => (
-                  <Button
-                    key={index}
-                    variant={userAnswer === choice ? "default" : "outline"}
-                    onClick={() => setUserAnswer(choice)}
-                    className="h-auto py-4 text-left justify-start"
-                    disabled={hasSubmitted}
-                    role="radio"
-                    aria-checked={userAnswer === choice}
-                    aria-label={`${t("option", { index: index + 1 })}: ${choice}`}
-                    tabIndex={hasSubmitted ? -1 : userAnswer === choice || index === 0 ? 0 : -1}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setUserAnswer(choice);
-                      }
-                      // Navigation par flèches
-                      if (e.key === "ArrowRight" && index < choicesArray.length - 1) {
-                        e.preventDefault();
-                        const nextButton = e.currentTarget.parentElement?.children[
-                          index + 1
-                        ] as HTMLElement;
-                        nextButton?.focus();
-                      }
-                      if (e.key === "ArrowLeft" && index > 0) {
-                        e.preventDefault();
-                        const prevButton = e.currentTarget.parentElement?.children[
-                          index - 1
-                        ] as HTMLElement;
-                        prevButton?.focus();
-                      }
-                    }}
-                  >
-                    {choice}
-                  </Button>
-                ))}
+                {visualModel!.showMcq &&
+                  (challenge.choices as string[]).map((choice, index) => (
+                    <Button
+                      key={index}
+                      variant={userAnswer === choice ? "default" : "outline"}
+                      onClick={() => setUserAnswer(choice)}
+                      className="h-auto py-4 text-left justify-start"
+                      disabled={hasSubmitted}
+                      role="radio"
+                      aria-checked={userAnswer === choice}
+                      aria-label={`${t("option", { index: index + 1 })}: ${choice}`}
+                      tabIndex={hasSubmitted ? -1 : userAnswer === choice || index === 0 ? 0 : -1}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setUserAnswer(choice);
+                        }
+                        // Navigation par flèches
+                        if (
+                          e.key === "ArrowRight" &&
+                          index < (challenge.choices as string[]).length - 1
+                        ) {
+                          e.preventDefault();
+                          const nextButton = e.currentTarget.parentElement?.children[
+                            index + 1
+                          ] as HTMLElement;
+                          nextButton?.focus();
+                        }
+                        if (e.key === "ArrowLeft" && index > 0) {
+                          e.preventDefault();
+                          const prevButton = e.currentTarget.parentElement?.children[
+                            index - 1
+                          ] as HTMLElement;
+                          prevButton?.focus();
+                        }
+                      }}
+                    >
+                      {choice}
+                    </Button>
+                  ))}
               </div>
             ) : hasVisualButtons ? (
               <div className="space-y-4">
@@ -784,9 +744,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   value={userAnswer}
                   onChange={(e) => setUserAnswer(e.target.value)}
                   placeholder={
-                    challenge.challenge_type?.toLowerCase() === "chess"
+                    textInputKind === "chess"
                       ? t("chessAnswerPlaceholder")
-                      : challenge.challenge_type?.toLowerCase() === "visual"
+                      : textInputKind === "visual"
                         ? t("visualAnswerPlaceholder")
                         : t("enterAnswer")
                   }
@@ -800,91 +760,79 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                     }
                   }}
                 />
-                {challenge.challenge_type?.toLowerCase() === "chess" && (
+                {textInputKind === "chess" && (
                   <p className="text-xs text-muted-foreground">{t("chessAnswerFormat")}</p>
                 )}
-                {challenge.challenge_type?.toLowerCase() === "visual" && (
+                {textInputKind === "visual" && (
                   <p className="text-xs text-muted-foreground">{t("visualAnswerFormat")}</p>
                 )}
               </div>
             )}
 
             <div className="space-y-2 flex-1">
-              {(() => {
-                const isAnswerEmpty = hasVisualButtons
-                  ? visualPositions.length > 1
-                    ? !isVisualMultiComplete
-                    : !userAnswer.trim()
-                  : !userAnswer.trim();
-                const isDisabled = isSubmitting || hasSubmitted || isAnswerEmpty;
-                return (
-                  <>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={isDisabled}
-                        className={cn(
-                          "flex-1 px-6 py-3 rounded-2xl font-medium transition-all",
-                          isAnswerEmpty && !isSubmitting
-                            ? "opacity-60 cursor-not-allowed bg-muted text-muted-foreground border border-border"
-                            : "bg-primary text-primary-foreground"
-                        )}
-                        aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
-                        aria-busy={isSubmitting}
-                        aria-describedby={
-                          isAnswerEmpty && !isSubmitting ? "challenge-validate-hint" : undefined
-                        }
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {t("checking")}
-                          </>
-                        ) : (
-                          t("validate")
-                        )}
-                      </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isDisabled}
+                  className={cn(
+                    "flex-1 px-6 py-3 rounded-2xl font-medium transition-all",
+                    isAnswerEmpty && !isSubmitting
+                      ? "opacity-60 cursor-not-allowed bg-muted text-muted-foreground border border-border"
+                      : "bg-primary text-primary-foreground"
+                  )}
+                  aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
+                  aria-busy={isSubmitting}
+                  aria-describedby={
+                    isAnswerEmpty && !isSubmitting ? "challenge-validate-hint" : undefined
+                  }
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("checking")}
+                    </>
+                  ) : (
+                    t("validate")
+                  )}
+                </Button>
 
-                      {(availableHints.length > 0 || challenge?.hints) && (
-                        <Button
-                          onClick={handleRequestHint}
-                          variant="outline"
-                          disabled={
-                            hasSubmitted ||
-                            (availableHints.length > 0 && hintsUsed.length >= availableHints.length)
-                          }
-                          className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-2xl"
-                          aria-label={
-                            availableHints.length > 0
-                              ? t("requestHint", {
-                                  current: hintsUsed.length + 1,
-                                  total: availableHints.length,
-                                })
-                              : t("requestHintGeneric")
-                          }
-                        >
-                          <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
-                          {availableHints.length > 0
-                            ? t("hintButton", {
-                                current: hintsUsed.length + 1,
-                                total: availableHints.length,
-                              })
-                            : t("hintButtonGeneric")}
-                        </Button>
-                      )}
-                    </div>
-                    {isAnswerEmpty && !isSubmitting && (
-                      <p
-                        id="challenge-validate-hint"
-                        className="text-center text-xs text-muted-foreground"
-                        aria-live="polite"
-                      >
-                        {t("validateHint")}
-                      </p>
-                    )}
-                  </>
-                );
-              })()}
+                {(availableHints.length > 0 || challenge?.hints) && (
+                  <Button
+                    onClick={handleRequestHint}
+                    variant="outline"
+                    disabled={
+                      hasSubmitted ||
+                      (availableHints.length > 0 && hintsUsed.length >= availableHints.length)
+                    }
+                    className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-2xl"
+                    aria-label={
+                      availableHints.length > 0
+                        ? t("requestHint", {
+                            current: hintsUsed.length + 1,
+                            total: availableHints.length,
+                          })
+                        : t("requestHintGeneric")
+                    }
+                  >
+                    <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
+                    {availableHints.length > 0
+                      ? t("hintButton", {
+                          current: hintsUsed.length + 1,
+                          total: availableHints.length,
+                        })
+                      : t("hintButtonGeneric")}
+                  </Button>
+                )}
+              </div>
+              {isAnswerEmpty && !isSubmitting && (
+                <p
+                  id="challenge-validate-hint"
+                  className="text-center text-xs text-muted-foreground"
+                  aria-live="polite"
+                >
+                  {t("validateHint")}
+                </p>
+              )}
             </div>
           </div>
         </div>
