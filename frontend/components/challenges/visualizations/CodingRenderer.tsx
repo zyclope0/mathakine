@@ -23,7 +23,10 @@ interface CodingRendererProps {
 
 /**
  * Renderer pour les défis de codage/cryptographie.
- * Gère : code César, substitution, binaire, symboles, algorithmes.
+ * Gère : code César, substitution, binaire, symboles, algorithmes, labyrinthes.
+ *
+ * Toutes les couleurs utilisent les variables CSS du design system pour garantir
+ * le respect du thème (clair/sombre) et le contraste WCAG.
  */
 export function CodingRenderer({ visualData, className = "" }: CodingRendererProps) {
   const isHydrated = useHydrated();
@@ -97,18 +100,18 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               <span className="font-semibold text-foreground">Message codé</span>
             </div>
             <motion.div
-              className="bg-slate-900 border-2 border-primary/50 rounded-lg p-4 font-mono text-center"
+              className="bg-muted border-2 border-primary/50 rounded-lg p-4 font-mono text-center"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <span className="text-2xl md:text-3xl tracking-widest text-amber-400 font-bold">
+              <span className="text-2xl md:text-3xl tracking-widest text-primary font-bold">
                 {encodedMessage}
               </span>
             </motion.div>
           </div>
         )}
 
-        {/* Code César - Afficher le décalage OU la clé partielle */}
+        {/* Code César - décalage */}
         {codingType === "caesar" && shift !== undefined && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -128,7 +131,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
           </div>
         )}
 
-        {/* Code César avec partial_key : exemples pour déduire le décalage */}
+        {/* Code César avec partial_key : exemples */}
         {codingType === "caesar" && shift === undefined && Object.keys(cryptoKey).length > 0 && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -142,14 +145,16 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               {Object.entries(cryptoKey).map(([encoded, decoded], index) => (
                 <motion.div
                   key={encoded}
-                  className="bg-slate-800 border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
+                  className="bg-muted border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <span className="text-amber-400 font-mono font-bold">{encoded}</span>
+                  <span className="text-primary font-mono font-bold">{encoded}</span>
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-green-400 font-mono font-bold">{String(decoded)}</span>
+                  <span className="text-green-600 dark:text-green-400 font-mono font-bold">
+                    {String(decoded)}
+                  </span>
                 </motion.div>
               ))}
             </div>
@@ -172,14 +177,16 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               {Object.entries(cryptoKey).map(([encoded, decoded], index) => (
                 <motion.div
                   key={encoded}
-                  className="bg-slate-800 border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
+                  className="bg-muted border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <span className="text-amber-400 font-mono font-bold">{encoded}</span>
+                  <span className="text-primary font-mono font-bold">{encoded}</span>
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-green-400 font-mono font-bold">{String(decoded)}</span>
+                  <span className="text-green-600 dark:text-green-400 font-mono font-bold">
+                    {String(decoded)}
+                  </span>
                 </motion.div>
               ))}
             </div>
@@ -197,12 +204,14 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               {encodedMessage.split(" ").map((byte: string, index: number) => (
                 <motion.div
                   key={index}
-                  className="bg-slate-900 border border-green-500/50 rounded px-3 py-2 font-mono"
+                  className="bg-muted border border-green-500/50 rounded px-3 py-2 font-mono"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <span className="text-green-400 text-lg tracking-wider">{byte}</span>
+                  <span className="text-green-700 dark:text-green-400 text-lg tracking-wider">
+                    {byte}
+                  </span>
                 </motion.div>
               ))}
             </div>
@@ -223,7 +232,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               {Object.entries(cryptoKey).map(([symbol, letter], index) => (
                 <motion.div
                   key={symbol}
-                  className="bg-slate-800 border border-primary/30 rounded-lg p-3 flex items-center justify-center gap-3"
+                  className="bg-muted border border-primary/30 rounded-lg p-3 flex items-center justify-center gap-3"
                   initial={{ opacity: 0, rotateY: 90 }}
                   animate={{ opacity: 1, rotateY: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -253,7 +262,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               {steps.map((step: string, index: number) => (
                 <motion.div
                   key={index}
-                  className="flex items-start gap-3 bg-background/50 border border-border rounded-md p-3"
+                  className="flex items-start gap-3 bg-muted/50 border border-border rounded-md p-3"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -272,8 +281,8 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
         {hint && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              <span className="text-sm text-amber-200">{hint}</span>
+              <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+              <span className="text-sm text-amber-800 dark:text-amber-200">{hint}</span>
             </div>
           </div>
         )}
@@ -316,13 +325,13 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
             <span className="font-semibold text-foreground">Labyrinthe</span>
             <div className="ml-auto flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1">
-                <span className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
+                <span className="w-4 h-4 bg-green-600 dark:bg-green-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
                   S
                 </span>
                 <span className="text-muted-foreground">Départ</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-4 h-4 bg-red-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
+                <span className="w-4 h-4 bg-red-600 dark:bg-red-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
                   F
                 </span>
                 <span className="text-muted-foreground">Arrivée</span>
@@ -330,11 +339,10 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
             </div>
           </div>
 
-          <div className="flex justify-center">
-            <div className="inline-block bg-slate-900 p-3 rounded-lg border border-primary/30">
-              {maze.map((row: string | string[], rowIndex: number) => {
-                // Gérer les formats: string[] ou string
-                const cells = Array.isArray(row) ? row : row.split("");
+          <div className="flex justify-center overflow-x-auto">
+            <div className="inline-block bg-muted p-3 rounded-lg border border-border">
+              {(maze as Array<string | string[]>).map((row, rowIndex: number) => {
+                const cells = Array.isArray(row) ? row : (row as string).split("");
 
                 return (
                   <div key={rowIndex} className="flex">
@@ -347,20 +355,26 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                       return (
                         <motion.div
                           key={`${rowIndex}-${colIndex}`}
-                          className={`
-                            w-7 h-7 flex items-center justify-center text-xs font-bold
-                            ${isStart ? "bg-green-500 text-white" : ""}
-                            ${isEnd ? "bg-red-500 text-white" : ""}
-                            ${!isStart && !isEnd && isWall ? "bg-slate-700" : ""}
-                            ${!isStart && !isEnd && isPath ? "bg-slate-800/50" : ""}
-                          `}
+                          className={[
+                            "w-7 h-7 flex items-center justify-center text-xs font-bold",
+                            isStart ? "bg-green-600 dark:bg-green-500 text-white" : "",
+                            isEnd ? "bg-red-600 dark:bg-red-500 text-white" : "",
+                            !isStart && !isEnd && isWall
+                              ? "bg-foreground/20 dark:bg-foreground/30"
+                              : "",
+                            !isStart && !isEnd && isPath ? "bg-background/60" : "",
+                            !isStart && !isEnd && !isWall && !isPath
+                              ? "bg-muted-foreground/10"
+                              : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: (rowIndex * cells.length + colIndex) * 0.01 }}
                         >
                           {isStart && "S"}
                           {isEnd && "F"}
-                          {!isStart && !isEnd && isWall && ""}
                         </motion.div>
                       );
                     })}
@@ -381,17 +395,17 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
           </div>
         </div>
 
-        {/* Instructions possibles */}
+        {/* Instructions disponibles */}
         <div className="bg-card/50 border border-border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
+            <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-500" />
             <span className="font-semibold text-foreground">Instructions disponibles</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {["↑ HAUT", "↓ BAS", "← GAUCHE", "→ DROITE"].map((instruction, index) => (
               <motion.span
                 key={instruction}
-                className="bg-slate-800 border border-primary/30 rounded px-3 py-1.5 text-sm font-mono text-primary"
+                className="bg-muted border border-primary/30 rounded px-3 py-1.5 text-sm font-mono text-primary"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -431,7 +445,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               </span>
             )}
           </div>
-          <pre className="p-4 overflow-x-auto text-sm">
+          <pre className="p-4 overflow-x-auto text-sm bg-muted/50">
             <code className="text-foreground font-mono">{code}</code>
           </pre>
         </div>
@@ -445,10 +459,10 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
             <h4 className="font-semibold text-foreground">Exemples</h4>
           </div>
           <div className="space-y-3">
-            {examples.map((example: Record<string, unknown>, index: number) => (
+            {(examples as Array<Record<string, unknown>>).map((example, index: number) => (
               <div
                 key={index}
-                className="bg-background/50 border border-border rounded-md overflow-hidden"
+                className="bg-muted/30 border border-border rounded-md overflow-hidden"
               >
                 <div className="bg-muted/50 px-3 py-1 border-b border-border">
                   <span className="text-xs font-semibold text-muted-foreground">
@@ -505,7 +519,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
           {(output || expectedOutput) && (
             <div className="bg-card/50 border border-border rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
                 <h5 className="text-sm font-semibold text-foreground">Sortie attendue</h5>
               </div>
               <pre className="p-2 bg-muted rounded text-xs font-mono text-foreground overflow-x-auto">
@@ -522,13 +536,13 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
       {constraints.length > 0 && (
         <div className="bg-card/50 border border-border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
-            <XCircle className="h-5 w-5 text-orange-500" />
+            <XCircle className="h-5 w-5 text-orange-600 dark:text-orange-500" />
             <h4 className="font-semibold text-foreground">Contraintes</h4>
           </div>
           <ul className="space-y-1.5 text-sm">
-            {constraints.map((constraint: string, index: number) => (
+            {(constraints as string[]).map((constraint: string, index: number) => (
               <li key={index} className="flex items-start gap-2">
-                <span className="text-orange-500 mt-0.5">•</span>
+                <span className="text-orange-600 dark:text-orange-500 mt-0.5">•</span>
                 <span className="text-muted-foreground">{constraint}</span>
               </li>
             ))}
@@ -544,12 +558,12 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
             <h4 className="font-semibold text-foreground">Indices</h4>
           </div>
           <div className="space-y-2">
-            {hints.map((hint: string, index: number) => (
+            {(hints as string[]).map((hintItem: string, index: number) => (
               <div
                 key={index}
-                className="bg-background/50 border border-border rounded-md p-3 text-sm text-muted-foreground"
+                className="bg-muted/50 border border-border rounded-md p-3 text-sm text-muted-foreground"
               >
-                <span className="font-semibold text-primary">Indice {index + 1} :</span> {hint}
+                <span className="font-semibold text-primary">Indice {index + 1} :</span> {hintItem}
               </div>
             ))}
           </div>
@@ -577,7 +591,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                         {key.replace(/_/g, " ")} :
                       </p>
                       <div className="pl-3 space-y-1">
-                        {value.map((item: unknown, i: number) => (
+                        {(value as unknown[]).map((item: unknown, i: number) => (
                           <p key={i} className="text-sm text-foreground">
                             • {typeof item === "object" ? JSON.stringify(item) : String(item)}
                           </p>
