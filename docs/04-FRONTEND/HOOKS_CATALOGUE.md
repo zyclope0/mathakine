@@ -83,7 +83,8 @@
 | Hook             | RÃ´le                                       | Test | RQ       | DÃ©pendances clÃ©s                              |
 | ---------------- | ------------------------------------------- | ---- | -------- | ----------------------------------------------- |
 | `useAuth.ts`     | Session utilisateur, login, logout, refresh | âŒ   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout` |
-| `useSettings.ts` | PrÃ©fÃ©rences utilisateur                   | âŒ   | Mutation | `GET/PUT /api/users/me/settings`                |
+| `useSettings.ts` | PrÃ©fÃ©rences utilisateur                   | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions   |
+| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic) | âœ…   | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
 
 ---
 

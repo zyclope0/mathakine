@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { UseSettingsPageControllerResult } from "@/hooks/useSettingsPageController";
 
@@ -114,5 +115,49 @@ describe("SettingsPage", () => {
     );
     render(<SettingsPage />);
     expect(screen.getByText("settings.diagnostic.title")).toBeInTheDocument();
+  });
+
+  it("navigation desktop appelle setActiveSection", async () => {
+    const user = userEvent.setup();
+    const setActiveSection = vi.fn();
+    mockController.mockImplementation(() => buildController({ setActiveSection }));
+    render(<SettingsPage />);
+    await user.click(screen.getByRole("button", { name: "settings.menu.notifications" }));
+    expect(setActiveSection).toHaveBeenCalledWith("notifications");
+  });
+
+  it("section sécurité: titre sessions visible", () => {
+    mockController.mockImplementation(() => buildController({ activeSection: "security" }));
+    render(<SettingsPage />);
+    expect(screen.getByText("settings.sessions.title")).toBeInTheDocument();
+  });
+
+  it("section données: bouton export déclenche handleExportData", async () => {
+    const user = userEvent.setup();
+    const handleExportData = vi.fn();
+    mockController.mockImplementation(() =>
+      buildController({
+        activeSection: "data",
+        diagnosticStatus: { has_completed: false, latest: null },
+        handleExportData,
+      })
+    );
+    render(<SettingsPage />);
+    const exportButtons = screen.getAllByRole("button", { name: "settings.data.export" });
+    await user.click(exportButtons[0]!);
+    expect(handleExportData).toHaveBeenCalled();
+  });
+
+  it("section données: bouton suppression visible hors confirmation", () => {
+    mockController.mockImplementation(() =>
+      buildController({
+        activeSection: "data",
+        showDeleteConfirm: false,
+        diagnosticStatus: { has_completed: false, latest: null },
+      })
+    );
+    render(<SettingsPage />);
+    const deleteButtons = screen.getAllByRole("button", { name: "settings.data.delete" });
+    expect(deleteButtons.length).toBeGreaterThan(0);
   });
 });
