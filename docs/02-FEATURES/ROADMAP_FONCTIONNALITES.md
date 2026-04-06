@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features Ã¢â‚¬â€ Mathakine
 
-> **Document vivant** - Derniere MAJ : 06/04/2026 (realignement verite terrain : parent priorise, F15/F36 recales, NI-03 partiel, NI-09 livre ; F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5)  
+> **Document vivant** - Derniere MAJ : 06/04/2026 (realignement verite terrain : parent priorise, F15/F36 recales, NI-03 partiel, NI-09 livre ; F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5, F44 backlog produit defis documente)  
 > **RÃƒÂ´le** : Source de vÃƒÂ©ritÃƒÂ© unique pour toutes les features ÃƒÂ  implÃƒÂ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -148,50 +148,51 @@ Ce rituel est obligatoire pour garder une roadmap motivante, lisible et alignee 
 
 _Vue consolidee du backlog et du deja livre. Legende : D=Difficulte, G=Gain, E=EdTech, R=Risque, B=Business._
 
-| #   | Feature                                                                      | Statut reel code                                                                                    | D   | G   | E   | R   | B   | Score    | Priorite |
-| --- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --- | --- | --- | --- | --- | -------- | -------- |
-| F01 | Rendu Markdown/KaTeX explications                                            | [DONE]                                                                                              | 2   | 4   | 5   | 1   | 3   | **16.8** | P0       |
-| F02 | Defis quotidiens (defi du jour)                                              | [DONE]                                                                                              | 3   | 5   | 4   | 2   | 5   | **16.9** | P0       |
-| F03 | Test de diagnostic initial                                                   | [DONE]                                                                                              | 3   | 4   | 5   | 2   | 4   | **16.0** | P0       |
-| F04 | Revisions espacees (SM-2)                                                    | [PARTIAL] exercice livre end-to-end ; defis + F23 restent hors scope                                | 4   | 4   | 5   | 2   | 4   | **14.8** | P0       |
-| F30 | [PROP] Effet Protege (corriger erreur IA)                                    | [BACKLOG]                                                                                           | 4   | 4   | 5   | 2   | 4   | **15.4** | P1       |
-| F31 | [PROP] Exemples resolus progressifs (Fading)                                 | [BACKLOG]                                                                                           | 3   | 4   | 5   | 2   | 3   | **15.2** | P1       |
-| F32 | [PROP] Mode Pratique Entrelacee (Interleaving)                               | [DONE]                                                                                              | 2   | 3   | 5   | 2   | 3   | **14.5** | P1       |
-| F05 | Adaptation dynamique de difficulte                                           | [DONE]                                                                                              | 4   | 4   | 5   | 3   | 4   | **13.9** | P1       |
-| F06 | Conditions d'obtention badges visibles                                       | [DONE]                                                                                              | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
-| F07 | Courbe d'evolution temporelle                                                | [DONE]                                                                                              | 3   | 4   | 3   | 2   | 3   | **11.2** | P1       |
-| F08 | Objectifs personnalises                                                      | [BACKLOG]                                                                                           | 3   | 3   | 3   | 1   | 3   | **11.1** | P1       |
-| F09 | Dashboard parent                                                             | [BACKLOG]                                                                                           | 4   | 4   | 3   | 2   | 5   | **11.4** | P1       |
-| F10 | [PROP] Mode focus / session ciblee                                           | [BACKLOG]                                                                                           | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
-| F11 | [PROP] Partage progression -> parents (lien)                                 | [BACKLOG]                                                                                           | 2   | 3   | 3   | 1   | 4   | **12.5** | P1       |
-| F12 | Radar chart par discipline                                                   | [DONE]                                                                                              | 2   | 3   | 3   | 1   | 2   | **10.9** | P1       |
-| F13 | Deblocage automatique badges temps reel                                      | [DONE]                                                                                              | 2   | 3   | 3   | 1   | 3   | **11.5** | P1       |
-| F33 | Feedback Growth Mindset (copywriting)                                        | [DONE]                                                                                              | 1   | 3   | 3   | 1   | 2   | **11.4** | P1       |
-| F14 | Monitoring IA - persistance DB                                               | [PARTIAL]                                                                                           | 2   | 2   | 1   | 1   | 3   | **6.9**  | P2       |
-| F15 | Preference page d'accueil (connexion)                                        | [PARTIAL] route par role livree ; vraie preference utilisateur encore absente                       | 1   | 2   | 1   | 1   | 1   | **5.7**  | P2       |
-| F16 | Heatmap d'activite                                                           | [BACKLOG]                                                                                           | 3   | 3   | 2   | 1   | 3   | **9.1**  | P2       |
-| F17 | Celebrations visuelles ameliorees                                            | [BACKLOG]                                                                                           | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
-| F18 | Ligues hebdomadaires (upgrade leaderboard)                                   | [BACKLOG] (leaderboard deja present)                                                                | 4   | 4   | 1   | 2   | 4   | **8.9**  | P2       |
-| F19 | Notifications push + email                                                   | [BACKLOG]                                                                                           | 4   | 3   | 2   | 2   | 4   | **8.1**  | P2       |
-| F20 | Normalisation niveaux de difficulte                                          | [PARTIAL] produit visible neutralise, legacy technique conserve                                     | 4   | 3   | 2   | 3   | 3   | **6.9**  | P2       |
-| F21 | Badges secrets                                                               | [BACKLOG]                                                                                           | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
-| F22 | Suppression utilisateur admin (RGPD)                                         | [DONE]                                                                                              | 2   | 1   | 1   | 2   | 3   | **4.7**  | P2       |
-| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy)                       | [DONE]                                                                                              | 1   | 2   | 1   | 1   | 4   | **7.5**  | P2       |
-| F36 | [UX][TECH] Flash auth au refresh                                             | [PARTIAL] boundary serveur+client livre sur routes protegees ; artefact global residuel a confirmer | 2   | 2   | 1   | 1   | 3   | **7.2**  | P2       |
-| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard     | [BACKLOG] actif                                                                                     | 3   | 3   | 4   | 2   | 3   | **11.7** | P2       |
-| F38 | [UX][Gamification] Progression compte coherente & historique des gains       | [PARTIAL] runtime recale ; lecture produit du ledger encore manquante                               | 3   | 4   | 2   | 2   | 4   | **10.2** | P1       |
-| F23 | [PROP] Exercices adaptatifs SR+IA                                            | [BACKLOG]                                                                                           | 4   | 5   | 5   | 3   | 5   | **17.1** | P2\*     |
-| F24 | Tuteur IA contextuel                                                         | [BACKLOG]                                                                                           | 5   | 5   | 5   | 3   | 5   | **16.1** | P3       |
-| F25 | Mode classe / enseignant                                                     | [BACKLOG]                                                                                           | 5   | 4   | 4   | 3   | 5   | **14.9** | P3       |
-| F26 | Filtres et tri badges                                                        | [DONE]                                                                                              | 2   | 2   | 1   | 1   | 2   | **6.4**  | P3       |
-| F27 | Optimisation re-renders exercices/defis                                      | [BACKLOG]                                                                                           | 3   | 2   | 1   | 2   | 2   | **4.8**  | P3       |
-| F28 | Mode aventure / histoire narrative                                           | [BACKLOG]                                                                                           | 5   | 5   | 3   | 3   | 5   | **13.1** | P4       |
-| F29 | Personnalisation avatar / profil                                             | [BACKLOG]                                                                                           | 3   | 3   | 1   | 1   | 2   | **7.1**  | P4       |
-| F34 | Module Sciences - Curiosites (Vrai/Faux, format court)                       | [BACKLOG] prototype seulement                                                                       | 3   | 4   | 2   | 2   | 4   | **10.4** | P4       |
-| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars                             | [PARTIAL] visible neutralise ; roles canoniques livres ; aliases legacy rangs/DB encore servis      | 4   | 3   | 1   | 3   | 5   | **6.2**  | P1\*     |
-| F40 | Leaderboard Ã¢â‚¬â€ position de l'utilisateur hors top 50                    | [DONE]                                                                                              | 2   | 4   | 2   | 1   | 3   | **10.7** | P2       |
-| F41 | Leaderboard Ã¢â‚¬â€ filtre temporel (semaine / mois / tout)                  | [DONE]                                                                                              | 3   | 4   | 1   | 2   | 3   | **7.2**  | P2       |
-| F42 | Architecture difficultÃƒÂ© Ã¢â‚¬â€ sÃƒÂ©paration ÃƒÂ¢ge et niveau sur 2 axes | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite                             | 4   | 3   | 3   | 3   | 4   | **9.2**  | P2       |
+| #   | Feature                                                                         | Statut reel code                                                                                                             | D   | G   | E   | R   | B   | Score    | Priorite |
+| --- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --- | --- | --- | --- | --- | -------- | -------- |
+| F01 | Rendu Markdown/KaTeX explications                                               | [DONE]                                                                                                                       | 2   | 4   | 5   | 1   | 3   | **16.8** | P0       |
+| F02 | Defis quotidiens (defi du jour)                                                 | [DONE]                                                                                                                       | 3   | 5   | 4   | 2   | 5   | **16.9** | P0       |
+| F03 | Test de diagnostic initial                                                      | [DONE]                                                                                                                       | 3   | 4   | 5   | 2   | 4   | **16.0** | P0       |
+| F04 | Revisions espacees (SM-2)                                                       | [PARTIAL] exercice livre end-to-end ; defis + F23 restent hors scope                                                         | 4   | 4   | 5   | 2   | 4   | **14.8** | P0       |
+| F30 | [PROP] Effet Protege (corriger erreur IA)                                       | [BACKLOG]                                                                                                                    | 4   | 4   | 5   | 2   | 4   | **15.4** | P1       |
+| F31 | [PROP] Exemples resolus progressifs (Fading)                                    | [BACKLOG]                                                                                                                    | 3   | 4   | 5   | 2   | 3   | **15.2** | P1       |
+| F32 | [PROP] Mode Pratique Entrelacee (Interleaving)                                  | [DONE]                                                                                                                       | 2   | 3   | 5   | 2   | 3   | **14.5** | P1       |
+| F05 | Adaptation dynamique de difficulte                                              | [DONE]                                                                                                                       | 4   | 4   | 5   | 3   | 4   | **13.9** | P1       |
+| F06 | Conditions d'obtention badges visibles                                          | [DONE]                                                                                                                       | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
+| F07 | Courbe d'evolution temporelle                                                   | [DONE]                                                                                                                       | 3   | 4   | 3   | 2   | 3   | **11.2** | P1       |
+| F08 | Objectifs personnalises                                                         | [BACKLOG]                                                                                                                    | 3   | 3   | 3   | 1   | 3   | **11.1** | P1       |
+| F09 | Dashboard parent                                                                | [BACKLOG]                                                                                                                    | 4   | 4   | 3   | 2   | 5   | **11.4** | P1       |
+| F10 | [PROP] Mode focus / session ciblee                                              | [BACKLOG]                                                                                                                    | 2   | 4   | 3   | 1   | 3   | **13.5** | P1       |
+| F11 | [PROP] Partage progression -> parents (lien)                                    | [BACKLOG]                                                                                                                    | 2   | 3   | 3   | 1   | 4   | **12.5** | P1       |
+| F12 | Radar chart par discipline                                                      | [DONE]                                                                                                                       | 2   | 3   | 3   | 1   | 2   | **10.9** | P1       |
+| F13 | Deblocage automatique badges temps reel                                         | [DONE]                                                                                                                       | 2   | 3   | 3   | 1   | 3   | **11.5** | P1       |
+| F33 | Feedback Growth Mindset (copywriting)                                           | [DONE]                                                                                                                       | 1   | 3   | 3   | 1   | 2   | **11.4** | P1       |
+| F14 | Monitoring IA - persistance DB                                                  | [PARTIAL]                                                                                                                    | 2   | 2   | 1   | 1   | 3   | **6.9**  | P2       |
+| F15 | Preference page d'accueil (connexion)                                           | [PARTIAL] route par role livree ; vraie preference utilisateur encore absente                                                | 1   | 2   | 1   | 1   | 1   | **5.7**  | P2       |
+| F16 | Heatmap d'activite                                                              | [BACKLOG]                                                                                                                    | 3   | 3   | 2   | 1   | 3   | **9.1**  | P2       |
+| F17 | Celebrations visuelles ameliorees                                               | [BACKLOG]                                                                                                                    | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
+| F18 | Ligues hebdomadaires (upgrade leaderboard)                                      | [BACKLOG] (leaderboard deja present)                                                                                         | 4   | 4   | 1   | 2   | 4   | **8.9**  | P2       |
+| F19 | Notifications push + email                                                      | [BACKLOG]                                                                                                                    | 4   | 3   | 2   | 2   | 4   | **8.1**  | P2       |
+| F20 | Normalisation niveaux de difficulte                                             | [PARTIAL] produit visible neutralise, legacy technique conserve                                                              | 4   | 3   | 2   | 3   | 3   | **6.9**  | P2       |
+| F21 | Badges secrets                                                                  | [BACKLOG]                                                                                                                    | 2   | 3   | 2   | 1   | 2   | **9.0**  | P2       |
+| F22 | Suppression utilisateur admin (RGPD)                                            | [DONE]                                                                                                                       | 2   | 1   | 1   | 2   | 3   | **4.7**  | P2       |
+| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy)                          | [DONE]                                                                                                                       | 1   | 2   | 1   | 1   | 4   | **7.5**  | P2       |
+| F36 | [UX][TECH] Flash auth au refresh                                                | [PARTIAL] boundary serveur+client livre sur routes protegees ; artefact global residuel a confirmer                          | 2   | 2   | 1   | 1   | 3   | **7.2**  | P2       |
+| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard        | [BACKLOG] actif                                                                                                              | 3   | 3   | 4   | 2   | 3   | **11.7** | P2       |
+| F38 | [UX][Gamification] Progression compte coherente & historique des gains          | [PARTIAL] runtime recale ; lecture produit du ledger encore manquante                                                        | 3   | 4   | 2   | 2   | 4   | **10.2** | P1       |
+| F44 | [UX][Produit] Coherence interaction defis (`challenge_type` vs `response_mode`) | [BACKLOG] decision produit exhaustive requise ; un meme type peut encore rendre QCM, interaction ou texte libre selon policy | 4   | 4   | 4   | 3   | 3   | **11.7** | P1       |
+| F23 | [PROP] Exercices adaptatifs SR+IA                                               | [BACKLOG]                                                                                                                    | 4   | 5   | 5   | 3   | 5   | **17.1** | P2\*     |
+| F24 | Tuteur IA contextuel                                                            | [BACKLOG]                                                                                                                    | 5   | 5   | 5   | 3   | 5   | **16.1** | P3       |
+| F25 | Mode classe / enseignant                                                        | [BACKLOG]                                                                                                                    | 5   | 4   | 4   | 3   | 5   | **14.9** | P3       |
+| F26 | Filtres et tri badges                                                           | [DONE]                                                                                                                       | 2   | 2   | 1   | 1   | 2   | **6.4**  | P3       |
+| F27 | Optimisation re-renders exercices/defis                                         | [BACKLOG]                                                                                                                    | 3   | 2   | 1   | 2   | 2   | **4.8**  | P3       |
+| F28 | Mode aventure / histoire narrative                                              | [BACKLOG]                                                                                                                    | 5   | 5   | 3   | 3   | 5   | **13.1** | P4       |
+| F29 | Personnalisation avatar / profil                                                | [BACKLOG]                                                                                                                    | 3   | 3   | 1   | 1   | 2   | **7.1**  | P4       |
+| F34 | Module Sciences - Curiosites (Vrai/Faux, format court)                          | [BACKLOG] prototype seulement                                                                                                | 3   | 4   | 2   | 2   | 4   | **10.4** | P4       |
+| F39 | [LEGAL] Refonte rangs & suppression IP Star Wars                                | [PARTIAL] visible neutralise ; roles canoniques livres ; aliases legacy rangs/DB encore servis                               | 4   | 3   | 1   | 3   | 5   | **6.2**  | P1\*     |
+| F40 | Leaderboard Ã¢â‚¬â€ position de l'utilisateur hors top 50                       | [DONE]                                                                                                                       | 2   | 4   | 2   | 1   | 3   | **10.7** | P2       |
+| F41 | Leaderboard Ã¢â‚¬â€ filtre temporel (semaine / mois / tout)                     | [DONE]                                                                                                                       | 3   | 4   | 1   | 2   | 3   | **7.2**  | P2       |
+| F42 | Architecture difficultÃƒÂ© Ã¢â‚¬â€ sÃƒÂ©paration ÃƒÂ¢ge et niveau sur 2 axes    | [DONE] runtime F42 et boundaries alignes, legacy garde en compatibilite                                                      | 4   | 3   | 3   | 3   | 4   | **9.2**  | P2       |
 
 > _F23 a un score eleve mais depend de F04 (revisions espacees) - debloque apres F04._
 > _F39 : le visible produit est maintenant neutralise. Les migrations additives `progression_rank` et `thematic_title` sont livrees ; les aliases legacy restent intentionnellement servis pendant la transition._
@@ -211,6 +212,7 @@ _Vue consolidee du backlog et du deja livre. Legende : D=Difficulte, G=Gain, E=E
 - F36 : boundary serveur+client sur `/home-learner`, `/dashboard` et `/admin` livre ; un eventuel flash global hors routes protegees reste une dette de polish
 - F38 : moteur gamification persistant + ledger `point_events` + calcul niveau/XP/rang recales, mais pas encore d'historique utilisateur dedie ni de lecture produit complete du ledger
 - F39 : rangs publics et surfaces visibles neutralises ; migrations additives `progression_rank` et `thematic_title` livrees ; aliases legacy encore servis
+- F44 : la coherence percue des defis reste a decider produit ; aujourd'hui `challenge_type` et `response_mode` sont separes et peuvent produire des interactions differentes pour un meme type visible
 
 **[BACKLOG] Encore a livrer**
 
@@ -230,22 +232,23 @@ Ordre recommande maintenant :
 1. **F09** - dashboard parent + relation parent-enfant
 2. **F38** - historique des gains et lecture produit coherente du ledger compte
 3. **F37** - coherence dashboard / temporalite / charge cognitive
-4. **F14** - persistance DB complete des metriques runtime IA
-5. **F08** - objectifs personnalises
-6. **F10** - mode focus / session ciblee
-7. **F36** - suppression du reliquat de flash auth au refresh, si encore visible hors routes protegees
-8. **F23** - exercices adaptatifs SR+IA, maintenant debloques par F04
-9. **F30** - effet protege
-10. **F31** - exemples resolus progressifs
-11. **F11** - partage progression vers parents
-12. **F16 / F17 / F18 / F19 / F21** - confort, engagement et croissance
-13. **F24 / F25 / F27** - chantiers plus lourds ou structurels
-14. **F28 / F29 / F34** - backlog lointain / produit
+4. **F44** - coherence interaction defis (`challenge_type` vs `response_mode`) - cadrage produit exhaustif avant implementation
+5. **F14** - persistance DB complete des metriques runtime IA
+6. **F08** - objectifs personnalises
+7. **F10** - mode focus / session ciblee
+8. **F36** - suppression du reliquat de flash auth au refresh, si encore visible hors routes protegees
+9. **F23** - exercices adaptatifs SR+IA, maintenant debloques par F04
+10. **F30** - effet protege
+11. **F31** - exemples resolus progressifs
+12. **F11** - partage progression vers parents
+13. **F16 / F17 / F18 / F19 / F21** - confort, engagement et croissance
+14. **F24 / F25 / F27** - chantiers plus lourds ou structurels
+15. **F28 / F29 / F34** - backlog lointain / produit
 
 Lecture simple :
 
 - **P0 operationnel** : F09, F38, F37
-- **P1 operationnel** : F14, F08, F10, F36, F23
+- **P1 operationnel** : F44, F14, F08, F10, F36, F23
 - **P2 operationnel** : F30, F31, F11, F16, F17, F18, F19, F21
 - **P3 operationnel** : F24, F25, F27
 - **P4 operationnel** : F28, F29, F34
@@ -881,6 +884,112 @@ Route: /parent/child/[id] ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ progression 
 **Effort estime** : 2-5 jours pour un premier lot lisible (historique + widget compte), plus si agregats / pagination / filtres par source.
 
 **Statut** : Backlog actif. A traiter apres stabilisation du moteur persistant, sans rouvrir la confusion avec l'IRT ou la maitrise pedagogique.
+
+---
+
+### F44 - Coherence interaction defis (`challenge_type` vs `response_mode`)
+
+**Score** : 11.7 | D=4, G=4, E=4, R=3, B=3
+
+**Statut** : [BACKLOG] decision produit exhaustive requise avant implementation
+
+**Probleme** : Aujourd'hui, la verite machine des defis distingue volontairement :
+
+- le **type pedagogique** visible (`challenge_type`)
+- la **modalite d'interaction** (`response_mode`)
+
+Cette separation est saine cote architecture, mais elle peut produire une incoherence
+percue cote utilisateur final : un meme type visible peut render en **QCM**, en
+**interaction visuelle / grille / ordre**, ou en **texte libre** selon :
+
+- la policy backend par type
+- la difficulte finale
+- la presence de `choices`
+- la validite de ces `choices` apres sanitization
+- la presence / forme de `visual_data`
+
+**Verite terrain actuelle** :
+
+- la generation IA ne decide pas seule `response_mode`
+- le backend normalise d'abord le contenu, puis calcule `response_mode`
+- priorite forte au QCM si des `choices` valides survivent a la policy
+- sinon fallback vers le mode par defaut du type
+
+**Conséquence UX** :
+
+- coherent pour le code
+- **pas totalement coherent pour l'enfant / le parent / l'enseignant**
+- un utilisateur peut percevoir deux defis `VISUAL` ou `PUZZLE` comme "de meme type" mais rencontrer des interactions differentes
+- cette variabilite consomme de la charge cognitive et brouille l'attente produit
+
+**Decision produit a prendre** :
+
+1. **Quel niveau de stabilite veut-on par type ?**
+   - un type visible = une interaction stable
+   - ou un type visible = une famille pouvant admettre plusieurs interactions
+2. **Quels types peuvent legitiment rester variables ?**
+   - ex. `VISUAL`, `PUZZLE`, `SEQUENCE`
+3. **Le QCM doit-il garder la priorite ?**
+   - pour tous les types `OPTIONAL`
+   - seulement pour les types faciles
+   - ou etre interdit pour certaines familles afin de preserver une experience plus stable
+4. **Comment rendre la variabilite lisible si elle est conservee ?**
+   - libelles explicites
+   - badge / sous-titre de modalite
+   - onboarding / hint adapte au mode
+
+**Travail backlog exhaustif attendu** :
+
+1. **Inventaire produit reel**
+   - lister toutes les combinaisons observees `challenge_type x response_mode`
+   - separer contenu manuel, legacy, IA
+   - distinguer les cas rares des cas frequents
+2. **Audit end-user**
+   - identifier les combinaisons qui troublent un enfant 8-12 ans
+   - identifier les combinaisons acceptables pour parent / enseignant
+   - definir les attentes UI par type visible
+3. **Matrice cible**
+   - fixer, pour chaque type, ce qui est :
+     - interdit
+     - tolere
+     - prefere
+     - fallback exceptionnel
+4. **Decision sur le QCM**
+   - garder / limiter / supprimer la priorite QCM par famille de defis
+   - documenter si la difficulte doit encore influencer cette decision
+5. **Alignement complet**
+   - prompts de generation IA
+   - `challenge_contract_policy.py`
+   - validateurs / sanitization
+   - mapping API detail
+   - hints et copy frontend selon le mode
+6. **Migration / nettoyage**
+   - contenu legacy incoherent
+   - challenges persistés avec `generation_parameters.response_mode` obsolete
+   - telemetry minimale pour verifier la comprehension / friction
+
+**Regle UX proposee (a challenger, pas encore validee)** :
+
+- **un type visible ne doit pas changer d'interaction sans signal produit explicite**
+- si une variabilite est maintenue, elle doit etre **nommee, assumee et compréhensible**
+- a defaut, privilegier la stabilite de l'interaction sur la flexibilite machine
+
+**Valeur pedagogique (E=4)** :
+
+- Sweller (1988) - la reduction de charge cognitive extrinseque passe par une interface plus predicible
+- Mayer (2001) - la coherence de presentation aide l'utilisateur a former un modele mental stable
+- Hattie & Timperley (2007) - un feedback utile doit etre interpretable dans un cadre d'interaction stable
+
+**Effort estime** :
+
+- cadrage produit / audit exhaustif : 1-2 jours
+- lot d'implementation ensuite : 3-5 jours minimum selon la matrice retenue
+
+**Positionnement** :
+
+- **ticket produit prioritaire**
+- **hors sequence FFI d'industrialisation frontend**
+- a traiter comme une decision produit + contrat, pas comme un simple polish de copy ou de rendu
 
 ---
 

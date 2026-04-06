@@ -23,6 +23,7 @@
 > - `NI-13` est structurel cote serveur + client (`proxy.ts` + `ProtectedRoute`)
 > - le tree frontend courant est a `144` composants, `47` hooks et `8` themes visibles
 > - la duplication AIGenerator brute n'est plus le seam principal
+> - la coherence end-user des defis (`challenge_type` vs `response_mode`) reste un **sidecar produit** documente dans `ROADMAP_FONCTIONNALITES.md` (`F44`), hors sequence FFI active
 >
 > Seams architecture encore prioritaires :
 >

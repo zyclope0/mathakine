@@ -106,6 +106,25 @@ Impact frontend structurel :
 - `/home-learner` devient la home principale des apprenants
 - `/dashboard` reste accessible a l'apprenant comme entree secondaire discrete, sans redevenir la destination par defaut
 
+### 1.3 Sidecar produit a surveiller — coherence interaction defis
+
+Ce sujet ne fait **pas** partie de la sequence FFI active, mais il doit rester visible
+dans les documents de pilotage :
+
+- la verite runtime des defis se base sur `response_mode`, pas seulement sur `challenge_type`
+- un meme type visible peut encore produire QCM / interaction / texte libre selon la policy backend
+- c'est un **sujet produit / UX / contrat**, pas un simple refactor frontend
+
+Reference backlog a suivre :
+
+- `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` - **F44**
+
+Decision d'execution :
+
+- ne pas diluer ce sujet dans `FFI-L11` a `FFI-L17`
+- reprendre d'abord les lots d'industrialisation frontend
+- ouvrir ensuite un lot dedie si la matrice produit cible est validee
+
 ---
 
 ## 2. Design Tokens
