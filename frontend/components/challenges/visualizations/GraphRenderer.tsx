@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Network } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useRef, useState, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
@@ -11,59 +11,56 @@ interface GraphRendererProps {
   className?: string | undefined;
 }
 
+// Constantes de layout
+const NODE_RADIUS = 20;
+const PADDING = NODE_RADIUS + 8; // marge minimale pour que les nœuds ne soient pas coupés
+
 /**
  * Renderer pour les défis de type GRAPH.
- * Visualisation simple de graphe avec canvas SVG.
+ *
+ * Approche : layout en coordonnées logiques (viewBox dynamique) — le SVG est
+ * responsive via viewBox + preserveAspectRatio. Plus de dimensions fixes.
+ * Le ResizeObserver observe le conteneur div, pas le SVG, ce qui évite le
+ * cycle infini de dimensionnement.
  */
 export function GraphRenderer({ visualData, className }: GraphRendererProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(560);
   const { shouldReduceMotion } = useAccessibleAnimation();
+
+  // Observer la largeur réelle du conteneur div (pas du SVG)
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      if (w > 0) setContainerWidth(w);
+    };
+
+    update();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Parser les données de graphe
   const nodes = Array.isArray(visualData?.nodes)
-    ? visualData.nodes
+    ? (visualData!.nodes as Array<Record<string, unknown> | string | number>)
     : Array.isArray(visualData?.vertices)
-      ? visualData.vertices
+      ? (visualData!.vertices as Array<Record<string, unknown> | string | number>)
       : [];
   const edges = Array.isArray(visualData?.edges)
-    ? visualData.edges
+    ? (visualData!.edges as Array<Record<string, unknown> | unknown[]>)
     : Array.isArray(visualData?.links)
-      ? visualData.links
+      ? (visualData!.links as Array<Record<string, unknown> | unknown[]>)
       : [];
 
-  useEffect(() => {
-    const element = svgRef.current;
-    if (!element) {
-      return;
-    }
-
-    const updateDimensions = () => {
-      const rect = element.getBoundingClientRect();
-      const nextDimensions = { width: rect.width || 400, height: rect.height || 300 };
-
-      setDimensions((prev) =>
-        prev.width === nextDimensions.width && prev.height === nextDimensions.height
-          ? prev
-          : nextDimensions
-      );
-    };
-
-    const frameId = window.requestAnimationFrame(updateDimensions);
-    const observer =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateDimensions) : null;
-
-    observer?.observe(element);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      observer?.disconnect();
-    };
-  }, []);
-
-  if (!nodes || nodes.length === 0) {
+  if (nodes.length === 0) {
     return (
-      <Card flat className={`bg-card border-border/50 ${className || ""}`}>
+      <Card flat className={`bg-card border-border/50 ${className ?? ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun graphe disponible
         </CardContent>
@@ -71,67 +68,131 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     );
   }
 
-  // Créer un mapping des noms de nœuds vers leurs indices
+  // Mapping label → index
   const nodeMap = new Map<string, number>();
-  nodes.forEach((node: Record<string, unknown>, index: number) => {
-    const nodeKey = String(
+  nodes.forEach((node, index) => {
+    const key = String(
       typeof node === "object" && node !== null
-        ? (node.label ?? node.value ?? node.id ?? index)
+        ? ((node as Record<string, unknown>).label ??
+            (node as Record<string, unknown>).value ??
+            (node as Record<string, unknown>).id ??
+            index)
         : node
     );
-    nodeMap.set(nodeKey.toUpperCase(), index);
+    nodeMap.set(key.toUpperCase(), index);
   });
 
-  // Positions : explicites (visual_data.positions) ou layout circulaire par défaut
-  const centerX = dimensions.width / 2;
-  const centerY = dimensions.height / 2;
-  const radius = Math.min(dimensions.width, dimensions.height) / 3;
+  // ─── Layout en coordonnées logiques ───────────────────────────────────────
+  // On travaille dans un espace logique indépendant de la taille d'affichage.
+  // Le SVG s'adapte via viewBox.
+
+  const logicalW = Math.max(containerWidth, 300);
+  const logicalH = Math.round(logicalW * 0.6); // ratio 5:3
+
+  const centerX = logicalW / 2;
+  const centerY = logicalH / 2;
+  // Rayon suffisant pour que les nœuds ne débordent pas
+  const radius = Math.min(centerX, centerY) - PADDING;
+
   const explicitPositions = (visualData?.positions ?? visualData?.layout) as
     | Record<string, unknown>
     | null
     | undefined;
 
-  const nodePositions = nodes.map((node: Record<string, unknown>, index: number) => {
+  const nodePositions = nodes.map((node, index) => {
+    const key = String(
+      typeof node === "object" && node !== null
+        ? ((node as Record<string, unknown>).label ??
+            (node as Record<string, unknown>).value ??
+            (node as Record<string, unknown>).id ??
+            index)
+        : node
+    );
+
     if (
       explicitPositions &&
       typeof explicitPositions === "object" &&
       !Array.isArray(explicitPositions)
     ) {
-      const nodeKey = String(
-        typeof node === "object" && node !== null
-          ? (node.label ?? node.value ?? node.id ?? index)
-          : node
-      );
       const pos =
-        (explicitPositions as Record<string, unknown>)[nodeKey.toUpperCase()] ??
-        (explicitPositions as Record<string, unknown>)[nodeKey];
+        (explicitPositions as Record<string, unknown>)[key.toUpperCase()] ??
+        (explicitPositions as Record<string, unknown>)[key];
+
       if (
         Array.isArray(pos) &&
         pos.length >= 2 &&
         typeof pos[0] === "number" &&
         typeof pos[1] === "number"
       ) {
-        const padding = 40;
-        const maxCoord = 200;
-        const scale = Math.min(
-          (dimensions.width - 2 * padding) / maxCoord,
-          (dimensions.height - 2 * padding) / maxCoord
-        );
+        // Normaliser les positions explicites dans l'espace logique
+        const rawMaxCoord = 200;
+        const availW = logicalW - 2 * PADDING;
+        const availH = logicalH - 2 * PADDING;
+        const scale = Math.min(availW / rawMaxCoord, availH / rawMaxCoord);
         return {
-          x: padding + pos[0] * scale,
-          y: padding + pos[1] * scale,
+          x: PADDING + (pos[0] as number) * scale,
+          y: PADDING + (pos[1] as number) * scale,
         };
       }
     }
-    const angle = (2 * Math.PI * index) / nodes.length;
+
+    // Layout circulaire — commence à -π/2 pour avoir le premier nœud en haut
+    const angle = -Math.PI / 2 + (2 * Math.PI * index) / nodes.length;
     return {
       x: centerX + radius * Math.cos(angle),
       y: centerY + radius * Math.sin(angle),
     };
   });
 
+  // ─── Résoudre une arête en indices from/to + poids ────────────────────────
+  function resolveEdge(edge: Record<string, unknown> | unknown[]): {
+    fromIndex: number | undefined;
+    toIndex: number | undefined;
+    weight: string | number | undefined;
+  } {
+    let fromIndex: number | undefined;
+    let toIndex: number | undefined;
+    let weight: string | number | undefined;
+
+    if (
+      !Array.isArray(edge) &&
+      typeof edge === "object" &&
+      edge !== null &&
+      "from" in edge &&
+      "to" in edge
+    ) {
+      const e = edge as Record<string, unknown>;
+      fromIndex =
+        typeof e.from === "number" ? e.from : nodeMap.get(String(e.from ?? "").toUpperCase());
+      toIndex = typeof e.to === "number" ? e.to : nodeMap.get(String(e.to ?? "").toUpperCase());
+      const w = e.weight ?? e.cost ?? e.time ?? e.distance ?? e.label ?? e.value;
+      weight =
+        w != null && (typeof w === "number" || typeof w === "string")
+          ? w
+          : w != null
+            ? String(w)
+            : undefined;
+    } else if (Array.isArray(edge)) {
+      fromIndex =
+        typeof edge[0] === "number" ? edge[0] : nodeMap.get(String(edge[0] ?? "").toUpperCase());
+      toIndex =
+        typeof edge[1] === "number" ? edge[1] : nodeMap.get(String(edge[1] ?? "").toUpperCase());
+      if (edge.length >= 3 && edge[2] != null) {
+        const w2 = edge[2];
+        weight = typeof w2 === "number" || typeof w2 === "string" ? w2 : String(w2);
+      }
+    }
+
+    return { fromIndex, toIndex, weight };
+  }
+
+  const isWeighted = edges.some((edge) => {
+    const { weight } = resolveEdge(edge as Record<string, unknown> | unknown[]);
+    return weight !== undefined;
+  });
+
   return (
-    <Card flat className={`bg-card border-border/50 ${className || ""}`}>
+    <Card flat className={`bg-card border-border/50 ${className ?? ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -139,91 +200,38 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
             <h4 className="text-sm font-semibold text-foreground">Graphe</h4>
           </div>
 
-          <div className="flex justify-center bg-muted/30 rounded-lg p-4 overflow-auto">
+          {/* Conteneur observé — pas de overflow-auto, le SVG s'adapte */}
+          <div ref={containerRef} className="w-full bg-muted/30 rounded-lg p-2">
             <svg
-              ref={svgRef}
-              width={dimensions.width}
-              height={dimensions.height}
+              viewBox={`0 0 ${logicalW} ${logicalH}`}
+              preserveAspectRatio="xMidYMid meet"
+              width="100%"
+              aria-label={`Graphe avec ${nodes.length} nœuds et ${edges.length} arêtes`}
+              role="img"
               className="border border-border/50 rounded"
+              style={{ display: "block", maxHeight: "420px" }}
             >
-              {/* Dessiner les arêtes */}
-              {edges.map((edge: Record<string, unknown>, index: number) => {
-                let fromIndex: number | undefined;
-                let toIndex: number | undefined;
-                let weight: number | string | undefined;
+              {/* Arêtes */}
+              {edges.map((edge, index) => {
+                const { fromIndex, toIndex, weight } = resolveEdge(
+                  edge as Record<string, unknown> | unknown[]
+                );
 
-                // Gérer différents formats d'edges
-                if (typeof edge === "object" && edge !== null && "from" in edge && "to" in edge) {
-                  const e = edge as Record<string, unknown>;
-                  // Format {from: "A", to: "B", weight: 5} ou {from: 0, to: 1}
-                  if (typeof e.from === "number") {
-                    fromIndex = e.from;
-                  } else {
-                    fromIndex = nodeMap.get(String(e.from ?? "").toUpperCase());
-                  }
-
-                  if (typeof e.to === "number") {
-                    toIndex = e.to;
-                  } else {
-                    toIndex = nodeMap.get(String(e.to ?? "").toUpperCase());
-                  }
-
-                  // Extraire le poids (weight, cost, time, distance, label)
-                  const w = e.weight ?? e.cost ?? e.time ?? e.distance ?? e.label ?? e.value;
-                  weight =
-                    w !== undefined && w !== null
-                      ? typeof w === "number" || typeof w === "string"
-                        ? w
-                        : String(w)
-                      : undefined;
-                } else if (Array.isArray(edge)) {
-                  // Format ["A", "B"] ou ["A", "B", 5] ou [0, 1, 5]
-                  if (typeof edge[0] === "number") {
-                    fromIndex = edge[0];
-                  } else {
-                    fromIndex = nodeMap.get(String(edge[0] ?? "").toUpperCase());
-                  }
-
-                  if (typeof edge[1] === "number") {
-                    toIndex = edge[1];
-                  } else {
-                    toIndex = nodeMap.get(String(edge[1] ?? "").toUpperCase());
-                  }
-
-                  // Le poids peut être le 3ème élément
-                  if (edge.length >= 3) {
-                    const w2 = edge[2];
-                    weight =
-                      w2 !== undefined && w2 !== null
-                        ? typeof w2 === "number" || typeof w2 === "string"
-                          ? w2
-                          : String(w2)
-                        : undefined;
-                  }
-                }
-
-                if (fromIndex === undefined || toIndex === undefined) {
-                  if (process.env.NODE_ENV === "development") {
-                    console.warn(`Edge invalide ignorée:`, edge);
-                  }
-                  return null;
-                }
+                if (fromIndex === undefined || toIndex === undefined) return null;
 
                 const from = nodePositions[fromIndex];
                 const to = nodePositions[toIndex];
-
                 if (!from || !to) return null;
 
-                // Calculer le point milieu pour le label du poids
                 const midX = (from.x + to.x) / 2;
                 const midY = (from.y + to.y) / 2;
 
-                // Décaler légèrement le label perpendiculairement à la ligne pour éviter le chevauchement
+                // Offset perpendiculaire pour le label de poids
                 const dx = to.x - from.x;
                 const dy = to.y - from.y;
                 const len = Math.sqrt(dx * dx + dy * dy);
-                const offsetX = len > 0 ? (-dy / len) * 12 : 0;
-                const offsetY = len > 0 ? (dx / len) * 12 : 0;
+                const offsetX = len > 0 ? (-dy / len) * 14 : 0;
+                const offsetY = len > 0 ? (dx / len) * 14 : 0;
 
                 return (
                   <motion.g
@@ -241,7 +249,6 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                       strokeOpacity={0.5}
                       strokeWidth="2"
                     />
-                    {/* Afficher le poids de l'arête */}
                     {weight !== undefined && (
                       <>
                         <rect
@@ -250,8 +257,9 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                           width="28"
                           height="22"
                           rx="4"
-                          fill="var(--color-chart-2)"
-                          stroke="var(--color-warning)"
+                          fill="var(--color-card)"
+                          stroke="var(--color-primary)"
+                          strokeOpacity={0.6}
                           strokeWidth="1.5"
                         />
                         <text
@@ -259,11 +267,11 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                           y={midY + offsetY}
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="var(--color-popover-foreground)"
-                          fontSize="12"
+                          fill="var(--color-foreground)"
+                          fontSize="11"
                           fontWeight="bold"
                         >
-                          {String(weight ?? "")}
+                          {String(weight)}
                         </text>
                       </>
                     )}
@@ -271,14 +279,17 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 );
               })}
 
-              {/* Dessiner les nœuds */}
-              {nodes.map((node: Record<string, unknown>, index: number) => {
+              {/* Nœuds */}
+              {nodes.map((node, index) => {
                 const pos = nodePositions[index];
                 if (!pos) return null;
 
                 const label = String(
                   typeof node === "object" && node !== null
-                    ? (node.label ?? node.value ?? node.id ?? index)
+                    ? ((node as Record<string, unknown>).label ??
+                        (node as Record<string, unknown>).value ??
+                        (node as Record<string, unknown>).id ??
+                        index)
                     : node
                 );
 
@@ -287,16 +298,10 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                     key={index}
                     initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.08, duration: 0.3, ease: "easeOut" }}
+                    transition={{ delay: index * 0.06, duration: 0.3, ease: "easeOut" }}
                     style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
                   >
-                    <circle
-                      cx={pos.x}
-                      cy={pos.y}
-                      r="20"
-                      fill="currentColor"
-                      className="text-primary"
-                    />
+                    <circle cx={pos.x} cy={pos.y} r={NODE_RADIUS} fill="var(--color-primary)" />
                     <text
                       x={pos.x}
                       y={pos.y}
@@ -317,21 +322,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
           <div className="text-xs text-center text-muted-foreground">
             {nodes.length} nœud{nodes.length > 1 ? "s" : ""} • {edges.length} arête
             {edges.length > 1 ? "s" : ""}
-            {/* Indiquer si c'est un graphe pondéré */}
-            {edges.some((edge: Record<string, unknown>) => {
-              if (typeof edge === "object" && !Array.isArray(edge)) {
-                return (
-                  edge.weight !== undefined ||
-                  edge.cost !== undefined ||
-                  edge.time !== undefined ||
-                  edge.distance !== undefined
-                );
-              }
-              if (Array.isArray(edge) && edge.length >= 3) {
-                return true;
-              }
-              return false;
-            }) && <span className="ml-2 text-primary">• pondéré</span>}
+            {isWeighted && <span className="ml-2 text-primary">• pondéré</span>}
           </div>
         </div>
       </CardContent>
