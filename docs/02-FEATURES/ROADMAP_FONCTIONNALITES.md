@@ -1120,6 +1120,18 @@ Flash visible avant stabilisation des pages. Pistes : `placeholderData` TanStack
 
 ## 7. P4 Ã¢â‚¬â€ Backlog distant {#7-p4}
 
+
+### B01 - Rate limit validate-token : passer de par-IP a par-token/user_id
+
+**Contexte** : En prod multi-worker Gunicorn (Render), tous les workers sortent avec la meme IP egress Render (74.220.51.250). Le rate limit validate-token keyed par IP agregee le trafic legitime de tous les users, ce qui declenche des 429 sur des sessions normales.
+
+**Cause prouvee** : logs prod 2026-04-05/06 - rafales a quelques ms d'ecart depuis 74.220.51.250 = IP sortante Render (hostname frankfurt-egress.render.com), declenchees au redemarrage de worker ou lors de navigation multi-onglets.
+
+**Solution recommandee** : supprimer le rate limit IP sur validate-token ou le re-keyer par JWT/user_id. validate-token ne presente pas de surface brute-force (le secret JWT ne peut pas etre devine) - le rate limit par IP n'apporte aucune securite reelle ici.
+
+**Effort** : < 1h (1-2 lignes dans app/utils/rate_limit.py)
+
+---
 ### F28 Ã¢â‚¬â€ Mode aventure / histoire narrative
 
 **Score** : 13.1 | D=5, G=5, E=3, R=3, B=5
