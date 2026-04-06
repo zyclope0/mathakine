@@ -9,6 +9,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   type Dispatch,
   type SetStateAction,
@@ -26,6 +27,7 @@ import {
   normalizeLanguageSettings,
   normalizeNotificationSettings,
   normalizePrivacySettings,
+  getVisibleSessions,
 } from "@/lib/settings/settingsPage";
 
 export type {
@@ -47,6 +49,8 @@ export interface UseSettingsPageControllerResult {
   setPrivacySettings: Dispatch<SetStateAction<PrivacySettingsState>>;
 
   sessions: UserSession[];
+  /** Progressive-disclosure slice derived from `sessions` and `visibleSessionCount`. */
+  visibleSessions: UserSession[];
   isLoadingSessions: boolean;
   showDeleteConfirm: boolean;
   setShowDeleteConfirm: (v: boolean) => void;
@@ -213,6 +217,11 @@ export function useSettingsPageController(): UseSettingsPageControllerResult {
     }
   }, [sessionToRevoke, revokeSession]);
 
+  const visibleSessions = useMemo(
+    () => getVisibleSessions(sessions, visibleSessionCount),
+    [sessions, visibleSessionCount]
+  );
+
   return {
     activeSection,
     setActiveSection,
@@ -223,6 +232,7 @@ export function useSettingsPageController(): UseSettingsPageControllerResult {
     privacySettings,
     setPrivacySettings,
     sessions,
+    visibleSessions,
     isLoadingSessions,
     showDeleteConfirm,
     setShowDeleteConfirm,

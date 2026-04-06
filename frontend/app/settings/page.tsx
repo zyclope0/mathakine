@@ -6,7 +6,6 @@ import { PageLayout, PageHeader } from "@/components/layout";
 import { Globe, Bell, Shield, Download, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSettingsPageController, type SettingsSection } from "@/hooks/useSettingsPageController";
-import { getVisibleSessions } from "@/lib/settings/settingsPage";
 import { SettingsSidebarNav } from "@/components/settings/SettingsSidebarNav";
 import { SettingsGeneralSection } from "@/components/settings/SettingsGeneralSection";
 import { SettingsNotificationsSection } from "@/components/settings/SettingsNotificationsSection";
@@ -25,6 +24,7 @@ function SettingsPageContent() {
     privacySettings,
     setPrivacySettings,
     sessions,
+    visibleSessions,
     isLoadingSessions,
     showDeleteConfirm,
     setShowDeleteConfirm,
@@ -48,8 +48,6 @@ function SettingsPageContent() {
   } = useSettingsPageController();
 
   const t = useTranslations("settings");
-
-  const visibleSessions = getVisibleSessions(sessions, visibleSessionCount);
 
   const menuItems = [
     { id: "general" as const, label: t("menu.general"), icon: Globe },

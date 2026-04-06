@@ -193,4 +193,47 @@ describe("useSettingsPageController", () => {
       expect(result.current.diagnosticStatus?.has_completed).toBe(true);
     });
   });
+
+  it("visibleSessions est dérivé de sessions et du plafond visibleSessionCount", async () => {
+    mockGetSessions.mockResolvedValue([
+      {
+        id: 1,
+        last_activity: "2024-01-01",
+        created_at: "2024-01-01",
+        expires_at: "2025-01-01",
+        is_active: true,
+      },
+      {
+        id: 2,
+        last_activity: "2024-01-02",
+        created_at: "2024-01-02",
+        expires_at: "2025-01-02",
+        is_active: true,
+      },
+      {
+        id: 3,
+        last_activity: "2024-01-03",
+        created_at: "2024-01-03",
+        expires_at: "2025-01-03",
+        is_active: true,
+      },
+      {
+        id: 4,
+        last_activity: "2024-01-04",
+        created_at: "2024-01-04",
+        expires_at: "2025-01-04",
+        is_active: true,
+      },
+    ]);
+
+    const { result } = renderHook(() => useSettingsPageController());
+
+    await waitFor(() => {
+      expect(result.current.sessions).toHaveLength(4);
+    });
+
+    expect(result.current.visibleSessionCount).toBe(result.current.SESSIONS_PAGE_SIZE);
+    expect(result.current.visibleSessions).toHaveLength(3);
+    expect(result.current.visibleSessions.map((s) => s.id)).toEqual([1, 2, 3]);
+  });
 });

@@ -3,13 +3,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { UseSettingsPageControllerResult } from "@/hooks/useSettingsPageController";
+import { getVisibleSessions } from "@/lib/settings/settingsPage";
+
+const navMocks = vi.hoisted(() => ({
+  push: vi.fn(),
+}));
 
 vi.mock("@/components/auth/ProtectedRoute", () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: navMocks.push }),
 }));
 
 vi.mock("next-intl", () => ({
@@ -27,7 +32,7 @@ function buildController(
   overrides: Partial<UseSettingsPageControllerResult> = {}
 ): UseSettingsPageControllerResult {
   const noop = () => {};
-  return {
+  const base: UseSettingsPageControllerResult = {
     activeSection: "general",
     setActiveSection: vi.fn(),
     languageSettings: { language_preference: "fr", timezone: "UTC" },
@@ -48,6 +53,7 @@ function buildController(
     },
     setPrivacySettings: vi.fn(),
     sessions: [],
+    visibleSessions: [],
     isLoadingSessions: false,
     showDeleteConfirm: false,
     setShowDeleteConfirm: vi.fn(),
@@ -68,7 +74,14 @@ function buildController(
     isExportingData: false,
     isDeletingAccount: false,
     isRevokingSession: false,
-    ...overrides,
+  };
+  const merged = { ...base, ...overrides };
+  return {
+    ...merged,
+    visibleSessions:
+      overrides.visibleSessions !== undefined
+        ? overrides.visibleSessions
+        : getVisibleSessions(merged.sessions, merged.visibleSessionCount),
   };
 }
 
@@ -81,6 +94,11 @@ describe("SettingsPage", () => {
   it("rend le PageHeader (titre settings)", () => {
     render(<SettingsPage />);
     expect(screen.getByText("settings.title")).toBeInTheDocument();
+  });
+
+  it("section générale: titre langue visible", () => {
+    render(<SettingsPage />);
+    expect(screen.getByText("settings.language.title")).toBeInTheDocument();
   });
 
   it("navigation mobile: Select présent", () => {
@@ -130,6 +148,26 @@ describe("SettingsPage", () => {
     mockController.mockImplementation(() => buildController({ activeSection: "security" }));
     render(<SettingsPage />);
     expect(screen.getByText("settings.sessions.title")).toBeInTheDocument();
+  });
+
+  it("section sécurité: bloc confidentialité (titre privacy)", () => {
+    mockController.mockImplementation(() => buildController({ activeSection: "security" }));
+    render(<SettingsPage />);
+    expect(screen.getByText("settings.privacy.title")).toBeInTheDocument();
+  });
+
+  it("section données: lancement diagnostic appelle router.push", async () => {
+    const user = userEvent.setup();
+    navMocks.push.mockClear();
+    mockController.mockImplementation(() =>
+      buildController({
+        activeSection: "data",
+        diagnosticStatus: { has_completed: false, latest: null },
+      })
+    );
+    render(<SettingsPage />);
+    await user.click(screen.getByRole("button", { name: "settings.diagnostic.start" }));
+    expect(navMocks.push).toHaveBeenCalledWith("/diagnostic");
   });
 
   it("section données: bouton export déclenche handleExportData", async () => {
