@@ -2229,7 +2229,9 @@
     "actions": {
       "heading": "Que veux-tu faire ?",
       "exercises": "Faire des exercices",
+      "exercisesReco": "Recommandé : {title}",
       "challenges": "Relever un défi",
+      "challengesReco": "Recommandé : {title}",
       "badges": "Voir mes badges"
     },
     "progress": {

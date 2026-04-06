@@ -2230,7 +2230,9 @@
     "actions": {
       "heading": "What do you want to do?",
       "exercises": "Do exercises",
+      "exercisesReco": "Recommended: {title}",
       "challenges": "Take a challenge",
+      "challengesReco": "Recommended: {title}",
       "badges": "See my badges"
     },
     "progress": {

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgressStats } from "@/hooks/useProgressStats";
 import { useUserStats } from "@/hooks/useUserStats";
+import { useRecommendations } from "@/hooks/useRecommendations";
 import { HOME_LEARNER_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LearnerLayout } from "@/components/learner/LearnerLayout";
@@ -70,6 +71,32 @@ function HomeLearnerContent() {
   const { user } = useAuth();
   const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats();
   const { stats, isLoading: isLoadingStats } = useUserStats();
+  const { recommendations, isLoading: isLoadingReco, recordOpen } = useRecommendations();
+
+  // Eager fallback: use general pages while loading, switch to specific reco once available.
+  // Picks the first recommendation that has a resolved target id.
+  const firstExerciseRec = recommendations.find(
+    (r) => (r.recommendation_type === "exercise" || !r.recommendation_type) && r.exercise_id != null
+  );
+  const firstChallengeRec = recommendations.find(
+    (r) => r.recommendation_type === "challenge" && r.challenge_id != null
+  );
+
+  const exerciseHref = firstExerciseRec?.exercise_id
+    ? `/exercises/${firstExerciseRec.exercise_id}`
+    : "/exercises";
+  const challengeHref = firstChallengeRec?.challenge_id
+    ? `/challenges/${firstChallengeRec.challenge_id}`
+    : "/challenges";
+
+  const exerciseRecoLabel =
+    !isLoadingReco && firstExerciseRec?.exercise_title
+      ? t("actions.exercisesReco", { title: firstExerciseRec.exercise_title })
+      : null;
+  const challengeRecoLabel =
+    !isLoadingReco && firstChallengeRec?.challenge_title
+      ? t("actions.challengesReco", { title: firstChallengeRec.challenge_title })
+      : null;
 
   const firstName = user?.full_name?.split(" ")[0] ?? user?.username ?? null;
 
@@ -122,34 +149,62 @@ function HomeLearnerContent() {
         </h2>
 
         <div className="flex flex-col gap-3">
-          {/* Action primaire — exercices */}
+          {/* Action primaire — exercices (lien vers reco si disponible, sinon liste générale) */}
           <Link
-            href="/exercises"
+            href={exerciseHref}
             className={cn(
               "flex items-center gap-4 rounded-xl px-5 py-4",
               "bg-primary text-primary-foreground",
               "hover:bg-primary/90 active:scale-[0.98]",
               "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             )}
-            aria-label={t("actions.exercises")}
+            aria-label={
+              exerciseRecoLabel
+                ? `${t("actions.exercises")} — ${exerciseRecoLabel}`
+                : t("actions.exercises")
+            }
+            onClick={() => {
+              if (firstExerciseRec) void recordOpen(firstExerciseRec.id);
+            }}
           >
             <Calculator className="h-6 w-6 flex-shrink-0" aria-hidden="true" />
-            <span className="text-base font-semibold">{t("actions.exercises")}</span>
+            <span className="flex flex-col">
+              <span className="text-base font-semibold">{t("actions.exercises")}</span>
+              {exerciseRecoLabel && (
+                <span className="text-xs font-normal opacity-80 leading-tight mt-0.5">
+                  {exerciseRecoLabel}
+                </span>
+              )}
+            </span>
           </Link>
 
-          {/* Action secondaire — défis */}
+          {/* Action secondaire — défis (lien vers reco si disponible, sinon liste générale) */}
           <Link
-            href="/challenges"
+            href={challengeHref}
             className={cn(
               "flex items-center gap-4 rounded-xl px-5 py-4",
               "bg-[var(--bg-learner,var(--card))] border border-border/60",
               "text-foreground hover:border-primary/40 hover:bg-primary/5",
               "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             )}
-            aria-label={t("actions.challenges")}
+            aria-label={
+              challengeRecoLabel
+                ? `${t("actions.challenges")} — ${challengeRecoLabel}`
+                : t("actions.challenges")
+            }
+            onClick={() => {
+              if (firstChallengeRec) void recordOpen(firstChallengeRec.id);
+            }}
           >
             <Puzzle className="h-6 w-6 flex-shrink-0 text-primary" aria-hidden="true" />
-            <span className="text-base font-medium">{t("actions.challenges")}</span>
+            <span className="flex flex-col">
+              <span className="text-base font-medium">{t("actions.challenges")}</span>
+              {challengeRecoLabel && (
+                <span className="text-xs font-normal text-muted-foreground leading-tight mt-0.5">
+                  {challengeRecoLabel}
+                </span>
+              )}
+            </span>
           </Link>
 
           {/* Action tertiaire — badges */}
