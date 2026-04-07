@@ -61,6 +61,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
         id: "1",
         role: "assistant",
         content: t("initialMessage"),
+        includeInHistory: false,
       },
     ],
     initialSuggestions: ["Qu'est-ce que Mathakine ?", "Comment progresser ?", "Créer un exercice"],

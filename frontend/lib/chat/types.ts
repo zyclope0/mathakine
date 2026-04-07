@@ -1,5 +1,5 @@
 /**
- * Types partagés du chat discussionnel (home).
+ * Types partages du chat discussionnel (home).
  * @see ./README.md
  */
 
@@ -9,16 +9,18 @@ export interface ChatMessage {
   id: string;
   role: ChatMessageRole;
   content: string;
-  /** URL d'image retournée par le backend chat pour une requête illustrée. */
+  /** Excluded from `conversation_history` when false (eg. synthetic welcome message). */
+  includeInHistory?: boolean;
+  /** URL d'image retournee par le backend chat pour une requete illustree. */
   imageUrl?: string;
-  /** Erreur réseau / stream : contenu remplacé par le message utilisateur (i18n). */
+  /** Erreur reseau / stream : contenu remplace par le message utilisateur (i18n). */
   error?: boolean;
 }
 
 /**
- * Phase du transport (évite un empilement de booléens type isLoading/isStreaming).
- * - idle : prêt à envoyer
- * - pending : requête partie, aucun chunk texte encore
- * - streaming : réception des chunks
+ * Phase du transport (evite un empilement de booleens type isLoading/isStreaming).
+ * - idle : pret a envoyer
+ * - pending : requete partie, aucun chunk texte encore
+ * - streaming : reception des chunks
  */
 export type ChatTransportPhase = "idle" | "pending" | "streaming";

@@ -5,12 +5,12 @@ Protege contre bruteforce (login, forgot-password) et enumeration.
 C2: Store distribue Redis en prod. Fallback memoire borne pour dev/test (REDIS_URL vide).
 """
 
-import os
 from functools import wraps
 from typing import Callable, Optional
 
 from starlette.responses import JSONResponse
 
+from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.utils.rate_limit_store import _get_store
 
@@ -96,7 +96,7 @@ def _check_rate_limit(
     Returns True si autorise, False si limite.
     Store: Redis en prod (REDIS_URL), memoire en dev/test.
     """
-    if os.getenv("TESTING", "false").lower() == "true":
+    if settings.TESTING:
         return True
     return _get_store().check(key=key, max_requests=max_requests, window_sec=window_sec)
 
@@ -106,7 +106,7 @@ def check_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optional[str]]:
     Verifie les limites de generation IA par utilisateur sur 1h et 24h.
     Source de verite: store distribue Redis en prod, fallback memoire en dev/test.
     """
-    if os.getenv("TESTING", "false").lower() == "true":
+    if settings.TESTING:
         return True, None
 
     store = _get_store()
@@ -126,7 +126,7 @@ def check_exercise_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optiona
 
     Meme principe que check_ai_generation_rate_limit : refus explicite, pas de contournement.
     """
-    if os.getenv("TESTING", "false").lower() == "true":
+    if settings.TESTING:
         return True, None
 
     store = _get_store()
@@ -172,7 +172,7 @@ def rate_limit_register(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:register:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
-            logger.warning(f"Rate limit depasse pour register depuis {ip}")
+            logger.warning("Rate limit depasse pour register depuis %s", ip)
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -187,7 +187,7 @@ def rate_limit_resend_verification(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:resend_verification:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
-            logger.warning(f"Rate limit depasse pour resend-verification depuis {ip}")
+            logger.warning("Rate limit depasse pour resend-verification depuis %s", ip)
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -202,7 +202,7 @@ def rate_limit_chat(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:chat:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_CHAT_MAX):
-            logger.warning(f"Rate limit depasse pour chat depuis {ip}")
+            logger.warning("Rate limit depasse pour chat depuis %s", ip)
             return _rate_limit_response(MSG_CHAT_RATE_LIMIT)
         return await func(request, *args, **kwargs)
 

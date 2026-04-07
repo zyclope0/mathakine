@@ -218,9 +218,6 @@ async function resolveAuthenticatedSession(
     return { state: "unauthenticated", user: null };
   }
   if (backendUser === "error") {
-    if (locallyValidatedSession) {
-      return { state: "indeterminate", user: null };
-    }
     return { state: "indeterminate", user: null };
   }
 

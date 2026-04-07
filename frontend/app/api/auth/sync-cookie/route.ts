@@ -1,17 +1,19 @@
 /**
- * Route pour synchroniser le token d'accès sur le domaine frontend (cross-domain).
- * En production, le backend pose le cookie sur son domaine ; les requêtes vers les
- * routes API Next.js (même origine frontend) n'envoient pas ce cookie.
- * Cette route reçoit le token et le pose en cookie sur le domaine frontend.
+ * Route pour synchroniser le token d'acces sur le domaine frontend (cross-domain).
+ * En production, le backend pose le cookie sur son domaine ; les requetes vers les
+ * routes API Next.js (meme origine frontend) n'envoient pas ce cookie.
+ * Cette route recoit le token et le pose en cookie sur le domaine frontend.
  *
- * SÉCURITÉ: Le token est validé côté backend (signature + expiration) avant d'être
- * posé en cookie, pour éviter le session hijacking via token forgé.
+ * SECURITE: Le token est valide cote backend (signature + expiration) avant d'etre
+ * pose en cookie, pour eviter le session hijacking via token forge.
  */
 import { NextRequest } from "next/server";
 
 import { buildValidateTokenRequestHeaders } from "@/lib/auth/server/validateTokenBackendHeaders";
 
-const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 min (aligné backend, best-practice)
+const ACCESS_TOKEN_MAX_AGE = 15 * 60;
+const JWT_SEGMENT_COUNT = 3;
+const MAX_ACCESS_TOKEN_LENGTH = 2048;
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -20,6 +22,15 @@ const BACKEND_URL =
 
 function getBackendUrl(): string {
   return BACKEND_URL || "http://localhost:10000";
+}
+
+function isSyntacticallyValidJwt(token: string): boolean {
+  if (token.length === 0 || token.length > MAX_ACCESS_TOKEN_LENGTH) {
+    return false;
+  }
+
+  const segments = token.split(".");
+  return segments.length === JWT_SEGMENT_COUNT && segments.every((segment) => segment.length > 0);
 }
 
 export async function POST(request: NextRequest) {
@@ -31,7 +42,6 @@ export async function POST(request: NextRequest) {
     const isProduction = process.env.NODE_ENV === "production";
 
     if (clear || !accessToken) {
-      // Effacer le cookie (logout) — pas de validation nécessaire
       const cookieHeader = [
         "access_token=",
         "Path=/",
@@ -53,7 +63,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Valider le token auprès du backend avant de le poser (sécurité 1.2 audit)
+    if (!isSyntacticallyValidJwt(accessToken)) {
+      return new Response(JSON.stringify({ error: "Format de token invalide" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const verifyRes = await fetch(`${getBackendUrl()}/api/auth/validate-token`, {
       method: "POST",
       headers: buildValidateTokenRequestHeaders("syncCookie"),
@@ -61,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!verifyRes.ok) {
-      return new Response(JSON.stringify({ error: "Token invalide ou expiré" }), {
+      return new Response(JSON.stringify({ error: "Token invalide ou expire" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
@@ -84,7 +100,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch {
-    return new Response(JSON.stringify({ error: "Requête invalide" }), {
+    return new Response(JSON.stringify({ error: "Requete invalide" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

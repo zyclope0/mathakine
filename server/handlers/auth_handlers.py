@@ -248,7 +248,8 @@ async def verify_email(request: Request) -> JSONResponse:
         raise
     except Exception as email_verification_error:
         logger.error(
-            f"Erreur lors de la verification de l'email: {email_verification_error}"
+            "Erreur lors de la verification de l'email: %s",
+            email_verification_error,
         )
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
@@ -321,7 +322,8 @@ async def resend_verification_email(request: Request) -> JSONResponse:
         raise
     except Exception as resend_verification_error:
         logger.error(
-            f"Erreur lors du renvoi de l'email de verification: {resend_verification_error}"
+            "Erreur lors du renvoi de l'email de verification: %s",
+            resend_verification_error,
         )
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
@@ -352,7 +354,7 @@ async def api_login(request: Request) -> JSONResponse:
             return data_or_err
         username = data_or_err["username"]
         password = data_or_err["password"]
-        logger.debug(f"Tentative de connexion pour l'utilisateur: {username}")
+        logger.debug("Tentative de connexion pour l'utilisateur: %s", username)
 
         result = await run_db_bound(
             svc_perform_login,
@@ -363,13 +365,14 @@ async def api_login(request: Request) -> JSONResponse:
         )
 
         if not result.is_success:
-            logger.warning(f"Echec de connexion pour l'utilisateur: {username}")
+            logger.warning("Echec de connexion pour l'utilisateur: %s", username)
             return api_error_response(
                 401, "Nom d'utilisateur ou mot de passe incorrect"
             )
 
         logger.info(
-            f"Connexion reussie pour l'utilisateur: {result.user_payload.get('username')}"
+            "Connexion reussie pour l'utilisateur: %s",
+            result.user_payload.get("username"),
         )
         return _build_login_response(result.user_payload, result.token_data)
 
@@ -385,7 +388,7 @@ async def api_login(request: Request) -> JSONResponse:
             tags={"handler": "auth.login", "error_class": "SQLAlchemyError"},
         )
     except Exception as login_error:
-        logger.error(f"Erreur lors de la connexion: {login_error}")
+        logger.error("Erreur lors de la connexion: %s", login_error)
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
             login_error,
@@ -570,7 +573,7 @@ async def api_forgot_password(request: Request) -> JSONResponse:
             )
         raise
     except Exception as forgot_err:
-        logger.error(f"Erreur forgot-password: {forgot_err}")
+        logger.error("Erreur forgot-password: %s", forgot_err)
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
             forgot_err,
@@ -626,7 +629,7 @@ async def api_reset_password(request: Request) -> JSONResponse:
             )
         raise
     except Exception as reset_err:
-        logger.error(f"Erreur reset-password: {reset_err}")
+        logger.error("Erreur reset-password: %s", reset_err)
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
             reset_err,
@@ -664,7 +667,7 @@ async def api_logout(request: Request) -> JSONResponse:
         logger.info("Utilisateur deconnecte : cookies d'authentification effaces.")
         return response
     except Exception as logout_error:
-        logger.error(f"Erreur lors de la deconnexion: {logout_error}")
+        logger.error("Erreur lors de la deconnexion: %s", logout_error)
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
             logout_error,

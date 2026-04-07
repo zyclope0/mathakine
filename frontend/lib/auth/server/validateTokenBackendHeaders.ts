@@ -8,7 +8,7 @@ export const VALIDATE_TOKEN_CALLER_HEADER = "X-Mathakine-Validate-Caller";
 export type ValidateTokenServerCaller = "routeSession" | "syncCookie";
 
 export function buildValidateTokenRequestHeaders(
-  caller: ValidateTokenServerCaller,
+  caller: ValidateTokenServerCaller
 ): Record<string, string> {
   return {
     "Content-Type": "application/json",

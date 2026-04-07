@@ -33,6 +33,7 @@ export function Chatbot() {
         id: "1",
         role: "assistant",
         content: t("initialMessage"),
+        includeInHistory: false,
       },
     ],
     initialSuggestions: [
