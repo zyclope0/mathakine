@@ -11,15 +11,14 @@ import { UnifiedExerciseGenerator } from "@/components/exercises/UnifiedExercise
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
-import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { contentListTotalPages } from "@/lib/contentList/pageHelpers";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import { ContentListViewModeToggle } from "@/components/shared/ContentListViewModeToggle";
 import {
   ContentListProgressiveFilterToolbar,
   type ContentListFilterToolbarLabels,
 } from "@/components/shared/ContentListProgressiveFilterToolbar";
+import { ContentListResultsSection } from "@/components/shared/ContentListResultsSection";
 import { useCompletedExercises } from "@/hooks/useCompletedItems";
 import dynamic from "next/dynamic";
 
@@ -33,9 +32,7 @@ const ExerciseModal = dynamic(
 );
 import type { ExerciseFilters } from "@/hooks/useExercises";
 import { useTranslations } from "next-intl";
-import { PageLayout, PageHeader, PageSection, PageGrid, EmptyState } from "@/components/layout";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ContentListSkeleton } from "@/components/shared/ContentListSkeleton";
+import { PageLayout, PageHeader } from "@/components/layout";
 import { ExercisesListLoadingShell } from "@/components/shared/ListLoadingShells";
 import { ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
@@ -209,112 +206,79 @@ function ExercisesPageContent() {
           }}
         />
 
-        {/* Liste des exercices */}
-        <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-          <div className="flex items-center justify-between mb-2 gap-3">
-            {isLoading ? (
-              <div className="text-lg md:text-xl font-semibold min-h-11 flex items-center">
-                <h2 className="sr-only">{t("list.loading")}</h2>
-                <Skeleton className="h-7 w-44 md:w-56 max-w-[min(100%,16rem)]" aria-hidden />
-              </div>
-            ) : (
-              <h2 className="text-lg md:text-xl font-semibold">
-                {total === 1
-                  ? t("list.count", { count: total })
-                  : t("list.countPlural", { count: total })}
-                {isFetching && (
-                  <span className="ml-2 text-sm text-muted-foreground animate-pulse">
-                    ({t("list.loading", { default: "chargement..." })})
-                  </span>
-                )}
-              </h2>
-            )}
-
-            <ContentListViewModeToggle
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              ariaLabelGrid={t("viewGrid")}
-              ariaLabelList={t("viewList")}
-            />
-          </div>
-
-          {error ? (
-            <EmptyState
-              title={t("list.error.title", { default: "Erreur de chargement" })}
-              description={
-                error instanceof ApiClientError
-                  ? error.message
-                  : t("list.error.description", { default: "Impossible de charger les exercices" })
-              }
-            />
-          ) : isLoading ? (
-            <ContentListSkeleton variant={viewMode} loadingLabel={t("list.loading")} />
-          ) : exercises.length === 0 ? (
-            <EmptyState
-              title={
-                searchQuery.trim() ? t("search.noResults", { query: searchQuery }) : t("list.empty")
-              }
-              description={searchQuery.trim() ? "" : t("list.emptyHint")}
-            />
-          ) : (
+        <ContentListResultsSection
+          isLoading={isLoading}
+          error={error}
+          errorTitle={t("list.error.title", { default: "Erreur de chargement" })}
+          errorDescription={
+            error instanceof ApiClientError
+              ? error.message
+              : t("list.error.description", { default: "Impossible de charger les exercices" })
+          }
+          loadingLabel={t("list.loading")}
+          listHeaderTitle={
             <>
-              {viewMode === "grid" ? (
-                <PageGrid
-                  columns={{ mobile: 1, tablet: 2, desktop: 3 }}
-                  gap="sm"
-                  className="md:gap-4"
-                >
-                  {exercises.map((exercise, index) => (
-                    <div key={exercise.id} className={`${getStaggerDelay(index)} h-full`}>
-                      <ExerciseCard
-                        exercise={exercise}
-                        completed={isCompleted(exercise.id)}
-                        onOpen={openItem}
-                      />
-                    </div>
-                  ))}
-                </PageGrid>
-              ) : (
-                /* Vue Liste Compacte */
-                <div className="space-y-2">
-                  {exercises.map((exercise) => {
-                    const typeKey =
-                      exercise.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_STYLES;
-                    const { icon: TypeIcon } =
-                      EXERCISE_TYPE_STYLES[typeKey] || EXERCISE_TYPE_STYLES.divers;
-                    return (
-                      <CompactListItem
-                        key={exercise.id}
-                        title={exercise.title}
-                        subtitle={exercise.question}
-                        TypeIcon={TypeIcon}
-                        aiGenerated={isAiGenerated(exercise)}
-                        completed={isCompleted(exercise.id)}
-                        typeDisplay={getTypeDisplay(exercise.exercise_type)}
-                        ageDisplay={getAgeDisplay(exercise.age_group)}
-                        onClick={() => openItem(exercise.id)}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={ITEMS_PER_PAGE}
-                    totalItems={total}
-                    showInfo={true}
-                  />
-                </div>
+              {total === 1
+                ? t("list.count", { count: total })
+                : t("list.countPlural", { count: total })}
+              {isFetching && (
+                <span className="ml-2 text-sm text-muted-foreground animate-pulse">
+                  ({t("list.loading", { default: "chargement..." })})
+                </span>
               )}
             </>
+          }
+          itemCount={exercises.length}
+          emptyTitle={
+            searchQuery.trim() ? t("search.noResults", { query: searchQuery }) : t("list.empty")
+          }
+          emptyDescription={searchQuery.trim() ? "" : t("list.emptyHint")}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          ariaLabelGrid={t("viewGrid")}
+          ariaLabelList={t("viewList")}
+          renderGrid={() =>
+            exercises.map((exercise, index) => (
+              <div key={exercise.id} className={`${getStaggerDelay(index)} h-full`}>
+                <ExerciseCard
+                  exercise={exercise}
+                  completed={isCompleted(exercise.id)}
+                  onOpen={openItem}
+                />
+              </div>
+            ))
+          }
+          renderList={() => (
+            /* Vue Liste Compacte */
+            <div className="space-y-2">
+              {exercises.map((exercise) => {
+                const typeKey =
+                  exercise.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_STYLES;
+                const { icon: TypeIcon } =
+                  EXERCISE_TYPE_STYLES[typeKey] || EXERCISE_TYPE_STYLES.divers;
+                return (
+                  <CompactListItem
+                    key={exercise.id}
+                    title={exercise.title}
+                    subtitle={exercise.question}
+                    TypeIcon={TypeIcon}
+                    aiGenerated={isAiGenerated(exercise)}
+                    completed={isCompleted(exercise.id)}
+                    typeDisplay={getTypeDisplay(exercise.exercise_type)}
+                    ageDisplay={getAgeDisplay(exercise.age_group)}
+                    onClick={() => openItem(exercise.id)}
+                  />
+                );
+              })}
+            </div>
           )}
-        </PageSection>
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={total}
+          paginationShowInfo
+        />
 
         {/* Modal pour la vue liste */}
         <ExerciseModal

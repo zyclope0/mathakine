@@ -7,7 +7,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { AIGenerator } from "@/components/challenges/AIGenerator";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pagination } from "@/components/ui/pagination";
 import {
   CHALLENGE_TYPE_STYLES,
   AGE_GROUPS,
@@ -17,14 +16,11 @@ import {
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
 import { Puzzle } from "lucide-react";
-import { ContentListViewModeToggle } from "@/components/shared/ContentListViewModeToggle";
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
 import { useTranslations } from "next-intl";
-import { PageLayout, PageHeader, PageSection, PageGrid, EmptyState } from "@/components/layout";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ContentListSkeleton } from "@/components/shared/ContentListSkeleton";
+import { PageLayout, PageHeader } from "@/components/layout";
 import { ChallengesListLoadingShell } from "@/components/shared/ListLoadingShells";
 import { ApiClientError } from "@/lib/api/client";
 import { useCompletedChallenges } from "@/hooks/useCompletedItems";
@@ -33,6 +29,7 @@ import {
   ContentListProgressiveFilterToolbar,
   type ContentListFilterToolbarLabels,
 } from "@/components/shared/ContentListProgressiveFilterToolbar";
+import { ContentListResultsSection } from "@/components/shared/ContentListResultsSection";
 import { contentListTotalPages } from "@/lib/contentList/pageHelpers";
 import { STORAGE_KEYS } from "@/lib/storage";
 
@@ -184,110 +181,77 @@ function ChallengesPageContent() {
           }}
         />
 
-        {/* Liste des défis */}
-        <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-          <div className="flex items-center justify-between mb-2 gap-3">
-            {isLoading ? (
-              <div className="text-lg md:text-xl font-semibold min-h-11 flex items-center">
-                <h2 className="sr-only">{t("list.loading")}</h2>
-                <Skeleton className="h-7 w-44 md:w-56 max-w-[min(100%,16rem)]" aria-hidden />
-              </div>
-            ) : (
-              <h2 className="text-lg md:text-xl font-semibold">
-                {total === 0
-                  ? t("list.empty")
-                  : total === 1
-                    ? t("list.count", { count: total, default: "1 défi" })
-                    : t("list.countPlural", { count: total, default: `${total} défis` })}
-              </h2>
-            )}
-
-            <ContentListViewModeToggle
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              ariaLabelGrid={t("viewGrid")}
-              ariaLabelList={t("viewList")}
-            />
-          </div>
-
-          {error ? (
-            <EmptyState
-              title={t("list.error.title", { default: "Erreur de chargement" })}
-              description={
-                error instanceof ApiClientError
-                  ? error.message
-                  : t("list.error.description", { default: "Impossible de charger les défis" })
-              }
-              icon={Puzzle}
-            />
-          ) : isLoading ? (
-            <ContentListSkeleton variant={viewMode} loadingLabel={t("list.loading")} />
-          ) : challenges.length === 0 ? (
-            <EmptyState
-              title={
-                searchQuery.trim()
-                  ? t("search.noResults", {
-                      query: searchQuery,
-                      default: `Aucun résultat pour "${searchQuery}"`,
-                    })
-                  : t("list.empty")
-              }
-              description={searchQuery.trim() ? "" : t("list.emptyHint")}
-              icon={Puzzle}
-            />
-          ) : (
+        <ContentListResultsSection
+          isLoading={isLoading}
+          error={error}
+          errorTitle={t("list.error.title", { default: "Erreur de chargement" })}
+          errorDescription={
+            error instanceof ApiClientError
+              ? error.message
+              : t("list.error.description", { default: "Impossible de charger les défis" })
+          }
+          errorIcon={Puzzle}
+          loadingLabel={t("list.loading")}
+          listHeaderTitle={
             <>
-              {viewMode === "grid" ? (
-                <PageGrid
-                  columns={{ mobile: 1, tablet: 2, desktop: 3 }}
-                  gap="sm"
-                  className="md:gap-4"
-                >
-                  {challenges.map((challenge, index) => (
-                    <div key={challenge.id} className={`${getStaggerDelay(index)} w-full`}>
-                      <ChallengeCard challenge={challenge} completed={isCompleted(challenge.id)} />
-                    </div>
-                  ))}
-                </PageGrid>
-              ) : (
-                /* Vue Liste Compacte */
-                <div className="space-y-2">
-                  {challenges.map((challenge) => {
-                    const typeKey =
-                      challenge.challenge_type?.toLowerCase() as keyof typeof CHALLENGE_TYPE_STYLES;
-                    const { icon: TypeIcon } = CHALLENGE_TYPE_STYLES[typeKey] || { icon: Puzzle };
-                    return (
-                      <CompactListItem
-                        key={challenge.id}
-                        title={challenge.title}
-                        subtitle={challenge.description || challenge.question || ""}
-                        TypeIcon={TypeIcon}
-                        aiGenerated={isAiGenerated(challenge)}
-                        completed={isCompleted(challenge.id)}
-                        typeDisplay={getTypeDisplay(challenge.challenge_type)}
-                        ageDisplay={getAgeDisplay(challenge.age_group)}
-                        onClick={() => openItem(challenge.id)}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={ITEMS_PER_PAGE}
-                    totalItems={total}
-                  />
-                </div>
-              )}
+              {total === 0
+                ? t("list.empty")
+                : total === 1
+                  ? t("list.count", { count: total, default: "1 défi" })
+                  : t("list.countPlural", { count: total, default: `${total} défis` })}
             </>
+          }
+          itemCount={challenges.length}
+          emptyTitle={
+            searchQuery.trim()
+              ? t("search.noResults", {
+                  query: searchQuery,
+                  default: `Aucun résultat pour "${searchQuery}"`,
+                })
+              : t("list.empty")
+          }
+          emptyDescription={searchQuery.trim() ? "" : t("list.emptyHint")}
+          emptyIcon={Puzzle}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          ariaLabelGrid={t("viewGrid")}
+          ariaLabelList={t("viewList")}
+          renderGrid={() =>
+            challenges.map((challenge, index) => (
+              <div key={challenge.id} className={`${getStaggerDelay(index)} w-full`}>
+                <ChallengeCard challenge={challenge} completed={isCompleted(challenge.id)} />
+              </div>
+            ))
+          }
+          renderList={() => (
+            /* Vue Liste Compacte */
+            <div className="space-y-2">
+              {challenges.map((challenge) => {
+                const typeKey =
+                  challenge.challenge_type?.toLowerCase() as keyof typeof CHALLENGE_TYPE_STYLES;
+                const { icon: TypeIcon } = CHALLENGE_TYPE_STYLES[typeKey] || { icon: Puzzle };
+                return (
+                  <CompactListItem
+                    key={challenge.id}
+                    title={challenge.title}
+                    subtitle={challenge.description || challenge.question || ""}
+                    TypeIcon={TypeIcon}
+                    aiGenerated={isAiGenerated(challenge)}
+                    completed={isCompleted(challenge.id)}
+                    typeDisplay={getTypeDisplay(challenge.challenge_type)}
+                    ageDisplay={getAgeDisplay(challenge.age_group)}
+                    onClick={() => openItem(challenge.id)}
+                  />
+                );
+              })}
+            </div>
           )}
-        </PageSection>
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={total}
+        />
 
         {/* Modal pour la vue liste */}
         <ChallengeModal
