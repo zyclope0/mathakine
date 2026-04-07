@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useContentListOrderPreference } from "@/hooks/useContentListOrderPreference";
-import { useContentListViewControls } from "@/hooks/useContentListViewControls";
+import { useMemo, useEffect, Suspense } from "react";
+import { useContentListPageController } from "@/hooks/useContentListPageController";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useExercises } from "@/hooks/useExercises";
@@ -14,11 +13,7 @@ import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
 import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
-import {
-  contentListAdvancedFilterActiveCount,
-  contentListTotalPages,
-  hasActiveContentListFilters,
-} from "@/lib/contentList/pageHelpers";
+import { contentListTotalPages } from "@/lib/contentList/pageHelpers";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { ContentListViewModeToggle } from "@/components/shared/ContentListViewModeToggle";
 import {
@@ -54,24 +49,35 @@ function ExercisesPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [exerciseTypeFilter, setExerciseTypeFilter] = useState<string>("all");
-  const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const {
+    typeFilter: exerciseTypeFilter,
+    setTypeFilter: setExerciseTypeFilter,
+    ageFilter: ageGroupFilter,
+    setAgeFilter: setAgeGroupFilter,
+    searchQuery,
+    setSearchQuery,
+    filtersPanelOpen,
+    setFiltersPanelOpen,
+    hideCompleted,
+    setHideCompleted,
+    selectedItemId: selectedExerciseId,
+    isModalOpen,
     currentPage,
     setCurrentPage,
     viewMode,
     setViewMode,
     handleFilterChange,
     handlePageChange,
-  } = useContentListViewControls();
-  const { orderFilter, handleOrderChange, resetOrderPreference } = useContentListOrderPreference(
-    STORAGE_KEYS.prefExerciseOrder
-  );
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hideCompleted, setHideCompleted] = useState(false);
-  const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
+    orderFilter,
+    handleOrderChange,
+    hasActiveFilters,
+    advancedActiveCount,
+    clearFilters,
+    clearTypeFilter,
+    clearAgeFilter,
+    openItem,
+    handleModalOpenChange,
+  } = useContentListPageController({ orderPreferenceStorageKey: STORAGE_KEYS.prefExerciseOrder });
   const { isCompleted } = useCompletedExercises();
 
   const filters: ExerciseFilters = useMemo(() => {
@@ -135,30 +141,6 @@ function ExercisesPageContent() {
   // Calculer le nombre total de pages à partir du total réel
   const totalPages = contentListTotalPages(total, ITEMS_PER_PAGE);
 
-  const hasActiveFilters = hasActiveContentListFilters({
-    typeFilter: exerciseTypeFilter,
-    ageFilter: ageGroupFilter,
-    searchQuery,
-    orderFilter,
-    hideCompleted,
-  });
-
-  const clearFilters = () => {
-    setExerciseTypeFilter("all");
-    setAgeGroupFilter("all");
-    setSearchQuery("");
-    resetOrderPreference();
-    setHideCompleted(false);
-    setCurrentPage(1);
-  };
-
-  const advancedActiveCount = contentListAdvancedFilterActiveCount(
-    exerciseTypeFilter,
-    ageGroupFilter,
-    orderFilter,
-    hideCompleted
-  );
-
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
       filterButton: t("filters.moreFilters"),
@@ -212,14 +194,8 @@ function ExercisesPageContent() {
           getAgeDisplay={getAgeDisplay}
           onResetAll={clearFilters}
           onFilterAdjust={handleFilterChange}
-          onClearTypeFilter={() => {
-            setExerciseTypeFilter("all");
-            handleFilterChange();
-          }}
-          onClearAgeFilter={() => {
-            setAgeGroupFilter("all");
-            handleFilterChange();
-          }}
+          onClearTypeFilter={clearTypeFilter}
+          onClearAgeFilter={clearAgeFilter}
           hasResettableState={hasActiveFilters}
           advancedActiveCount={advancedActiveCount}
           showTypeChipsInline
@@ -293,10 +269,7 @@ function ExercisesPageContent() {
                       <ExerciseCard
                         exercise={exercise}
                         completed={isCompleted(exercise.id)}
-                        onOpen={(id) => {
-                          setSelectedExerciseId(id);
-                          setIsModalOpen(true);
-                        }}
+                        onOpen={openItem}
                       />
                     </div>
                   ))}
@@ -319,10 +292,7 @@ function ExercisesPageContent() {
                         completed={isCompleted(exercise.id)}
                         typeDisplay={getTypeDisplay(exercise.exercise_type)}
                         ageDisplay={getAgeDisplay(exercise.age_group)}
-                        onClick={() => {
-                          setSelectedExerciseId(exercise.id);
-                          setIsModalOpen(true);
-                        }}
+                        onClick={() => openItem(exercise.id)}
                       />
                     );
                   })}
@@ -350,10 +320,7 @@ function ExercisesPageContent() {
         <ExerciseModal
           exerciseId={selectedExerciseId}
           open={isModalOpen}
-          onOpenChange={(open) => {
-            setIsModalOpen(open);
-            if (!open) setSelectedExerciseId(null);
-          }}
+          onOpenChange={handleModalOpenChange}
           onExerciseCompleted={() => {
             queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
           }}

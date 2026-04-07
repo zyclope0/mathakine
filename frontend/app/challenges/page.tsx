@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
-import { useContentListOrderPreference } from "@/hooks/useContentListOrderPreference";
-import { useContentListViewControls } from "@/hooks/useContentListViewControls";
+import { useMemo, Suspense } from "react";
+import { useContentListPageController } from "@/hooks/useContentListPageController";
 import { useChallenges } from "@/hooks/useChallenges";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
@@ -34,11 +33,7 @@ import {
   ContentListProgressiveFilterToolbar,
   type ContentListFilterToolbarLabels,
 } from "@/components/shared/ContentListProgressiveFilterToolbar";
-import {
-  contentListAdvancedFilterActiveCount,
-  contentListTotalPages,
-  hasActiveContentListFilters,
-} from "@/lib/contentList/pageHelpers";
+import { contentListTotalPages } from "@/lib/contentList/pageHelpers";
 import { STORAGE_KEYS } from "@/lib/storage";
 
 // Lazy load modal pour la vue liste
@@ -58,24 +53,35 @@ function ChallengesPageContent() {
   const t = useTranslations("challenges");
   const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
   const queryClient = useQueryClient();
-  const [challengeTypeFilter, setChallengeTypeFilter] = useState<string>("all");
-  const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
   const {
+    typeFilter: challengeTypeFilter,
+    setTypeFilter: setChallengeTypeFilter,
+    ageFilter: ageGroupFilter,
+    setAgeFilter: setAgeGroupFilter,
+    searchQuery,
+    setSearchQuery,
+    filtersPanelOpen,
+    setFiltersPanelOpen,
+    hideCompleted,
+    setHideCompleted,
+    selectedItemId: selectedChallengeId,
+    isModalOpen,
     currentPage,
     setCurrentPage,
     viewMode,
     setViewMode,
     handleFilterChange,
     handlePageChange,
-  } = useContentListViewControls();
-  const { orderFilter, handleOrderChange, resetOrderPreference } = useContentListOrderPreference(
-    STORAGE_KEYS.prefChallengeOrder
-  );
-  const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hideCompleted, setHideCompleted] = useState(false);
+    orderFilter,
+    handleOrderChange,
+    hasActiveFilters,
+    advancedActiveCount,
+    clearFilters,
+    clearTypeFilter,
+    clearAgeFilter,
+    openItem,
+    handleModalOpenChange,
+  } = useContentListPageController({ orderPreferenceStorageKey: STORAGE_KEYS.prefChallengeOrder });
   const { isCompleted } = useCompletedChallenges();
 
   // Optimiser les filtres avec useMemo
@@ -108,30 +114,6 @@ function ChallengesPageContent() {
 
   // Calculer le nombre total de pages à partir du total réel
   const totalPages = contentListTotalPages(total, ITEMS_PER_PAGE);
-
-  const hasActiveFilters = hasActiveContentListFilters({
-    typeFilter: challengeTypeFilter,
-    ageFilter: ageGroupFilter,
-    searchQuery,
-    orderFilter,
-    hideCompleted,
-  });
-
-  const clearFilters = () => {
-    setChallengeTypeFilter("all");
-    setAgeGroupFilter("all");
-    setSearchQuery("");
-    resetOrderPreference();
-    setHideCompleted(false);
-    setCurrentPage(1);
-  };
-
-  const advancedActiveCount = contentListAdvancedFilterActiveCount(
-    challengeTypeFilter,
-    ageGroupFilter,
-    orderFilter,
-    hideCompleted
-  );
 
   const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
     () => ({
@@ -187,14 +169,8 @@ function ChallengesPageContent() {
           getAgeDisplay={getAgeDisplay}
           onResetAll={clearFilters}
           onFilterAdjust={handleFilterChange}
-          onClearTypeFilter={() => {
-            setChallengeTypeFilter("all");
-            handleFilterChange();
-          }}
-          onClearAgeFilter={() => {
-            setAgeGroupFilter("all");
-            handleFilterChange();
-          }}
+          onClearTypeFilter={clearTypeFilter}
+          onClearAgeFilter={clearAgeFilter}
           hasResettableState={hasActiveFilters}
           advancedActiveCount={advancedActiveCount}
         />
@@ -290,10 +266,7 @@ function ChallengesPageContent() {
                         completed={isCompleted(challenge.id)}
                         typeDisplay={getTypeDisplay(challenge.challenge_type)}
                         ageDisplay={getAgeDisplay(challenge.age_group)}
-                        onClick={() => {
-                          setSelectedChallengeId(challenge.id);
-                          setIsModalOpen(true);
-                        }}
+                        onClick={() => openItem(challenge.id)}
                       />
                     );
                   })}
@@ -320,10 +293,7 @@ function ChallengesPageContent() {
         <ChallengeModal
           challengeId={selectedChallengeId}
           open={isModalOpen}
-          onOpenChange={(open) => {
-            setIsModalOpen(open);
-            if (!open) setSelectedChallengeId(null);
-          }}
+          onOpenChange={handleModalOpenChange}
         />
       </PageLayout>
     </ProtectedRoute>
