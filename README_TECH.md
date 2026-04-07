@@ -135,6 +135,17 @@ Limite assumee :
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
 
+#### Diagnostics `validate-token` (rafales 429 / attribution)
+
+- Les endpoints sous `rate_limit_auth` (dont `POST /api/auth/validate-token`) loggent en **WARNING** sur **429** : IP effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (le frontend Next envoie `routeSession` ou `syncCookie` depuis `buildValidateTokenRequestHeaders` — indication seulement, falsifiable par un client HTTP arbitraire).
+- Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
+
+**Rollback après diagnostic**
+
+1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py`, `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
+2. **Ciblé** : retirer uniquement le `logger.info` dans `api_validate_token` si le volume INFO gêne ; garder le WARNING enrichi sur 429 pour les autres endpoints auth.
+3. **Sans redéployer le frontend** : le backend ignore l’absence du header ; seule l’attribution `validate_caller` redevient `-` dans les logs.
+
 ## Architecture Clean (Cible A + B — closed)
 
 - **Cible A** : `app/models/` and `app/schemas/` use explicit per-module imports; `all_models.py` and `all_schemas.py` have been removed (A1–A6).

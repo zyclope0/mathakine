@@ -9,6 +9,8 @@
  */
 import { NextRequest } from "next/server";
 
+import { buildValidateTokenRequestHeaders } from "@/lib/auth/server/validateTokenBackendHeaders";
+
 const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 min (aligné backend, best-practice)
 
 const BACKEND_URL =
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Valider le token auprès du backend avant de le poser (sécurité 1.2 audit)
     const verifyRes = await fetch(`${getBackendUrl()}/api/auth/validate-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildValidateTokenRequestHeaders("syncCookie"),
       body: JSON.stringify({ token: accessToken }),
     });
 

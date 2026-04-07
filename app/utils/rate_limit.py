@@ -18,6 +18,15 @@ logger = get_logger(__name__)
 
 RATE_LIMIT_WINDOW_SEC = 60
 RATE_LIMIT_AUTH_MAX = 5  # login, forgot-password, validate-token
+
+# Truncation limits for operational logging (no secrets; never log body or Authorization).
+_AUTH_LOG_UA_MAX = 160
+_AUTH_LOG_REFERER_MAX = 220
+_AUTH_LOG_XFF_MAX = 160
+_AUTH_LOG_CALLER_MAX = 48
+
+# Next.js server-side validate-token fetches may set this for log attribution (forged by clients is possible).
+VALIDATE_TOKEN_CALLER_HEADER = "x-mathakine-validate-caller"
 RATE_LIMIT_REGISTER_MAX = 3  # creation de compte
 RATE_LIMIT_RESEND_VERIFICATION_MAX = 2  # resend-verification (abus email)
 RATE_LIMIT_CHAT_MAX = 15  # chat/stream - cout OpenAI, eviter abus
@@ -47,6 +56,27 @@ def _get_client_ip(request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return getattr(request.client, "host", "unknown") or "unknown"
+
+
+def get_client_ip_for_request(request) -> str:
+    """IP alignee sur les cles de rate limit (meme logique que _get_client_ip)."""
+    return _get_client_ip(request)
+
+
+def auth_request_rate_limit_diagnostics(request) -> str:
+    """
+    Indices courts pour logs operationnels (429 / validate-token).
+    Ne jamais inclure de token ni d'en-tete Authorization.
+    """
+    ua = (request.headers.get("user-agent") or "-")[:_AUTH_LOG_UA_MAX]
+    ref = (request.headers.get("referer") or "-")[:_AUTH_LOG_REFERER_MAX]
+    xff_raw = (request.headers.get("x-forwarded-for") or "-")[:_AUTH_LOG_XFF_MAX]
+    caller = (request.headers.get(VALIDATE_TOKEN_CALLER_HEADER) or "-")[
+        :_AUTH_LOG_CALLER_MAX
+    ]
+    return (
+        f"ua={ua!r} referer={ref!r} xff_raw_head={xff_raw!r} validate_caller={caller!r}"
+    )
 
 
 def _rate_limit_response(message: str) -> JSONResponse:
@@ -119,7 +149,13 @@ def rate_limit_auth(endpoint_name: str):
             ip = _get_client_ip(request)
             key = f"rate_limit:{endpoint_name}:{ip}"
             if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
-                logger.warning(f"Rate limit depasse pour {endpoint_name} depuis {ip}")
+                diag = auth_request_rate_limit_diagnostics(request)
+                logger.warning(
+                    "Rate limit depasse pour %s depuis %s | %s",
+                    endpoint_name,
+                    ip,
+                    diag,
+                )
                 return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
             return await func(request, *args, **kwargs)
 

@@ -44,7 +44,12 @@ from app.services.auth.auth_session_service import (
     validate_access_token as svc_validate_access_token,
 )
 from app.utils.error_handler import api_error_response, capture_internal_error_response
-from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
+from app.utils.rate_limit import (
+    auth_request_rate_limit_diagnostics,
+    get_client_ip_for_request,
+    rate_limit_auth,
+    rate_limit_resend_verification,
+)
 from app.utils.request_utils import (
     parse_json_body,
     parse_json_body_any,
@@ -409,6 +414,11 @@ async def api_validate_token(request: Request) -> JSONResponse:
         if not isinstance(token, str):
             return api_error_response(400, "Token invalide")
         result = await run_db_bound(svc_validate_access_token, token)
+        logger.info(
+            "auth.validate_token: ok | ip=%s | %s",
+            get_client_ip_for_request(request),
+            auth_request_rate_limit_diagnostics(request),
+        )
         return JSONResponse(result)
     except HTTPException as http_exc:
         return api_error_response(

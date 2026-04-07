@@ -1,4 +1,5 @@
 import { getBackendUrl } from "@/lib/api/backendUrl";
+import { buildValidateTokenRequestHeaders } from "@/lib/auth/server/validateTokenBackendHeaders";
 import {
   getRouteAccessRequirementsForPath,
   routeNeedsServerProfile,
@@ -138,7 +139,7 @@ async function validateAccessTokenViaBackend(token: string): Promise<boolean | n
   try {
     const response = await fetch(`${getBackendUrl()}/api/auth/validate-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildValidateTokenRequestHeaders("routeSession"),
       body: JSON.stringify({ token }),
       cache: "no-store",
     });

@@ -36,6 +36,36 @@ def _request_with_json(scope: dict, payload: dict) -> Request:
 
 
 @pytest.mark.asyncio
+async def test_api_validate_token_success_logs_diagnostic_info(auth_http_scope):
+    """Succes validate-token : INFO avec indices client (pas de token dans le log)."""
+    scope = {
+        **auth_http_scope,
+        "headers": [
+            (b"user-agent", b"TestValidateUA/1"),
+            (b"x-mathakine-validate-caller", b"routeSession"),
+        ],
+    }
+    request = _request_with_json(scope, {"token": "dummy.jwt.token"})
+
+    with (
+        patch("server.handlers.auth_handlers.logger") as mock_logger,
+        patch(
+            "server.handlers.auth_handlers.run_db_bound",
+            return_value={"valid": True, "user_id": "alice"},
+        ),
+    ):
+        response = await api_validate_token(request)
+
+    assert response.status_code == 200
+    mock_logger.info.assert_called_once()
+    _fmt, ip, diag = mock_logger.info.call_args[0]
+    assert ip == "127.0.0.1"
+    assert "TestValidateUA" in diag
+    assert "routeSession" in diag
+    assert "dummy" not in diag.lower()
+
+
+@pytest.mark.asyncio
 async def test_api_validate_token_malformed_jwt_returns_401(auth_http_scope):
     """JWT illisible -> HTTPException decode_token -> 401."""
     request = _request_with_json(

@@ -4,7 +4,7 @@ Vérifie _check_rate_limit, _get_client_ip, _rate_limit_response et les décorat
 """
 
 import uuid
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -15,11 +15,14 @@ from app.utils.rate_limit import (
     MSG_EXERCISE_AI_DAILY_RATE_LIMIT,
     MSG_EXERCISE_AI_HOURLY_RATE_LIMIT,
     MSG_RATE_LIMIT_RETRY,
+    VALIDATE_TOKEN_CALLER_HEADER,
     _check_rate_limit,
     _get_client_ip,
     _rate_limit_response,
+    auth_request_rate_limit_diagnostics,
     check_ai_generation_rate_limit,
     check_exercise_ai_generation_rate_limit,
+    get_client_ip_for_request,
     rate_limit_auth,
     rate_limit_register,
 )
@@ -84,6 +87,30 @@ def test_get_client_ip_fallback_unknown():
     assert _get_client_ip(request) == "unknown"
 
 
+def test_get_client_ip_for_request_matches_get_client_ip():
+    """Alias public aligne sur _get_client_ip."""
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": "198.51.100.2, 10.0.0.1"}
+    request.client = MagicMock(host="127.0.0.1")
+    assert get_client_ip_for_request(request) == _get_client_ip(request)
+
+
+def test_auth_request_rate_limit_diagnostics_truncates_and_includes_caller():
+    """Diagnostics auth: UA, referer, XFF, validate_caller (tronques)."""
+    request = MagicMock()
+    long_ua = "A" * 300
+    request.headers = {
+        "user-agent": long_ua,
+        "referer": "https://app.example/path",
+        "x-forwarded-for": "203.0.113.1, 10.0.0.1",
+        VALIDATE_TOKEN_CALLER_HEADER: "routeSession",
+    }
+    diag = auth_request_rate_limit_diagnostics(request)
+    assert "routeSession" in diag
+    assert long_ua not in diag
+    assert "A" * 50 in diag
+
+
 def test_check_rate_limit_bypassed_when_testing_true(monkeypatch):
     """Quand TESTING=true, _check_rate_limit autorise toujours."""
     monkeypatch.setenv("TESTING", "true")
@@ -115,6 +142,43 @@ async def test_rate_limit_auth_decorator_allows_when_testing():
     request.client = MagicMock(host="127.0.0.1")
     result = await handler(request)
     assert result == {"ok": True}
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_auth_decorator_logs_diagnostics_when_blocked(monkeypatch):
+    """429 auth: log WARNING avec UA / referer / XFF / validate_caller."""
+    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(
+        "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
+    )
+
+    @rate_limit_auth("validate-token")
+    async def handler(request):
+        return {"ok": True}
+
+    request = MagicMock()
+    request.headers = {
+        "user-agent": "DiagUA/1.0",
+        "referer": "https://example.com/challenges",
+        "X-Forwarded-For": "203.0.113.9, 10.0.0.1",
+        # Diagnostics use lowercase keys (Starlette normalizes; plain dict mocks need both).
+        "x-forwarded-for": "203.0.113.9, 10.0.0.1",
+        VALIDATE_TOKEN_CALLER_HEADER: "syncCookie",
+    }
+    request.client = MagicMock(host="127.0.0.1")
+
+    with patch("app.utils.rate_limit.logger") as mock_logger:
+        result = await handler(request)
+
+    assert result.status_code == 429
+    mock_logger.warning.assert_called_once()
+    _fmt, endpoint, ip, diag = mock_logger.warning.call_args[0]
+    assert endpoint == "validate-token"
+    assert ip == "203.0.113.9"
+    assert "DiagUA" in diag
+    assert "challenges" in diag
+    assert "203.0.113.9" in diag
+    assert "syncCookie" in diag
 
 
 @pytest.mark.asyncio
