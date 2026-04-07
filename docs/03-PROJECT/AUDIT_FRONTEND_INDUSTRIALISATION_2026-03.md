@@ -8,7 +8,7 @@
 
 **ComplÃ©mentaire Ã  :** [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](./AUDIT_ARCHITECTURE_BACKEND_2026-03.md) (backend â€” terminÃ©)
 
-> **Mise Ã  jour 2026-04-07**
+> **Mise Ã  jour 2026-04-06 (addendum FFI-L16 lot C)**
 > Ce document reste utile comme photographie de la dette initiale, mais il ne doit plus etre
 > utilise comme plan d'execution actif.
 >
@@ -19,21 +19,18 @@
 >
 > Verite terrain actuelle :
 >
-> - `FFI-L1` a `FFI-L15` sont livres
+> - `FFI-L1` a `FFI-L16` sont livres cote architecture frontend
 > - `NI-13` est structurel cote serveur + client (`proxy.ts` + `ProtectedRoute`)
-> - le tree frontend courant est a `174` composants, `52` hooks et `8` themes visibles
+> - le tree frontend courant est a `177` composants, `53` hooks et `8` themes visibles
 > - la duplication AIGenerator brute n'est plus le seam principal
 > - la coherence end-user des defis (`challenge_type` vs `response_mode`) reste un **sidecar produit** documente dans `ROADMAP_FONCTIONNALITES.md` (`F44`), hors sequence FFI active
 >
-> Seams architecture encore prioritaires :
+> Seams architecture encore prioritaires (hors shell / chatbot global, fermes sous `FFI-L16`) :
 >
 > - `components/profile/ProfileLearningPreferencesSection.tsx`
 > - `ChallengeSolverCommandBar.tsx`
-> - `Header.tsx`
-> - la plateforme shared de listes contenu
 >
 > Ordre actif recommande :
-> `FFI-L16` split shell/navigation,
 > `FFI-L17` garde-fous architecture.
 >
 > Le detail de cet audit conserve volontairement la photographie du `03/03/2026`.

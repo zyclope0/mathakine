@@ -49,7 +49,8 @@ Active references:
   - `SettingsPage` is no longer tracked as a mega-page runtime seam (`FFI-L13` closed)
   - `AdminContentPage` is no longer tracked as a mega-page runtime seam (`FFI-L14` closed for frontend structure)
   - the shared learner `content-list` platform is now standardized (`FFI-L15` closed)
-  - the active architecture backlog now starts at `FFI-L16`
+  - `FFI-L16` is closed on the **frontend architecture** side: `Header` is documented and implemented as a shell facade with extracted subcomponents; global chatbot UI lives under `components/chat/`; **guest** assistant access stays public with **no** header Assistant CTA, **FAB** entry, and a **5-message per session** client cap (`useGuestChatAccess`) alongside unchanged **server-side** chat rate limits; **authenticated** users keep the existing header Assistant CTA
+  - the active architecture backlog now starts at `FFI-L17` (guardrails)
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed

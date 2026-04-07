@@ -1,14 +1,14 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> DerniÃ¨re mise Ã  jour : 07/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation)
+> DerniÃ¨re mise Ã  jour : 06/04/2026  
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot)
 
 ---
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 52 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 174 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 53 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 177 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -86,9 +86,10 @@ frontend/
 â”‚   â”œâ”€â”€ dashboard/                # Widgets dashboard (Stats, Recommendations, Levelâ€¦)
 â”‚   â”œâ”€â”€ exercises/                # ExerciseCard, ExerciseSolver, AIGenerator
 â”‚   â”œâ”€â”€ feedback/                 # FeedbackFab, FeedbackModal
-â”‚   â”œâ”€â”€ home/                     # Hero, QuickStart, features section
+â”‚   â”œâ”€â”€ home/                     # Hero, QuickStart, Chatbot carte home (embedded) ; pas le drawer global
 â”‚   â”œâ”€â”€ layout/                   # PageLayout, PageHeader, PageSection, PageGrid,
-â”‚   â”‚                             # EmptyState, LoadingState, Header, Footer, PageTransition
+â”‚   â”‚                             # EmptyState, LoadingState, Header (+ HeaderDesktopNav, HeaderUserMenu, HeaderMobileMenu), Footer, PageTransition
+â”‚   â”œâ”€â”€ chat/                     # ChatbotFloating, ChatbotFloatingGlobal, messages, composer (assistant global FFI-L16)
 â”‚   â”œâ”€â”€ locale/                   # LanguageSelector, LocaleInitializer
 â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, NextIntlProvider, AccessScopeSync
 â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
@@ -100,8 +101,8 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 52 hooks React (majoritairement React Query)
-â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
+â”œâ”€â”€ hooks/                        # 53 hooks React (majoritairement React Query)
+â”‚   â”œâ”€â”€ chat/                     # useChat, useGuestChatAccess, useChatAutoScroll (chatbot, IA13b + FFI-L16 invite quota)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
 â”‚   â”œâ”€â”€ useChallenge(s).ts        # DÃ©fis logiques
@@ -248,6 +249,14 @@ Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ce
 - `/dashboard` comme surface analytique normale pour les roles adultes
 - `/dashboard` peut rester accessible a `apprenant` via une entree discrete du menu profil, sans reprendre le role de home principale
 - Les anciens noms Star Wars restent hors de la logique active, sauf compatibilite backend/DB
+
+### Shell global et assistant (FFI-L16 clos)
+
+- **Header** : `components/layout/Header.tsx` est une facade shell ; navigation desktop, menu utilisateur et menu mobile sont des sous-blocs dedies (`HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`).
+- **Assistant global** : drawer / FAB sous `components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`). La carte embarquee marketing reste `components/home/Chatbot.tsx` (home), distincte du shell global.
+- **Invites (public)** : l'assistant reste accessible ; **pas** de CTA Assistant dans le header ; entree via le **FAB global**. Plafond **5 messages** par session navigateur via `hooks/chat/useGuestChatAccess.ts` (sessionStorage), en complement du **rate-limit chat serveur** (autorite inchangee).
+- **Authentifies** : comportement historique conserve, y compris le CTA Assistant dans le header.
+- **Reliquat** (hors perimetre FFI-L16 frontend) : eventuel durcissement serveur du quota invite (cookie / IP / cle dediee) — optionnel, non bloquant pour la cloture architecture.
 
 ### F04 review flow
 

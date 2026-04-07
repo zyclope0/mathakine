@@ -41,18 +41,18 @@ En cas de divergence :
 - suivre d'abord ce fichier
 - puis realigner les 2 audits projet dans le meme lot documentaire
 
-### 2. Verite terrain frontend au 2026-04-07
+### 2. Verite terrain frontend au 2026-04-06
 
 **Photographie tree**
 
-- `174` fichiers composants sous `frontend/components`
-- `52` hooks custom sous `frontend/hooks`
+- `177` fichiers composants sous `frontend/components`
+- `53` hooks custom sous `frontend/hooks`
 - `8` themes visibles
 - boundary apprenant/adulte et roles canoniques deja stabilises
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L15` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
+- `FFI-L1` a `FFI-L16` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
@@ -61,16 +61,13 @@ En cas de divergence :
 
 - `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
 - `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
-- `frontend/components/layout/Header.tsx` ~`394` LOC
-- recouvrement residuel `ChatbotFloating.tsx` / `ChatbotFloatingGlobal.tsx`
 
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-2. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-3. Ensuite : nouveaux seams shared ou domaines encore denses (si la revue structurelle les confirme)
-4. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+2. Ensuite : nouveaux seams shared ou domaines encore denses (si la revue structurelle les confirme)
+3. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
 ### 3.1 Sidecar produit documente, hors sequence FFI
@@ -183,16 +180,23 @@ Decision d'execution :
 - reliquat connu :
   - fermeture architecture faite ; une QA visuelle humaine reste utile avant cloture produit, mais aucun lot technique obligatoire ne reste sous le theme `FFI-L15`
 
-#### FFI-L16 — Split shell/navigation
+#### FFI-L16 — Split shell/navigation + ownership chatbot global
 
-- but : reduire la dette de shell global
-- scope :
-  - `Header.tsx`
-  - ownership de `ChatbotFloating.tsx` / `ChatbotFloatingGlobal.tsx`
-  - clarifier ce qui appartient au shell, a la home, ou au domaine chatbot
-- definition of done :
-  - navigation desktop/mobile/menu utilisateur separes
-  - plus de recouvrement fonctionnel entre floating chatbots
+- statut :
+  - **livre** (lots A + B code, lot C documentation transverse)
+- but : reduire la dette de shell global et clarifier l'ownership du chatbot flottant
+- resultat :
+  - `Header.tsx` : facade shell ; sous-blocs `HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`
+  - chatbot global : `ChatbotFloating.tsx` et `ChatbotFloatingGlobal.tsx` sous `components/chat/` (plus d'ambiguite avec `components/home/`)
+  - **Invites (public)** : acces assistant conserve ; **pas** de CTA Assistant dans le header ; entree via **FAB global** (`ChatbotFloatingGlobal`)
+  - **Quota invite** : **5 messages** par session cote frontend (`sessionStorage`), via `useGuestChatAccess` ; le **rate-limit backend** reste l'autorite serveur (non modifie dans ce lot)
+  - **Authentifies** : comportement inchange ; CTA Assistant dans le header conserve
+- definition of done (architecture frontend) :
+  - navigation desktop / mobile / menu utilisateur separes
+  - ownership chatbot global explicite sous `components/chat/`
+  - decision produit invite + quota session documentee (voir `lib/chat/README.md`, catalogues, audits)
+- reliquat explicite (hors FFI-L16 frontend) :
+  - durcissement optionnel futur : quota invite aligne serveur (cookie / IP / cle dediee) — **non requis** pour fermer l'architecture frontend
 
 #### FFI-L17 — Garde-fous architecture
 

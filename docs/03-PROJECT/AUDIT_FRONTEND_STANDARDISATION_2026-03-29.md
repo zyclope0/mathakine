@@ -44,17 +44,17 @@
 
 ### Points faibles
 
-- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants (solver, toolbar, Header)
-- **Plateforme content-list encore trop implicite** : toolbar, generators, cards, pagination et état liste restent dispersés entre `Exercises` et `Challenges`
-- **Dette shell globale** : `Header.tsx` reste massif et le recouvrement `ChatbotFloating` / `ChatbotFloatingGlobal` n'est pas clarifié
+- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants (solver, toolbar) ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
+- **Plateforme content-list** : standardisee (`FFI-L15`) ; generators, cards et comportements route restent domaine-specifiques par design
+- **Dette shell / chatbot global** : classee **fermee** cote architecture frontend (`FFI-L16`) — ownership `components/chat/` ; decision produit invite documentee (FAB, quota session 5, autorite rate-limit serveur)
 - **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées existent encore, mais ne sont plus la priorité d'exécution tant que les seams d'architecture restent ouverts
 
 ---
 
-### 1.1 État d'avancement réel — 2026-04-07
+### 1.1 État d'avancement réel — 2026-04-06
 
 La photographie initiale reste utile, mais le plan actif a ete requalifie autour des seams d'architecture les plus rentables depuis
-l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) est desormais livre cote architecture frontend et le prochain jalon prioritaire est `FFI-L16`.
+l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (shell / navigation / ownership chatbot global) sont livres cote architecture frontend ; le prochain jalon prioritaire est `FFI-L17` (garde-fous architecture).
 
 **Livré, commité et poussé**
 
@@ -73,10 +73,10 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) est desormais l
 - `FFI-L13` : modulariser `Settings` (container ~`133` LOC + `useSettingsPageController` + `components/settings/*`)
 - `FFI-L14` : decouper `Admin Content` (container ~`50` LOC + `components/admin/content/*` + shell controller)
 - `FFI-L15` : standardiser la plateforme `content-list` (controller shared + results shell + toolbar facade split)
+- `FFI-L16` : shell `Header` en facade + sous-blocs extraits ; chatbot global sous `components/chat/` ; invites : pas de CTA Assistant header, entree FAB, quota session frontend **5 messages** (`useGuestChatAccess`) en complement du rate-limit serveur ; authentifies : inchange
 
 **Encore ouverts (ordre actif révisé)**
 
-- `FFI-L16` : split `Header.tsx` + ownership chatbot flottant
 - `FFI-L17` : garde-fous architecture / tests / doc runtime
 
 **Conséquences visibles**
@@ -85,7 +85,7 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) est desormais l
 - `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (reliquat : `SettingsSecuritySection` encore dense).
 - `app/admin/content/page.tsx` n'est plus une mega-page : container ~`50` LOC avec `useAdminContentPageController`, `lib/admin/content/adminContentPage.ts`, `lib/admin/exercises/adminExerciseCoherence.ts` et `components/admin/content/*` (reliquat contrat/produit : difficulte liste exercices transitoire tant que `difficulty_tier` n'est pas garanti sur la liste admin API ; modales exercices encore en valeurs legacy pour l'edition).
 - `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
-- Le risque runtime frontal se concentre désormais surtout dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ProfileLearningPreferencesSection`, `Header`).
+- Le risque runtime frontal se concentre désormais surtout dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ProfileLearningPreferencesSection`).
 - La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
@@ -298,11 +298,11 @@ Lazy loading pour les charts lourds : `DailyExercisesChartLazy`, `ProgressChartL
 
 ### 3.6 Doublons et recouvrements identifiés
 
-| Recouvrement          | Fichiers / zone                                                                 | Problème réel actuel                                                       |
-| --------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Chatbot flottant      | `ChatbotFloating.tsx` + `ChatbotFloatingGlobal.tsx`                             | Ownership et responsabilité produit encore non documentées                 |
-| Content-list platform | `Exercises`, `Challenges`, toolbar, cards, compact list, generators, pagination | Pattern partagé puissant mais encore trop diffus et peu gouverné           |
-| Shell navigation      | `Header.tsx`                                                                    | Desktop/mobile/menu utilisateur cohabitent encore dans un composant massif |
+| Recouvrement          | Fichiers / zone                                                                 | Problème réel actuel                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chatbot flottant      | `ChatbotFloating.tsx` + `ChatbotFloatingGlobal.tsx`                             | **Traité via `FFI-L16`** : ownership shell clarifié sous `components/chat/`, politique invité documentée (FAB global, quota session, CTA header retiré pour les invités) |
+| Content-list platform | `Exercises`, `Challenges`, toolbar, cards, compact list, generators, pagination | Pattern partagé puissant mais encore trop diffus et peu gouverné                                                                                                         |
+| Shell navigation      | `Header.tsx`                                                                    | Desktop/mobile/menu utilisateur cohabitent encore dans un composant massif                                                                                               |
 
 ---
 
@@ -448,9 +448,16 @@ Le recouvrement restant le plus rentable concerne surtout `UnifiedExerciseGenera
 et, plus largement, la plateforme `content-list` (`toolbar`, `generator`, cartes,
 pagination, state liste).
 
-### 6.4 Chatbot floating ambigu
+### 6.4 Chatbot floating ambigu (historique, résolu par FFI-L16)
 
-`ChatbotFloating.tsx` vs `ChatbotFloatingGlobal.tsx` — responsabilités non documentées.
+Constat d'origine de l'audit : `ChatbotFloating.tsx` vs `ChatbotFloatingGlobal.tsx` portaient une responsabilité shell ambiguë.
+
+État réel au 2026-04-06 :
+
+- ownership global clarifié sous `components/chat/`
+- `components/home/Chatbot.tsx` reste limité à la carte embarquée home marketing
+- invités : accès assistant via FAB global, sans CTA header, avec quota session frontend de 5 messages
+- authentifiés : comportement historique conservé
 
 ### 6.5 Résidus Star Wars dans types TypeScript
 
@@ -487,9 +494,9 @@ et leur **vrai scope technique** a partir du code actuellement en place.
 | 21 residus Star Wars          | **Maintenu, scope borne** | A traiter, mais sans grand sweep destructif. Nettoyer d'abord les couches frontend internes, tout en gardant les alias/types deprecated tant que le contrat backend public les sert encore. |
 | AIGenerator / AIGeneratorBase | **Requalifie**            | Les wrappers `exercises/AIGenerator.tsx` et `challenges/AIGenerator.tsx` sont deja minces. Le vrai recouvrement restant concerne surtout `exercises/UnifiedExerciseGenerator.tsx`.          |
 | Solver x2 trop lourds         | **Traite**                | `ExerciseSolver` puis `ChallengeSolver` ont ete decoupes. La dette residuelle porte surtout sur quelques sous-composants denses et non plus sur un monolithe runtime unique.                |
-| Header.tsx trop lourd         | **Confirme, depriorise**  | Bon chantier de lisibilite, mais moins urgent que auth/bootstrap, storage, pages contenu et solvers.                                                                                        |
+| Header.tsx trop lourd         | **Traité**                | Résolu par `FFI-L16` : `Header.tsx` est désormais une façade shell lisible avec sous-blocs extraits (`HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`).                             |
 | 64 couleurs hardcodees        | **Confirme, depriorise**  | Toujours vrai, mais a lancer apres les tokens critiques et les chantiers infra plus rentables.                                                                                              |
-| Chatbot floating ambigu       | **Confirme**              | Ne bloque pas le runtime. A documenter et clarifier dans le lot Design System plutot qu'en hotfix.                                                                                          |
+| Chatbot floating ambigu       | **Traité**                | Résolu par `FFI-L16` : ownership shell documenté, composants déplacés sous `components/chat/`, décision produit invité explicitée (FAB + quota session + serveur autoritaire).              |
 
 ### Chantiers supplementaires identifies
 
@@ -782,11 +789,11 @@ Reliquat connu :
 
 **Priorite** : P2 | **Effort** : M | **Impact** : lisibilite du shell global
 
-Objectif :
+Livré :
 
-- decouper `Header.tsx`
-- clarifier `ChatbotFloating.tsx` vs `ChatbotFloatingGlobal.tsx`
-- documenter ce qui appartient au shell, a la home ou au domaine chatbot
+- `Header.tsx` est devenu une façade shell avec sous-blocs extraits (`HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`)
+- l'ownership du chatbot global est clarifié sous `components/chat/`
+- la décision produit invité est documentée et implémentée : pas de CTA Assistant dans le header, accès via FAB global, quota session frontend **5 messages**, rate-limit serveur inchangé et autoritaire
 
 #### FFI-L17 - Garde-fous architecture, tests et doc runtime
 
@@ -828,14 +835,14 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 13    | FFI-L13 Modulariser Settings                                  | P1       | L      | Robustesse parcours       | ✅ Livré             |
 | 14    | FFI-L14 Decouper Admin Content                                | P1       | L      | Frontiere admin           | ✅ Livré             |
 | 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | ✅ Livré             |
-| 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | À faire              |
+| 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | ✅ Livré             |
 | 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | À faire              |
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L15` sont deja livres : la dette la plus rentable restante est desormais `FFI-L16`
+- `FFI-L1` a `FFI-L16` sont deja livres : la dette la plus rentable restante est desormais `FFI-L17`
 - la priorite n'est plus le polish visuel mais les mega-pages et seams runtime
-- traiter `FFI-L16` et `FFI-L17` avant de rouvrir de gros sweeps cosmetiques
+- traiter `FFI-L17` avant de rouvrir de gros sweeps cosmetiques
 - garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 
 ### Plan initial (historique)

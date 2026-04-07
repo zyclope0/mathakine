@@ -1,7 +1,7 @@
 ﻿# Catalogue des hooks React â€” Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-04-07
+> Updated : 2026-04-06
 > Total : 53 fichiers hooks (dont `hooks/chat/`)
 
 ---
@@ -90,11 +90,11 @@
 
 ## CatÃ©gorie 7 â€” Chat & IA
 
-| Hook                         | RÃ´le                                       | Test    | RQ    | DÃ©pendances clÃ©s                            |
-| ---------------------------- | ------------------------------------------- | ------- | ----- | --------------------------------------------- |
-| `useChat.ts`                 | Session chat avec l'assistant               | âœ…     | Aucun | `POST /api/chat` (via route Next.js)          |
-| `chat/useGuestChatAccess.ts` | Quota invitÃ© session (sessionStorage)      | âœ…     | Aucun | Aucun fetch ; complÃ¨te le rate-limit serveur |
-| `chat/` (dossier)            | Hooks internes du chat (streaming, history) | Partiel | Aucun | SSE + localStorage                            |
+| Hook                         | RÃ´le                                                                         | Test    | RQ    | DÃ©pendances clÃ©s                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------ |
+| `useChat.ts`                 | Session chat avec l'assistant                                                 | âœ…     | Aucun | `POST /api/chat` (via route Next.js)                                           |
+| `chat/useGuestChatAccess.ts` | Quota invitÃ© **5 messages** / session (`sessionStorage`) ; etat hydrate-safe | âœ…     | Aucun | Aucun fetch ; **complement** au rate-limit chat **serveur** (autorite backend) |
+| `chat/` (dossier)            | Hooks internes du chat (streaming, history)                                   | Partiel | Aucun | SSE + localStorage                                                             |
 
 ---
 

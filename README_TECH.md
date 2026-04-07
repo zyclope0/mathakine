@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 07/04/2026 (FFI-L15 architecture closure documented)
+> Updated: 06/04/2026 (FFI-L16 frontend architecture closure documented)
 
 Visible product train:
 
@@ -53,7 +53,13 @@ Visible product train:
   - `frontend/components/shared/ContentListResultsHeader.tsx` and `ContentListResultsSection.tsx` centralize the shared results shell
   - `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` is now a stable facade split into smaller subcomponents
   - exercises/challenges keep domain-specific generators, cards, modals, and route behavior
-- next active frontend architecture priority: `FFI-L16` (shell/navigation split + chatbot ownership)
+- `FFI-L16` is now closed (frontend architecture):
+  - `frontend/components/layout/Header.tsx` is a thin shell facade orchestrating `HeaderDesktopNav`, `HeaderUserMenu`, and `HeaderMobileMenu`
+  - global floating chatbot ownership lives under `frontend/components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`)
+  - **guest (public)**: assistant remains available; **no** header Assistant CTA; entry via the **global FAB**; **5 messages per browser session** enforced client-side via `useGuestChatAccess` (sessionStorage), complementary to existing **server-side** chat rate limiting (authoritative)
+  - **authenticated**: unchanged; header Assistant CTA remains
+  - explicit follow-up (not required to close FFI-L16): optional future server-aligned guest quota (cookie / IP / dedicated key)
+- next active frontend architecture priority: `FFI-L17` (architecture guardrails: conventions, structural regression tests, runtime docs)
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 
