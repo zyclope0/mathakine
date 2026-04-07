@@ -1,8 +1,8 @@
 ﻿# Catalogue des hooks React â€” Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-04-06
-> Total : 51 fichiers hooks (dont `hooks/chat/`)
+> Updated : 2026-04-07
+> Total : 52 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -119,12 +119,13 @@
 
 ## CatÃ©gorie 9 â€” Divers
 
-| Hook                               | RÃ´le                                       | Test | RQ    | DÃ©pendances clÃ©s         |
-| ---------------------------------- | ------------------------------------------- | ---- | ----- | -------------------------- |
-| `useAcademyStats.ts`               | Stats globales de l'acadÃ©mie (public)      | âŒ   | Query | `GET /api/stats/academy`   |
-| `useDiagnostic.ts`                 | RÃ©sultats diagnostic initial               | âŒ   | Query | `GET /api/diagnostic`      |
-| `useContentListOrderPreference.ts` | Persistance locale du tri liste contenu     | ❌   | Aucun | localStorage               |
-| `useContentListViewControls.ts`    | Etat vue liste/grille et controles associes | ❌   | Aucun | state local + localStorage |
+| Hook                               | RÃ´le                                                    | Test | RQ    | DÃ©pendances clÃ©s                                             |
+| ---------------------------------- | -------------------------------------------------------- | ---- | ----- | -------------------------------------------------------------- |
+| `useAcademyStats.ts`               | Stats globales de l'acadÃ©mie (public)                   | âŒ   | Query | `GET /api/stats/academy`                                       |
+| `useDiagnostic.ts`                 | RÃ©sultats diagnostic initial                            | âŒ   | Query | `GET /api/diagnostic`                                          |
+| `useContentListPageController.ts`  | Etat runtime shared des pages `Exercises` / `Challenges` | ✅   | Aucun | `useContentListViewControls` + `useContentListOrderPreference` |
+| `useContentListOrderPreference.ts` | Persistance locale du tri liste contenu                  | ❌   | Aucun | localStorage                                                   |
+| `useContentListViewControls.ts`    | Etat vue liste/grille et controles associes              | ❌   | Aucun | state local + localStorage                                     |
 
 ---
 
@@ -132,9 +133,9 @@
 
 | Statut                 | Nombre |
 | ---------------------- | ------ |
-| âœ… Avec test unitaire | 8      |
-| âŒ Sans test unitaire  | ~42    |
-| **Total**              | **51** |
+| âœ… Avec test unitaire | 9      |
+| âŒ Sans test unitaire  | ~43    |
+| **Total**              | **52** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 

@@ -48,7 +48,8 @@ Active references:
   - `BadgesPage` is no longer tracked as a mega-page runtime seam
   - `SettingsPage` is no longer tracked as a mega-page runtime seam (`FFI-L13` closed)
   - `AdminContentPage` is no longer tracked as a mega-page runtime seam (`FFI-L14` closed for frontend structure)
-  - the active architecture backlog now starts at `FFI-L15`
+  - the shared learner `content-list` platform is now standardized (`FFI-L15` closed)
+  - the active architecture backlog now starts at `FFI-L16`
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed

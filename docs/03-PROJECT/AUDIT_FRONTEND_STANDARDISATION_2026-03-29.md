@@ -51,10 +51,10 @@
 
 ---
 
-### 1.1 État d'avancement réel — 2026-04-06
+### 1.1 État d'avancement réel — 2026-04-07
 
 La photographie initiale reste utile, mais le plan actif a ete requalifie autour des seams d'architecture les plus rentables depuis
-l'extraction du 2026-03-29 ; `FFI-L14` (admin content) est desormais livre cote architecture frontend et le prochain jalon prioritaire est `FFI-L15`.
+l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) est desormais livre cote architecture frontend et le prochain jalon prioritaire est `FFI-L16`.
 
 **Livré, commité et poussé**
 
@@ -72,10 +72,10 @@ l'extraction du 2026-03-29 ; `FFI-L14` (admin content) est desormais livre cote 
 - `FFI-L12` : modulariser `Badges` (container + `useBadgesPageController` + sections)
 - `FFI-L13` : modulariser `Settings` (container ~`133` LOC + `useSettingsPageController` + `components/settings/*`)
 - `FFI-L14` : decouper `Admin Content` (container ~`50` LOC + `components/admin/content/*` + shell controller)
+- `FFI-L15` : standardiser la plateforme `content-list` (controller shared + results shell + toolbar facade split)
 
 **Encore ouverts (ordre actif révisé)**
 
-- `FFI-L15` : standardiser la plateforme `content-list`
 - `FFI-L16` : split `Header.tsx` + ownership chatbot flottant
 - `FFI-L17` : garde-fous architecture / tests / doc runtime
 
@@ -85,7 +85,7 @@ l'extraction du 2026-03-29 ; `FFI-L14` (admin content) est desormais livre cote 
 - `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (reliquat : `SettingsSecuritySection` encore dense).
 - `app/admin/content/page.tsx` n'est plus une mega-page : container ~`50` LOC avec `useAdminContentPageController`, `lib/admin/content/adminContentPage.ts`, `lib/admin/exercises/adminExerciseCoherence.ts` et `components/admin/content/*` (reliquat contrat/produit : difficulte liste exercices transitoire tant que `difficulty_tier` n'est pas garanti sur la liste admin API ; modales exercices encore en valeurs legacy pour l'edition).
 - `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
-- Le risque runtime frontal se concentre désormais surtout dans les mega-pages et dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ContentListProgressiveFilterToolbar`, `Header`).
+- Le risque runtime frontal se concentre désormais surtout dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ProfileLearningPreferencesSection`, `Header`).
 - La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
@@ -765,13 +765,18 @@ Reliquat connu (contrat / produit, pas echec du split) :
 
 #### FFI-L15 - Standardiser la plateforme content-list
 
-**Priorite** : P1 | **Effort** : M-L | **Impact** : DRY structurel
+**Priorite** : P1 | **Effort** : M-L | **Impact** : DRY structurel | **Statut** : **livre** (2026-04-07)
 
-Objectif :
+Resultat :
 
-- industrialiser le pattern commun `Exercises` / `Challenges`
-- expliciter les conventions shared pour toolbar, generator, cards, pagination et state de liste
-- reduire la logique page-specifique encore dupliquee ou implicite
+- `useContentListPageController.ts` centralise l'etat runtime partage `Exercises` / `Challenges`
+- `ContentListResultsHeader.tsx` + `ContentListResultsSection.tsx` portent la coquille visuelle shared des resultats
+- `ContentListProgressiveFilterToolbar.tsx` est devenu une facade stable decoupee en sous-blocs purs (`SearchRow`, `TypeChips`, `Summary`, `AdvancedPanel`)
+- les pages `exercises/page.tsx` et `challenges/page.tsx` conservent leurs generators, cards, modales et effets domaine-specifiques sans duplication de shell liste
+
+Reliquat connu :
+
+- aucun lot technique obligatoire sous le theme `FFI-L15` ; une QA visuelle / a11y humaine reste utile mais n'est pas un blocage architectural
 
 #### FFI-L16 - Split shell/navigation + ownership chatbot
 
@@ -822,15 +827,15 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 12    | FFI-L12 Modulariser Badges                                    | P1       | L      | Lisibilite page           | ✅ Livré             |
 | 13    | FFI-L13 Modulariser Settings                                  | P1       | L      | Robustesse parcours       | ✅ Livré             |
 | 14    | FFI-L14 Decouper Admin Content                                | P1       | L      | Frontiere admin           | ✅ Livré             |
-| 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | À faire              |
+| 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | ✅ Livré             |
 | 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | À faire              |
 | 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | À faire              |
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L14` sont deja livres : la dette la plus rentable restante est desormais `FFI-L15`
+- `FFI-L1` a `FFI-L15` sont deja livres : la dette la plus rentable restante est desormais `FFI-L16`
 - la priorite n'est plus le polish visuel mais les mega-pages et seams runtime
-- traiter `FFI-L15` a `FFI-L17` avant de rouvrir de gros sweeps cosmetiques
+- traiter `FFI-L16` et `FFI-L17` avant de rouvrir de gros sweeps cosmetiques
 - garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 
 ### Plan initial (historique)

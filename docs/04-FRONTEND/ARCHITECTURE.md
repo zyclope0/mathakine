@@ -1,14 +1,14 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> DerniÃ¨re mise Ã  jour : 06/04/2026  
+> DerniÃ¨re mise Ã  jour : 07/04/2026  
 > ValidÃ© contre le code source rÃ©el (post-audit industrialisation)
 
 ---
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 51 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 168 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 52 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 174 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -100,7 +100,7 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 51 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 52 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useChatAutoScroll (chatbot home, lot IA13b)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)

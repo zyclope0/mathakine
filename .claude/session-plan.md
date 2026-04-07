@@ -41,18 +41,18 @@ En cas de divergence :
 - suivre d'abord ce fichier
 - puis realigner les 2 audits projet dans le meme lot documentaire
 
-### 2. Verite terrain frontend au 2026-04-06
+### 2. Verite terrain frontend au 2026-04-07
 
 **Photographie tree**
 
-- `168` fichiers composants sous `frontend/components`
-- `51` hooks custom sous `frontend/hooks`
+- `174` fichiers composants sous `frontend/components`
+- `52` hooks custom sous `frontend/hooks`
 - `8` themes visibles
 - boundary apprenant/adulte et roles canoniques deja stabilises
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L14` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
+- `FFI-L1` a `FFI-L15` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
@@ -61,16 +61,15 @@ En cas de divergence :
 
 - `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
 - `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
-- `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` ~`432` LOC
 - `frontend/components/layout/Header.tsx` ~`394` LOC
 - recouvrement residuel `ChatbotFloating.tsx` / `ChatbotFloatingGlobal.tsx`
 
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L15 : standardiser la plateforme content-list (toolbar + generator + cards + pagination + state)
-2. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
-3. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+1. FFI-L16 : split shell/navigation (Header + ownership chatbot flottant)
+2. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
+3. Ensuite : nouveaux seams shared ou domaines encore denses (si la revue structurelle les confirme)
 4. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
@@ -174,18 +173,15 @@ Decision d'execution :
 
 #### FFI-L15 — Standardiser la plateforme content-list
 
-- but : industrialiser le pattern commun `Exercises` / `Challenges`
-- scope :
-  - `ContentListProgressiveFilterToolbar`
-  - cards / compact list
-  - pagination
-  - generator placement
-  - view toggle
-  - hooks de state liste
-- definition of done :
-  - un pattern documente
-  - moins de logique page-specifique repetee
-  - conventions claires pour nouvelles listes contenu
+- statut :
+  - **livre**
+- resultat :
+  - extraction `useContentListPageController.ts` pour l'etat runtime partage des pages `Exercises` / `Challenges`
+  - extraction `ContentListResultsHeader.tsx` + `ContentListResultsSection.tsx` pour la coquille visuelle shared des resultats
+  - split interne de `ContentListProgressiveFilterToolbar.tsx` en sous-blocs (`SearchRow`, `TypeChips`, `Summary`, `AdvancedPanel`) avec facade publique stable
+  - duplication page-specifique fortement reduite sans fusionner generators, cards ou modales domaine
+- reliquat connu :
+  - fermeture architecture faite ; une QA visuelle humaine reste utile avant cloture produit, mais aucun lot technique obligatoire ne reste sous le theme `FFI-L15`
 
 #### FFI-L16 — Split shell/navigation
 

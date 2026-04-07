@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 06/04/2026 (FFI-L14 architecture closure documented)
+> Updated: 07/04/2026 (FFI-L15 architecture closure documented)
 
 Visible product train:
 
@@ -48,7 +48,12 @@ Visible product train:
   - domains live in `frontend/components/admin/content/*` (tabs, exercises, challenges, badges)
   - admin exercise list difficulty uses **transitional** neutral labels (`Niveau 1..5` from legacy `difficulty`, `Palier n` when `difficulty_tier` is present on the list payload); Star Wars wording is not promoted as visible product vocabulary
   - **Known contract/product gap**: final alignment on F42 `difficulty_tier` for the admin exercise list depends on the admin list API exposing that field reliably; exercise edit/create modals still use legacy `ADMIN_DIFFICULTIES` strings for API compatibility
-- next active frontend architecture priority: `FFI-L15` (shared `content-list` platform — toolbar, cards, pagination, list state)
+- `FFI-L15` is now closed:
+  - `frontend/hooks/useContentListPageController.ts` centralizes shared list runtime state for exercises/challenges
+  - `frontend/components/shared/ContentListResultsHeader.tsx` and `ContentListResultsSection.tsx` centralize the shared results shell
+  - `frontend/components/shared/ContentListProgressiveFilterToolbar.tsx` is now a stable facade split into smaller subcomponents
+  - exercises/challenges keep domain-specific generators, cards, modals, and route behavior
+- next active frontend architecture priority: `FFI-L16` (shell/navigation split + chatbot ownership)
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 
