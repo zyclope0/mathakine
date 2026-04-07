@@ -8,38 +8,38 @@
 
 ## Vue d'ensemble
 
-**174 composants TSX** repartis en 23 categories.
+**177 composants TSX** repartis en 23 categories.
 Tous les composants sont `"use client"` sauf indication contraire.
 
 ---
 
 ## CatÃ©gories
 
-| CatÃ©gorie    | Dossier          | Composants | RÃ´le                                      |
-| ------------- | ---------------- | ---------- | ------------------------------------------ |
-| UI de base    | `ui/`            | 21         | Primitives shadcn/ui (Radix)               |
-| Dashboard     | `dashboard/`     | 28         | Widgets stats et visualisations            |
-| DÃ©fis        | `challenges/`    | 23         | Interface dÃ©fis logiques                  |
-| Layout        | `layout/`        | 12         | Structure de page                          |
-| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin |
-| Spatial       | `spatial/`       | 6          | Animations et decor theme-aware            |
-| Exercices     | `exercises/`     | 9          | Interface exercices                        |
-| Shared        | `shared/`        | 15         | Composants cross-domaine                   |
-| Providers     | `providers/`     | 4          | Contextes React globaux                    |
-| Home          | `home/`          | 4          | Page d'accueil                             |
-| Badges        | `badges/`        | 11         | Domaine badges et sections de page         |
-| Profile       | `profile/`       | 6          | Sections et navigation de la page profil   |
-| Chat          | `chat/`          | 3          | Chatbot assistant                          |
-| Locale        | `locale/`        | 2          | SÃ©lecteur langue + init                   |
-| Theme         | `theme/`         | 2          | ThemeSelectorCompact + DarkModeToggle      |
-| Accessibility | `accessibility/` | 2          | Toolbar + audit WCAG                       |
-| Auth          | `auth/`          | 1          | ProtectedRoute                             |
-| Diagnostic    | `diagnostic/`    | 1          | Composant diagnostic                       |
-| Feedback      | `feedback/`      | 1          | FAB retour utilisateur                     |
-| Settings      | `settings/`      | 6          | Page paramÃ¨tres (sections + SaveButton)   |
-| PWA           | `pwa/`           | 1          | Prompt installation                        |
-| Learner       | `learner/`       | 2          | LearnerCard + LearnerLayout                |
-| Racine        | `components/`    | 2          | LogoMathakine, LogoBadge                   |
+| CatÃ©gorie    | Dossier          | Composants | RÃ´le                                        |
+| ------------- | ---------------- | ---------- | -------------------------------------------- |
+| UI de base    | `ui/`            | 21         | Primitives shadcn/ui (Radix)                 |
+| Dashboard     | `dashboard/`     | 28         | Widgets stats et visualisations              |
+| DÃ©fis        | `challenges/`    | 23         | Interface dÃ©fis logiques                    |
+| Layout        | `layout/`        | 15         | Structure de page                            |
+| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin   |
+| Spatial       | `spatial/`       | 6          | Animations et decor theme-aware              |
+| Exercices     | `exercises/`     | 9          | Interface exercices                          |
+| Shared        | `shared/`        | 15         | Composants cross-domaine                     |
+| Providers     | `providers/`     | 4          | Contextes React globaux                      |
+| Home          | `home/`          | 2          | Page d'accueil (Chatbot embarquÃ©, widgets)  |
+| Badges        | `badges/`        | 11         | Domaine badges et sections de page           |
+| Profile       | `profile/`       | 6          | Sections et navigation de la page profil     |
+| Chat          | `chat/`          | 5          | Shell drawer global + UI messages / composer |
+| Locale        | `locale/`        | 2          | SÃ©lecteur langue + init                     |
+| Theme         | `theme/`         | 2          | ThemeSelectorCompact + DarkModeToggle        |
+| Accessibility | `accessibility/` | 2          | Toolbar + audit WCAG                         |
+| Auth          | `auth/`          | 1          | ProtectedRoute                               |
+| Diagnostic    | `diagnostic/`    | 1          | Composant diagnostic                         |
+| Feedback      | `feedback/`      | 1          | FAB retour utilisateur                       |
+| Settings      | `settings/`      | 6          | Page paramÃ¨tres (sections + SaveButton)     |
+| PWA           | `pwa/`           | 1          | Prompt installation                          |
+| Learner       | `learner/`       | 2          | LearnerCard + LearnerLayout                  |
+| Racine        | `components/`    | 2          | LogoMathakine, LogoBadge                     |
 
 ---
 
@@ -165,22 +165,25 @@ Composants Radix UI wrappÃ©s avec Tailwind. Ne pas modifier directement â€�
 
 ---
 
-## `layout/` â€” Structure de page (12)
+## `layout/` â€” Structure de page (15)
 
-| Composant            | RÃ´le                                       |
-| -------------------- | ------------------------------------------- |
-| `PageLayout`         | Conteneur racine de page                    |
-| `PageHeader`         | En-tÃªte de page (titre + actions)          |
-| `PageSection`        | Section de page avec sÃ©parateur            |
-| `PageGrid`           | Grille responsive pour les cartes           |
-| `Header`             | Navigation principale (desktop + mobile)    |
-| `Footer`             | Pied de page                                |
-| `EmptyState`         | Ã‰tat vide gÃ©nÃ©rique (illustration + CTA) |
-| `LoadingState`       | Ã‰tat de chargement gÃ©nÃ©rique             |
-| `PageTransition`     | Animation de transition entre pages         |
-| `AlphaBanner`        | BanniÃ¨re version alpha                     |
-| `UnverifiedBanner`   | Bandeau email non vÃ©rifiÃ©                 |
-| `MaintenanceOverlay` | Overlay maintenance                         |
+| Composant            | RÃ´le                                               |
+| -------------------- | --------------------------------------------------- |
+| `PageLayout`         | Conteneur racine de page                            |
+| `PageHeader`         | En-tÃªte de page (titre + actions)                  |
+| `PageSection`        | Section de page avec sÃ©parateur                    |
+| `PageGrid`           | Grille responsive pour les cartes                   |
+| `Header`             | FaÃ§ade navigation shell (orchestre sous-blocs)     |
+| `HeaderDesktopNav`   | Nav primaire/secondaire desktop + CTA assistant     |
+| `HeaderUserMenu`     | Menu dÃ©roulant utilisateur (profil, admin, logout) |
+| `HeaderMobileMenu`   | Menu mobile animÃ© (nav + assistant + thÃ¨me)       |
+| `Footer`             | Pied de page                                        |
+| `EmptyState`         | Ã‰tat vide gÃ©nÃ©rique (illustration + CTA)         |
+| `LoadingState`       | Ã‰tat de chargement gÃ©nÃ©rique                     |
+| `PageTransition`     | Animation de transition entre pages                 |
+| `AlphaBanner`        | BanniÃ¨re version alpha                             |
+| `UnverifiedBanner`   | Bandeau email non vÃ©rifiÃ©                         |
+| `MaintenanceOverlay` | Overlay maintenance                                 |
 
 ---
 

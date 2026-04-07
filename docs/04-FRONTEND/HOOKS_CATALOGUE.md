@@ -2,7 +2,7 @@
 
 > Scope : `frontend/hooks/`
 > Updated : 2026-04-07
-> Total : 52 fichiers hooks (dont `hooks/chat/`)
+> Total : 53 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -90,10 +90,11 @@
 
 ## CatÃ©gorie 7 â€” Chat & IA
 
-| Hook              | RÃ´le                                       | Test    | RQ    | DÃ©pendances clÃ©s                   |
-| ----------------- | ------------------------------------------- | ------- | ----- | ------------------------------------ |
-| `useChat.ts`      | Session chat avec l'assistant               | âœ…     | Aucun | `POST /api/chat` (via route Next.js) |
-| `chat/` (dossier) | Hooks internes du chat (streaming, history) | Partiel | Aucun | SSE + localStorage                   |
+| Hook                         | RÃ´le                                       | Test    | RQ    | DÃ©pendances clÃ©s                            |
+| ---------------------------- | ------------------------------------------- | ------- | ----- | --------------------------------------------- |
+| `useChat.ts`                 | Session chat avec l'assistant               | âœ…     | Aucun | `POST /api/chat` (via route Next.js)          |
+| `chat/useGuestChatAccess.ts` | Quota invitÃ© session (sessionStorage)      | âœ…     | Aucun | Aucun fetch ; complÃ¨te le rate-limit serveur |
+| `chat/` (dossier)            | Hooks internes du chat (streaming, history) | Partiel | Aucun | SSE + localStorage                            |
 
 ---
 
@@ -133,9 +134,9 @@
 
 | Statut                 | Nombre |
 | ---------------------- | ------ |
-| âœ… Avec test unitaire | 9      |
+| âœ… Avec test unitaire | 10     |
 | âŒ Sans test unitaire  | ~43    |
-| **Total**              | **52** |
+| **Total**              | **53** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 
