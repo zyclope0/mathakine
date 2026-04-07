@@ -2,9 +2,14 @@
 
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { Header } from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
+
+const { mockSetChatOpen } = vi.hoisted(() => ({
+  mockSetChatOpen: vi.fn(),
+}));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -104,7 +109,7 @@ vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
 }));
 
 vi.mock("@/lib/stores/chatStore", () => ({
-  useChatStore: () => ({ setOpen: vi.fn() }),
+  useChatStore: () => ({ setOpen: mockSetChatOpen }),
 }));
 
 vi.mock("framer-motion", () => ({
@@ -118,9 +123,20 @@ vi.mock("framer-motion", () => ({
   },
 }));
 
-describe("Header role navigation", () => {
+describe("Header", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("invité : pas de bouton Assistant dans le header (accès via le FAB global)", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      logout: vi.fn(),
+      isAuthenticated: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<Header />);
+    expect(screen.queryByRole("button", { name: "Assistant" })).not.toBeInTheDocument();
   });
 
   it("affiche la navigation apprenant avec classement et dashboard discret dans le menu", () => {
@@ -164,5 +180,50 @@ describe("Header role navigation", () => {
     expect(screen.getByText("Classement")).toBeInTheDocument();
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.queryByText("Mon espace")).not.toBeInTheDocument();
+  });
+
+  it("ouvre et ferme le menu mobile", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue({
+      user: {
+        id: 1,
+        username: "luke",
+        role: "apprenant",
+        is_email_verified: true,
+        access_scope: "full",
+      },
+      logout: vi.fn(),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<Header />);
+
+    await user.click(screen.getByRole("button", { name: "Ouvrir le menu" }));
+    expect(screen.getByRole("button", { name: "Fermer le menu" })).toBeInTheDocument();
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Fermer le menu" }));
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("CTA assistant desktop appelle setChatOpen(true)", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue({
+      user: {
+        id: 1,
+        username: "luke",
+        role: "apprenant",
+        is_email_verified: true,
+        access_scope: "full",
+      },
+      logout: vi.fn(),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<Header />);
+
+    await user.click(screen.getByRole("button", { name: "Assistant" }));
+
+    expect(mockSetChatOpen).toHaveBeenCalledWith(true);
   });
 });

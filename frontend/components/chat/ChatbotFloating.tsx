@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
+import type { KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, X } from "lucide-react";
@@ -12,6 +14,9 @@ import { useTranslations } from "next-intl";
 import { ChatMessagesView } from "@/components/chat/ChatMessagesView";
 import { ChatSuggestionsBar } from "@/components/chat/ChatSuggestionsBar";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { useAuth } from "@/hooks/useAuth";
+import { useGuestChatAccess } from "@/hooks/chat/useGuestChatAccess";
+import { GUEST_CHAT_MESSAGE_QUOTA } from "@/lib/chat/guestChatSession";
 
 interface ChatbotFloatingProps {
   isOpen?: boolean;
@@ -19,10 +24,26 @@ interface ChatbotFloatingProps {
 }
 
 /**
- * Chatbot flottant : portail + drawer ; logique de flux partagée avec {@link Chatbot} via `useChat` et composants `components/chat/*`.
+ * Global shell chatbot: portal + drawer. Stream logic via `useChat`; guest quota via `useGuestChatAccess`.
  */
 export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatingProps) {
   const t = useTranslations("home.chatbot");
+  const tAuth = useTranslations("auth");
+  const { isAuthenticated } = useAuth();
+  const {
+    hydrated: guestHydrated,
+    sentCount: guestSentCount,
+    remainingMessages: guestRemaining,
+    guestLimitReached,
+    canSendGuestMessage,
+    incrementGuestMessageCount,
+  } = useGuestChatAccess(isAuthenticated);
+
+  const onUserMessageCommitted = useCallback(() => {
+    if (!isAuthenticated) {
+      incrementGuestMessageCount();
+    }
+  }, [incrementGuestMessageCount, isAuthenticated]);
 
   const {
     messages,
@@ -30,7 +51,6 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     setInput,
     handleSend,
     sendInputMessage,
-    handleKeyDown,
     isLoading,
     isAwaitingAssistant,
     suggestions,
@@ -44,6 +64,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       },
     ],
     initialSuggestions: ["Qu'est-ce que Mathakine ?", "Comment progresser ?", "Créer un exercice"],
+    onUserMessageCommitted,
   });
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +74,29 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     onOpenChange?.(open);
   };
 
+  const guardedHandleSend = useCallback(
+    async (messageContent: string) => {
+      if (!isAuthenticated && !canSendGuestMessage) return;
+      await handleSend(messageContent);
+    },
+    [canSendGuestMessage, handleSend, isAuthenticated]
+  );
+
+  const guardedSendInputMessage = useCallback(() => {
+    if (!isAuthenticated && !canSendGuestMessage) return;
+    sendInputMessage();
+  }, [canSendGuestMessage, isAuthenticated, sendInputMessage]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        guardedSendInputMessage();
+      }
+    },
+    [guardedSendInputMessage]
+  );
+
   useChatAutoScroll(messagesContainerRef, isOpen, messages);
 
   useEffect(() => {
@@ -60,6 +104,12 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [isOpen]);
+
+  const guestComposerBlocked = !isAuthenticated && guestLimitReached;
+  const suggestionDisabled = isLoading || guestComposerBlocked;
+  const showGuestQuotaHint =
+    !isAuthenticated && guestHydrated && !guestLimitReached && guestSentCount > 0;
+  const showGuestLimitPanel = !isAuthenticated && guestHydrated && guestLimitReached;
 
   if (typeof document === "undefined") return null;
 
@@ -115,13 +165,41 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
             />
           </div>
 
+          {showGuestQuotaHint ? (
+            <p className="border-t px-4 pt-3 text-xs text-muted-foreground" role="status">
+              {t("guestQuotaRemaining", {
+                remaining: guestRemaining,
+                total: GUEST_CHAT_MESSAGE_QUOTA,
+              })}
+            </p>
+          ) : null}
+
+          {showGuestLimitPanel ? (
+            <div
+              className="border-t px-4 py-3 text-sm text-muted-foreground"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="mb-2">{t("guestLimitReached")}</p>
+              <p className="mb-3 text-xs">{t("guestLimitCta")}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">{tAuth("login.title")}</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/register">{tAuth("register.title")}</Link>
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           <ChatSuggestionsBar
             visible={messages.length <= 1}
             variant="drawer"
             suggestions={suggestions}
             suggestionsTitle={t("suggestions")}
-            onPick={handleSend}
-            disabled={isLoading}
+            onPick={guardedHandleSend}
+            disabled={suggestionDisabled}
           />
 
           <ChatComposer
@@ -130,9 +208,9 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
             value={input}
             onChange={setInput}
             onKeyDown={handleKeyDown}
-            onSend={sendInputMessage}
-            disabled={isLoading}
-            canSend={Boolean(input.trim())}
+            onSend={guardedSendInputMessage}
+            disabled={isLoading || guestComposerBlocked}
+            canSend={Boolean(input.trim()) && (isAuthenticated || canSendGuestMessage)}
             placeholder={t("inputPlaceholder")}
             inputAriaLabel={t("inputLabel")}
             sendAriaLabel={t("sendButton")}

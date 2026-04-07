@@ -1714,7 +1714,10 @@
       "loading": "Loading assistant...",
       "sendError": "Sorry, something went wrong. Please try again.",
       "closeAssistant": "Close assistant",
-      "openFabAria": "Open math assistant"
+      "openFabAria": "Open math assistant",
+      "guestQuotaRemaining": "Guest mode: {remaining} message(s) left out of {total} for this session.",
+      "guestLimitReached": "You have reached the guest message limit for this session.",
+      "guestLimitCta": "Sign in or create an account to keep chatting with the assistant."
     },
     "cta": {
       "title": "Ready to start?",

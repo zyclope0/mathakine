@@ -1506,7 +1506,10 @@
       "loading": "Chargement de l'assistant...",
       "sendError": "Désolé, une erreur est survenue. Veuillez réessayer.",
       "closeAssistant": "Fermer l'assistant",
-      "openFabAria": "Ouvrir l'assistant mathématique"
+      "openFabAria": "Ouvrir l'assistant mathématique",
+      "guestQuotaRemaining": "Mode invité : {remaining} message(s) restant(s) sur {total} pour cette session.",
+      "guestLimitReached": "Vous avez atteint la limite de messages en mode invité pour cette session.",
+      "guestLimitCta": "Connectez-vous ou créez un compte pour continuer la conversation avec l'assistant."
     },
     "cta": {
       "title": "Prêt à commencer ?",

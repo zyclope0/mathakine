@@ -5,7 +5,7 @@ import { useChatStore } from "@/lib/stores/chatStore";
 
 const ChatbotFloatingLazy = dynamic(
   () =>
-    import("@/components/home/ChatbotFloating").then((mod) => ({ default: mod.ChatbotFloating })),
+    import("@/components/chat/ChatbotFloating").then((mod) => ({ default: mod.ChatbotFloating })),
   {
     ssr: false,
     loading: () => (
@@ -18,7 +18,7 @@ const ChatbotFloatingLazy = dynamic(
 );
 
 /**
- * Chatbot flottant global — contrôlé par le store (ouvrable depuis Header ou page d'accueil).
+ * Global floating chatbot (shell) — opened via {@link useChatStore} (e.g. Header CTA for signed-in users).
  */
 export function ChatbotFloatingGlobal() {
   const { isOpen, setOpen } = useChatStore();

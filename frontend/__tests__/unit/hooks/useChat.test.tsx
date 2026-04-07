@@ -52,6 +52,24 @@ describe("useChat (shared Chatbot / ChatbotFloating flow)", () => {
     expect(assistant?.content).toContain("Hello");
   });
 
+  it("invokes onUserMessageCommitted when a user message is accepted", async () => {
+    const onUserMessageCommitted = vi.fn();
+    const { result } = renderHook(() =>
+      useChat({
+        sendErrorText: "ERR",
+        onUserMessageCommitted,
+        initialMessages: [{ id: "0", role: "assistant", content: "Hi" }],
+      })
+    );
+
+    await act(async () => {
+      await result.current.handleSend("Hi");
+    });
+
+    await waitFor(() => expect(result.current.transportPhase).toBe("idle"));
+    expect(onUserMessageCommitted).toHaveBeenCalledTimes(1);
+  });
+
   it("shows the translated error text on stream failure", async () => {
     streamChatMock.mockImplementationOnce(
       async (_payload: unknown, cbs: { onError: (e: Error) => void }) => {

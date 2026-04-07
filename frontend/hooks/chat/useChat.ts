@@ -14,10 +14,17 @@ export interface UseChatOptions {
   initialSuggestions?: string[];
   /** Texte du message assistant en cas d’échec réseau / stream (i18n côté shell). */
   sendErrorText: string;
+  /** Appelé une fois que le message utilisateur est accepté et ajouté à l’historique local (avant stream). */
+  onUserMessageCommitted?: () => void;
 }
 
 export function useChat(options: UseChatOptions) {
-  const { initialMessages = [], initialSuggestions = [], sendErrorText } = options;
+  const {
+    initialMessages = [],
+    initialSuggestions = [],
+    sendErrorText,
+    onUserMessageCommitted,
+  } = options;
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [suggestions, setSuggestions] = useState<string[]>(initialSuggestions);
@@ -53,6 +60,7 @@ export function useChat(options: UseChatOptions) {
         const next = [...prev, userMessage];
         return next;
       });
+      onUserMessageCommitted?.();
 
       const assistantMessageId = nanoid();
       setMessages((prev) => [...prev, { id: assistantMessageId, role: "assistant", content: "" }]);
@@ -125,7 +133,7 @@ export function useChat(options: UseChatOptions) {
         setTransportPhase("idle");
       }
     },
-    [messages, sendErrorText, suggestions.length, transportPhase]
+    [messages, onUserMessageCommitted, sendErrorText, suggestions.length, transportPhase]
   );
 
   const sendInputMessage = useCallback(() => {

@@ -12,7 +12,7 @@ import { LocaleInitializer } from "@/components/locale/LocaleInitializer";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
 import { FeedbackFab } from "@/components/feedback/FeedbackFab";
-import { ChatbotFloatingGlobal } from "@/components/home/ChatbotFloatingGlobal";
+import { ChatbotFloatingGlobal } from "@/components/chat/ChatbotFloatingGlobal";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { SpatialBackground } from "@/components/spatial/SpatialBackground";
 

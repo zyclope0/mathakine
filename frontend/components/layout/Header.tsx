@@ -7,33 +7,17 @@ import { Button } from "@/components/ui/button";
 import { ThemeSelectorCompact } from "@/components/theme/ThemeSelectorCompact";
 import { DarkModeToggle } from "@/components/theme/DarkModeToggle";
 import { LanguageSelector } from "@/components/locale/LanguageSelector";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Home,
-  LogOut,
-  User,
-  Menu,
-  X,
-  Settings,
-  ChevronDown,
-  Shield,
-  MessageCircle,
-} from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { LogoMathakine } from "@/components/LogoMathakine";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { isAdminRole, isApprenantRole } from "@/lib/auth/userRoles";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useChatStore } from "@/lib/stores/chatStore";
+import { HeaderDesktopNav } from "@/components/layout/HeaderDesktopNav";
+import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
+import { HeaderMobileMenu } from "@/components/layout/HeaderMobileMenu";
+import { buildHeaderNavigation, isHeaderNavLinkActive } from "@/lib/layout/headerNavigation";
 
 export function Header() {
   const pathname = usePathname();
@@ -51,40 +35,26 @@ export function Header() {
   // Évite d'afficher le menu complet quand access_scope est undefined (chargement, cache).
   const hasFullAccess = user?.is_email_verified === true || user?.access_scope === "full";
 
-  // Navigation principale — primaire (actions fréquentes) + secondaire (consultation)
-  // "Accueil" supprimé : le logo remplit ce rôle (doublon)
-  const navPrimary = [
-    ...(isAuthenticated
-      ? [
-          // Apprenant → page dédiée ; adulte → dashboard analytique
-          ...(hasFullAccess
-            ? [
-                isStudent
-                  ? { name: t("homeLearner"), href: "/home-learner", icon: Home }
-                  : { name: t("dashboard"), href: "/dashboard" },
-              ]
-            : []),
-          { name: t("exercises"), href: "/exercises" },
-          ...(hasFullAccess ? [{ name: t("challenges"), href: "/challenges" }] : []),
-        ]
-      : []),
-  ];
+  const navLabels = useMemo(
+    () => ({
+      homeLearner: t("homeLearner"),
+      dashboard: t("dashboard"),
+      exercises: t("exercises"),
+      challenges: t("challenges"),
+      badges: t("badges"),
+      leaderboard: t("leaderboard"),
+    }),
+    [t]
+  );
 
-  // Secondaire : consultation, pas actions principales
-  const navSecondary =
-    isAuthenticated && hasFullAccess
-      ? [
-          { name: t("badges"), href: "/badges" },
-          { name: t("leaderboard"), href: "/leaderboard" },
-        ]
-      : [];
+  const { navPrimary, navSecondary } = useMemo(
+    () => buildHeaderNavigation({ isAuthenticated, hasFullAccess, isStudent }, navLabels),
+    [isAuthenticated, hasFullAccess, isStudent, navLabels]
+  );
 
-  const isActive = (href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  };
+  const isActive = useCallback((href: string) => isHeaderNavLinkActive(pathname, href), [pathname]);
+
+  const onOpenAssistant = useCallback(() => setChatOpen(true), [setChatOpen]);
 
   return (
     <>
@@ -113,69 +83,14 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Navigation Desktop */}
-            <div className="hidden md:flex md:items-center md:space-x-1">
-              {/* Primaire : poids fort, hiérarchie principale */}
-              {navPrimary.map((item) => {
-                const Icon = "icon" in item ? item.icon : undefined;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                      isActive(item.href)
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
-                    )}
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                  >
-                    <span className="flex items-center gap-2">
-                      {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                      {item.name}
-                    </span>
-                  </Link>
-                );
-              })}
-
-              {/* Séparateur visuel primaire / secondaire */}
-              {navSecondary.length > 0 && (
-                <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-              )}
-
-              {/* Secondaire : ton atténué, consultation */}
-              {navSecondary.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "px-3 py-2 text-sm rounded-md transition-colors",
-                    isActive(item.href)
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
-                  )}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                >
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Séparateur avant Assistant */}
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-
-              {/* Assistant — affordance globale */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium"
-                onClick={() => setChatOpen(true)}
-                aria-haspopup="dialog"
-                aria-label={tHome("hero.ctaAssistant")}
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                {tHome("hero.ctaAssistant")}
-              </Button>
-            </div>
+            <HeaderDesktopNav
+              navPrimary={navPrimary}
+              navSecondary={navSecondary}
+              isActive={isActive}
+              showAssistantCta={isAuthenticated}
+              ctaAssistantLabel={tHome("hero.ctaAssistant")}
+              onOpenAssistant={onOpenAssistant}
+            />
 
             {/* Actions droite */}
             <div className="flex items-center gap-2">
@@ -184,78 +99,19 @@ export function Header() {
               <DarkModeToggle />
 
               {isAuthenticated ? (
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-2 h-9 px-3"
-                        aria-label={`Menu utilisateur : ${user?.username}`}
-                        aria-haspopup="menu"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                            <User className="h-4 w-4 text-primary" aria-hidden="true" />
-                          </div>
-                          <span className="hidden sm:inline text-sm font-medium">
-                            {user?.username}
-                          </span>
-                          <ChevronDown
-                            className="h-3 w-3 text-muted-foreground hidden sm:inline"
-                            aria-hidden="true"
-                          />
-                        </div>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">{user?.username}</p>
-                          {user?.email && (
-                            <p className="text-xs leading-none text-muted-foreground truncate">
-                              {user.email}
-                            </p>
-                          )}
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile" className="flex items-center cursor-pointer">
-                          <User className="mr-2 h-4 w-4" />
-                          <span>{t("profile")}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/settings" className="flex items-center cursor-pointer">
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>{t("settings")}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      {hasFullAccess && isStudent && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center cursor-pointer">
-                            <Home className="mr-2 h-4 w-4" />
-                            <span>{t("dashboard")}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      {isAdmin && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin" className="flex items-center cursor-pointer">
-                            <Shield className="mr-2 h-4 w-4" />
-                            <span>{t("admin")}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => logout()} variant="destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>{tAuth("logout")}</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <HeaderUserMenu
+                  user={user}
+                  userMenuAriaLabel={`Menu utilisateur : ${user?.username}`}
+                  onLogout={logout}
+                  profileLabel={t("profile")}
+                  settingsLabel={t("settings")}
+                  dashboardLabel={t("dashboard")}
+                  adminLabel={t("admin")}
+                  logoutLabel={tAuth("logout")}
+                  hasFullAccess={hasFullAccess}
+                  isStudent={isStudent}
+                  isAdmin={isAdmin}
+                />
               ) : (
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" asChild>
@@ -286,126 +142,18 @@ export function Header() {
             </div>
           </div>
 
-          {/* Menu mobile déroulant */}
-          <LazyMotion features={domAnimation}>
-            <AnimatePresence>
-              {mobileMenuOpen && (
-                <m.div
-                  id="mobile-nav-menu"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="md:hidden border-t border-border overflow-hidden"
-                  role="menu"
-                >
-                  <div className="space-y-1 py-4">
-                    {/* Primaire mobile */}
-                    {navPrimary.map((item, index) => {
-                      const Icon = "icon" in item ? item.icon : undefined;
-                      const transition = createTransition({ duration: 0.15, delay: index * 0.05 });
-                      return (
-                        <m.div
-                          key={item.href}
-                          initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
-                          animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
-                          transition={transition}
-                        >
-                          <Link
-                            href={item.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={cn(
-                              "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
-                              isActive(item.href)
-                                ? "bg-primary/10 text-primary"
-                                : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
-                            )}
-                            role="menuitem"
-                            aria-current={isActive(item.href) ? "page" : undefined}
-                          >
-                            {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                            {item.name}
-                          </Link>
-                        </m.div>
-                      );
-                    })}
-
-                    {/* Séparateur primaire / secondaire */}
-                    {navSecondary.length > 0 && (
-                      <div className="my-1 border-t border-border/60" role="separator" />
-                    )}
-
-                    {/* Secondaire mobile — ton atténué */}
-                    {navSecondary.map((item, index) => {
-                      const transition = createTransition({
-                        duration: 0.15,
-                        delay: (navPrimary.length + index) * 0.05,
-                      });
-                      return (
-                        <m.div
-                          key={item.href}
-                          initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
-                          animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
-                          transition={transition}
-                        >
-                          <Link
-                            href={item.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={cn(
-                              "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-                              isActive(item.href)
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
-                            )}
-                            role="menuitem"
-                            aria-current={isActive(item.href) ? "page" : undefined}
-                          >
-                            {item.name}
-                          </Link>
-                        </m.div>
-                      );
-                    })}
-
-                    {/* Assistant — toujours en dernier */}
-                    <m.div
-                      initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
-                      animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
-                      transition={createTransition({
-                        duration: 0.15,
-                        delay: (navPrimary.length + navSecondary.length) * 0.05,
-                      })}
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 mt-1"
-                        onClick={() => {
-                          setChatOpen(true);
-                          setMobileMenuOpen(false);
-                        }}
-                        aria-haspopup="dialog"
-                        role="menuitem"
-                      >
-                        <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                        {tHome("hero.ctaAssistant")}
-                      </Button>
-                    </m.div>
-                    <m.div
-                      initial={!shouldReduceMotion ? { opacity: 0 } : false}
-                      animate={!shouldReduceMotion ? { opacity: 1 } : false}
-                      transition={createTransition({
-                        duration: 0.15,
-                        delay: (navPrimary.length + navSecondary.length + 1) * 0.05,
-                      })}
-                      className="pt-2 border-t border-border"
-                    >
-                      <ThemeSelectorCompact />
-                    </m.div>
-                  </div>
-                </m.div>
-              )}
-            </AnimatePresence>
-          </LazyMotion>
+          <HeaderMobileMenu
+            open={mobileMenuOpen}
+            navPrimary={navPrimary}
+            navSecondary={navSecondary}
+            isActive={isActive}
+            onNavigate={() => setMobileMenuOpen(false)}
+            shouldReduceMotion={shouldReduceMotion}
+            createTransition={createTransition}
+            showAssistantCta={isAuthenticated}
+            ctaAssistantLabel={tHome("hero.ctaAssistant")}
+            onOpenAssistant={onOpenAssistant}
+          />
         </nav>
       </header>
     </>
