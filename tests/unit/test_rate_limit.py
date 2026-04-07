@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import app.utils.rate_limit as rate_limit_module
 from app.utils.rate_limit import (
     MSG_AI_DAILY_RATE_LIMIT,
     MSG_AI_HOURLY_RATE_LIMIT,
@@ -31,7 +32,8 @@ from app.utils.rate_limit import (
 @pytest.fixture(autouse=True)
 def ensure_testing_bypass(monkeypatch):
     """Par défaut, garder TESTING=true pour ne pas bloquer les autres tests."""
-    monkeypatch.setenv("TESTING", "true")
+    # Aligné sur app.utils.rate_limit : _check_rate_limit lit settings.TESTING (pas os.getenv).
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", True)
 
 
 def test_rate_limit_response_returns_429():
@@ -113,7 +115,7 @@ def test_auth_request_rate_limit_diagnostics_truncates_and_includes_caller():
 
 def test_check_rate_limit_bypassed_when_testing_true(monkeypatch):
     """Quand TESTING=true, _check_rate_limit autorise toujours."""
-    monkeypatch.setenv("TESTING", "true")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", True)
     key = f"test_bypass_{uuid.uuid4()}"
     for _ in range(100):
         assert _check_rate_limit(key, max_requests=1) is True
@@ -121,7 +123,7 @@ def test_check_rate_limit_bypassed_when_testing_true(monkeypatch):
 
 def test_check_rate_limit_enforces_limit_when_testing_false(monkeypatch):
     """Quand TESTING=false, _check_rate_limit applique la limite."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     key = f"test_limit_{uuid.uuid4()}"
     max_req = 2
     assert _check_rate_limit(key, max_req) is True
@@ -147,7 +149,7 @@ async def test_rate_limit_auth_decorator_allows_when_testing():
 @pytest.mark.asyncio
 async def test_rate_limit_auth_decorator_logs_diagnostics_when_blocked(monkeypatch):
     """429 auth: log WARNING avec UA / referer / XFF / validate_caller."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     monkeypatch.setattr(
         "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
     )
@@ -198,7 +200,7 @@ async def test_rate_limit_register_decorator_allows_when_testing():
 
 def test_check_ai_generation_rate_limit_hourly(monkeypatch):
     """La limite horaire IA retourne le message horaire attendu."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
 
     class StubStore:
         def __init__(self):
@@ -216,7 +218,7 @@ def test_check_ai_generation_rate_limit_hourly(monkeypatch):
 
 def test_check_ai_generation_rate_limit_daily(monkeypatch):
     """La limite journaliere IA retourne le message journalier attendu."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
 
     class StubStore:
         def __init__(self):
@@ -234,7 +236,7 @@ def test_check_ai_generation_rate_limit_daily(monkeypatch):
 
 def test_check_exercise_ai_generation_rate_limit_hourly(monkeypatch):
     """Limite horaire exercices IA : cles distinctes, message dedie."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     seen_keys = []
 
     class StubStore:
@@ -255,7 +257,7 @@ def test_check_exercise_ai_generation_rate_limit_hourly(monkeypatch):
 
 def test_check_exercise_ai_generation_rate_limit_daily(monkeypatch):
     """Limite journaliere exercices IA : message dedie."""
-    monkeypatch.setenv("TESTING", "false")
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
 
     class StubStore:
         def __init__(self):

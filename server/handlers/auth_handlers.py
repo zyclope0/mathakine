@@ -365,13 +365,13 @@ async def api_login(request: Request) -> JSONResponse:
         )
 
         if not result.is_success:
-            logger.warning("Echec de connexion pour l'utilisateur: %s", username)
+            logger.warning("Echec de connexion pour l'utilisateur: {}", username)
             return api_error_response(
                 401, "Nom d'utilisateur ou mot de passe incorrect"
             )
 
         logger.info(
-            "Connexion reussie pour l'utilisateur: %s",
+            "Connexion reussie pour l'utilisateur: {}",
             result.user_payload.get("username"),
         )
         return _build_login_response(result.user_payload, result.token_data)
@@ -418,7 +418,7 @@ async def api_validate_token(request: Request) -> JSONResponse:
             return api_error_response(400, "Token invalide")
         result = await run_db_bound(svc_validate_access_token, token)
         logger.info(
-            "auth.validate_token: ok | ip=%s | %s",
+            "auth.validate_token: ok | ip={} | {}",
             get_client_ip_for_request(request),
             auth_request_rate_limit_diagnostics(request),
         )

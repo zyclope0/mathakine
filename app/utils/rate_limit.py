@@ -150,8 +150,9 @@ def rate_limit_auth(endpoint_name: str):
             key = f"rate_limit:{endpoint_name}:{ip}"
             if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
                 diag = auth_request_rate_limit_diagnostics(request)
+                # Loguru formate avec {} (pas %s comme logging stdlib).
                 logger.warning(
-                    "Rate limit depasse pour %s depuis %s | %s",
+                    "Rate limit depasse pour {} depuis {} | {}",
                     endpoint_name,
                     ip,
                     diag,
@@ -172,7 +173,7 @@ def rate_limit_register(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:register:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
-            logger.warning("Rate limit depasse pour register depuis %s", ip)
+            logger.warning("Rate limit depasse pour register depuis {}", ip)
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -187,7 +188,7 @@ def rate_limit_resend_verification(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:resend_verification:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
-            logger.warning("Rate limit depasse pour resend-verification depuis %s", ip)
+            logger.warning("Rate limit depasse pour resend-verification depuis {}", ip)
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -202,7 +203,7 @@ def rate_limit_chat(func: Callable):
         ip = _get_client_ip(request)
         key = f"rate_limit:chat:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_CHAT_MAX):
-            logger.warning("Rate limit depasse pour chat depuis %s", ip)
+            logger.warning("Rate limit depasse pour chat depuis {}", ip)
             return _rate_limit_response(MSG_CHAT_RATE_LIMIT)
         return await func(request, *args, **kwargs)
 
