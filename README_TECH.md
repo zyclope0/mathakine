@@ -70,7 +70,10 @@ Visible product train:
   - forbidden duplicate global chatbot mounts: `FORBIDDEN_CHATBOT_FLOATING_GLOBAL_PATHS` (home + layout)
 - `FFI-L18A` is now closed (profile learning preferences): thin `ProfileLearningPreferencesSection` facade + `ProfileLearningPreferences*` subcomponents + `lib/profile/profileLearningPreferences.ts` ; no intentional UX change
 - `FFI-L18B` is now closed (challenge solver command bar): thin `ChallengeSolverCommandBar` facade + `ChallengeSolverMcqGrid` / `ChallengeSolverVisualButtons` / order & grid blocks / `ChallengeSolverValidateActions` + `lib/challenges/challengeSolverCommandBar.ts` ; `ALLOWED_DENSE_EXCEPTIONS` is empty ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` for the command bar facade
-- next frontend architecture focus: **targeted structural review** if new monoliths appear (no open FFI-L18 follow-up in guardrails)
+- `FFI-L20A` is now closed (dashboard shell): `frontend/app/dashboard/page.tsx` is a thin container (~174 LOC) ; runtime lives in `frontend/hooks/useDashboardPageController.ts` ; tabs are split into `frontend/components/dashboard/Dashboard*Section.tsx` + `DashboardTabsNav.tsx` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES`
+- `FFI-L20B` is now closed (exercise solver): `frontend/components/exercises/ExerciseSolver.tsx` is a thin facade (~366 LOC) ; runtime lives in `frontend/hooks/useExerciseSolverController.ts` ; pure flow helpers in `frontend/lib/exercises/exerciseSolverFlow.ts` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` + required seams/canonical lib entries
+- `FFI-L20C` is now closed (auth + root providers): shared contracts in `frontend/lib/auth/types.ts` ; pure branches in `frontend/lib/auth/authLoginFlow.ts` ; post-login override seam in `frontend/lib/auth/postLoginRedirect.ts` ; `hooks/useAuth.ts` remains the public hook facade ; `components/providers/Providers.tsx` composes `ThemeBootstrap` + `AccessibilityDomSync` + `AccessibilityHotkeys` + existing `AuthSyncProvider` / `AccessScopeSync` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` + required seams/canonical lib entries
+- next frontend architecture focus: badge-domain density (`BadgeCard`, progress tabs, etc.) and polish tracks per active audit — no open FFI-L20\* seam
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 
@@ -190,5 +193,3 @@ The backend is now materially stronger on:
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/core/enhanced_server_adapter.py` remains legacy compatibility
-
-

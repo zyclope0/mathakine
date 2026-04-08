@@ -75,6 +75,12 @@ export const PROTECTED_FRONTEND_SURFACES: readonly ProtectedFrontendSurface[] = 
     reason: "FFI-L14: thin admin content shell + controller + domain sections",
   },
   {
+    relativePath: "app/dashboard/page.tsx",
+    maxLines: 220,
+    category: "page-container",
+    reason: "FFI-L20A: thin dashboard shell + useDashboardPageController + tab sections",
+  },
+  {
     relativePath: "app/exercises/page.tsx",
     maxLines: 340,
     category: "page-container",
@@ -129,6 +135,20 @@ export const PROTECTED_FRONTEND_SURFACES: readonly ProtectedFrontendSurface[] = 
     category: "chat-shell",
     reason: "FFI-L16: global FAB mount for assistant",
   },
+  {
+    relativePath: "components/exercises/ExerciseSolver.tsx",
+    maxLines: 380,
+    category: "shared-facade",
+    reason:
+      "FFI-L20B: exercise solver facade; runtime in useExerciseSolverController + exerciseSolverFlow",
+  },
+  {
+    relativePath: "components/providers/Providers.tsx",
+    maxLines: 90,
+    category: "shell-facade",
+    reason:
+      "FFI-L20C: root provider composition; theme/a11y sync in ThemeBootstrap + Accessibility*",
+  },
 ];
 
 /** Dense seams explicitly tolerated until a dedicated split lot (not FFI-L17). */
@@ -155,6 +175,30 @@ export const REQUIRED_ARCHITECTURE_SEAMS: readonly RequiredArchitectureSeam[] = 
   {
     relativePath: "hooks/useContentListPageController.ts",
     role: "FFI-L15 shared exercises/challenges list runtime",
+  },
+  {
+    relativePath: "hooks/useDashboardPageController.ts",
+    role: "FFI-L20A dashboard page runtime",
+  },
+  {
+    relativePath: "hooks/useExerciseSolverController.ts",
+    role: "FFI-L20B exercise solver runtime (sessions, review, navigation glue)",
+  },
+  {
+    relativePath: "hooks/useAuth.ts",
+    role: "FFI-L20C auth hook facade (React Query + sync + routing + toasts)",
+  },
+  {
+    relativePath: "components/providers/ThemeBootstrap.tsx",
+    role: "FFI-L20C theme bootstrap + DOM theme application",
+  },
+  {
+    relativePath: "components/providers/AccessibilityDomSync.tsx",
+    role: "FFI-L20C accessibility flags to documentElement",
+  },
+  {
+    relativePath: "components/providers/AccessibilityHotkeys.tsx",
+    role: "FFI-L20C global accessibility keyboard shortcuts",
   },
   {
     relativePath: "hooks/chat/useGuestChatAccess.ts",
@@ -245,6 +289,22 @@ export const REQUIRED_CANONICAL_LIB_FILES: readonly RequiredCanonicalLibFile[] =
     relativePath: "lib/layout/headerNavigation.ts",
     role: "Shell navigation config / helpers (FFI-L16)",
   },
+  {
+    relativePath: "lib/exercises/exerciseSolverFlow.ts",
+    role: "Pure exercise solver flow helpers (FFI-L20B)",
+  },
+  {
+    relativePath: "lib/auth/types.ts",
+    role: "Shared frontend auth payload/response types (FFI-L20C)",
+  },
+  {
+    relativePath: "lib/auth/authLoginFlow.ts",
+    role: "Pure auth flow helpers for useAuth (FFI-L20C)",
+  },
+  {
+    relativePath: "lib/auth/postLoginRedirect.ts",
+    role: "Post-login path override seam (register auto-login) (FFI-L20C)",
+  },
 ];
 
 /** Active ownership conventions (FFI-L17B). */
@@ -289,6 +349,15 @@ export const OWNERSHIP_RULE_GROUPS: readonly OwnershipRuleGroup[] = [
     bullets: [
       "ChallengeSolverCommandBar is a thin facade (FFI-L18B); interaction blocks live under components/challenges/ChallengeSolver*.tsx; regrowth guarded by PROTECTED_FRONTEND_SURFACES.",
       "Do not grow other protected surfaces to compensate; split along hook + section boundaries instead.",
+    ],
+  },
+  {
+    id: "ffi-l20c-auth-kernel",
+    summary: "Auth hook + root providers (FFI-L20C)",
+    bullets: [
+      "Shared auth payload/response types and pure flow branches live under lib/auth/types.ts and lib/auth/authLoginFlow.ts; post-login redirect override lives in lib/auth/postLoginRedirect.ts (not a React store).",
+      "hooks/useAuth.ts remains the single public hook facade for login/register/logout/forgot-password and React Query cache wiring.",
+      "components/providers/Providers.tsx composes root providers only; theme DOM sync, accessibility class sync, and global a11y hotkeys live in ThemeBootstrap / AccessibilityDomSync / AccessibilityHotkeys.",
     ],
   },
 ];

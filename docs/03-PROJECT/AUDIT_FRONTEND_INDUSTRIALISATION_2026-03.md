@@ -36,6 +36,8 @@
 >
 > Addendum 2026-04-08 : l'eventuelle suite frontend ne se lit plus dans ce document. Les reliquats actifs sont maintenant pilotes par `session-plan.md` et l'audit de standardisation ; ce fichier conserve une valeur d'origine et de justification, pas un backlog vivant.
 >
+> Audit de suivi 2026-04-08 : la maturite frontend est re-estimee a **7.5/10**. Les mega-pages et seams cibles de la sequence `FFI-L1` a `FFI-L18B` sont fermes ; les priorites actives se concentrent maintenant sur quelques noyaux transverses encore trop couples (`dashboard`, `ExerciseSolver`, `useAuth`, `Providers`, domaine badges). Pour l'execution courante, suivre les lots recommandes dans `session-plan.md` et `AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`.
+>
 > Le detail de cet audit conserve volontairement la photographie du `03/03/2026`.
 > Plusieurs constats du corps du document sont donc des **constats d'origine** et non
 > des verites terrain encore actives. Pour l'execution courante, suivre le `session-plan`

@@ -7,8 +7,8 @@
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 53 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 190 composants React (catÃ©gories, rÃ´les, conventions)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 55 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 199 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -58,7 +58,7 @@ frontend/
 â”‚   â”œâ”€â”€ challenge/[id]/page.tsx
 â”‚   â”œâ”€â”€ challenges/page.tsx
 â”‚   â”œâ”€â”€ changelog/page.tsx
-â”‚   â”œâ”€â”€ dashboard/page.tsx        # Surface analytique principale adulte, entree secondaire pour apprenant
+â”‚   â”œâ”€â”€ dashboard/page.tsx        # Container dashboard fin + `useDashboardPageController` + tabs sections (FFI-L20A)
 â”‚   â”œâ”€â”€ home-learner/page.tsx     # Surface apprenant dediee et point d'entree par defaut (NI-13)
 â”‚   â”œâ”€â”€ exercises/page.tsx + [id]/page.tsx
 â”‚   â”œâ”€â”€ forgot-password/page.tsx
@@ -83,7 +83,7 @@ frontend/
 â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid, sections de la page badges
 â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver + blocs split + ChallengeModal
 â”‚   â”‚   â””â”€â”€ visualizations/       # Renderers (Pattern, Sequence, Visual, Deductionâ€¦)
-â”‚   â”œâ”€â”€ dashboard/                # Widgets dashboard (Stats, Recommendations, Levelâ€¦)
+â”‚   â”œâ”€â”€ dashboard/                # Widgets + tabs sections dashboard (FFI-L20A)
 â”‚   â”œâ”€â”€ exercises/                # ExerciseCard, ExerciseSolver, AIGenerator
 â”‚   â”œâ”€â”€ feedback/                 # FeedbackFab, FeedbackModal
 â”‚   â”œâ”€â”€ home/                     # Hero, QuickStart, Chatbot carte home (embedded) ; pas le drawer global
@@ -91,7 +91,8 @@ frontend/
 â”‚   â”‚                             # EmptyState, LoadingState, Header (+ HeaderDesktopNav, HeaderUserMenu, HeaderMobileMenu), Footer, PageTransition
 â”‚   â”œâ”€â”€ chat/                     # ChatbotFloating, ChatbotFloatingGlobal, messages, composer (assistant global FFI-L16)
 â”‚   â”œâ”€â”€ locale/                   # LanguageSelector, LocaleInitializer
-â”‚   â”œâ”€â”€ providers/                # QueryProvider, ThemeProvider, NextIntlProvider, AccessScopeSync
+â”‚   â”œâ”€â”€ providers/                # Providers, NextIntlProvider, AuthSyncProvider, AccessScopeSync,
+â”‚   â”‚                             # ThemeBootstrap, AccessibilityDomSync, AccessibilityHotkeys
 â”‚   â”œâ”€â”€ pwa/                      # InstallPrompt
 â”‚   â”œâ”€â”€ profile/                  # Sidebar nav + sections de la page profil
 â”‚   â”œâ”€â”€ settings/                 # Sections page paramÃ¨tres (FFI-L13)
@@ -101,7 +102,7 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 53 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 55 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useGuestChatAccess, useChatAutoScroll (chatbot, IA13b + FFI-L16 invite quota)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
@@ -109,6 +110,7 @@ frontend/
 â”‚   â”œâ”€â”€ useChallengeSolverController.ts  # Runtime local du solver de defi (FFI-L10)
 â”‚   â”œâ”€â”€ useBadges.ts / useBadgesProgress.ts / useBadgesPageController.ts
 â”‚   â”œâ”€â”€ useUserStats.ts / useProgressStats.ts / useNextReview.ts
+â”‚   â”œâ”€â”€ useDashboardPageController.ts # Runtime local de la page dashboard (FFI-L20A)
 â”‚   â”œâ”€â”€ useRecommendations.ts
 â”‚   â”œâ”€â”€ useLeaderboard.ts
 â”‚   â”œâ”€â”€ useChat.ts
@@ -281,6 +283,14 @@ Les bullets detaillees sont alignees sur `OWNERSHIP_RULE_GROUPS` dans `frontendG
 - **FFI-L18A (livré)** : `ProfileLearningPreferencesSection.tsx` est une façade fine ; champs édités / lecture dans `components/profile/ProfileLearningPreferences*` ; helpers purs dans `lib/profile/profileLearningPreferences.ts` ; état runtime inchangé (`useProfilePageController`).
 - **FFI-L18B (livré)** : `ChallengeSolverCommandBar.tsx` est une façade fine ; blocs d’interaction dans `components/challenges/ChallengeSolver*.tsx` ; helpers de branche dans `lib/challenges/challengeSolverCommandBar.ts` ; runtime inchangé (`useChallengeSolverController`). `ALLOWED_DENSE_EXCEPTIONS` ne liste plus ce fichier.
 
+#### FFI-L20B (architecture)
+
+- **FFI-L20B (livré)** : `ExerciseSolver.tsx` est une façade de composition (sous-blocs `ExerciseSolverHeader` / `Choices` / `Feedback` / `Hint`) ; orchestration locale dans `hooks/useExerciseSolverController.ts` ; dérivations pures session/review dans `lib/exercises/exerciseSolverFlow.ts` ; surface budgétée dans `PROTECTED_FRONTEND_SURFACES`.
+
+#### FFI-L20C (architecture)
+
+- **FFI-L20C (livré)** : `lib/auth/types.ts` centralise les payloads/réponses consommés par `useAuth` ; `lib/auth/authLoginFlow.ts` porte les branches pures (401 sur `/me`, messages d’erreur login) ; `lib/auth/postLoginRedirect.ts` isole l’override de redirection post-login (inscription → auto-login) sans store React global ; `hooks/useAuth.ts` reste la façade publique (mutations, cache, Sentry, navigation, toasts, sync cookie) ; `components/providers/Providers.tsx` orchestre uniquement les providers ; effets thème / classes a11y / raccourcis clavier dans `ThemeBootstrap`, `AccessibilityDomSync`, `AccessibilityHotkeys`.
+
 ### F04 review flow
 
 Le flow F04 n'introduit pas de second solver. Il recompose des seams existants :
@@ -288,7 +298,7 @@ Le flow F04 n'introduit pas de second solver. Il recompose des seams existants :
 - `SpacedRepetitionSummaryWidget` expose le CTA `Reviser maintenant`
 - `useNextReview.ts` lit `GET /api/users/me/reviews/next`
 - `spacedReviewSession.ts` conserve temporairement la prochaine carte review-safe
-- `ExerciseSolver.tsx` rehydrate ce payload en `?session=spaced-review`
+- `ExerciseSolver.tsx` (via `useExerciseSolverController`) rehydrate ce payload en `?session=spaced-review`
 
 Contrainte produit importante :
 

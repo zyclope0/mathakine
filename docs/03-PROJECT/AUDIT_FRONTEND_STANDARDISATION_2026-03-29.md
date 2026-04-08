@@ -44,7 +44,7 @@
 
 ### Points faibles
 
-- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants secondaires (`ExerciseSolver`, `BadgeCard`, certaines visualisations) ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
+- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants secondaires (`BadgeCard`, certaines visualisations) ; `ExerciseSolver` est une façade (FFI-L20B) avec runtime dans `useExerciseSolverController` ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
 - **Plateforme content-list** : standardisee (`FFI-L15`) ; generators, cards et comportements route restent domaine-specifiques par design
 - **Dette shell / chatbot global** : classee **fermee** cote architecture frontend (`FFI-L16`) — ownership `components/chat/` ; decision produit invite documentee (FAB, quota session 5, autorite rate-limit serveur)
 - **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées et homogénéisation premium restent encore possibles, mais relèvent désormais d'une phase de polish ciblée plus que d'un chantier structurel prioritaire
@@ -138,6 +138,55 @@ Decision d'execution :
 - ne pas diluer ce sujet dans `FFI-L11` a `FFI-L17`
 - reprendre d'abord les lots d'industrialisation frontend
 - ouvrir ensuite un lot dedie si la matrice produit cible est validee
+
+### 1.4 Audit de maturité frontend — 2026-04-08
+
+#### Score de modularité
+
+- **7.5/10**
+
+#### Lecture synthétique
+
+- Les refactors `FFI-L11` à `FFI-L18B` ont réellement déplacé la codebase hors du mode "mega-pages + composants fourre-tout".
+- Le risque principal n’est plus la structure globale, mais quelques noyaux transverses encore trop couplés, qui limitent la scalabilité du frontend et la reproductibilité des patterns.
+
+#### Ce qui est solide
+
+- `app/profile/page.tsx` + `hooks/useProfilePageController.ts` + `components/profile/*` : vrai pattern container/controller/sections, lisible et testable.
+- `app/admin/content/page.tsx` + `hooks/useAdminContentPageController.ts` + `components/admin/content/*` : shell mince, domaines séparés, pattern réutilisable.
+- `frontend/lib/architecture/frontendGuardrails.ts` + tests associés : gouvernance structurelle explicite, budgets et seams obligatoires.
+
+#### Code smells encore actifs
+
+##### P1 — Découpage / couplage fort
+
+- `FFI-L20A` est maintenant livré : `app/dashboard/page.tsx` est ramené à une coque ~`174` LOC avec `hooks/useDashboardPageController.ts` et des sections `components/dashboard/Dashboard*Section.tsx`. Le dashboard sort donc de la liste des page-controllers massifs.
+- `FFI-L20B` est livré : `components/exercises/ExerciseSolver.tsx` est une façade de composition ; le runtime (review F04, session entrelacée, `sessionStorage`, navigation) vit dans `hooks/useExerciseSolverController.ts` ; dérivations pures dans `lib/exercises/exerciseSolverFlow.ts`.
+- `FFI-L20C` est livré : contrats `lib/auth/types.ts`, helpers `lib/auth/authLoginFlow.ts`, override `lib/auth/postLoginRedirect.ts` ; `useAuth.ts` reste la façade React Query + effets (sync, Sentry, routing, toasts) ; `Providers.tsx` est une composition racine avec `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys` + `AuthSyncProvider` / `AccessScopeSync`.
+
+##### P2 — Dette DRY / duplication cachée
+
+- Le domaine badges duplique encore des types et mappings de présentation :
+  - `components/badges/BadgeCard.tsx`
+  - `components/badges/BadgeGrid.tsx`
+  - `components/badges/BadgesProgressTabsSection.tsx`
+- Les pages admin read-heavy répètent un shell similaire (filtres + `PageHeader` + gestion `error/loading/empty` + cartes KPI) sans template partagé :
+  - `app/admin/analytics/page.tsx`
+  - `app/admin/ai-monitoring/page.tsx`
+  - `app/admin/page.tsx`
+
+##### P3 — Standards / best-practices React-Next
+
+- Des pages d’information très peu interactives restent en `use client` au niveau route :
+  - `app/about/page.tsx`
+  - `app/privacy/page.tsx`
+- Cela n’est pas cassé fonctionnellement, mais laisse de la valeur SSR/RSC sur la table alors que leur interactivité réelle est faible ou nulle.
+
+#### Plan d’action recommandé
+
+1. `FFI-L20A` est livré : `useDashboardPageController.ts` + sections `components/dashboard/*` sortent désormais l’orchestration de `app/dashboard/page.tsx`.
+2. `FFI-L20B` est livré : `useExerciseSolverController.ts` + `exerciseSolverFlow.ts` + façade `ExerciseSolver.tsx` (budget gardé-fous).
+3. `FFI-L20C` est livré : types + helpers purs + sous-blocs providers (voir ci-dessus).
 
 ---
 
@@ -264,7 +313,7 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 
 | Surface                                                      | LOC | Responsabilité dominante                        |
 | ------------------------------------------------------------ | --- | ----------------------------------------------- |
-| `components/exercises/ExerciseSolver.tsx`                    | 632 | Solveur exercices déjà réduit mais encore dense |
+| `components/exercises/ExerciseSolver.tsx`                    | ~366 | Façade solver (FFI-L20B) ; runtime dans `useExerciseSolverController` |
 | `components/challenges/visualizations/VisualRenderer.tsx`    | 625 | Visualisation générique défis                   |
 | `app/admin/ai-monitoring/page.tsx`                           | 587 | Monitoring IA admin                             |
 | `components/challenges/visualizations/CodingRenderer.tsx`    | 586 | Renderer code                                   |
@@ -443,11 +492,11 @@ Composants — états sémantiques :
 
 ### 6.2 Surfaces runtime/pages encore critiques
 
-| Surface                                                    | LOC | Problème actuel                                      |
-| ---------------------------------------------------------- | --- | ---------------------------------------------------- |
-| `components/profile/ProfileLearningPreferencesSection.tsx` | ~107 (façade) | FFI-L18A : sous-blocs extraits ; page profil reste fermee   |
+| Surface                                                    | LOC           | Problème actuel                                                            |
+| ---------------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| `components/profile/ProfileLearningPreferencesSection.tsx` | ~107 (façade) | FFI-L18A : sous-blocs extraits ; page profil reste fermee                  |
 | `ChallengeSolverCommandBar.tsx`                            | ~169 (façade) | FFI-L18B : sous-blocs `ChallengeSolver*` + lib `challengeSolverCommandBar` |
-| `Header.tsx`                                               | 394 | Desktop + mobile + menu utilisateur encore couples   |
+| `Header.tsx`                                               | 394           | Desktop + mobile + menu utilisateur encore couples                         |
 
 _Note : le container `app/settings/page.tsx` (~`133` LOC) est sorti de cette liste depuis FFI-L13 ; le reliquat dense côté paramètres est surtout `SettingsSecuritySection` (confidentialité + sessions)._
 

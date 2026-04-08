@@ -1,8 +1,8 @@
 ﻿# Catalogue des hooks React â€” Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-04-06
-> Total : 53 fichiers hooks (dont `hooks/chat/`)
+> Updated : 2026-04-08
+> Total : 55 fichiers hooks (dont `hooks/chat/`)
 
 ---
 
@@ -44,16 +44,18 @@
 
 ## CatÃ©gorie 3 â€” Profil, Dashboard & Progression
 
-| Hook                          | RÃ´le                                                              | Test | RQ    | DÃ©pendances clÃ©s                                  |
-| ----------------------------- | ------------------------------------------------------------------ | ---- | ----- | --------------------------------------------------- |
-| `useProfilePageController.ts` | Runtime local de la page profil (sections, formulaires, resets)    | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay` |
-| `useProfile.ts`               | Profil complet de l'utilisateur connectÃ©                          | âŒ   | Query | `GET /api/users/me`                                 |
-| `useUserStats.ts`             | Stats globales dashboard, incluant le bloc F04 `spaced_repetition` | âŒ   | Query | `GET /api/users/stats`                              |
-| `useNextReview.ts`            | Lecture one-shot de la prochaine revision F04 et du resume associe | âŒ   | Aucun | `GET /api/users/me/reviews/next`                    |
-| `useProgressStats.ts`         | Stats de progression par pÃ©riode                                  | âŒ   | Query | `GET /api/progress/stats`                           |
-| `useProgressTimeline.ts`      | Timeline de progression historique                                 | âœ…  | Query | `GET /api/progress/timeline`                        |
-| `usePaginatedContent.ts`      | Pagination gÃ©nÃ©rique rÃ©utilisable                               | âœ…  | Aucun | abstraction interne                                 |
-| `useIrtScores.ts`             | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                        | âŒ   | Query | `GET /api/progress/irt`                             |
+| Hook                            | RÃ´le                                                                   | Test | RQ    | DÃ©pendances clÃ©s                                  |
+| ------------------------------- | ----------------------------------------------------------------------- | ---- | ----- | --------------------------------------------------- |
+| `useProfilePageController.ts`   | Runtime local de la page profil (sections, formulaires, resets)         | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay` |
+| `useDashboardPageController.ts` | Runtime local de la page dashboard (tabs, refresh, export, shell state) | ✅   | Aucun | `useAuth`, stats hooks, React Query invalidation    |
+| `useExerciseSolverController.ts` | Runtime local du solver exercice (F04 review, session entrelacee, navigation) | ✅   | Aucun | `useExercise`, `useSubmitAnswer`, `fetchNextReviewApi`, `sessionStorage` |
+| `useProfile.ts`                 | Profil complet de l'utilisateur connectÃ©                               | âŒ   | Query | `GET /api/users/me`                                 |
+| `useUserStats.ts`               | Stats globales dashboard, incluant le bloc F04 `spaced_repetition`      | âŒ   | Query | `GET /api/users/stats`                              |
+| `useNextReview.ts`              | Lecture one-shot de la prochaine revision F04 et du resume associe      | âŒ   | Aucun | `GET /api/users/me/reviews/next`                    |
+| `useProgressStats.ts`           | Stats de progression par pÃ©riode                                       | âŒ   | Query | `GET /api/progress/stats`                           |
+| `useProgressTimeline.ts`        | Timeline de progression historique                                      | âœ…  | Query | `GET /api/progress/timeline`                        |
+| `usePaginatedContent.ts`        | Pagination gÃ©nÃ©rique rÃ©utilisable                                    | âœ…  | Aucun | abstraction interne                                 |
+| `useIrtScores.ts`               | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                             | âŒ   | Query | `GET /api/progress/irt`                             |
 
 ---
 
@@ -82,7 +84,7 @@
 
 | Hook                           | RÃ´le                                                                                   | Test | RQ       | DÃ©pendances clÃ©s                                       |
 | ------------------------------ | --------------------------------------------------------------------------------------- | ---- | -------- | -------------------------------------------------------- |
-| `useAuth.ts`                   | Session utilisateur, login, logout, refresh                                             | âŒ   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
+| `useAuth.ts`                   | Facade auth (FFI-L20C) : session, login, register, logout, forgot-password ; contrats `lib/auth/types` + `authLoginFlow` | ✅   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
 | `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                               | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
 | `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
 
@@ -134,9 +136,9 @@
 
 | Statut                 | Nombre |
 | ---------------------- | ------ |
-| âœ… Avec test unitaire | 10     |
+| âœ… Avec test unitaire | 12     |
 | âŒ Sans test unitaire  | ~43    |
-| **Total**              | **53** |
+| **Total**              | **55** |
 
 ### Hooks critiques sans tests (prioritÃ© haute)
 

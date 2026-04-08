@@ -32,6 +32,10 @@ It is no longer the place for the single active tracker of ongoing work.
 | [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)            | active frontend architecture/debt reference                           |
 | [AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md)              | historical audit only; rationale and original findings, not backlog   |
 
+Latest active frontend audit checkpoint:
+
+- `2026-04-08` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20C` address dashboard, exercise solver, and auth/provider kernel; remaining industrialisation focus is mainly badge-domain density and polish (see active standardisation audit and `session-plan.md`).
+
 ## Active Root Documents
 
 | Document                                                                                               | Role                                                                          |
