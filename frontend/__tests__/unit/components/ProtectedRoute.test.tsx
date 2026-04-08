@@ -81,7 +81,8 @@ describe("ProtectedRoute", () => {
       { wrapper: TestWrapper }
     );
 
-    expect(screen.getAllByText("Chargement...")).toHaveLength(2);
+    // LoadingState : un seul libellé visible + role="status" (plus de doublon sr-only).
+    expect(screen.getByRole("status")).toHaveTextContent("Chargement...");
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1500);
