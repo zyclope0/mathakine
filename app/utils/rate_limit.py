@@ -4,6 +4,9 @@ Protege contre bruteforce (login, forgot-password) et enumeration.
 validate-token utilise un bucket et un plafond distincts (trafic Next serveur).
 
 C2: Store distribue Redis en prod. Fallback memoire borne pour dev/test (REDIS_URL vide).
+
+FFI-L19C — IP cliente pour cles rate-limit : voir ``_get_client_ip`` et
+``settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR``.
 """
 
 from functools import wraps
@@ -57,12 +60,34 @@ MSG_EXERCISE_AI_DAILY_RATE_LIMIT = (
 )
 
 
+def _xff_first_non_empty_hop(forwarded: str) -> str | None:
+    """Premier hop non vide dans une chaine X-Forwarded-For (virgule-separee)."""
+    for segment in forwarded.split(","):
+        hop = segment.strip()
+        if hop:
+            return hop
+    return None
+
+
 def _get_client_ip(request) -> str:
-    """Recupere l'IP cliente (X-Forwarded-For si derriere proxy)."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return getattr(request.client, "host", "unknown") or "unknown"
+    """
+    IP utilisee pour les cles de rate-limit (auth, register, chat, etc.) et logs alignes.
+
+    Politique explicite (FFI-L19C) :
+    - Si ``RATE_LIMIT_TRUST_X_FORWARDED_FOR`` est True et ``X-Forwarded-For`` contient
+      au moins un hop non vide, utiliser le **premier** hop (client declare par la chaine).
+      A n'utiliser que lorsque le bord reseau de confiance reecrit ou append XFF
+      (ex. hebergeur), pas lorsque des clients peuvent imposer une fausse cle sans proxy.
+    - Sinon : ``request.client.host`` (pair TCP ASGI), ou ``unknown``.
+    """
+    if settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR:
+        raw = request.headers.get("X-Forwarded-For")
+        if raw:
+            first = _xff_first_non_empty_hop(raw)
+            if first:
+                return first
+    peer = getattr(request.client, "host", None) if request.client else None
+    return peer or "unknown"
 
 
 def get_client_ip_for_request(request) -> str:

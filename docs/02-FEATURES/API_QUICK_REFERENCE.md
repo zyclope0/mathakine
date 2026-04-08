@@ -11,7 +11,7 @@
 - AI model defaults / allowlists / runtime observability are documented in `docs/00-REFERENCE/AI_MODEL_GOVERNANCE.md`
 - `app/api/endpoints/*` has been archived in `_ARCHIVE_2026/app/api/` and is not part of the runtime
 - the HTML handler `generate_exercise` still exists but is not an active Starlette route
-- auth-sensitive and chat endpoints now rely on distributed Redis rate limiting in production
+- auth-sensitive and chat endpoints now rely on distributed Redis rate limiting in production; client IP for keys follows `RATE_LIMIT_TRUST_X_FORWARDED_FOR` (see `app/utils/rate_limit.py`, `.env.example`)
 
 ## Auth
 

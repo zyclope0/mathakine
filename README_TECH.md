@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 08/04/2026 (FFI-L19A validate-token 90/min IP ; FFI-L19B Next `validateTokenRuntime.ts` coalescence + TTL succès 2,5 s)
+> Updated: 08/04/2026 (FFI-L19A–C : validate-token 90/min IP, Next `validateTokenRuntime`, `RATE_LIMIT_TRUST_X_FORWARDED_FOR`)
 
 Visible product train:
 
@@ -151,6 +151,7 @@ Limite assumee :
 - `REDIS_URL` is mandatory in production
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
+- **FFI-L19C — client IP for rate-limit keys** (`app/utils/rate_limit.py`): `RATE_LIMIT_TRUST_X_FORWARDED_FOR` (default **false**, conservative). If **true**, first non-empty hop of `X-Forwarded-For` when present; else `request.client.host`. If **false**, **never** trust `X-Forwarded-For` (TCP peer only). Enable `true` only behind a trusted proxy that rewrites/appends XFF. See `.env.example` and [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) §17.
 
 #### Diagnostics `validate-token` (rafales 429 / attribution)
 
@@ -158,7 +159,7 @@ Limite assumee :
 - Sur **429**, les logs **WARNING** incluent le **bucket** (`validate_token` vs `auth_sensitive`), l’**endpoint** (pour `auth_sensitive`), l’**IP** effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (Next : `routeSession` / `syncCookie` via `buildValidateTokenRequestHeaders` — indication seulement, falsifiable).
 - Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
 - **FFI-L19B** : `routeSession` et `sync-cookie` passent par `frontend/lib/auth/server/validateTokenRuntime.ts` — une seule requête HTTP concurrente par `(baseUrl, token)` ; réutilisation d’un **succès** backend pendant **2,5 s** seulement (pas de cache des 401 / erreurs).
-- Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15 FFI-L19A, §16 FFI-L19B). Suite : **FFI-L19C** confiance proxy / clé plus fine que l’IP.
+- Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15–§17). **FFI-L19\*** **clos** ; priorité active : roadmap **frontend** principale (voir `.claude/session-plan.md`).
 
 **Rollback après diagnostic**
 
@@ -189,4 +190,5 @@ The backend is now materially stronger on:
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/core/enhanced_server_adapter.py` remains legacy compatibility
+
 

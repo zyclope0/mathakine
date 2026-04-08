@@ -4,9 +4,10 @@
 **Mise à jour analytique :** 2026-04-08  
 **Correctif calibrage (FFI-L19A) :** 2026-04-08 — quota dédié `validate-token`, voir §15  
 **Réduction appels Next (FFI-L19B) :** 2026-04-08 — runtime partagé + coalescence + TTL succès 2,5 s, voir §16  
+**Politique IP rate-limit (FFI-L19C) :** 2026-04-08 — `RATE_LIMIT_TRUST_X_FORWARDED_FOR` + doc, voir §17  
 **Périmètre :** production (logs Render), backend Starlette, frontend Next.js (App Router)  
 **Destinataires :** validation produit / responsable projet  
-**Statut :** constat historique conservé ; calibrage backend (L19A) + dédup Next server (L19B) livrés ; suite : **FFI-L19C** confiance proxy / clé plus fine
+**Statut :** séquence **FFI-L19\*** **fermée** (L19A–C). Sidecar validate-token / rate-limit / proxy trust clos avec défaut conservateur sur XFF. Priorité active : **roadmap frontend principale**.
 
 ---
 
@@ -27,6 +28,7 @@ Ce document ne prétend pas que tout a déjà été corrigé côté produit. Il 
 | Consommateurs frontend connus | `frontend/lib/auth/server/routeSession.ts` (`routeSession`) et `frontend/app/api/auth/sync-cookie/route.ts` (`syncCookie`)                        |
 | Attribution diagnostic        | header `X-Mathakine-Validate-Caller` construit par `frontend/lib/auth/server/validateTokenBackendHeaders.ts`                                      |
 | Rate limit (état courant)     | **`validate-token` : 90 req / min / IP** (bucket `validate_token`, clé `rate_limit:validate-token:{ip}`). **Login / forgot-password : 5 / min / IP** (bucket `auth_sensitive`, clé `rate_limit:{endpoint}:{ip}`). Fenêtre **60 s**. |
+| Clé « IP » (FFI-L19C)         | Si `RATE_LIMIT_TRUST_X_FORWARDED_FOR=true` (**opt-in**) : premier hop non vide de `X-Forwarded-For` si présent, sinon `request.client.host`. Si `false` (**défaut**) : **toujours** `request.client.host` (ignore XFF). |
 
 ---
 
@@ -217,13 +219,11 @@ Important :
 
 **Réduit (FFI-L19B, 2026-04-06)** : module partagé `frontend/lib/auth/server/validateTokenRuntime.ts` — coalescence des requêtes **en cours** pour la même paire `(baseUrl, token)` (un seul `fetch` concurrent), et micro-cache **succès uniquement** **`VALIDATE_TOKEN_SUCCESS_TTL_MS` = 2500 ms** (pas de cache des 401 ni des erreurs transitoires). Consommateurs : `routeSession`, `sync-cookie`.
 
-### 9.3 La politique proxy/CDN n'est pas explicitement figée
+### 9.3 Politique proxy / IP pour les cles rate-limit
 
-Il n'existe pas encore ici de décision finale documentée sur :
+**Figée côté code (FFI-L19C)** : variable `RATE_LIMIT_TRUST_X_FORWARDED_FOR` dans `app/core/config.py`, logique dans `app/utils/rate_limit.py` (`_get_client_ip`). Pas d’autre header (ex. `CF-Connecting-IP`) sans futur setting dédié et preuve infra.
 
-- quel hop / header est fiable
-- dans quelles conditions
-- avec quel niveau de confiance infra
+**Hors scope** : heuristique CDN multi-fournisseur, re-key rate-limit par `user_id`, liste `TRUSTED_PROXY_IPS` (non implémenté — reste backlog si besoin).
 
 ---
 
@@ -245,11 +245,7 @@ La fourchette **60–120** / min recommandée initialement est respectée (choix
 
 ### 10.3 Long terme — clé plus fidèle à l'utilisateur réel
 
-N'ouvrir ce chantier qu'avec décision infra explicite :
-
-- `CF-Connecting-IP`
-- ou autre hop / header de confiance
-- avec politique anti-spoofing documentée
+**Inchangé (hors FFI-L19C)** : tout header additionnel (`CF-Connecting-IP`, etc.) reste à trancher avec l’infra réelle et des variables dédiées ; ne pas extrapoler depuis le seul repo.
 
 ---
 
@@ -288,8 +284,7 @@ Non pertinent :
 
 ### Lot 3 — décision infra
 
-- trancher la confiance des headers proxy/CDN
-- ne pas le faire "à moitié" sans décision explicite
+**Fait (FFI-L19C)** : confiance **bornée** à `X-Forwarded-For` **sous opt-in** (`RATE_LIMIT_TRUST_X_FORWARDED_FOR`, défaut false). **Suite** : uniquement si produit/infra exigent un autre header ou une liste de proxies de confiance.
 
 ---
 
@@ -300,7 +295,8 @@ Non pertinent :
 3. Le frontend Next serveur a plusieurs consommateurs de cet endpoint.
 4. Ce calibrage provoquait des rafales légitimes saturant le compteur.
 5. **Après FFI-L19A** : quota dédié **90/min** pour `validate-token`, login/forgot-password **inchangés (5/min)** ; logs **429** distinguent `bucket=auth_sensitive` vs `bucket=validate_token`.
-6. Pistes suivantes : réduction des appels Next et stratégie proxy plus fine (hors périmètre du lot quota).
+6. **FFI-L19B–C** : dédup Next + politique IP documentée ; pas de confiance aveugle sans setting.
+7. **Parenthèse FFI-L19\*** close — recentrage roadmap frontend.
 
 ---
 
@@ -327,7 +323,7 @@ Non pertinent :
 | Observabilité | WARNING **429** : `bucket=…`, `endpoint=…` (auth), IP, diagnostics existants |
 | Tests | `tests/unit/test_rate_limit.py` : buckets distincts, 6× validate OK + 6e login bloqué, logs |
 
-Hors scope explicite : confiance `X-Forwarded-For` / CDN, re-key par utilisateur.
+Hors scope résiduel : headers CDN non standard, liste d’IPs proxy de confiance, re-key par utilisateur (voir §17).
 
 ---
 
@@ -341,10 +337,27 @@ Hors scope explicite : confiance `X-Forwarded-For` / CDN, re-key par utilisateur
 | Non cache | 401, autres HTTP, erreurs réseau → jamais réutilisés comme « valide » |
 | Tests | `__tests__/unit/lib/auth/server/validateTokenRuntime.test.ts` + resets dans `routeSession` / `sync-cookie` tests |
 
-Prépare **FFI-L19C** (proxy trust / clé plus fine) sans le mélanger.
+**FFI-L19C** livré séparément (§17).
+
+---
+
+## 17. Livrable FFI-L19C (politique IP / proxy trust bornée)
+
+| Élément | Détail |
+| ------- | ------ |
+| Setting | `RATE_LIMIT_TRUST_X_FORWARDED_FOR` (bool, **défaut `False`**) — `app/core/config.py` |
+| Comportement True | Premier hop **non vide** de `X-Forwarded-For` si l’en-tête est présent ; sinon `request.client.host` |
+| Comportement False | **Ignorer** `X-Forwarded-For` ; toujours `request.client.host` |
+| Code | `_xff_first_non_empty_hop`, `_get_client_ip` dans `app/utils/rate_limit.py` |
+| Tests | `tests/unit/test_rate_limit.py` : trust off, hops vides, XFF-only commas |
+| Doc env | `.env.example` (commentaire) |
+
+**Défaut False** : mode conservateur si le serveur est exposé sans proxy sanitizing. **True** : opt-in explicite pour les déploiements derrière un bord type Render qui contrôle la chaîne.
+**Hors scope** : `CF-Connecting-IP`, `True-Client-IP`, CIDR `TRUSTED_PROXY_IPS` — pas implémentés ici.
 
 ---
 
 Document de décision technique.  
-Le diagnostic initial (2026-04-08) a conduit au lot **FFI-L19A** (quota dédié, 2026-04-06), puis **FFI-L19B** (dédup Next server, 2026-04-06). La stratégie proxy / clé plus fine reste le lot **FFI-L19C**.
+Séquence **FFI-L19\*** close : **L19A** (quota), **L19B** (dédup Next), **L19C** (IP / XFF explicite). Priorité documentaire suivante : feuille de route **frontend** principale (voir `.claude/session-plan.md`).
+
 

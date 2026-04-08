@@ -38,6 +38,9 @@ def ensure_testing_bypass(monkeypatch):
     """Par défaut, garder TESTING=true pour ne pas bloquer les autres tests."""
     # Aligné sur app.utils.rate_limit : _check_rate_limit lit settings.TESTING (pas os.getenv).
     monkeypatch.setattr(rate_limit_module.settings, "TESTING", True)
+    monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", False
+    )
 
 
 def test_rate_limit_response_returns_429():
@@ -72,17 +75,61 @@ def test_get_client_ip_from_request_client():
 
 
 def test_get_client_ip_from_x_forwarded_for():
-    """_get_client_ip utilise la première IP de X-Forwarded-For (proxy)."""
+    """Avec RATE_LIMIT_TRUST_X_FORWARDED_FOR=True, premier hop X-Forwarded-For."""
+    rate_limit_module.settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR = True
     request = MagicMock()
     request.headers = {"X-Forwarded-For": "10.0.0.1, 10.0.0.2, 10.0.0.3"}
+    request.client = MagicMock(host="127.0.0.1")
     assert _get_client_ip(request) == "10.0.0.1"
 
 
 def test_get_client_ip_x_forwarded_for_strips_spaces():
-    """_get_client_ip strip les espaces de X-Forwarded-For."""
+    """Premier hop XFF strippe correctement."""
+    rate_limit_module.settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR = True
     request = MagicMock()
     request.headers = {"X-Forwarded-For": "  10.0.0.1  , 10.0.0.2"}
+    request.client = MagicMock(host="127.0.0.1")
     assert _get_client_ip(request) == "10.0.0.1"
+
+
+def test_get_client_ip_skips_empty_leading_xff_hops():
+    """Premiers segments vides ignores (chaine mal formee)."""
+    rate_limit_module.settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR = True
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": " , , 203.0.113.5, 10.0.0.1"}
+    request.client = MagicMock(host="127.0.0.1")
+    assert _get_client_ip(request) == "203.0.113.5"
+
+
+def test_get_client_ip_ignores_xff_when_trust_disabled(monkeypatch):
+    """RATE_LIMIT_TRUST_X_FORWARDED_FOR=False -> pair TCP, pas le premier hop XFF."""
+    monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", False
+    )
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": "10.0.0.1, 10.0.0.2"}
+    request.client = MagicMock(host="198.51.100.9")
+    assert _get_client_ip(request) == "198.51.100.9"
+
+
+def test_get_client_ip_trust_disabled_empty_xff_falls_back_to_peer(monkeypatch):
+    """Trust off et XFF vide / sans hop utile -> client.host."""
+    monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", False
+    )
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": " , , "}
+    request.client = MagicMock(host="10.0.0.99")
+    assert _get_client_ip(request) == "10.0.0.99"
+
+
+def test_get_client_ip_trust_on_xff_only_commas_falls_back_to_peer():
+    """Trust on mais XFF sans hop exploitable -> request.client.host."""
+    rate_limit_module.settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR = True
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": " , , "}
+    request.client = MagicMock(host="10.0.0.12")
+    assert _get_client_ip(request) == "10.0.0.12"
 
 
 def test_get_client_ip_fallback_unknown():
@@ -95,6 +142,7 @@ def test_get_client_ip_fallback_unknown():
 
 def test_get_client_ip_for_request_matches_get_client_ip():
     """Alias public aligne sur _get_client_ip."""
+    rate_limit_module.settings.RATE_LIMIT_TRUST_X_FORWARDED_FOR = True
     request = MagicMock()
     request.headers = {"X-Forwarded-For": "198.51.100.2, 10.0.0.1"}
     request.client = MagicMock(host="127.0.0.1")
@@ -155,6 +203,9 @@ async def test_rate_limit_auth_decorator_logs_diagnostics_when_blocked(monkeypat
     """429 auth_sensitive: log WARNING avec bucket, endpoint, IP, diagnostics."""
     monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", True
+    )
+    monkeypatch.setattr(
         "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
     )
 
@@ -193,6 +244,9 @@ async def test_rate_limit_validate_token_decorator_logs_when_blocked(monkeypatch
     """429 validate_token: log WARNING avec bucket dedie et IP."""
     monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", True
+    )
+    monkeypatch.setattr(
         "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
     )
 
@@ -226,6 +280,9 @@ async def test_auth_and_validate_token_decorators_pass_distinct_limits_to_check(
 ):
     """Les deux decorateurs appellent _check_rate_limit avec des plafonds et cles differents."""
     monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
+    monkeypatch.setattr(
+        rate_limit_module.settings, "RATE_LIMIT_TRUST_X_FORWARDED_FOR", True
+    )
     seen: list[tuple[str, int]] = []
 
     def fake_check(key: str, max_requests: int) -> bool:

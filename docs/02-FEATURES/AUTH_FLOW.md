@@ -1,7 +1,7 @@
 ﻿# Authentication Flow - Mathakine
 
 > User-facing auth journey and backend boundaries
-> Updated: 08/04/2026
+> Updated: 08/04/2026 (FFI-L19C IP key policy)
 
 ## Overview
 
@@ -18,6 +18,7 @@ Production note:
 
 - auth-sensitive endpoints are now protected by distributed Redis rate limiting in production
 - memory fallback is dev/test only
+- per-IP keys use `app/utils/rate_limit._get_client_ip` : `X-Forwarded-For` only when `RATE_LIMIT_TRUST_X_FORWARDED_FOR=true` (default; set `false` if the app is reachable without a sanitizing edge)
 
 ## 1. Registration
 

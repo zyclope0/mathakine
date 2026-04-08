@@ -113,6 +113,17 @@ class Settings(BaseSettings):
             "Ex: redis://localhost:6379/0 | rediss://user:pass@host:6380 (TLS Render)."
         ),
     )
+    # FFI-L19C — cle rate-limit auth : X-Forwarded-For seulement si le bord de confiance
+    # reecrit/append la chaine (ex. Render). Mettre false si le backend est joignable
+    # directement par des clients qui pourraient forger XFF, ou pour forcer la peer IP.
+    RATE_LIMIT_TRUST_X_FORWARDED_FOR: bool = Field(
+        default=False,
+        description=(
+            "Si True (opt-in explicite derriere proxy de confiance): premiere IP non vide de "
+            "X-Forwarded-For sert de cle rate-limit quand l'en-tete est present. "
+            "Si False (defaut conservateur): ignorer X-Forwarded-For et utiliser uniquement request.client.host."
+        ),
+    )
     SECURE_HEADERS: bool = True
 
     ENABLE_METRICS: bool = True
