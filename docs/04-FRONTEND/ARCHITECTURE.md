@@ -1,14 +1,14 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> DerniÃ¨re mise Ã  jour : 06/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot)
+> DerniÃ¨re mise Ã  jour : 08/04/2026  
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L18A/B splits)
 
 ---
 
 ## RÃ©fÃ©rences
 
 - [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 53 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 177 composants React (catÃ©gories, rÃ´les, conventions)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 190 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -253,10 +253,33 @@ Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ce
 ### Shell global et assistant (FFI-L16 clos)
 
 - **Header** : `components/layout/Header.tsx` est une facade shell ; navigation desktop, menu utilisateur et menu mobile sont des sous-blocs dedies (`HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`).
-- **Assistant global** : drawer / FAB sous `components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`). La carte embarquee marketing reste `components/home/Chatbot.tsx` (home), distincte du shell global.
+- **Assistant global** : drawer / FAB sous `components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`). Aucun second `ChatbotFloatingGlobal` sous `components/home/` ou `components/layout/` (garde-fou FFI-L17B). La carte embarquee marketing reste `components/home/Chatbot.tsx` (home), distincte du shell global.
 - **Invites (public)** : l'assistant reste accessible ; **pas** de CTA Assistant dans le header ; entree via le **FAB global**. Plafond **5 messages** par session navigateur via `hooks/chat/useGuestChatAccess.ts` (sessionStorage), en complement du **rate-limit chat serveur** (autorite inchangee).
 - **Authentifies** : comportement historique conserve, y compris le CTA Assistant dans le header.
 - **Reliquat** (hors perimetre FFI-L16 frontend) : eventuel durcissement serveur du quota invite (cookie / IP / cle dediee) — optionnel, non bloquant pour la cloture architecture.
+
+### Garde-fous architecture (FFI-L17A + FFI-L17B)
+
+- **Source de verite unique** : `lib/architecture/frontendGuardrails.ts` — budgets LOC (style `wc -l`) pour les pages conteneurs et facades issus de FFI-L11 a FFI-L16, **exceptions denses** nommees (`ProfileLearningPreferencesSection`, `ChallengeSolverCommandBar`) avec plafonds provisoires, liste des **fichiers seams obligatoires** (hooks controllers, sections admin content, sous-blocs Header, chat global).
+- **FFI-L17B (gouvernance sans second fichier de regles)** : export `OWNERSHIP_RULE_GROUPS` (resume des conventions ci-dessous), `REQUIRED_CANONICAL_LIB_FILES` + `collectMissingCanonicalLibFiles`, et chemins interdits pour un `ChatbotFloatingGlobal` hors `components/chat/` (`FORBIDDEN_CHATBOT_FLOATING_GLOBAL_PATHS`).
+- **Non-regression** : `__tests__/unit/architecture/frontendGuardrails.test.ts` ; commande `npm run architecture:check` depuis `frontend/`.
+- **But** : empecher la reintroduction silencieuse de monolithes sur les surfaces deja decouplees ; **aucun** split profond des deux hotspots denses dans FFI-L17 (reporte **FFI-L18**).
+- **Consommation** : ne pas importer `frontendGuardrails.ts` depuis des composants client (module reserve tests / outillage Node).
+
+#### Conventions d'ownership (actives)
+
+Les bullets detaillees sont alignees sur `OWNERSHIP_RULE_GROUPS` dans `frontendGuardrails.ts` (revue = une seule PR pour code + doc si les regles changent).
+
+1. **Constants et logique pure** : constantes et maps partagees dans `lib/constants/*` ; helpers purs de domaine dans `lib/<domaine>/` (ex. `lib/profile/`, `lib/challenges/challengeSolver.ts`) ; schemas partages dans `lib/validation/*`. Eviter de dupliquer les memes maps dans les pages ou facades stabilisees.
+2. **Runtime vs vue** : orchestration et etat derive dans `hooks/*` (controllers `use*PageController`, etc.) ; `components/*` en presentation ; pages App Router fines qui composent hook + sections.
+3. **Facades** : facades shared (ex. barre de filtres content-list) orchestrent des sous-vues sans absorber la logique metier qui appartient aux hooks ou a `lib/`.
+4. **Shell et assistant** : navigation shell dans `components/layout/*` ; assistant global (FAB + drawer) dans `components/chat/*` uniquement — pas de second `ChatbotFloatingGlobal` sous `home/` ou `layout/`.
+5. **Admin et listes** : sections `components/admin/content/*` ; listes exercices/defis partagent le controller content-list sans dupliquer les derives deja extraites dans `lib/contentList/` ou le hook.
+
+#### FFI-L18 (architecture)
+
+- **FFI-L18A (livré)** : `ProfileLearningPreferencesSection.tsx` est une façade fine ; champs édités / lecture dans `components/profile/ProfileLearningPreferences*` ; helpers purs dans `lib/profile/profileLearningPreferences.ts` ; état runtime inchangé (`useProfilePageController`).
+- **FFI-L18B (livré)** : `ChallengeSolverCommandBar.tsx` est une façade fine ; blocs d’interaction dans `components/challenges/ChallengeSolver*.tsx` ; helpers de branche dans `lib/challenges/challengeSolverCommandBar.ts` ; runtime inchangé (`useChallengeSolverController`). `ALLOWED_DENSE_EXCEPTIONS` ne liste plus ce fichier.
 
 ### F04 review flow
 

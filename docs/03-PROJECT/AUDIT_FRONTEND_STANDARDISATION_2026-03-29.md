@@ -54,7 +54,7 @@
 ### 1.1 État d'avancement réel — 2026-04-06
 
 La photographie initiale reste utile, mais le plan actif a ete requalifie autour des seams d'architecture les plus rentables depuis
-l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (shell / navigation / ownership chatbot global) sont livres cote architecture frontend ; le prochain jalon prioritaire est `FFI-L17` (garde-fous architecture).
+l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (shell / navigation / ownership chatbot global) sont livres cote architecture frontend ; `FFI-L17A` et `FFI-L17B` ferment la gouvernance garde-fous ; `FFI-L18A` et `FFI-L18B` ont decoupe les derniers hotspots denses cibles (profil learning prefs + command bar solver) ; il n'y a plus d'entree dans `ALLOWED_DENSE_EXCEPTIONS` — la prochaine dette structurelle releve d'une revue ciblee si de nouveaux monolithes apparaissent.
 
 **Livré, commité et poussé**
 
@@ -74,10 +74,13 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 - `FFI-L14` : decouper `Admin Content` (container ~`50` LOC + `components/admin/content/*` + shell controller)
 - `FFI-L15` : standardiser la plateforme `content-list` (controller shared + results shell + toolbar facade split)
 - `FFI-L16` : shell `Header` en facade + sous-blocs extraits ; chatbot global sous `components/chat/` ; invites : pas de CTA Assistant header, entree FAB, quota session frontend **5 messages** (`useGuestChatAccess`) en complement du rate-limit serveur ; authentifies : inchange
+- `FFI-L17A` : garde-fous architecture **non-regression** — `frontend/lib/architecture/frontendGuardrails.ts` (budgets LOC facades/containers, exceptions denses nommees, seams obligatoires FFI-L11 a FFI-L16) + test Vitest + `npm run architecture:check` ; **pas** de split des deux hotspots denses (reporte FFI-L18)
+- `FFI-L17B` : complement **sans second fichier de regles** — `OWNERSHIP_RULE_GROUPS`, ancres `REQUIRED_CANONICAL_LIB_FILES`, interdiction `ChatbotFloatingGlobal` hors `components/chat/` (home + layout), doc `ARCHITECTURE.md` / `README_TECH.md` / `session-plan` ; toujours **pas** de split profond dans ce lot
 
 **Encore ouverts (ordre actif révisé)**
 
-- `FFI-L17` : garde-fous architecture / tests / doc runtime
+- `FFI-L18A` : split `ProfileLearningPreferencesSection` en façade + sous-composants + `lib/profile/profileLearningPreferences.ts` (sans changement UX intentionnel)
+- `FFI-L18B` : split `ChallengeSolverCommandBar` en façade + sous-composants + `lib/challenges/challengeSolverCommandBar.ts` (sans changement UX intentionnel) ; `ALLOWED_DENSE_EXCEPTIONS` vide
 
 **Conséquences visibles**
 
@@ -85,7 +88,7 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 - `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (reliquat : `SettingsSecuritySection` encore dense).
 - `app/admin/content/page.tsx` n'est plus une mega-page : container ~`50` LOC avec `useAdminContentPageController`, `lib/admin/content/adminContentPage.ts`, `lib/admin/exercises/adminExerciseCoherence.ts` et `components/admin/content/*` (reliquat contrat/produit : difficulte liste exercices transitoire tant que `difficulty_tier` n'est pas garanti sur la liste admin API ; modales exercices encore en valeurs legacy pour l'edition).
 - `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
-- Le risque runtime frontal se concentre désormais surtout dans quelques sous-composants encore denses (`ChallengeSolverCommandBar`, `ProfileLearningPreferencesSection`).
+- Apres FFI-L18B, le risque ne se concentre plus sur un seam dense majeur liste dans les garde-fous ; des vues secondaires denses (badges, settings, exercise solver) restent documentees ailleurs dans cet audit.
 - La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
@@ -433,8 +436,8 @@ Composants — états sémantiques :
 
 | Surface                                                    | LOC | Problème actuel                                      |
 | ---------------------------------------------------------- | --- | ---------------------------------------------------- |
-| `components/profile/ProfileLearningPreferencesSection.tsx` | 449 | Sous-section profil encore dense, mais page fermee   |
-| `ChallengeSolverCommandBar.tsx`                            | 446 | Bloc réponse défi encore dense après split du solver |
+| `components/profile/ProfileLearningPreferencesSection.tsx` | ~107 (façade) | FFI-L18A : sous-blocs extraits ; page profil reste fermee   |
+| `ChallengeSolverCommandBar.tsx`                            | ~169 (façade) | FFI-L18B : sous-blocs `ChallengeSolver*` + lib `challengeSolverCommandBar` |
 | `Header.tsx`                                               | 394 | Desktop + mobile + menu utilisateur encore couples   |
 
 _Note : le container `app/settings/page.tsx` (~`133` LOC) est sorti de cette liste depuis FFI-L13 ; le reliquat dense côté paramètres est surtout `SettingsSecuritySection` (confidentialité + sessions)._
@@ -689,9 +692,8 @@ useChallengeSolverController.ts
 challengeSolver.ts
 ```
 
-Le lot est considere ferme. La dette residuelle la plus visible n'est plus le monolithe
-runtime, mais `ChallengeSolverCommandBar.tsx` (~`446` LOC), qui reste un composant dense
-sans remettre en cause la fermeture de `FFI-L10`.
+Le lot est considere ferme. La command bar a ete decoupee en FFI-L18B (façade + sous-composants) ;
+la dette residuelle du solver ne repose plus sur ce monolithe unique.
 
 #### FFI-L11 - Modulariser `app/profile/page.tsx`
 
@@ -714,7 +716,7 @@ Resultat :
 
 Reliquat connu :
 
-- `components/profile/ProfileLearningPreferencesSection.tsx` reste un sous-seam dense (~`449` LOC), mais il n'empeche pas la fermeture de `FFI-L11`
+- `ProfileLearningPreferencesSection` : ancien monolithe decoupe en FFI-L18A ; la page `FFI-L11` reste fermee
 
 #### FFI-L12 - Modulariser `app/badges/page.tsx`
 
@@ -836,13 +838,13 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 14    | FFI-L14 Decouper Admin Content                                | P1       | L      | Frontiere admin           | ✅ Livré             |
 | 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | ✅ Livré             |
 | 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | ✅ Livré             |
-| 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | À faire              |
+| 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | Livré (L17A+L17B)    |
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L16` sont deja livres : la dette la plus rentable restante est desormais `FFI-L17`
-- la priorite n'est plus le polish visuel mais les mega-pages et seams runtime
-- traiter `FFI-L17` avant de rouvrir de gros sweeps cosmetiques
+- `FFI-L1` a `FFI-L18B` sont deja livres pour les hotspots denses cibles profil + command bar solver
+- la priorite structurelle suivante est une revue ciblee si de nouveaux monolithes apparaissent (plus de lot FFI-L18 ouvert dans les garde-fous)
+- avant de rouvrir de gros sweeps cosmetiques, verifier les budgets `PROTECTED_FRONTEND_SURFACES`
 - garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 
 ### Plan initial (historique)

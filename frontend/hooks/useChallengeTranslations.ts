@@ -19,6 +19,10 @@ export function useChallengeTypeDisplay() {
 
     const normalizedType = type.toLowerCase();
 
+    if (normalizedType === "all") {
+      return t("filters.allTypes");
+    }
+
     // Utiliser une clé dynamique avec fallback sur la valeur brute
     try {
       return t(`types.${normalizedType}`);

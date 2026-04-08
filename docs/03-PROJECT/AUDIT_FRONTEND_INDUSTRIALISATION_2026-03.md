@@ -31,7 +31,9 @@
 > - `ChallengeSolverCommandBar.tsx`
 >
 > Ordre actif recommande :
-> `FFI-L17` garde-fous architecture.
+> `FFI-L17B` suite garde-fous, puis `FFI-L18` splits profonds des deux seams denses toleres.
+>
+> Addendum 2026-04-07 : `FFI-L17A` ajoute `frontend/lib/architecture/frontendGuardrails.ts` + test Vitest + `npm run architecture:check` (non-regression tailles / seams / ownership chatbot).
 >
 > Le detail de cet audit conserve volontairement la photographie du `03/03/2026`.
 > Plusieurs constats du corps du document sont donc des **constats d'origine** et non

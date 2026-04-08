@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 06/04/2026 (FFI-L16 frontend architecture closure documented)
+> Updated: 08/04/2026 (FFI-L18A/B split closures + validate-token prod diagnosis documented)
 
 Visible product train:
 
@@ -59,7 +59,18 @@ Visible product train:
   - **guest (public)**: assistant remains available; **no** header Assistant CTA; entry via the **global FAB**; **5 messages per browser session** enforced client-side via `useGuestChatAccess` (sessionStorage), complementary to existing **server-side** chat rate limiting (authoritative)
   - **authenticated**: unchanged; header Assistant CTA remains
   - explicit follow-up (not required to close FFI-L16): optional future server-aligned guest quota (cookie / IP / dedicated key)
-- next active frontend architecture priority: `FFI-L17` (architecture guardrails: conventions, structural regression tests, runtime docs)
+- `FFI-L17A` is now closed (structural guardrails only, no UI/behavior change):
+  - `frontend/lib/architecture/frontendGuardrails.ts` is the single source of truth for LOC budgets on FFI-L11–L16 thin pages/shells/shared facades/chat shells, named dense exceptions, and required seam files
+  - `frontend/__tests__/unit/architecture/frontendGuardrails.test.ts` enforces existence, budgets, and `ChatbotFloatingGlobal` staying under `components/chat/` (not `components/home/` or `components/layout/`)
+  - run `npm run architecture:check` from `frontend/` to execute that test alone
+  - explicit non-goal in FFI-L17: splitting `ProfileLearningPreferencesSection` or `ChallengeSolverCommandBar` (deferred to **FFI-L18**)
+- `FFI-L17B` is now closed (governance only, same module as L17A, no UI/behavior change):
+  - `OWNERSHIP_RULE_GROUPS` documents active ownership conventions (constants/helpers, runtime vs view, facades, admin/content-list, pointer to FFI-L18) — mirrored in `docs/04-FRONTEND/ARCHITECTURE.md`
+  - `REQUIRED_CANONICAL_LIB_FILES` + `collectMissingCanonicalLibFiles` guard shared `lib/` anchors (HTTP client, roles, domain constants, FFI-L11–L16 page helpers, content-list, header navigation)
+  - forbidden duplicate global chatbot mounts: `FORBIDDEN_CHATBOT_FLOATING_GLOBAL_PATHS` (home + layout)
+- `FFI-L18A` is now closed (profile learning preferences): thin `ProfileLearningPreferencesSection` facade + `ProfileLearningPreferences*` subcomponents + `lib/profile/profileLearningPreferences.ts` ; no intentional UX change
+- `FFI-L18B` is now closed (challenge solver command bar): thin `ChallengeSolverCommandBar` facade + `ChallengeSolverMcqGrid` / `ChallengeSolverVisualButtons` / order & grid blocks / `ChallengeSolverValidateActions` + `lib/challenges/challengeSolverCommandBar.ts` ; `ALLOWED_DENSE_EXCEPTIONS` is empty ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` for the command bar facade
+- next frontend architecture focus: **targeted structural review** if new monoliths appear (no open FFI-L18 follow-up in guardrails)
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 
@@ -145,6 +156,8 @@ Limite assumee :
 
 - Les endpoints sous `rate_limit_auth` (dont `POST /api/auth/validate-token`) loggent en **WARNING** sur **429** : IP effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (le frontend Next envoie `routeSession` ou `syncCookie` depuis `buildValidateTokenRequestHeaders` — indication seulement, falsifiable par un client HTTP arbitraire).
 - Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
+- État réel au `2026-04-08` : le diagnostic prod indique que `validate-token` est probablement **sur-limité** avec le même plafond que `login` (`5/min` par clé IP), ce qui provoque des **429 légitimes** lors des rafales Next serveur (`routeSession` / `syncCookie`). Les durcissements déjà faits (logs enrichis, correction Loguru, `settings.TESTING`, garde syntaxique JWT dans `sync-cookie`) améliorent l'observabilité et la robustesse, mais **ne corrigent pas encore** le calibrage du quota.
+- Suite recommandée après le lot en cours : lot dédié de stabilisation `validate-token` pour lui donner un **quota backend propre** plus élevé, puis audit des appels Next et, seulement ensuite, décision explicite de confiance proxy/CDN si une clé plus fine doit être introduite. Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md).
 
 **Rollback après diagnostic**
 

@@ -52,22 +52,22 @@ En cas de divergence :
 
 **Fondations deja livrees**
 
-- `FFI-L1` a `FFI-L16` : livres cote architecture frontend ; push a confirmer selon l'etat Git courant
+- `FFI-L1` a `FFI-L17B` : livres cote architecture frontend (L17A = garde-fous structurels ; L17B = conventions ownership + ancres `lib/` + doc, sans refactor runtime) ; push a confirmer selon l'etat Git courant
 - roles canoniques + `NI-13` : livres et stabilises
 - `AIGeneratorBase` existe et a retire le plus gros de la duplication brute
 - `lib/validation/` est deja standardise (plus de split `validation/validations`)
 
 **Seams architecture encore critiques**
 
-- `frontend/components/profile/ProfileLearningPreferencesSection.tsx` ~`449` LOC
-- `frontend/components/challenges/ChallengeSolverCommandBar.tsx` ~`446` LOC
+- (aucun hotspot dense majeur tolere dans `ALLOWED_DENSE_EXCEPTIONS` apres FFI-L18A/B — suivre `PROTECTED_FRONTEND_SURFACES` pour les regrowths)
+- `ProfileLearningPreferencesSection` : decoupe FFI-L18A livree (façade ~`107` LOC + sous-composants)
+- `ChallengeSolverCommandBar` : decoupe FFI-L18B livree (façade ~`169` LOC + sous-composants `ChallengeSolver*` + `lib/challenges/challengeSolverCommandBar.ts`)
 
 ### 3. Ordre actif recommande
 
 ```text
-1. FFI-L17 : garde-fous architecture (tests, conventions, docs, contrats)
-2. Ensuite : nouveaux seams shared ou domaines encore denses (si la revue structurelle les confirme)
-3. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
+1. Revue structurelle ciblee si de nouveaux monolithes apparaissent (hors sequence FFI-L18)
+2. Ensuite seulement : sweeps visuels secondaires (tokens/couleurs residuels)
 ```
 
 ### 3.1 Sidecar produit documente, hors sequence FFI
@@ -103,8 +103,8 @@ Decision d'execution :
   - `ChallengeSolver.tsx` ramene a un orchestrateur ~`188` LOC
   - `visualModel!` supprime
   - tests de non-regression solver/helpers/controller en place
-- reliquat connu :
-  - `ChallengeSolverCommandBar.tsx` reste un seam dense (~`446` LOC), mais le monolithe runtime critique est ferme
+- reliquat connu a la cloture du lot :
+- `ChallengeSolverCommandBar.tsx` etait encore un seam dense (~`463` LOC) a la sortie de `FFI-L10`, puis a ete decoupe en `FFI-L18B`
 
 #### FFI-L11 — Modulariser `app/profile/page.tsx`
 
@@ -120,8 +120,8 @@ Decision d'execution :
   - le domaine profil est separe en couches lisibles (container / controller / sections / helpers)
   - la regression de validation mot de passe (`min 8`) a ete refermee apres refactor
   - la couverture hook n'est plus un faux positif base uniquement sur des helpers purs
-- reliquat connu :
-  - `ProfileLearningPreferencesSection.tsx` reste un sous-seam dense (~`449` LOC), mais la mega-page critique est fermee
+- reliquat connu a la cloture du lot :
+- `ProfileLearningPreferencesSection.tsx` etait encore un sous-seam dense (~`461` LOC) a la sortie de `FFI-L11`, puis a ete decoupe en `FFI-L18A`
 
 #### FFI-L12 — Modulariser `app/badges/page.tsx`
 
@@ -210,6 +210,47 @@ Decision d'execution :
   - docs actives alignees
   - nouveaux seams documentes avant de grossir
   - choix de patterns shared clairement explicités
+
+##### FFI-L17A — Source de verite + test structurel (livre)
+
+- resultat :
+  - `frontend/lib/architecture/frontendGuardrails.ts` : budgets LOC explicites pour les facades / containers FFI-L11 a FFI-L16, exceptions denses nommees, seams obligatoires, regle d'ownership chatbot global
+  - `frontend/__tests__/unit/architecture/frontendGuardrails.test.ts` : non-regression (existence des seams, budgets, pas de `ChatbotFloatingGlobal` sous `home/`)
+  - `npm run architecture:check` : execute uniquement ce test Vitest (meme logique, pas de second moteur)
+- hors scope volontaire (historique L17) :
+  - les splits profonds profil + command bar sont traites en **FFI-L18A** et **FFI-L18B** (voir sections dediees ci-dessous)
+
+##### FFI-L17B — Conventions ownership + ancres lib (livre)
+
+- resultat :
+  - memes fichiers source de verite que L17A (`frontendGuardrails.ts` + `frontendGuardrails.test.ts` + `npm run architecture:check`) — **pas** de second module concurrent
+  - `OWNERSHIP_RULE_GROUPS` : conventions actives (constants/helpers, runtime vs vue, facades, admin/content-list, pointer FFI-L18) documentees en machine-readable + paraphrase dans `docs/04-FRONTEND/ARCHITECTURE.md` et `README_TECH.md`
+  - `REQUIRED_CANONICAL_LIB_FILES` + `collectMissingCanonicalLibFiles` : non-regression sur les ancres `lib/` partagees (client HTTP, roles, constants domaine, helpers pages FFI-L11-L16, content-list, header nav)
+  - `FORBIDDEN_CHATBOT_FLOATING_GLOBAL_PATHS` : interdit `ChatbotFloatingGlobal` sous `components/home/` **ou** `components/layout/` — seul `components/chat/ChatbotFloatingGlobal.tsx` est canonique
+- hors scope volontaire (inchangé) :
+  - **pas** de split de `ProfileLearningPreferencesSection` ni `ChallengeSolverCommandBar` dans ce lot (**FFI-L18**)
+
+##### FFI-L18A — Profile learning preferences (livre)
+
+- resultat :
+  - `ProfileLearningPreferencesSection.tsx` : façade section uniquement (compose header, blocs édition, actions, résumé lecture)
+  - sous-composants dans `components/profile/ProfileLearningPreferences*.tsx` (grade, pédagogie, objectifs/rythme, actions, lecture)
+  - `lib/profile/profileLearningPreferences.ts` : helpers purs (changement système notation, format niveau, labels difficulté / goals / rhythms)
+  - tests : `__tests__/unit/components/profile/ProfileLearningPreferencesSection.test.tsx` + `__tests__/unit/lib/profile/profileLearningPreferences.test.ts`
+  - garde-fous : retrait de l’exception dense profil dans `ALLOWED_DENSE_EXCEPTIONS` ; budget façade dans `PROTECTED_FRONTEND_SURFACES` ; `lib/profile/profileLearningPreferences.ts` dans `REQUIRED_CANONICAL_LIB_FILES`
+- hors scope volontaire :
+  - **pas** de changement de `useProfilePageController` hors adaptation triviale (aucune requise ici)
+
+##### FFI-L18B — Challenge solver command bar (livre)
+
+- resultat :
+  - `ChallengeSolverCommandBar.tsx` : façade (branches QCM / visuel / ordre / grilles / texte + validate/hint)
+  - sous-composants `ChallengeSolverMcqGrid`, `ChallengeSolverVisualButtons`, `ChallengeSolverOrderPuzzleBlock`, `ChallengeSolverGridAutoAnswerBlock`, `ChallengeSolverGridDeductionBlock`, `ChallengeSolverFreeTextAnswerBlock`, `ChallengeSolverValidateActions`, `ChallengeSolverCommandBarTypes`
+  - `lib/challenges/challengeSolverCommandBar.ts` : flags de branche + parsing affichage déduction
+  - tests : `ChallengeSolverCommandBar.test.tsx` + `challengeSolverCommandBar.test.ts`
+  - garde-fous : `ALLOWED_DENSE_EXCEPTIONS` vide ; budget façade dans `PROTECTED_FRONTEND_SURFACES` ; lib dans `REQUIRED_CANONICAL_LIB_FILES`
+- hors scope volontaire :
+  - **pas** de refactor runtime du solver hors props/controller existants
 
 ### 5. Parent / roles / NI-13
 
