@@ -41,7 +41,7 @@ Les changements backend hors périmètre roadmap frontend doivent rester **petit
 - les garde-fous d’architecture restent la protection active contre la rechute en monolithes
 - il n’existe plus de dense exception ouverte dans `ALLOWED_DENSE_EXCEPTIONS`
 - la suite frontend ne relève plus d’un gros chantier de découpage générique, mais d’un **durcissement ciblé** :
-  - vues encore denses hors exception formelle (`SettingsSecuritySection`, et surfaces admin read-heavy listées dans l’audit actif)
+  - vues encore denses hors exception formelle (`pages admin read-heavy` encore listées dans l’audit actif ; ~~`SettingsSecuritySection`~~ traité en FFI-L20E)
   - homogénéisation design-system/premium encore partielle
   - QA visuelle et a11y humaine sur les surfaces partagées
 
@@ -64,6 +64,19 @@ Prochaines itérations architecturales recommandées :
 2. ~~`FFI-L20B`~~ — solver exercices : **fermé**
 3. ~~`FFI-L20C`~~ — noyau auth/provider : **fermé** (`lib/auth/types`, `authLoginFlow`, `postLoginRedirect` ; `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys`)
 4. ~~`FFI-L20D`~~ — domaine badges (contrats + helpers purs partagés) : **fermé**
+5. ~~`FFI-L20E`~~ — onglet sécurité paramètres (`SettingsSecuritySection` + sous-vues sessions + `lib/settings/settingsSecurity.ts`) : **fermé**
+
+### Lots suivants préparés
+
+1. **`FFI-L20F`** — shell partagé admin read-heavy  
+   Cibles : `app/admin/page.tsx`, `app/admin/analytics/page.tsx`, `app/admin/ai-monitoring/page.tsx`  
+   But : sortir un shell shared (`AdminReadHeavyPageShell` / `AdminStatePanel`) pour réduire la duplication `header + toolbar + error/loading/empty`.
+2. **`FFI-L20G`** — pages informatives en Server Components  
+   Cibles : `app/about/page.tsx`, `app/privacy/page.tsx`  
+   But : retirer `use client` quand l'interactivité est faible ou nulle afin de récupérer de la valeur SSR/RSC.
+3. **`FFI-L20H`** — QA visuelle / a11y et polish structurel ciblé  
+   Cibles : surfaces shared et shells déjà refactorés  
+   But : fermer les reliquats non structurels (cohérence d'états, polish premium, QA humaine) sans rouvrir un gros chantier de découpage.
 
 ### Avancement FFI-L20 — 2026-04-08
 
@@ -73,3 +86,4 @@ Prochaines itérations architecturales recommandées :
 | **FFI-L20B** | Fermé      | `ExerciseSolver.tsx` façade ~`366` LOC ; runtime dans `hooks/useExerciseSolverController.ts` ; helpers purs `lib/exercises/exerciseSolverFlow.ts` ; tests unitaires solver + hook + flow ; surface protégée dans `frontendGuardrails.ts`.                                                                 |
 | **FFI-L20C** | Fermé      | `useAuth` allégé (~`204` LOC) + contrats `lib/auth/types.ts`, helpers `authLoginFlow.ts`, override `postLoginRedirect.ts` ; `Providers` composition (~`41` LOC) + `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys` ; tests useAuth + Providers + authLoginFlow ; guardrails mis à jour. |
 | **FFI-L20D** | Fermé      | Contrats `lib/badges/types.ts` ; dérivations pures présentation `lib/badges/badgePresentation.ts` (médailles, difficulté, tri grille, motivation verrouillée) ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` consomment les mêmes helpers ; tests `BadgeCard`, `BadgesProgressTabsSection`, `badgePresentation` ; budgets `PROTECTED` + entrées `REQUIRED_CANONICAL_LIB_FILES` dans `frontendGuardrails.ts`. |
+| **FFI-L20E** | Fermé      | `SettingsSecuritySection` allégée : carte confidentialité + `SettingsSessionsList` / `SettingsSessionRow` ; helpers purs `lib/settings/settingsSecurity.ts` (lignes privacy, localisation session, pagination visible) ; tests section + lib ; `useSettingsPageController` inchangé ; budget `PROTECTED` + fichier canonique dans `frontendGuardrails.ts`. |

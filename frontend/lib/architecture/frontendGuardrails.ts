@@ -163,6 +163,13 @@ export const PROTECTED_FRONTEND_SURFACES: readonly ProtectedFrontendSurface[] = 
     reason:
       "FFI-L20D: badges progress tabs; shared medal + motivation helpers from badgePresentation",
   },
+  {
+    relativePath: "components/settings/SettingsSecuritySection.tsx",
+    maxLines: 200,
+    category: "shared-facade",
+    reason:
+      "FFI-L20E: security tab facade; privacy card + SettingsSessionsList / settingsSecurity pure helpers",
+  },
 ];
 
 /** Dense seams explicitly tolerated until a dedicated split lot (not FFI-L17). */
@@ -285,6 +292,10 @@ export const REQUIRED_CANONICAL_LIB_FILES: readonly RequiredCanonicalLibFile[] =
     role: "Pure learning preferences helpers (FFI-L18A)",
   },
   { relativePath: "lib/settings/settingsPage.ts", role: "Pure settings page helpers (FFI-L13)" },
+  {
+    relativePath: "lib/settings/settingsSecurity.ts",
+    role: "Pure settings security/privacy/sessions presentation helpers (FFI-L20E)",
+  },
   { relativePath: "lib/badges/badgesPage.ts", role: "Pure badges page helpers (FFI-L12)" },
   {
     relativePath: "lib/admin/content/adminContentPage.ts",
@@ -389,6 +400,15 @@ export const OWNERSHIP_RULE_GROUPS: readonly OwnershipRuleGroup[] = [
       "Shared badge progress and API-shaped items live in lib/badges/types.ts (re-exported from useBadgesProgress / badgesPage where needed).",
       "Pure presentation logic — difficulty classes, medal SVG paths, grid sort, locked/in-progress motivation branches — lives in lib/badges/badgePresentation.ts.",
       "BadgeCard and BadgesProgressTabsSection remain view-first; they consume helpers instead of duplicating medal paths or >=50% motivation rules.",
+    ],
+  },
+  {
+    id: "ffi-l20e-settings-security",
+    summary: "Settings security tab structure (FFI-L20E)",
+    bullets: [
+      "SettingsSecuritySection composes the privacy card and SettingsSessionsList; session rows live in SettingsSessionRow.",
+      "Pure row-building and location/show-more math live in lib/settings/settingsSecurity.ts; page runtime stays in useSettingsPageController.",
+      "Progressive session disclosure and revoke confirmation UX remain unchanged; no new global store.",
     ],
   },
 ];

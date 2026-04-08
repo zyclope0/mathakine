@@ -86,17 +86,17 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 **Reliquats frontend encore actifs hors séquence FFI**
 
 - ~~`BadgeCard.tsx` / `BadgesProgressTabsSection.tsx`~~ : **FFI-L20D** a extrait les types et dérivations de présentation partagées (`lib/badges/types.ts`, `lib/badges/badgePresentation.ts`) ; les fichiers restent volumineux mais budgétés dans `PROTECTED_FRONTEND_SURFACES`.
-- `SettingsSecuritySection.tsx` reste une vue dense secondaire
+- ~~`SettingsSecuritySection.tsx`~~ : **FFI-L20E** — façade allégée + `SettingsSessionsList` / `SettingsSessionRow` + `lib/settings/settingsSecurity.ts` (budget `PROTECTED_FRONTEND_SURFACES`).
 - `ExerciseSolver.tsx` reste volumineux, mais n’est plus le seam critique qui pilotait la séquence FFI
 - une QA visuelle / a11y humaine reste utile sur les surfaces shared après les gros refactors
 
 **Conséquences visibles**
 
 - `app/profile/page.tsx` n'est plus une mega-page : la surface est passee a un container fin (~`191` LOC) avec `useProfilePageController.ts`, `lib/profile/profilePage.ts` et `components/profile/*`.
-- `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (reliquat : `SettingsSecuritySection` encore dense).
+- `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (onglet sécurité structuré en FFI-L20E).
 - `app/admin/content/page.tsx` n'est plus une mega-page : container ~`50` LOC avec `useAdminContentPageController`, `lib/admin/content/adminContentPage.ts`, `lib/admin/exercises/adminExerciseCoherence.ts` et `components/admin/content/*` (reliquat contrat/produit : difficulte liste exercices transitoire tant que `difficulty_tier` n'est pas garanti sur la liste admin API ; modales exercices encore en valeurs legacy pour l'edition).
 - `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
-- Apres FFI-L18B et FFI-L20D, le risque ne se concentre plus sur un seam dense majeur liste dans les garde-fous ; des vues secondaires denses (settings security, exercise solver facade, visualisations) restent documentees ailleurs dans cet audit.
+- Apres FFI-L18B, FFI-L20D et FFI-L20E, le risque ne se concentre plus sur un seam dense majeur liste dans les garde-fous ; des vues secondaires denses (exercise solver facade, visualisations défis, pages admin) restent documentees ailleurs dans cet audit.
 - La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
@@ -162,11 +162,12 @@ Decision d'execution :
 - `FFI-L20A` est maintenant livré : `app/dashboard/page.tsx` est ramené à une coque ~`174` LOC avec `hooks/useDashboardPageController.ts` et des sections `components/dashboard/Dashboard*Section.tsx`. Le dashboard sort donc de la liste des page-controllers massifs.
 - `FFI-L20B` est livré : `components/exercises/ExerciseSolver.tsx` est une façade de composition ; le runtime (review F04, session entrelacée, `sessionStorage`, navigation) vit dans `hooks/useExerciseSolverController.ts` ; dérivations pures dans `lib/exercises/exerciseSolverFlow.ts`.
 - `FFI-L20C` est livré : contrats `lib/auth/types.ts`, helpers `lib/auth/authLoginFlow.ts`, override `lib/auth/postLoginRedirect.ts` ; `useAuth.ts` reste la façade React Query + effets (sync, Sentry, routing, toasts) ; `Providers.tsx` est une composition racine avec `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys` + `AuthSyncProvider` / `AccessScopeSync`.
+- `FFI-L20E` est livré : `SettingsSecuritySection` reste la façade onglet sécurité ; `SettingsSessionsList` / `SettingsSessionRow` portent la liste sessions ; dérivations présentation dans `lib/settings/settingsSecurity.ts` ; runtime inchangé dans `useSettingsPageController`.
 
 ##### P2 — Dette DRY / duplication cachée
 
 - ~~Le domaine badges dupliquait types et mappings de présentation entre `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection`~~ — **FFI-L20D (2026-04-06)** : contrats partagés `lib/badges/types.ts`, helpers purs `lib/badges/badgePresentation.ts` ; vues inchangées côté UX.
-- Les pages admin read-heavy répètent un shell similaire (filtres + `PageHeader` + gestion `error/loading/empty` + cartes KPI) sans template partagé :
+- Les pages admin read-heavy répètent encore un shell similaire (filtres + `PageHeader` + gestion `error/loading/empty` + cartes KPI) sans template partagé :
   - `app/admin/analytics/page.tsx`
   - `app/admin/ai-monitoring/page.tsx`
   - `app/admin/page.tsx`
@@ -184,6 +185,7 @@ Decision d'execution :
 2. `FFI-L20B` est livré : `useExerciseSolverController.ts` + `exerciseSolverFlow.ts` + façade `ExerciseSolver.tsx` (budget gardé-fous).
 3. `FFI-L20C` est livré : types + helpers purs + sous-blocs providers (voir ci-dessus).
 4. `FFI-L20D` est livré : `lib/badges/types.ts` + `lib/badges/badgePresentation.ts` ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` réutilisent les mêmes dérivations (médailles, motivation, tri) ; tests de caractérisation ciblés ; budgets dans `PROTECTED_FRONTEND_SURFACES`.
+5. `FFI-L20E` est livré : `lib/settings/settingsSecurity.ts` + `SettingsSessionsList` / `SettingsSessionRow` ; `SettingsSecuritySection` reste la façade (confidentialité + liste sessions) ; tests de caractérisation ; pas de changement d’UX ni de déplacement du runtime hors `useSettingsPageController`.
 
 ---
 
@@ -495,7 +497,7 @@ Composants — états sémantiques :
 | `ChallengeSolverCommandBar.tsx`                            | ~169 (façade) | FFI-L18B : sous-blocs `ChallengeSolver*` + lib `challengeSolverCommandBar` |
 | `Header.tsx`                                               | 394           | Desktop + mobile + menu utilisateur encore couples                         |
 
-_Note : le container `app/settings/page.tsx` (~`133` LOC) est sorti de cette liste depuis FFI-L13 ; le reliquat dense côté paramètres est surtout `SettingsSecuritySection` (confidentialité + sessions)._
+_Note : le container `app/settings/page.tsx` (~`133` LOC) est sorti de cette liste depuis FFI-L13 ; l’onglet sécurité est structuré en FFI-L20E (`SettingsSecuritySection` + `SettingsSessionsList` / `SettingsSessionRow` + `lib/settings/settingsSecurity.ts`)._
 
 _Note : le shell `app/admin/content/page.tsx` est sorti de cette liste depuis FFI-L14 ; un reliquat **contrat/produit** subsiste sur la difficulté exercices admin (voir `session-plan` FFI-L14 et `DIFFICULTY_AND_RANKS_MANIFEST.md`)._
 
@@ -809,7 +811,7 @@ Resultat :
 
 Reliquat connu :
 
-- `SettingsSecuritySection.tsx` reste une vue dense (confidentialite + sessions actives sur la meme section)
+- ~~`SettingsSecuritySection.tsx` dense~~ : traité en **FFI-L20E** (sous-vues + `lib/settings/settingsSecurity.ts`).
 
 #### FFI-L14 - Decouper `app/admin/content/page.tsx`
 

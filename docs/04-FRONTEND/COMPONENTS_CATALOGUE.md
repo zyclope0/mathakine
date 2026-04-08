@@ -1,14 +1,14 @@
 ﻿# Catalogue des composants React â€” Mathakine
 
 > Scope : `frontend/components/`
-> Updated : 2026-04-08 (FFI-L20D badges presentation)
+> Updated : 2026-04-08 (FFI-L20E settings security)
 > Source : audit rÃ©pertoire + ARCHITECTURE.md
 
 ---
 
 ## Vue d'ensemble
 
-**199 composants TSX** repartis en 23 categories.
+**201 composants TSX** repartis en 23 categories.
 Tous les composants sont `"use client"` sauf indication contraire.
 
 ---
@@ -21,7 +21,7 @@ Tous les composants sont `"use client"` sauf indication contraire.
 | Dashboard     | `dashboard/`     | 34         | Widgets stats, visualisations et tabs sections                    |
 | DÃ©fis        | `challenges/`    | 30         | Interface dÃ©fis logiques + sous-blocs command bar (FFI-L18B)     |
 | Layout        | `layout/`        | 15         | Structure de page                                                 |
-| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin                        |
+| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin                         |
 | Spatial       | `spatial/`       | 6          | Animations et decor theme-aware                                   |
 | Exercices     | `exercises/`     | 9          | Interface exercices                                               |
 | Shared        | `shared/`        | 15         | Composants cross-domaine                                          |
@@ -36,7 +36,7 @@ Tous les composants sont `"use client"` sauf indication contraire.
 | Auth          | `auth/`          | 1          | ProtectedRoute                                                    |
 | Diagnostic    | `diagnostic/`    | 1          | Composant diagnostic                                              |
 | Feedback      | `feedback/`      | 1          | FAB retour utilisateur                                            |
-| Settings      | `settings/`      | 6          | Page paramÃ¨tres (sections + SaveButton)                          |
+| Settings      | `settings/`      | 8          | Page paramÃ¨tres (sections + SaveButton ; FFI-L20E sous-blocs sÃ©curitÃ©) |
 | PWA           | `pwa/`           | 1          | Prompt installation                                               |
 | Learner       | `learner/`       | 2          | LearnerCard + LearnerLayout                                       |
 | Racine        | `components/`    | 2          | LogoMathakine, LogoBadge                                          |
@@ -310,9 +310,9 @@ Shell `/admin/content` : onglets + domaines exercices / dÃ©fis / badges. Reliq
 
 ---
 
-## `settings/` â€” Page paramÃ¨tres (6)
+## `settings/` â€” Page paramÃ¨tres (8)
 
-Pattern FFI-L13 : `app/settings/page.tsx` (container) + `useSettingsPageController` + `lib/settings/settingsPage.ts`.
+Pattern FFI-L13 : `app/settings/page.tsx` (container) + `useSettingsPageController` + `lib/settings/settingsPage.ts` ; FFI-L20E : `lib/settings/settingsSecurity.ts` + `SettingsSessionsList` / `SettingsSessionRow`.
 
 | Composant                      | RÃ´le                                             |
 | ------------------------------ | ------------------------------------------------- |
@@ -320,7 +320,9 @@ Pattern FFI-L13 : `app/settings/page.tsx` (container) + `useSettingsPageControll
 | `SettingsSidebarNav`           | Select mobile + sidebar desktop (sections)        |
 | `SettingsGeneralSection`       | Langue, fuseau, sauvegarde gÃ©nÃ©ral              |
 | `SettingsNotificationsSection` | Interrupteurs notifications + sauvegarde          |
-| `SettingsSecuritySection`      | ConfidentialitÃ© + sessions actives (rÃ©vocation) |
+| `SettingsSecuritySection`      | FaÃ§ade onglet sÃ©curitÃ© : confidentialitÃ© + liste sessions (FFI-L20E) |
+| `SettingsSessionsList`         | Carte sessions : chargement, vide, pagination, rÃ©vocation |
+| `SettingsSessionRow`           | Ligne session + confirmation rÃ©vocation          |
 | `SettingsDataSection`          | Diagnostic, export donnÃ©es, suppression compte   |
 
 ---

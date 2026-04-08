@@ -1,14 +1,14 @@
 ﻿# Architecture Frontend â€” Mathakine
 
 > DerniÃ¨re mise Ã  jour : 08/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D)
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E)
 
 ---
 
 ## RÃ©fÃ©rences
 
 - [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 55 hooks React (rÃ´le, dÃ©pendances, couverture tests)
-- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 199 composants React (catÃ©gories, rÃ´les, conventions)
+- [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 201 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
 - [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
@@ -294,6 +294,10 @@ Les bullets detaillees sont alignees sur `OWNERSHIP_RULE_GROUPS` dans `frontendG
 #### FFI-L20D (architecture)
 
 - **FFI-L20D (livré)** : `lib/badges/types.ts` centralise les contrats partagés (progression badges, rareté, tri) consommés par `useBadgesProgress`, `lib/badges/badgesPage.ts` et les vues badges ; `lib/badges/badgePresentation.ts` porte les dérivations pures (chemins médailles, classes difficulté/glow, tri grille, filtres texte, branches motivation verrouillée / in-progress) ; `BadgeCard`, `BadgeGrid` et `BadgesProgressTabsSection` restent des vues pilotées par props et réutilisent ces helpers ; budgets dans `PROTECTED_FRONTEND_SURFACES` ; groupe d’ownership `ffi-l20d-badges-domain` dans `frontendGuardrails.ts`.
+
+#### FFI-L20E (architecture)
+
+- **FFI-L20E (livré)** : `SettingsSecuritySection.tsx` reste la façade de l’onglet sécurité (ordre : confidentialité puis sessions) ; `SettingsSessionsList.tsx` encapsule la carte sessions (chargement, vide, pagination) ; `SettingsSessionRow.tsx` isole une ligne session + flux révocation ; `lib/settings/settingsSecurity.ts` porte les modèles purs (`PRIVACY_TOGGLE_CONFIG`, `buildPrivacyToggleRows`, `resolveSessionLocationDisplay`, `computeVisibleCountAfterShowMore`) ; le runtime (sessions API, `sessionToRevoke`, handlers) reste dans `useSettingsPageController` ; groupe d’ownership `ffi-l20e-settings-security`.
 
 ### F04 review flow
 

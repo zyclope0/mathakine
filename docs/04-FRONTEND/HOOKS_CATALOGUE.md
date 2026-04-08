@@ -86,7 +86,7 @@
 | ------------------------------ | --------------------------------------------------------------------------------------- | ---- | -------- | -------------------------------------------------------- |
 | `useAuth.ts`                   | Facade auth (FFI-L20C) : session, login, register, logout, forgot-password ; contrats `lib/auth/types` + `authLoginFlow` | ✅   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
 | `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                               | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
-| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
+| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) ; UI sÃ©curitÃ© dÃ©coupÃ©e en sous-composants FFI-L20E sans dÃ©placer ce runtime | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
 
 ---
 
