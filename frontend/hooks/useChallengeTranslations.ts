@@ -50,6 +50,10 @@ export function useExerciseTypeDisplay() {
 
     const normalizedType = type.toLowerCase();
 
+    if (normalizedType === "all") {
+      return t("filters.allTypes");
+    }
+
     try {
       return t(`types.${normalizedType}`);
     } catch {

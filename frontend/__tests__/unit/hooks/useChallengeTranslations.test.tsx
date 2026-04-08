@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import fr from "@/messages/fr.json";
-import { useChallengeTypeDisplay } from "@/hooks/useChallengeTranslations";
+import { useChallengeTypeDisplay, useExerciseTypeDisplay } from "@/hooks/useChallengeTranslations";
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
@@ -24,5 +24,13 @@ describe("useChallengeTypeDisplay", () => {
     const { result } = renderHook(() => useChallengeTypeDisplay(), { wrapper });
 
     expect(result.current("sequence")).toBe(fr.challenges.types.sequence);
+  });
+});
+
+describe("useExerciseTypeDisplay", () => {
+  it("returns the dedicated filter label for the all sentinel", () => {
+    const { result } = renderHook(() => useExerciseTypeDisplay(), { wrapper });
+
+    expect(result.current("all")).toBe(fr.exercises.filters.allTypes);
   });
 });
