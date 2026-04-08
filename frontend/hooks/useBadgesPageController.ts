@@ -203,18 +203,33 @@ export function useBadgesPageController({
   const confettiRef = useRef(false);
   useEffect(() => {
     if (confettiRef.current || isLoading || earnedCount === 0) return;
+    if (process.env.NODE_ENV === "test" || process.env.VITEST === "true") return;
+
     const lastCount = parseInt(localStorage.getItem(CONFETTI_STORAGE_KEY) ?? "0", 10);
     if (earnedCount > lastCount) {
+      const hasCanvas2DContext =
+        typeof document !== "undefined" &&
+        typeof HTMLCanvasElement !== "undefined" &&
+        (() => {
+          const canvas = document.createElement("canvas");
+          return typeof canvas.getContext === "function" && canvas.getContext("2d") !== null;
+        })();
+      if (!hasCanvas2DContext) return;
+
       confettiRef.current = true;
       localStorage.setItem(CONFETTI_STORAGE_KEY, String(earnedCount));
-      import("canvas-confetti").then(({ default: confetti }) => {
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.4 },
-          colors: ["#facc15", "#a78bfa", "#34d399", "#60a5fa"],
+      import("canvas-confetti")
+        .then(({ default: confetti }) => {
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.4 },
+            colors: ["#facc15", "#a78bfa", "#34d399", "#60a5fa"],
+          });
+        })
+        .catch(() => {
+          // No-op: keep page stable when confetti cannot be loaded.
         });
-      });
     }
   }, [earnedCount, isLoading]);
 

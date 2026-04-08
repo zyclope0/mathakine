@@ -3,7 +3,12 @@ import { cleanup } from "@testing-library/react";
 import * as React from "react";
 import { afterEach, vi } from "vitest";
 
-// Nettoyer après chaque test (jsdom uniquement ; les suites @vitest-environment node n’ont pas `window`)
+// Stabilize test runtime: avoid booting real confetti animation loops in jsdom.
+vi.mock("canvas-confetti", () => ({
+  default: vi.fn(),
+}));
+
+// Cleanup after each test (jsdom only; node env suites do not have `window`)
 afterEach(() => {
   if (typeof window !== "undefined") {
     cleanup();
@@ -30,7 +35,7 @@ vi.mock("next/image", () => ({
   default: (props: React.ComponentProps<"img">) => React.createElement("img", props),
 }));
 
-// Mock window.matchMedia pour les media queries (jsdom uniquement)
+// Mock window.matchMedia for media queries (jsdom only)
 if (typeof window !== "undefined") {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
@@ -44,6 +49,28 @@ if (typeof window !== "undefined") {
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
     })),
+  });
+
+  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    writable: true,
+    value: vi.fn().mockReturnValue({
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fill: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      translate: vi.fn(),
+      rotate: vi.fn(),
+      scale: vi.fn(),
+      setTransform: vi.fn(),
+      arc: vi.fn(),
+      closePath: vi.fn(),
+      canvas: { width: 0, height: 0 },
+    }),
   });
 }
 
