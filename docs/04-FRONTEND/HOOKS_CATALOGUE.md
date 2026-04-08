@@ -73,7 +73,7 @@
 | Hook                         | RÃ´le                               | Test | RQ    | DÃ©pendances clÃ©s                       |
 | ---------------------------- | ----------------------------------- | ---- | ----- | ---------------------------------------- |
 | `useBadges.ts`               | Liste des badges obtenus            | âŒ   | Query | `GET /api/badges`                        |
-| `useBadgesProgress.ts`       | Progression vers badges non obtenus | âŒ   | Query | `GET /api/badges/progress`               |
+| `useBadgesProgress.ts`       | Progression vers badges non obtenus (types partagés `lib/badges/types.ts`, FFI-L20D) | âŒ   | Query | `GET /api/badges/progress`               |
 | `useBadgesPageController.ts` | Runtime local de la page badges     | ✅   | Aucun | helpers badges + localStorage + confetti |
 | `useLeaderboard.ts`          | Classement public paginÃ©           | âŒ   | Query | `GET /api/leaderboard`                   |
 | `useMyLeaderboardRank.ts`    | Rang de l'utilisateur courant       | âŒ   | Query | `GET /api/leaderboard/me`                |
@@ -147,7 +147,6 @@
 | `useAIExerciseGenerator.ts`  | Orchestre le flux SSE exercice â€” chemin principal de gÃ©nÃ©ration |
 | `useAIChallengeGenerator.ts` | Orchestre le flux SSE dÃ©fi â€” chemin principal de gÃ©nÃ©ration    |
 | `useExercises.ts`            | Hook principal de la page exercices                                 |
-| `useAuth.ts`                 | Gestion de session â€” impact sÃ©curitÃ©                            |
 | `useRecommendations.ts`      | Affiche les recommandations personnalisÃ©es                         |
 | `useSubmitAnswer.ts`         | Validation des rÃ©ponses â€” impact gamification                    |
 

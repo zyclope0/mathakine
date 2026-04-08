@@ -13,26 +13,14 @@ import {
   isKnownProgressionRankBucket,
 } from "@/lib/gamification/progressionRankLabel";
 import type { Badge, UserBadge } from "@/types/api";
-import type { BadgeProgressItem } from "@/hooks/useBadgesProgress";
+import type { BadgeProgressItem, ProgressMapEntry } from "@/lib/badges/types";
 
 // ─── Types exportés ───────────────────────────────────────────────────────────
 
 export type FilterStatus = "all" | "earned" | "locked" | "close";
 export type SortBy = "progress" | "date" | "points" | "category";
 
-export interface ProgressMapEntry {
-  current: number;
-  target: number;
-  progress: number;
-  progress_detail?: {
-    type: "success_rate";
-    total: number;
-    correct: number;
-    rate_pct: number;
-    min_attempts: number;
-    required_rate_pct: number;
-  };
-}
+export type { ProgressMapEntry } from "@/lib/badges/types";
 
 export interface RankInfo {
   title: string;

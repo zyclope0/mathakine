@@ -2,25 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
+import type { BadgeProgressItem } from "@/lib/badges/types";
 
-export interface SuccessRateProgressDetail {
-  type: "success_rate";
-  total: number;
-  correct: number;
-  rate_pct: number;
-  min_attempts: number;
-  required_rate_pct: number;
-}
-
-export interface BadgeProgressItem {
-  id: number;
-  code: string;
-  name: string;
-  progress?: number;
-  current?: number;
-  target?: number;
-  progress_detail?: SuccessRateProgressDetail;
-}
+export type { BadgeProgressItem, SuccessRateProgressDetail } from "@/lib/badges/types";
 
 export interface BadgesProgressData {
   unlocked: { id: number; code: string; name: string }[];

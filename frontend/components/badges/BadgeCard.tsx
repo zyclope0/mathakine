@@ -4,42 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTranslations, useLocale } from "next-intl";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
 import { Trophy, Lock, CheckCircle, Heart } from "lucide-react";
-import type { Badge, UserBadge } from "@/types/api";
-
-type BadgeWithCriteria = Badge & { criteria_text?: string | null };
+import type { UserBadge } from "@/types/api";
+import type { BadgeProgressSnapshot, BadgeWithCriteria, RarityInfo } from "@/lib/badges/types";
+import {
+  getDifficultyPresentationClasses,
+  isRareRarityInfo,
+  resolveCompactHighProgressMotivation,
+  hasPresentationMedal,
+  resolveIconGlowClass,
+  resolveMedalSvgPath,
+  shouldShowLockedMidMotivationLine,
+  shouldShowLockedZeroMotivationLine,
+} from "@/lib/badges/badgePresentation";
 import { cn } from "@/lib/utils";
 import { motion, type Variants, type Transition } from "framer-motion";
 import { BadgeIcon } from "./BadgeIcon";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 
-interface SuccessRateProgressDetail {
-  type: "success_rate";
-  total: number;
-  correct: number;
-  rate_pct: number;
-  min_attempts: number;
-  required_rate_pct: number;
-}
-
-interface BadgeProgress {
-  current: number;
-  target: number;
-  progress: number;
-  progress_detail?: SuccessRateProgressDetail;
-}
-
-interface RarityInfo {
-  unlock_count: number;
-  unlock_percent: number;
-  rarity: string;
-}
-
 interface BadgeCardProps {
   badge: BadgeWithCriteria;
   userBadge?: UserBadge | null;
   isEarned: boolean;
-  progress?: BadgeProgress | null;
+  progress?: BadgeProgressSnapshot | null;
   index?: number;
   rarity?: RarityInfo | null;
   isPinned?: boolean;
@@ -48,46 +35,6 @@ interface BadgeCardProps {
   compact?: boolean;
 }
 
-const defaultDifficultyColor = {
-  bg: "bg-amber-500/20",
-  text: "text-amber-400",
-  border: "border-amber-500/30",
-};
-
-const difficultyColors: Record<string, { bg: string; text: string; border: string }> = {
-  bronze: defaultDifficultyColor,
-  silver: {
-    bg: "bg-gray-400/20",
-    text: "text-gray-300",
-    border: "border-gray-400/30",
-  },
-  gold: {
-    bg: "bg-yellow-500/20",
-    text: "text-yellow-400",
-    border: "border-yellow-500/30",
-  },
-  legendary: {
-    bg: "bg-amber-400/25",
-    text: "text-amber-300",
-    border: "border-amber-400/40",
-  },
-};
-
-/** Couleur de glow derrière l'icône selon la difficulté */
-const GLOW_COLOR: Record<string, string> = {
-  bronze: "bg-orange-500",
-  silver: "bg-slate-300",
-  gold: "bg-yellow-400",
-  legendary: "bg-amber-400",
-};
-
-const MEDAL_SRCS: Record<string, string> = {
-  bronze: "/badges/svg/medal-bronze.svg",
-  silver: "/badges/svg/medal-silver.svg",
-  gold: "/badges/svg/medal.svg",
-  legendary: "/badges/svg/medal-diamond.svg",
-};
-
 function DifficultyMedal({
   difficulty,
   size = "sm",
@@ -95,12 +42,13 @@ function DifficultyMedal({
   difficulty?: string | null | undefined;
   size?: "xs" | "sm";
 }) {
-  if (!difficulty || !MEDAL_SRCS[difficulty]) return null;
+  if (!hasPresentationMedal(difficulty)) return null;
+  const src = resolveMedalSvgPath(difficulty);
   const cls = size === "xs" ? "h-4 w-4" : "h-3.5 w-3.5";
   return (
     /* eslint-disable-next-line @next/next/no-img-element */
     <img
-      src={MEDAL_SRCS[difficulty]}
+      src={src}
       alt=""
       className={`${cls} object-contain inline-block shrink-0`}
       aria-hidden="true"
@@ -124,19 +72,30 @@ export function BadgeCard({
   const locale = useLocale();
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
-  const getDifficultyColor = (
-    difficulty: string | null | undefined
-  ): { bg: string; text: string; border: string } => {
-    if (!difficulty) return defaultDifficultyColor;
-    const color = difficultyColors[difficulty];
-    if (color) {
-      return color;
-    }
-    return defaultDifficultyColor;
-  };
-
-  const difficultyColor = getDifficultyColor(badge.difficulty);
+  const difficultyColor = getDifficultyPresentationClasses(badge.difficulty);
   const thematicLine = readBadgeThematicTitleRaw(badge);
+
+  const lockedHighMotivation =
+    progress != null && progress.target > 0 && progress.progress >= 0.5
+      ? resolveCompactHighProgressMotivation(
+          progress.current,
+          progress.target,
+          progress.progress,
+          progress.progress_detail
+        )
+      : null;
+
+  const lockedMidMotivationVisible =
+    progress != null &&
+    shouldShowLockedMidMotivationLine(
+      progress.current,
+      progress.target,
+      progress.progress,
+      progress.progress_detail
+    );
+
+  const lockedZeroMotivationVisible =
+    progress != null && shouldShowLockedZeroMotivationLine(progress.progress, progress.target);
 
   // Variantes d'animation avec garde-fous
   const variants = createVariants({
@@ -208,12 +167,7 @@ export function BadgeCard({
 
             {/* Icône centrale avec glow */}
             <div className="relative flex items-center justify-center mt-1">
-              <div
-                className={cn(
-                  "badge-icon-glow",
-                  GLOW_COLOR[badge.difficulty ?? ""] ?? "bg-primary"
-                )}
-              />
+              <div className={cn("badge-icon-glow", resolveIconGlowClass(badge.difficulty))} />
               <BadgeIcon
                 code={badge.code}
                 iconUrl={badge.icon_url}
@@ -321,7 +275,7 @@ export function BadgeCard({
                     <CheckCircle className="h-5 w-5 text-green-400 shrink-0" aria-hidden="true" />
                   </>
                 )}
-                {!isEarned && rarity && rarity.rarity === "rare" && (
+                {!isEarned && isRareRarityInfo(rarity) && (
                   <BadgeComponent
                     variant="outline"
                     className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0"
@@ -363,7 +317,7 @@ export function BadgeCard({
                   {thematicLine}
                 </CardDescription>
               )}
-              {rarity && rarity.rarity === "rare" && (
+              {isRareRarityInfo(rarity) && (
                 <BadgeComponent
                   variant="outline"
                   className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0 w-fit"
@@ -469,36 +423,21 @@ export function BadgeCard({
                   - progress === 0 && target > 0 → label informatif froid (jamais commencé)
                   Le backend fournit current/target pour TOUS les badges non débloqués
                   dès que la rule est calculable — pas besoin de données inventées. */}
-              {progress && progress.target > 0 && progress.progress >= 0.5 && (
+              {lockedHighMotivation && (
                 <p className="text-sm font-semibold text-amber-500/90" role="status">
-                  {progress.progress_detail?.type === "success_rate"
-                    ? progress.progress_detail.rate_pct >=
-                      progress.progress_detail.required_rate_pct
-                      ? t("tuApproches")
-                      : t("plusQueCorrect", {
-                          count:
-                            Math.ceil(
-                              (progress.progress_detail.total *
-                                progress.progress_detail.required_rate_pct) /
-                                100
-                            ) - progress.progress_detail.correct,
-                        })
-                    : progress.target - progress.current > 0
-                      ? t("plusQue", { count: progress.target - progress.current })
-                      : t("tuApproches")}
+                  {lockedHighMotivation.kind === "tuApproches" && t("tuApproches")}
+                  {lockedHighMotivation.kind === "plusQueCorrect" &&
+                    t("plusQueCorrect", { count: lockedHighMotivation.count })}
+                  {lockedHighMotivation.kind === "plusQue" &&
+                    t("plusQue", { count: lockedHighMotivation.count })}
                 </p>
               )}
-              {progress &&
-                progress.target > 0 &&
-                progress.progress > 0 &&
-                progress.progress < 0.5 && (
-                  <p className="text-xs text-muted-foreground" role="status">
-                    {progress.progress_detail?.type !== "success_rate" &&
-                      progress.target - progress.current > 0 &&
-                      t("plusQue", { count: progress.target - progress.current })}
-                  </p>
-                )}
-              {progress && progress.target > 0 && progress.progress === 0 && (
+              {lockedMidMotivationVisible && progress && (
+                <p className="text-xs text-muted-foreground" role="status">
+                  {t("plusQue", { count: progress.target - progress.current })}
+                </p>
+              )}
+              {lockedZeroMotivationVisible && progress && (
                 <p className="text-xs text-muted-foreground" role="status">
                   {progress.progress_detail?.type === "success_rate"
                     ? t("successRateTarget", {

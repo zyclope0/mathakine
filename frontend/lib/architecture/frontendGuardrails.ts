@@ -149,6 +149,20 @@ export const PROTECTED_FRONTEND_SURFACES: readonly ProtectedFrontendSurface[] = 
     reason:
       "FFI-L20C: root provider composition; theme/a11y sync in ThemeBootstrap + Accessibility*",
   },
+  {
+    relativePath: "components/badges/BadgeCard.tsx",
+    maxLines: 520,
+    category: "shared-facade",
+    reason:
+      "FFI-L20D: badge card presentation; difficulty/rarity/progress derivations in lib/badges/badgePresentation",
+  },
+  {
+    relativePath: "components/badges/BadgesProgressTabsSection.tsx",
+    maxLines: 280,
+    category: "shared-facade",
+    reason:
+      "FFI-L20D: badges progress tabs; shared medal + motivation helpers from badgePresentation",
+  },
 ];
 
 /** Dense seams explicitly tolerated until a dedicated split lot (not FFI-L17). */
@@ -294,6 +308,14 @@ export const REQUIRED_CANONICAL_LIB_FILES: readonly RequiredCanonicalLibFile[] =
     role: "Pure exercise solver flow helpers (FFI-L20B)",
   },
   {
+    relativePath: "lib/badges/types.ts",
+    role: "Shared badge progress / rarity contracts (FFI-L20D)",
+  },
+  {
+    relativePath: "lib/badges/badgePresentation.ts",
+    role: "Pure badge UI presentation helpers — difficulty, medals, sort, motivation (FFI-L20D)",
+  },
+  {
     relativePath: "lib/auth/types.ts",
     role: "Shared frontend auth payload/response types (FFI-L20C)",
   },
@@ -358,6 +380,15 @@ export const OWNERSHIP_RULE_GROUPS: readonly OwnershipRuleGroup[] = [
       "Shared auth payload/response types and pure flow branches live under lib/auth/types.ts and lib/auth/authLoginFlow.ts; post-login redirect override lives in lib/auth/postLoginRedirect.ts (not a React store).",
       "hooks/useAuth.ts remains the single public hook facade for login/register/logout/forgot-password and React Query cache wiring.",
       "components/providers/Providers.tsx composes root providers only; theme DOM sync, accessibility class sync, and global a11y hotkeys live in ThemeBootstrap / AccessibilityDomSync / AccessibilityHotkeys.",
+    ],
+  },
+  {
+    id: "ffi-l20d-badges-domain",
+    summary: "Badges presentation contracts (FFI-L20D)",
+    bullets: [
+      "Shared badge progress and API-shaped items live in lib/badges/types.ts (re-exported from useBadgesProgress / badgesPage where needed).",
+      "Pure presentation logic — difficulty classes, medal SVG paths, grid sort, locked/in-progress motivation branches — lives in lib/badges/badgePresentation.ts.",
+      "BadgeCard and BadgesProgressTabsSection remain view-first; they consume helpers instead of duplicating medal paths or >=50% motivation rules.",
     ],
   },
 ];

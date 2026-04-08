@@ -6,35 +6,19 @@ import { LoadingState } from "@/components/layout/LoadingState";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
+import type { BadgeProgressSnapshot, BadgeSortBy, RarityInfo } from "@/lib/badges/types";
+import {
+  buildEarnedUserBadgeMap,
+  filterBadgesWithNameOrCode,
+  sortBadgesForGrid,
+} from "@/lib/badges/badgePresentation";
 
-interface SuccessRateProgressDetail {
-  type: "success_rate";
-  total: number;
-  correct: number;
-  rate_pct: number;
-  min_attempts: number;
-  required_rate_pct: number;
-}
-
-interface BadgeProgress {
-  current: number;
-  target: number;
-  progress: number;
-  progress_detail?: SuccessRateProgressDetail;
-}
-
-export type BadgeSortBy = "progress" | "date" | "points" | "category";
-
-export interface RarityInfo {
-  unlock_count: number;
-  unlock_percent: number;
-  rarity: string;
-}
+export type { BadgeSortBy, RarityInfo } from "@/lib/badges/types";
 
 interface BadgeGridProps {
   badges: Badge[];
   earnedBadges: UserBadge[];
-  progressMap?: Record<number, BadgeProgress>;
+  progressMap?: Record<number, BadgeProgressSnapshot>;
   isLoading?: boolean;
   sortBy?: BadgeSortBy;
   rarityMap?: Record<string, RarityInfo>;
@@ -59,20 +43,13 @@ export function BadgeGrid({
 }: BadgeGridProps) {
   const { shouldReduceMotion } = useAccessibleAnimation();
 
-  // Créer un map des badges obtenus pour accès rapide (par ID)
-  const earnedBadgeMap = new Map<number, UserBadge>();
-  earnedBadges.forEach((userBadge) => {
-    earnedBadgeMap.set(userBadge.id, userBadge);
-  });
+  const earnedBadgeMap = buildEarnedUserBadgeMap(earnedBadges);
 
   if (isLoading) {
     return <LoadingState className="min-h-0 py-12" />;
   }
 
-  // Filtrer les badges invalides (sans nom ou code)
-  const validBadges = badges.filter((badge) => {
-    return badge.name || badge.code;
-  });
+  const validBadges = filterBadgesWithNameOrCode(badges);
 
   if (validBadges.length === 0) {
     return (
@@ -82,47 +59,10 @@ export function BadgeGrid({
     );
   }
 
-  // Trier les badges selon sortBy (A-3)
-  const sortedBadges = [...validBadges].sort((a, b) => {
-    const aEarned = earnedBadgeMap.has(a.id);
-    const bEarned = earnedBadgeMap.has(b.id);
-
-    if (sortBy === "progress") {
-      const aProg = progressMap?.[a.id]?.progress ?? (aEarned ? 1 : 0);
-      const bProg = progressMap?.[b.id]?.progress ?? (bEarned ? 1 : 0);
-      return bProg - aProg;
-    }
-    if (sortBy === "date") {
-      const aDate = earnedBadgeMap.get(a.id)?.earned_at ?? "";
-      const bDate = earnedBadgeMap.get(b.id)?.earned_at ?? "";
-      if (aDate && bDate) return new Date(bDate).getTime() - new Date(aDate).getTime();
-      if (aDate) return -1;
-      if (bDate) return 1;
-      return 0;
-    }
-    if (sortBy === "points") {
-      const aPt = a.points_reward ?? (a as UserBadge).points ?? 0;
-      const bPt = b.points_reward ?? (b as UserBadge).points ?? 0;
-      return bPt - aPt;
-    }
-
-    // category (défaut) : obtenus en premier, puis catégorie, difficulté
-    if (aEarned && !bEarned) return -1;
-    if (!aEarned && bEarned) return 1;
-    const categoryOrder: Record<string, number> = { progression: 0, mastery: 1, special: 2 };
-    const aCategory = a.category || "";
-    const bCategory = b.category || "";
-    const categoryDiff = (categoryOrder[aCategory] ?? 999) - (categoryOrder[bCategory] ?? 999);
-    if (categoryDiff !== 0) return categoryDiff;
-    const difficultyOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2, legendary: 3 };
-    const aDifficulty = a.difficulty || "";
-    const bDifficulty = b.difficulty || "";
-    return (difficultyOrder[aDifficulty] ?? 999) - (difficultyOrder[bDifficulty] ?? 999);
-  });
+  const sortedBadges = sortBadgesForGrid(validBadges, earnedBadgeMap, progressMap, sortBy);
 
   const displayBadges = limit != null ? sortedBadges.slice(0, limit) : sortedBadges;
 
-  // Variantes pour le conteneur avec staggerChildren
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {

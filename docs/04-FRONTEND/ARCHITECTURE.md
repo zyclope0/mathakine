@@ -1,7 +1,7 @@
 ﻿# Architecture Frontend â€” Mathakine
 
 > DerniÃ¨re mise Ã  jour : 08/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L18A/B splits)
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D)
 
 ---
 
@@ -80,7 +80,7 @@ frontend/
 â”‚   â”œâ”€â”€ accessibility/            # AccessibilityToolbar, WCAGAudit (dev)
 â”‚   â”œâ”€â”€ admin/                    # Modales CRUD + `content/` sections page contenu admin
 â”‚   â”œâ”€â”€ auth/                     # ProtectedRoute, EmailVerification
-â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid, sections de la page badges
+â”‚   â”œâ”€â”€ badges/                   # BadgeCard, BadgeGrid, sections ; présentation partagée lib/badges/types + badgePresentation (FFI-L20D)
 â”‚   â”œâ”€â”€ challenges/               # ChallengeCard, ChallengeSolver + blocs split + ChallengeModal
 â”‚   â”‚   â””â”€â”€ visualizations/       # Renderers (Pattern, Sequence, Visual, Deductionâ€¦)
 â”‚   â”œâ”€â”€ dashboard/                # Widgets + tabs sections dashboard (FFI-L20A)
@@ -290,6 +290,10 @@ Les bullets detaillees sont alignees sur `OWNERSHIP_RULE_GROUPS` dans `frontendG
 #### FFI-L20C (architecture)
 
 - **FFI-L20C (livré)** : `lib/auth/types.ts` centralise les payloads/réponses consommés par `useAuth` ; `lib/auth/authLoginFlow.ts` porte les branches pures (401 sur `/me`, messages d’erreur login) ; `lib/auth/postLoginRedirect.ts` isole l’override de redirection post-login (inscription → auto-login) sans store React global ; `hooks/useAuth.ts` reste la façade publique (mutations, cache, Sentry, navigation, toasts, sync cookie) ; `components/providers/Providers.tsx` orchestre uniquement les providers ; effets thème / classes a11y / raccourcis clavier dans `ThemeBootstrap`, `AccessibilityDomSync`, `AccessibilityHotkeys`.
+
+#### FFI-L20D (architecture)
+
+- **FFI-L20D (livré)** : `lib/badges/types.ts` centralise les contrats partagés (progression badges, rareté, tri) consommés par `useBadgesProgress`, `lib/badges/badgesPage.ts` et les vues badges ; `lib/badges/badgePresentation.ts` porte les dérivations pures (chemins médailles, classes difficulté/glow, tri grille, filtres texte, branches motivation verrouillée / in-progress) ; `BadgeCard`, `BadgeGrid` et `BadgesProgressTabsSection` restent des vues pilotées par props et réutilisent ces helpers ; budgets dans `PROTECTED_FRONTEND_SURFACES` ; groupe d’ownership `ffi-l20d-badges-domain` dans `frontendGuardrails.ts`.
 
 ### F04 review flow
 

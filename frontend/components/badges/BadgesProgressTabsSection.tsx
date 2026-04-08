@@ -18,6 +18,11 @@ import type { Badge } from "@/types/api";
 import type { BadgeProgressItem } from "@/hooks/useBadgesProgress";
 import type { RarityInfo } from "@/components/badges/BadgeGrid";
 import type { SortBy, ProgressMapEntry } from "@/lib/badges/badgesPage";
+import type { SuccessRateProgressDetail } from "@/lib/badges/types";
+import {
+  resolveCompactHighProgressMotivation,
+  resolveMedalSvgPath,
+} from "@/lib/badges/badgePresentation";
 
 const TO_UNLOCK_PREVIEW = 12;
 
@@ -99,15 +104,7 @@ export function BadgesProgressTabsSection({
                 const fullBadge = availableBadges.find((b) => b.id === badge.id);
                 const criteriaText =
                   fullBadge?.criteria_text || (badge as { criteria_text?: string }).criteria_text;
-                const detail = badge.progress_detail as
-                  | {
-                      type: "success_rate";
-                      correct: number;
-                      total: number;
-                      rate_pct: number;
-                      required_rate_pct: number;
-                    }
-                  | undefined;
+                const detail = badge.progress_detail as SuccessRateProgressDetail | undefined;
                 const displayText =
                   detail?.type === "success_rate"
                     ? formatSuccessRate({
@@ -122,14 +119,13 @@ export function BadgesProgressTabsSection({
                 ]
                   .filter(Boolean)
                   .join("\n");
-                const difficultyMedalSrc =
-                  fullBadge?.difficulty === "gold"
-                    ? "/badges/svg/medal.svg"
-                    : fullBadge?.difficulty === "silver"
-                      ? "/badges/svg/medal-silver.svg"
-                      : fullBadge?.difficulty === "legendary"
-                        ? "/badges/svg/medal-diamond.svg"
-                        : "/badges/svg/medal-bronze.svg";
+                const difficultyMedalSrc = resolveMedalSvgPath(fullBadge?.difficulty);
+                const tabHighMotivation = resolveCompactHighProgressMotivation(
+                  badge.current ?? 0,
+                  badge.target ?? 0,
+                  badge.progress ?? 0,
+                  detail
+                );
 
                 return (
                   <TooltipProvider key={badge.id}>
@@ -158,20 +154,17 @@ export function BadgesProgressTabsSection({
                                 {displayText}
                               </span>
                             </div>
-                            {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
-                              <p className="text-sm font-semibold text-amber-500/90 mb-1">
-                                {detail?.type === "success_rate"
-                                  ? detail.rate_pct >= detail.required_rate_pct
-                                    ? tuApproches
-                                    : formatPlusQueCorrect(
-                                        Math.ceil((detail.total * detail.required_rate_pct) / 100) -
-                                          detail.correct
-                                      )
-                                  : (badge.target ?? 0) - (badge.current ?? 0) > 0
-                                    ? formatPlusQue((badge.target ?? 0) - (badge.current ?? 0))
-                                    : tuApproches}
-                              </p>
-                            )}
+                            {(badge.progress ?? 0) >= 0.5 &&
+                              (badge.target ?? 0) > 0 &&
+                              tabHighMotivation && (
+                                <p className="text-sm font-semibold text-amber-500/90 mb-1">
+                                  {tabHighMotivation.kind === "tuApproches" && tuApproches}
+                                  {tabHighMotivation.kind === "plusQueCorrect" &&
+                                    formatPlusQueCorrect(tabHighMotivation.count)}
+                                  {tabHighMotivation.kind === "plusQue" &&
+                                    formatPlusQue(tabHighMotivation.count)}
+                                </p>
+                              )}
                             {badge.progress != null && (
                               <div
                                 className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"

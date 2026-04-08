@@ -41,7 +41,7 @@ Les changements backend hors périmètre roadmap frontend doivent rester **petit
 - les garde-fous d’architecture restent la protection active contre la rechute en monolithes
 - il n’existe plus de dense exception ouverte dans `ALLOWED_DENSE_EXCEPTIONS`
 - la suite frontend ne relève plus d’un gros chantier de découpage générique, mais d’un **durcissement ciblé** :
-  - vues encore denses hors exception formelle (`BadgeCard`, `BadgesProgressTabsSection`, `SettingsSecuritySection`)
+  - vues encore denses hors exception formelle (`SettingsSecuritySection`, et surfaces admin read-heavy listées dans l’audit actif)
   - homogénéisation design-system/premium encore partielle
   - QA visuelle et a11y humaine sur les surfaces partagées
 
@@ -56,13 +56,14 @@ Constat de pilotage :
   - ~~`components/exercises/ExerciseSolver.tsx`~~ (FFI-L20B : façade + controller)
   - ~~`hooks/useAuth.ts`~~ (FFI-L20C : facade + lib/auth seams)
   - ~~`components/providers/Providers.tsx`~~ (FFI-L20C : composition + sous-blocs sync)
-  - domaine badges (`BadgeCard`, `BadgeGrid`, `BadgesProgressTabsSection`)
+  - ~~domaine badges (présentation centralisée `lib/badges/types.ts` + `badgePresentation.ts`, FFI-L20D)~~
 
 Prochaines itérations architecturales recommandées :
 
 1. ~~`FFI-L20A`~~ — dashboard : **fermé**
 2. ~~`FFI-L20B`~~ — solver exercices : **fermé**
 3. ~~`FFI-L20C`~~ — noyau auth/provider : **fermé** (`lib/auth/types`, `authLoginFlow`, `postLoginRedirect` ; `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys`)
+4. ~~`FFI-L20D`~~ — domaine badges (contrats + helpers purs partagés) : **fermé**
 
 ### Avancement FFI-L20 — 2026-04-08
 
@@ -71,3 +72,4 @@ Prochaines itérations architecturales recommandées :
 | **FFI-L20A** | Fermé      | `app/dashboard/page.tsx` est ramené à une coque ~`174` LOC ; runtime déplacé dans `hooks/useDashboardPageController.ts` (~`137` LOC) ; tabs sorties vers `components/dashboard/Dashboard*Section.tsx` et `DashboardTabsNav.tsx` ; tests page + hook ; surface désormais gardée dans `frontendGuardrails.ts`. |
 | **FFI-L20B** | Fermé      | `ExerciseSolver.tsx` façade ~`366` LOC ; runtime dans `hooks/useExerciseSolverController.ts` ; helpers purs `lib/exercises/exerciseSolverFlow.ts` ; tests unitaires solver + hook + flow ; surface protégée dans `frontendGuardrails.ts`.                                                                 |
 | **FFI-L20C** | Fermé      | `useAuth` allégé (~`204` LOC) + contrats `lib/auth/types.ts`, helpers `authLoginFlow.ts`, override `postLoginRedirect.ts` ; `Providers` composition (~`41` LOC) + `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys` ; tests useAuth + Providers + authLoginFlow ; guardrails mis à jour. |
+| **FFI-L20D** | Fermé      | Contrats `lib/badges/types.ts` ; dérivations pures présentation `lib/badges/badgePresentation.ts` (médailles, difficulté, tri grille, motivation verrouillée) ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` consomment les mêmes helpers ; tests `BadgeCard`, `BadgesProgressTabsSection`, `badgePresentation` ; budgets `PROTECTED` + entrées `REQUIRED_CANONICAL_LIB_FILES` dans `frontendGuardrails.ts`. |

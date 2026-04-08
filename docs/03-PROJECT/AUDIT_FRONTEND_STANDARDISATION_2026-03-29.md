@@ -44,7 +44,7 @@
 
 ### Points faibles
 
-- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants secondaires (`BadgeCard`, certaines visualisations) ; `ExerciseSolver` est une façade (FFI-L20B) avec runtime dans `useExerciseSolverController` ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
+- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des visualisations défis et pages admin ; le domaine badges a ses dérivations présentation centralisées (**FFI-L20D**) ; `ExerciseSolver` est une façade (FFI-L20B) avec runtime dans `useExerciseSolverController` ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
 - **Plateforme content-list** : standardisee (`FFI-L15`) ; generators, cards et comportements route restent domaine-specifiques par design
 - **Dette shell / chatbot global** : classee **fermee** cote architecture frontend (`FFI-L16`) — ownership `components/chat/` ; decision produit invite documentee (FAB, quota session 5, autorite rate-limit serveur)
 - **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées et homogénéisation premium restent encore possibles, mais relèvent désormais d'une phase de polish ciblée plus que d'un chantier structurel prioritaire
@@ -85,8 +85,7 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 
 **Reliquats frontend encore actifs hors séquence FFI**
 
-- `BadgeCard.tsx` reste une vue dense candidate à un lot ciblé ultérieur
-- `BadgesProgressTabsSection.tsx` reste une vue dense secondaire
+- ~~`BadgeCard.tsx` / `BadgesProgressTabsSection.tsx`~~ : **FFI-L20D** a extrait les types et dérivations de présentation partagées (`lib/badges/types.ts`, `lib/badges/badgePresentation.ts`) ; les fichiers restent volumineux mais budgétés dans `PROTECTED_FRONTEND_SURFACES`.
 - `SettingsSecuritySection.tsx` reste une vue dense secondaire
 - `ExerciseSolver.tsx` reste volumineux, mais n’est plus le seam critique qui pilotait la séquence FFI
 - une QA visuelle / a11y humaine reste utile sur les surfaces shared après les gros refactors
@@ -97,7 +96,7 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 - `app/settings/page.tsx` n'est plus une mega-page : container ~`133` LOC avec `useSettingsPageController.ts`, `lib/settings/settingsPage.ts` et `components/settings/*` (reliquat : `SettingsSecuritySection` encore dense).
 - `app/admin/content/page.tsx` n'est plus une mega-page : container ~`50` LOC avec `useAdminContentPageController`, `lib/admin/content/adminContentPage.ts`, `lib/admin/exercises/adminExerciseCoherence.ts` et `components/admin/content/*` (reliquat contrat/produit : difficulte liste exercices transitoire tant que `difficulty_tier` n'est pas garanti sur la liste admin API ; modales exercices encore en valeurs legacy pour l'edition).
 - `ExerciseSolver.tsx` n'est plus le seam principal ; le split `ChallengeSolver` est lui aussi livré.
-- Apres FFI-L18B, le risque ne se concentre plus sur un seam dense majeur liste dans les garde-fous ; des vues secondaires denses (badges, settings, exercise solver) restent documentees ailleurs dans cet audit.
+- Apres FFI-L18B et FFI-L20D, le risque ne se concentre plus sur un seam dense majeur liste dans les garde-fous ; des vues secondaires denses (settings security, exercise solver facade, visualisations) restent documentees ailleurs dans cet audit.
 - La duplication AIGenerator n'est plus le sujet principal ; le vrai enjeu devient la discipline de découpage des surfaces et la standardisation des patterns shared.
 
 ### 1.2 Addendum roles canoniques et NI-13 — 2026-04-04
@@ -166,10 +165,7 @@ Decision d'execution :
 
 ##### P2 — Dette DRY / duplication cachée
 
-- Le domaine badges duplique encore des types et mappings de présentation :
-  - `components/badges/BadgeCard.tsx`
-  - `components/badges/BadgeGrid.tsx`
-  - `components/badges/BadgesProgressTabsSection.tsx`
+- ~~Le domaine badges dupliquait types et mappings de présentation entre `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection`~~ — **FFI-L20D (2026-04-06)** : contrats partagés `lib/badges/types.ts`, helpers purs `lib/badges/badgePresentation.ts` ; vues inchangées côté UX.
 - Les pages admin read-heavy répètent un shell similaire (filtres + `PageHeader` + gestion `error/loading/empty` + cartes KPI) sans template partagé :
   - `app/admin/analytics/page.tsx`
   - `app/admin/ai-monitoring/page.tsx`
@@ -187,6 +183,7 @@ Decision d'execution :
 1. `FFI-L20A` est livré : `useDashboardPageController.ts` + sections `components/dashboard/*` sortent désormais l’orchestration de `app/dashboard/page.tsx`.
 2. `FFI-L20B` est livré : `useExerciseSolverController.ts` + `exerciseSolverFlow.ts` + façade `ExerciseSolver.tsx` (budget gardé-fous).
 3. `FFI-L20C` est livré : types + helpers purs + sous-blocs providers (voir ci-dessus).
+4. `FFI-L20D` est livré : `lib/badges/types.ts` + `lib/badges/badgePresentation.ts` ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` réutilisent les mêmes dérivations (médailles, motivation, tri) ; tests de caractérisation ciblés ; budgets dans `PROTECTED_FRONTEND_SURFACES`.
 
 ---
 
@@ -317,7 +314,7 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 | `components/challenges/visualizations/VisualRenderer.tsx`    | 625 | Visualisation générique défis                   |
 | `app/admin/ai-monitoring/page.tsx`                           | 587 | Monitoring IA admin                             |
 | `components/challenges/visualizations/CodingRenderer.tsx`    | 586 | Renderer code                                   |
-| `components/badges/BadgeCard.tsx`                            | 534 | Carte badge riche / compacte / expand           |
+| `components/badges/BadgeCard.tsx`                            | ~496 | Carte badge (FFI-L20D : dérivations partagées dans `lib/badges/badgePresentation.ts`) |
 | `components/challenges/visualizations/DeductionRenderer.tsx` | 482 | Renderer déduction                              |
 | `app/leaderboard/page.tsx`                                   | 452 | Podium + classements + états communautaires     |
 
@@ -795,10 +792,9 @@ Resultat :
 - filtres, stats, progression, collection et vitrines sont maintenant separables et testables
 - les tests de caracterisation page badges ont ete stabilises (plus d'import dynamique repete dans la suite)
 
-Reliquat connu :
+Reliquat connu (post–FFI-L20D) :
 
-- `BadgesProgressTabsSection.tsx` reste une vue dense (~`250` LOC)
-- `BadgeCard.tsx` reste hors lot et demeure un candidat naturel pour une phase ulterieure
+- `BadgeCard.tsx` et `BadgesProgressTabsSection.tsx` restent des vues riches mais leurs branches de présentation dupliquées sont extraites vers `lib/badges/badgePresentation.ts` ; régression visuelle couverte par tests de caractérisation ciblés + budgets `frontendGuardrails.ts`.
 
 #### FFI-L13 - Modulariser `app/settings/page.tsx`
 
