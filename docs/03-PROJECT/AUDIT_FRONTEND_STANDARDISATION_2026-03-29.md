@@ -172,10 +172,7 @@ Decision d'execution :
 
 ##### P3 — Standards / best-practices React-Next
 
-- Des pages d’information très peu interactives restent en `use client` au niveau route :
-  - `app/about/page.tsx`
-  - `app/privacy/page.tsx`
-- Cela n’est pas cassé fonctionnellement, mais laisse de la valeur SSR/RSC sur la table alors que leur interactivité réelle est faible ou nulle.
+- ~~Des pages d’information très peu interactives restent en `use client`~~ — **FFI-L20G (2026-04-08)** : `app/about/page.tsx` et `app/privacy/page.tsx` sont des Server Components avec `getTranslations` ; le lot reste local à ces routes et n’introduit pas de refonte i18n/proxy globale.
 
 #### Plan d’action recommandé
 
@@ -185,6 +182,7 @@ Decision d'execution :
 4. `FFI-L20D` est livré : `lib/badges/types.ts` + `lib/badges/badgePresentation.ts` ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` réutilisent les mêmes dérivations (médailles, motivation, tri) ; tests de caractérisation ciblés ; budgets dans `PROTECTED_FRONTEND_SURFACES`.
 5. `FFI-L20E` est livré : `lib/settings/settingsSecurity.ts` + `SettingsSessionsList` / `SettingsSessionRow` ; `SettingsSecuritySection` reste la façade (confidentialité + liste sessions) ; tests de caractérisation ; pas de changement d’UX ni de déplacement du runtime hors `useSettingsPageController`.
 6. `FFI-L20F` est livré : shell read-heavy admin partagé + tests pages admin ; pas de fusion des hooks `useAdmin*` ; cartes KPI et contenus restent par page.
+7. `FFI-L20G` est livré : `app/about/page.tsx` et `app/privacy/page.tsx` en Server Components + `getTranslations` ; tests unitaires ciblés ; aucun redesign ni refonte i18n globale.
 
 ---
 

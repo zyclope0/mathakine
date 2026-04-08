@@ -164,6 +164,7 @@ frontend/
 - **`"use client"`** : Requis pour interactivitÃ© (Ã©tat, hooks, events)
 - **Hooks** : Toujours `"use client"`
 - Les pages admin utilisent toutes `"use client"` (donnÃ©es dynamiques)
+- Pages informatives **server-first** : `app/about/page.tsx` et `app/privacy/page.tsx` utilisent `getTranslations` (next-intl serveur) ; ce lot ne modifie pas l’architecture i18n globale au-delà de ces routes.
 
 ### State management
 

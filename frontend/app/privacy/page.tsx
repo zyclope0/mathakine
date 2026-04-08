@@ -1,12 +1,10 @@
-"use client";
-
 import { Shield } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { PageLayout, PageSection } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { useTranslations } from "next-intl";
 
-export default function PrivacyPage() {
-  const t = useTranslations("privacy");
+export default async function PrivacyPage() {
+  const t = await getTranslations("privacy");
 
   return (
     <PageLayout maxWidth="2xl">

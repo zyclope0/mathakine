@@ -76,7 +76,8 @@ Visible product train:
 - `FFI-L20D` is now closed (badges presentation domain): shared contracts in `frontend/lib/badges/types.ts` ; pure presentation helpers in `frontend/lib/badges/badgePresentation.ts` (medal paths, difficulty/glow, grid sort, locked motivation branches) consumed by `BadgeCard`, `BadgeGrid`, `BadgesProgressTabsSection` ; characterization tests + `PROTECTED_FRONTEND_SURFACES` budgets + `REQUIRED_CANONICAL_LIB_FILES` entries ; no intentional UX change
 - `FFI-L20E` is now closed (settings security tab): `frontend/components/settings/SettingsSecuritySection.tsx` composes the privacy card + `SettingsSessionsList` / `SettingsSessionRow` ; pure helpers in `frontend/lib/settings/settingsSecurity.ts` (privacy row model, session location line, show-more count) ; `useSettingsPageController` unchanged ; characterization tests + guardrails ; no intentional UX change
 - `FFI-L20F` is now closed (admin read-heavy shell): `frontend/components/admin/AdminReadHeavyPageShell.tsx` + `AdminStatePanel.tsx` deduplicate `PageHeader` / toolbar / error-loading-empty structure for `app/admin/analytics/page.tsx` and `app/admin/ai-monitoring/page.tsx` ; `app/admin/page.tsx` uses `AdminStatePanel` only inside its existing layout ; admin domain hooks unchanged ; characterization tests ; required seams + ownership in `frontendGuardrails.ts` ; no intentional UX change
-- next frontend architecture focus: `FFI-L20G` (about/privacy RSC) and polish per audit — no open FFI-L20F seam
+- `FFI-L20G` is now closed (informative pages RSC): `frontend/app/about/page.tsx` and `frontend/app/privacy/page.tsx` use `getTranslations` (no route-level `use client`) ; no global i18n/proxy rewrite in this lot ; unit tests under `__tests__/unit/app/about|privacy/`
+- next frontend architecture focus: `FFI-L20H` (QA/a11y/polish per audit) — no open FFI-L20G seam
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 

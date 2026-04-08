@@ -1,20 +1,18 @@
-"use client";
-
 import { Moon, Sigma, Heart, RefreshCcw, Mail } from "lucide-react";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { PageLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { useTranslations } from "next-intl";
 
-export default function AboutPage() {
-  const t = useTranslations("about");
+const philosophyItems = [
+  { key: "philosophy1", icon: Moon },
+  { key: "philosophy2", icon: Sigma },
+  { key: "philosophy3", icon: Heart },
+  { key: "philosophy4", icon: RefreshCcw },
+] as const;
 
-  const philosophyItems = [
-    { key: "philosophy1", icon: Moon },
-    { key: "philosophy2", icon: Sigma },
-    { key: "philosophy3", icon: Heart },
-    { key: "philosophy4", icon: RefreshCcw },
-  ] as const;
+export default async function AboutPage() {
+  const t = await getTranslations("about");
 
   return (
     <PageLayout maxWidth="2xl">
