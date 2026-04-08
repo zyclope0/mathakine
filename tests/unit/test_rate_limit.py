@@ -16,6 +16,8 @@ from app.utils.rate_limit import (
     MSG_EXERCISE_AI_DAILY_RATE_LIMIT,
     MSG_EXERCISE_AI_HOURLY_RATE_LIMIT,
     MSG_RATE_LIMIT_RETRY,
+    RATE_LIMIT_AUTH_SENSITIVE_MAX,
+    RATE_LIMIT_VALIDATE_TOKEN_MAX,
     VALIDATE_TOKEN_CALLER_HEADER,
     _check_rate_limit,
     _get_client_ip,
@@ -26,7 +28,9 @@ from app.utils.rate_limit import (
     get_client_ip_for_request,
     rate_limit_auth,
     rate_limit_register,
+    rate_limit_validate_token,
 )
+from app.utils.rate_limit_store import MemoryRateLimitStore
 
 
 @pytest.fixture(autouse=True)
@@ -148,13 +152,13 @@ async def test_rate_limit_auth_decorator_allows_when_testing():
 
 @pytest.mark.asyncio
 async def test_rate_limit_auth_decorator_logs_diagnostics_when_blocked(monkeypatch):
-    """429 auth: log WARNING avec UA / referer / XFF / validate_caller."""
+    """429 auth_sensitive: log WARNING avec bucket, endpoint, IP, diagnostics."""
     monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
     monkeypatch.setattr(
         "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
     )
 
-    @rate_limit_auth("validate-token")
+    @rate_limit_auth("login")
     async def handler(request):
         return {"ok": True}
 
@@ -175,12 +179,109 @@ async def test_rate_limit_auth_decorator_logs_diagnostics_when_blocked(monkeypat
     assert result.status_code == 429
     mock_logger.warning.assert_called_once()
     _fmt, endpoint, ip, diag = mock_logger.warning.call_args[0]
-    assert endpoint == "validate-token"
+    assert "auth_sensitive" in _fmt
+    assert endpoint == "login"
     assert ip == "203.0.113.9"
     assert "DiagUA" in diag
     assert "challenges" in diag
     assert "203.0.113.9" in diag
     assert "syncCookie" in diag
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_validate_token_decorator_logs_when_blocked(monkeypatch):
+    """429 validate_token: log WARNING avec bucket dedie et IP."""
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
+    monkeypatch.setattr(
+        "app.utils.rate_limit._check_rate_limit", lambda key, max_requests: False
+    )
+
+    @rate_limit_validate_token
+    async def handler(request):
+        return {"ok": True}
+
+    request = MagicMock()
+    request.headers = {
+        "user-agent": "DiagUA/1.0",
+        "referer": "https://example.com/",
+        "X-Forwarded-For": "203.0.113.8, 10.0.0.1",
+        "x-forwarded-for": "203.0.113.8, 10.0.0.1",
+    }
+    request.client = MagicMock(host="127.0.0.1")
+
+    with patch("app.utils.rate_limit.logger") as mock_logger:
+        result = await handler(request)
+
+    assert result.status_code == 429
+    mock_logger.warning.assert_called_once()
+    _fmt, ip, diag = mock_logger.warning.call_args[0]
+    assert "validate_token" in _fmt
+    assert ip == "203.0.113.8"
+    assert "DiagUA" in diag
+
+
+@pytest.mark.asyncio
+async def test_auth_and_validate_token_decorators_pass_distinct_limits_to_check(
+    monkeypatch,
+):
+    """Les deux decorateurs appellent _check_rate_limit avec des plafonds et cles differents."""
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
+    seen: list[tuple[str, int]] = []
+
+    def fake_check(key: str, max_requests: int) -> bool:
+        seen.append((key, max_requests))
+        return True
+
+    monkeypatch.setattr(rate_limit_module, "_check_rate_limit", fake_check)
+
+    @rate_limit_auth("login")
+    async def login_h(request):
+        return "l"
+
+    @rate_limit_validate_token
+    async def val_h(request):
+        return "v"
+
+    request = MagicMock()
+    request.headers = {"X-Forwarded-For": "198.51.100.55"}
+    request.client = MagicMock(host="127.0.0.1")
+
+    await val_h(request)
+    await login_h(request)
+
+    assert (
+        "rate_limit:validate-token:198.51.100.55",
+        RATE_LIMIT_VALIDATE_TOKEN_MAX,
+    ) in seen
+    assert ("rate_limit:login:198.51.100.55", RATE_LIMIT_AUTH_SENSITIVE_MAX) in seen
+
+
+@pytest.mark.asyncio
+async def test_validate_token_allows_six_calls_login_still_strict_at_six(monkeypatch):
+    """Six appels validate-token OK ; le 6e login reste bloque (bucket auth_sensitive = 5)."""
+    monkeypatch.setattr(rate_limit_module.settings, "TESTING", False)
+    store = MemoryRateLimitStore()
+    monkeypatch.setattr(rate_limit_module, "_get_store", lambda: store)
+
+    @rate_limit_validate_token
+    async def v_handler(request):
+        return {"v": True}
+
+    @rate_limit_auth("login")
+    async def l_handler(request):
+        return {"l": True}
+
+    request = MagicMock()
+    request.headers = {}
+    request.client = MagicMock(host="198.51.100.10")
+
+    for _ in range(6):
+        assert await v_handler(request) == {"v": True}
+
+    for _ in range(5):
+        assert await l_handler(request) == {"l": True}
+    blocked = await l_handler(request)
+    assert blocked.status_code == 429
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project governance and traceability index
-> Updated: 07/04/2026
+> Updated: 08/04/2026
 
 ## Purpose
 
@@ -33,7 +33,7 @@ It is no longer the place for the single active tracker of ongoing work.
 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)                 | implementation note for interleaved sessions                                  |
 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)                   | implementation note for DB log redaction                                      |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                           |
-| [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | production observation: 429 `validate-token`, shared IP key, decision options |
+| [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | 429 `validate-token` : diagnostic + correctif FFI-L19A (quota dédié 90/min IP) |
 
 ## Archive Buckets
 
@@ -52,3 +52,4 @@ It is no longer the place for the single active tracker of ongoing work.
 - runtime truth lives in the code and the active references under `docs/00-REFERENCE/`
 - a dated audit, review, pilotage, or closure note is historical by default once its lot is closed
 - if a closed note still contains useful rationale, it should live in an archive bucket, not at the root of this folder
+

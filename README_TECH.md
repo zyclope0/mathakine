@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 08/04/2026 (FFI-L18A/B split closures + validate-token prod diagnosis documented)
+> Updated: 08/04/2026 (FFI-L19A: validate-token rate limit bucket dédié 90/min IP ; login/forgot-password 5/min inchangés)
 
 Visible product train:
 
@@ -154,14 +154,14 @@ Limite assumee :
 
 #### Diagnostics `validate-token` (rafales 429 / attribution)
 
-- Les endpoints sous `rate_limit_auth` (dont `POST /api/auth/validate-token`) loggent en **WARNING** sur **429** : IP effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (le frontend Next envoie `routeSession` ou `syncCookie` depuis `buildValidateTokenRequestHeaders` — indication seulement, falsifiable par un client HTTP arbitraire).
+- **`POST /api/auth/validate-token`** : décorateur `rate_limit_validate_token`, plafond **`RATE_LIMIT_VALIDATE_TOKEN_MAX` (90/min par IP)**, clé `rate_limit:validate-token:{ip}`. **Login / forgot-password** : `rate_limit_auth`, **`RATE_LIMIT_AUTH_SENSITIVE_MAX` (5/min)**, inchangé.
+- Sur **429**, les logs **WARNING** incluent le **bucket** (`validate_token` vs `auth_sensitive`), l’**endpoint** (pour `auth_sensitive`), l’**IP** effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (Next : `routeSession` / `syncCookie` via `buildValidateTokenRequestHeaders` — indication seulement, falsifiable).
 - Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
-- État réel au `2026-04-08` : le diagnostic prod indique que `validate-token` est probablement **sur-limité** avec le même plafond que `login` (`5/min` par clé IP), ce qui provoque des **429 légitimes** lors des rafales Next serveur (`routeSession` / `syncCookie`). Les durcissements déjà faits (logs enrichis, correction Loguru, `settings.TESTING`, garde syntaxique JWT dans `sync-cookie`) améliorent l'observabilité et la robustesse, mais **ne corrigent pas encore** le calibrage du quota.
-- Suite recommandée après le lot en cours : lot dédié de stabilisation `validate-token` pour lui donner un **quota backend propre** plus élevé, puis audit des appels Next et, seulement ensuite, décision explicite de confiance proxy/CDN si une clé plus fine doit être introduite. Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md).
+- Référence détaillée : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15 FFI-L19A). Suites possibles : audit fréquence appels Next, puis décision infra sur confiance proxy/CDN si besoin d’une clé plus fine que l’IP.
 
 **Rollback après diagnostic**
 
-1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py`, `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
+1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py` (dont `rate_limit_validate_token` / constantes), `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
 2. **Ciblé** : retirer uniquement le `logger.info` dans `api_validate_token` si le volume INFO gêne ; garder le WARNING enrichi sur 429 pour les autres endpoints auth.
 3. **Sans redéployer le frontend** : le backend ignore l’absence du header ; seule l’attribution `validate_caller` redevient `-` dans les logs.
 
@@ -188,3 +188,4 @@ The backend is now materially stronger on:
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/core/enhanced_server_adapter.py` remains legacy compatibility
+

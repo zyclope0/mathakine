@@ -49,6 +49,7 @@ from app.utils.rate_limit import (
     get_client_ip_for_request,
     rate_limit_auth,
     rate_limit_resend_verification,
+    rate_limit_validate_token,
 )
 from app.utils.request_utils import (
     parse_json_body,
@@ -397,7 +398,7 @@ async def api_login(request: Request) -> JSONResponse:
         )
 
 
-@rate_limit_auth("validate-token")
+@rate_limit_validate_token
 async def api_validate_token(request: Request) -> JSONResponse:
     """
     Valide un token JWT sans l'utiliser pour une action.
@@ -405,7 +406,7 @@ async def api_validate_token(request: Request) -> JSONResponse:
     est signe par notre backend et non expire avant de le poser en cookie.
     Route: POST /api/auth/validate-token
     Body: {"token": "..."}
-    Rate limit: 5 req/min par IP (protection brute-force).
+    Rate limit: quota dedie validate_token (voir RATE_LIMIT_VALIDATE_TOKEN_MAX), distinct de login.
     """
     try:
         data_or_err = await parse_json_body(

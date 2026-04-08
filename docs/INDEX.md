@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 05/04/2026
+> Updated: 08/04/2026
 
 ## Read First
 
@@ -51,7 +51,7 @@
 | Prototypes / doc assets           | [assets/README.md](assets/README.md)                                                                                     |
 | ADRs                              | [05-ADR/README.md](05-ADR/README.md)                                                                                     |
 | Project governance                | [03-PROJECT/README.md](03-PROJECT/README.md)                                                                             |
-| Rapport prod validate-token / 429 | [03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) |
+| Rapport prod validate-token / 429 | [03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (FFI-L19A : quota dédié) |
 | Product changelog                 | [../CHANGELOG.md](../CHANGELOG.md)                                                                                       |
 
 ## Reading Rules
@@ -66,3 +66,4 @@
 
 - [03-PROJECT/archives/README.md](03-PROJECT/archives/README.md)
 - [03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md) (legacy compatibility collection)
+

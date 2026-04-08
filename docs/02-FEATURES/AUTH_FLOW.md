@@ -1,7 +1,7 @@
-﻿# Authentication Flow - Mathakine
+# Authentication Flow - Mathakine
 
 > User-facing auth journey and backend boundaries
-> Updated: 05/04/2026
+> Updated: 08/04/2026
 
 ## Overview
 
@@ -79,7 +79,7 @@ Unverified account behavior:
 Refresh / bootstrap:
 
 - `POST /api/auth/refresh` accepts the refresh cookie (or body fallback if needed)
-- `POST /api/auth/validate-token` validates the access token before cookie sync and is rate limited
+- `POST /api/auth/validate-token` validates the access token before cookie sync; rate limit is **dedicated** (higher per-IP ceiling than login; see `RATE_LIMIT_VALIDATE_TOKEN_MAX` in `app/utils/rate_limit.py`)
 - `GET /api/users/me` rebuilds the current user from the validated token
 - `POST /api/auth/logout` clears auth cookies
 
@@ -166,3 +166,4 @@ Boundary note:
 | rate-limited auth endpoints          | too many requests                     | `429` |
 
 See also: [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) and [../01-GUIDES/CONFIGURER_EMAIL.md](../01-GUIDES/CONFIGURER_EMAIL.md)
+

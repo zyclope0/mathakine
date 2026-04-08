@@ -2,9 +2,10 @@
 
 **Date du constat initial :** 2026-04-07  
 **Mise à jour analytique :** 2026-04-08  
+**Correctif calibrage (FFI-L19A) :** 2026-04-08 — quota dédié `validate-token`, voir §15  
 **Périmètre :** production (logs Render), backend Starlette, frontend Next.js (App Router)  
 **Destinataires :** validation produit / responsable projet  
-**Statut :** constat factuel, analyse causale stricte, corrections déjà intégrées, et plan d'action recommandé
+**Statut :** constat historique conservé ; calibrage `validate-token` corrigé côté backend ; suites : audit appels Next / confiance proxy (hors ce lot)
 
 ---
 
@@ -21,10 +22,10 @@ Ce document ne prétend pas que tout a déjà été corrigé côté produit. Il 
 | Élément                       | Détail                                                                                                                                            |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Endpoint                      | `POST /api/auth/validate-token` — validation JWT côté backend avant certaines décisions session/cookie côté frontend Next                         |
-| Implémentation backend        | `@rate_limit_auth("validate-token")` dans `app/utils/rate_limit.py` + handler `api_validate_token` dans `server/handlers/auth_handlers.py`        |
+| Implémentation backend        | `@rate_limit_validate_token` sur `api_validate_token` + `RATE_LIMIT_VALIDATE_TOKEN_MAX` dans `app/utils/rate_limit.py` ; login / forgot-password restent sur `@rate_limit_auth` + `RATE_LIMIT_AUTH_SENSITIVE_MAX` |
 | Consommateurs frontend connus | `frontend/lib/auth/server/routeSession.ts` (`routeSession`) et `frontend/app/api/auth/sync-cookie/route.ts` (`syncCookie`)                        |
 | Attribution diagnostic        | header `X-Mathakine-Validate-Caller` construit par `frontend/lib/auth/server/validateTokenBackendHeaders.ts`                                      |
-| Rate limit actuel             | même famille que `login` / `forgot-password` : **5 requêtes / minute / clé**, fenêtre **60 s**, clé basée sur l'IP telle que déduite des en-têtes |
+| Rate limit (état courant)     | **`validate-token` : 90 req / min / IP** (bucket `validate_token`, clé `rate_limit:validate-token:{ip}`). **Login / forgot-password : 5 / min / IP** (bucket `auth_sensitive`, clé `rate_limit:{endpoint}:{ip}`). Fenêtre **60 s**. |
 
 ---
 
@@ -44,21 +45,28 @@ Lecture principale :
 
 ## 4. Ce qui est prouvé par le code actuel
 
-### 4.1 Construction de la clé de rate limit
+### 4.1 Construction de la clé de rate limit (historique — avant FFI-L19A)
 
-Dans `app/utils/rate_limit.py` :
+Dans `app/utils/rate_limit.py`, **avant** le lot FFI-L19A :
 
-- `RATE_LIMIT_AUTH_MAX = 5`
-- `api_validate_token` est bien décoré par `@rate_limit_auth("validate-token")`
-- la clé est `rate_limit:{endpoint}:{ip}`
+- un seul plafond « auth » à **5** (`RATE_LIMIT_AUTH_MAX`) couvrait aussi `validate-token`
+- `api_validate_token` était décoré par `@rate_limit_auth("validate-token")`
+- la clé était `rate_limit:{endpoint}:{ip}`
 - `_get_client_ip(request)` prend :
   - `X-Forwarded-For.split(",")[0].strip()` si présent
   - sinon `request.client.host`
 
-Conclusion :
+Conclusion (historique) :
 
-- `validate-token` partage aujourd'hui le même ordre de grandeur de quota que `login`
-- la granularité de la clé est **IP-only**
+- `validate-token` **partageait** le même ordre de grandeur de quota que `login`
+- la granularité de la clé restait **IP-only**
+
+### 4.1 bis État courant après FFI-L19A (2026-04-06)
+
+- **Login / forgot-password** : `RATE_LIMIT_AUTH_SENSITIVE_MAX = 5`, décorateur `rate_limit_auth`, clé `rate_limit:{endpoint}:{ip}`, log **429** avec `bucket=auth_sensitive`.
+- **`validate-token`** : `RATE_LIMIT_VALIDATE_TOKEN_MAX = 90`, décorateur `rate_limit_validate_token`, clé **`rate_limit:validate-token:{ip}`** (indépendante du compteur login), log **429** avec `bucket=validate_token`.
+- **Justification du 90/min** : dans la fourchette **60–120** recommandée en §10.1 ; suffisant pour des rafales Next serveur légitimes par IP sans aligner le plafond sur celui du login (**5**).
+- **Non traité dans ce lot** : confiance proxy / clé plus fine que l’IP (cf. §6, §10.3).
 
 ### 4.2 Multiplicité des appels frontend
 
@@ -156,7 +164,7 @@ Autrement dit :
 
 ## 8. Corrections déjà intégrées au code
 
-Ces points ont déjà été corrigés autour du flux, mais **ils ne résolvent pas encore le problème de quota** :
+Ces points ont été intégrés autour du flux. Les diagnostics ci-dessous restent utiles. Le **calibrage quota** `validate-token` est traité séparément en **FFI-L19A** (§15).
 
 ### 8.1 Diagnostics backend améliorés
 
@@ -198,15 +206,11 @@ Important :
 
 ---
 
-## 9. Ce qui n'est pas encore corrigé
+## 9. Ce qui reste ouvert après FFI-L19A
 
-### 9.1 Le point bloquant principal
+### 9.1 Quota `validate-token` vs login
 
-`validate-token` est toujours limité comme `login` :
-
-- **5/min par clé IP**
-
-Tant que ce point ne change pas, les symptômes de saturation peuvent revenir.
+**Résolu (FFI-L19A)** : `validate-token` dispose d’un bucket et d’un plafond **distincts** du login — §15.
 
 ### 9.2 Les appels Next redondants ne sont pas encore réduits
 
@@ -229,21 +233,13 @@ Il n'existe pas encore ici de décision finale documentée sur :
 
 ### 10.1 Court terme — stabilisation pragmatique
 
-Faire un lot dédié `validate-token` et :
+**Réalisé (FFI-L19A, 2026-04-06)** :
 
-1. sortir `validate-token` de `RATE_LIMIT_AUTH_MAX`
-2. créer un quota dédié, plus élevé
-3. garder `login` / `forgot-password` inchangés
+1. `validate-token` sorti du bucket auth sensible partagé avec login
+2. quota dédié **`RATE_LIMIT_VALIDATE_TOKEN_MAX = 90`** / min / IP
+3. `login` / `forgot-password` inchangés (**5/min**)
 
-Ordre de grandeur recommandé :
-
-- **60 à 120 requêtes / minute** pour `validate-token`
-
-Pourquoi :
-
-- c'est le correctif le plus simple
-- il cible le symptôme réel
-- il réduit immédiatement les faux positifs de rate limit sans ouvrir un chantier infra complet
+La fourchette **60–120** / min recommandée initialement est respectée (choix **90**).
 
 ### 10.2 Moyen terme — réduction du trafic côté Next
 
@@ -289,10 +285,7 @@ Non pertinent :
 
 ### Lot 1 — stabilisation backend ciblée
 
-- ajouter une constante dédiée :
-  - par exemple `RATE_LIMIT_VALIDATE_TOKEN_MAX`
-- créer un décorateur ou un chemin dédié pour `validate-token`
-- ajouter / adapter les tests backend du rate limit pour ce nouveau quota
+**Fait (FFI-L19A)** : constantes `RATE_LIMIT_VALIDATE_TOKEN_MAX` / `RATE_LIMIT_AUTH_SENSITIVE_MAX`, décorateur `rate_limit_validate_token`, tests `tests/unit/test_rate_limit.py`.
 
 ### Lot 2 — audit d'appels Next
 
@@ -309,11 +302,11 @@ Non pertinent :
 ## 13. Synthèse exécutive
 
 1. Les `429` sur `validate-token` ne ressemblent pas à un bruteforce login classique.
-2. Le code prouve que `validate-token` partage aujourd'hui un plafond `5/min` fondé sur une clé IP-only.
+2. **Avant FFI-L19A**, `validate-token` partageait un plafond `5/min` avec login sur une clé IP-only.
 3. Le frontend Next serveur a plusieurs consommateurs de cet endpoint.
-4. Avec ce calibrage, des rafales légitimes peuvent saturer le compteur.
-5. Le correctif le plus pragmatique est de **donner à `validate-token` un quota dédié plus élevé**, sans toucher aux limites de `login`.
-6. Une réduction des appels Next et une stratégie proxy plus fine sont pertinentes ensuite, mais ne doivent pas retarder la stabilisation.
+4. Ce calibrage provoquait des rafales légitimes saturant le compteur.
+5. **Après FFI-L19A** : quota dédié **90/min** pour `validate-token`, login/forgot-password **inchangés (5/min)** ; logs **429** distinguent `bucket=auth_sensitive` vs `bucket=validate_token`.
+6. Pistes suivantes : réduction des appels Next et stratégie proxy plus fine (hors périmètre du lot quota).
 
 ---
 
@@ -328,5 +321,21 @@ Non pertinent :
 
 ---
 
+## 15. Livrable FFI-L19A (calibrage)
+
+| Élément | Détail |
+| ------- | ------ |
+| Constante login / forgot-password | `RATE_LIMIT_AUTH_SENSITIVE_MAX = 5` |
+| Constante validate-token | `RATE_LIMIT_VALIDATE_TOKEN_MAX = 90` |
+| Décorateur validate-token | `rate_limit_validate_token` → clé `rate_limit:validate-token:{ip}` |
+| Décorateur auth sensible | `rate_limit_auth` → clé `rate_limit:{endpoint}:{ip}` |
+| Observabilité | WARNING **429** : `bucket=…`, `endpoint=…` (auth), IP, diagnostics existants |
+| Tests | `tests/unit/test_rate_limit.py` : buckets distincts, 6× validate OK + 6e login bloqué, logs |
+
+Hors scope explicite : confiance `X-Forwarded-For` / CDN, re-key par utilisateur.
+
+---
+
 Document de décision technique.  
-Au 2026-04-08, le diagnostic est jugé **suffisamment solide pour planifier un lot de stabilisation dédié**, même si la stratégie proxy de long terme reste à trancher explicitement.
+Le diagnostic initial (2026-04-08) a conduit au lot **FFI-L19A** (quota dédié, 2026-04-06). La stratégie proxy / clé plus fine reste un chantier séparé.
+

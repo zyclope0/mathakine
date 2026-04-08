@@ -1,6 +1,7 @@
 """
 Rate limiting pour les endpoints sensibles (audit 3.4).
 Protege contre bruteforce (login, forgot-password) et enumeration.
+validate-token utilise un bucket et un plafond distincts (trafic Next serveur).
 
 C2: Store distribue Redis en prod. Fallback memoire borne pour dev/test (REDIS_URL vide).
 """
@@ -17,7 +18,13 @@ from app.utils.rate_limit_store import _get_store
 logger = get_logger(__name__)
 
 RATE_LIMIT_WINDOW_SEC = 60
-RATE_LIMIT_AUTH_MAX = 5  # login, forgot-password, validate-token
+
+# Brute-force / enumeration: login, forgot-password (strict, unchanged).
+RATE_LIMIT_AUTH_SENSITIVE_MAX = 5
+
+# Server-side JWT checks from Next (routeSession, syncCookie): higher ceiling than login;
+# same IP key as today — see RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.
+RATE_LIMIT_VALIDATE_TOKEN_MAX = 90
 
 # Truncation limits for operational logging (no secrets; never log body or Authorization).
 _AUTH_LOG_UA_MAX = 160
@@ -141,18 +148,17 @@ def check_exercise_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optiona
 
 
 def rate_limit_auth(endpoint_name: str):
-    """Decorateur rate limit pour login/forgot-password (5 req/min)."""
+    """Decorateur rate limit pour endpoints auth sensibles (login, forgot-password): 5 req/min / IP."""
 
     def decorator(func: Callable):
         @wraps(func)
         async def wrapped(request, *args, **kwargs):
             ip = _get_client_ip(request)
             key = f"rate_limit:{endpoint_name}:{ip}"
-            if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
+            if not _check_rate_limit(key, RATE_LIMIT_AUTH_SENSITIVE_MAX):
                 diag = auth_request_rate_limit_diagnostics(request)
-                # Loguru formate avec {} (pas %s comme logging stdlib).
                 logger.warning(
-                    "Rate limit depasse pour {} depuis {} | {}",
+                    "Rate limit depasse | bucket=auth_sensitive | endpoint={} | ip={} | {}",
                     endpoint_name,
                     ip,
                     diag,
@@ -163,6 +169,30 @@ def rate_limit_auth(endpoint_name: str):
         return wrapped
 
     return decorator
+
+
+def rate_limit_validate_token(func: Callable):
+    """
+    Rate limit dedie a POST /api/auth/validate-token (trafic Next serveur legitime).
+
+    Cle par IP comme les autres buckets auth ; quota distinct de login/forgot-password.
+    """
+
+    @wraps(func)
+    async def wrapped(request, *args, **kwargs):
+        ip = _get_client_ip(request)
+        key = f"rate_limit:validate-token:{ip}"
+        if not _check_rate_limit(key, RATE_LIMIT_VALIDATE_TOKEN_MAX):
+            diag = auth_request_rate_limit_diagnostics(request)
+            logger.warning(
+                "Rate limit depasse | bucket=validate_token | endpoint=validate-token | ip={} | {}",
+                ip,
+                diag,
+            )
+            return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
+        return await func(request, *args, **kwargs)
+
+    return wrapped
 
 
 def rate_limit_register(func: Callable):

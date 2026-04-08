@@ -32,7 +32,7 @@ Hors scope par defaut tant qu'ils ne bloquent pas l'architecture :
 
 ### 1. Sources de verite
 
-1. `D:\\Mathakine\\.claude\\session-plan.md` = **plan actif**
+1. `D:Mathakine.claudesession-plan.md` = **plan actif**
 2. `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` = audit + feuille de route frontend a jour
 3. `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` = photographie historique, utile pour le contexte mais **pas** comme plan d'execution ligne a ligne
 
@@ -252,6 +252,23 @@ Decision d'execution :
 - hors scope volontaire :
   - **pas** de refactor runtime du solver hors props/controller existants
 
+#### FFI-L19A - Stabilisation prod `validate-token` (livre)
+
+- but :
+  - sortir `POST /api/auth/validate-token` du bucket auth sensible partage avec `login`
+  - reduire les `429` legitimes lies aux rafales Next serveur
+- resultat :
+  - `rate_limit_validate_token` : decorateur dedie dans `app/utils/rate_limit.py`
+  - `RATE_LIMIT_VALIDATE_TOKEN_MAX = 90` / minute / IP
+  - `login` et `forgot-password` restent sur `rate_limit_auth` avec `RATE_LIMIT_AUTH_SENSITIVE_MAX = 5`
+  - logs `429` explicites avec bucket `validate_token` vs `auth_sensitive`
+  - tests backend cibles ajoutes dans `tests/unit/test_rate_limit.py`
+- reliquat connu :
+  - la cle reste **IP-only**
+  - revue ulterieure recommandee :
+    - reduction des appels Next vers `validate-token`
+    - puis eventuelle revue infra / proxy trust si une cle plus fine devient necessaire
+
 ### 5. Parent / roles / NI-13
 
 Etat stable a ne pas rouvrir sans besoin produit explicite :
@@ -364,10 +381,10 @@ Passe de nettoyage post-F42/F43 sur le projet Mathakine.
 **Gate CC1-L1 :**
 
 ```powershell
-D:\Mathakine\.venv\Scripts\python.exe -m pytest tests\ -q --tb=short --maxfail=20 --no-cov --ignore=tests\api\test_admin_auth_stability.py
-D:\Mathakine\.venv\Scripts\python.exe -m black app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check
-D:\Mathakine\.venv\Scripts\python.exe -m isort app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check-only
-D:\Mathakine\.venv\Scripts\python.exe -m flake8 --select=E9,F63,F7,F82 app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py
+D:Mathakine.venvScriptspython.exe -m pytest tests -q --tb=short --maxfail=20 --no-cov --ignore=testsapitest_admin_auth_stability.py
+D:Mathakine.venvScriptspython.exe -m black app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check
+D:Mathakine.venvScriptspython.exe -m isort app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py --check-only
+D:Mathakine.venvScriptspython.exe -m flake8 --select=E9,F63,F7,F82 app/services/exercises/exercise_ai_service.py app/services/challenges/challenge_ai_service.py app/core/mastery_tier_bridge.py app/core/ai_config.py app/services/gamification/compute.py
 ```
 
 ---
@@ -383,8 +400,8 @@ docstring "DRY pour generation IA en streaming". `challenge_ai_service.py` l'uti
 **Action :**
 
 1. Ajouter l'import `from app.utils.sse_utils import sse_error_message, sse_status_message`
-2. Remplacer tous les `f"data: {json.dumps({'type': 'error', ...})}\n\n"` par `sse_error_message(...)`
-3. Remplacer `f"data: {json.dumps({'type': 'status', ...})}\n\n"` par `sse_status_message(...)`
+2. Remplacer tous les `f"data: {json.dumps({'type': 'error', ...})}nn"` par `sse_error_message(...)`
+3. Remplacer `f"data: {json.dumps({'type': 'status', ...})}nn"` par `sse_status_message(...)`
 4. Laisser `_SSE_DONE` inline
 
 **Benefice :** coherence maintenance - une seule definition du format SSE
@@ -505,3 +522,4 @@ Supprimer la ligne P1 challenge*service double filtrage : deja resolu
 | Item                                                        | Reference                              |
 | ----------------------------------------------------------- | -------------------------------------- |
 | Double systeme policy IA (ai_config + ai_generation_policy) | Architecture CLAUDE.md - dette assumee |
+

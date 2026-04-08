@@ -1,7 +1,7 @@
 # API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
-> Updated: 28/03/2026
+> Updated: 08/04/2026
 > Runtime source of truth: `server/routes/`
 
 ## Reading Rules
@@ -19,7 +19,7 @@
 |---|---|---|
 | POST | `/api/auth/login` | login + auth cookies, rate limited |
 | GET | `/api/auth/csrf` | fetches CSRF token |
-| POST | `/api/auth/validate-token` | token validation, rate limited |
+| POST | `/api/auth/validate-token` | token validation; dedicated rate limit (90/min/IP), separate from login (5/min) |
 | POST | `/api/auth/refresh` | refresh via cookie/body |
 | POST | `/api/auth/logout` | clears auth cookies |
 | POST | `/api/auth/forgot-password` | generic message, rate limited |
@@ -186,3 +186,4 @@ Contract note:
 - [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)
 - [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+
