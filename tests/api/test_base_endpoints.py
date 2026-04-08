@@ -3,6 +3,7 @@ Tests des endpoints de base de l'API Starlette.
 Verifie la sante de l'application, le routage et les reponses d'erreur.
 
 Routes testees :
+- GET|HEAD / (sondes plateforme)
 - GET /health
 - GET /robots.txt
 - GET /api/exercises (route publique, whitelist deny-by-default)
@@ -12,6 +13,20 @@ Routes testees :
 """
 
 import pytest
+
+
+async def test_root_get_ok(client):
+    """GET / — identité minimale API (évite 404 sur sondes qui ciblent la racine)."""
+    response = await client.get("/")
+    assert response.status_code == 200
+    assert "Mathakine" in response.text
+
+
+async def test_root_head_ok(client):
+    """HEAD / — même usage que les sondes Render au démarrage."""
+    response = await client.head("/")
+    assert response.status_code == 200
+    assert response.text == ""
 
 
 async def test_health_endpoint(client):

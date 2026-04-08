@@ -12,6 +12,10 @@ from server.middleware import _is_auth_public
 class TestIsAuthPublic:
     """Tests pour _is_auth_public (whitelist deny-by-default)."""
 
+    def test_root_get_head_public(self):
+        assert _is_auth_public("/", "GET") is True
+        assert _is_auth_public("/", "HEAD") is True
+
     def test_health_get_public(self):
         assert _is_auth_public("/health", "GET") is True
 

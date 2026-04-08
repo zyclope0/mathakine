@@ -1,7 +1,23 @@
 """Routes système : health, robots, metrics."""
 
-from starlette.responses import PlainTextResponse
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, Response
 from starlette.routing import Route
+
+
+async def root_handler(request: Request):
+    """
+    GET|HEAD / — réponse minimale pour sondes plateforme (ex. Render envoie HEAD / au déploiement).
+
+    L’API reste orientée /api/* et /health ; la racine évite un 404 bruyant dans les logs.
+    """
+    if request.method == "HEAD":
+        return Response(status_code=200)
+    return PlainTextResponse(
+        "Mathakine API — see /health\n",
+        status_code=200,
+        media_type="text/plain",
+    )
 
 
 async def health_handler(request):
@@ -23,6 +39,7 @@ async def metrics_handler(request):
 
 def get_core_routes():
     return [
+        Route("/", endpoint=root_handler, methods=["GET", "HEAD"]),
         Route("/health", endpoint=health_handler, methods=["GET"]),
         Route("/robots.txt", endpoint=robots_txt, methods=["GET"]),
         Route("/metrics", endpoint=metrics_handler, methods=["GET"]),

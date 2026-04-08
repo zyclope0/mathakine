@@ -146,6 +146,7 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
 # ============================================================================
 _ROUTE_REGISTRY: List[Tuple[str, Set[str], bool]] = [
     # Infra
+    ("/", {"GET", "HEAD"}, False),
     ("/health", {"GET"}, False),
     ("/robots.txt", {"GET"}, False),
     ("/metrics", {"GET"}, False),
