@@ -19,21 +19,22 @@
 >
 > Verite terrain actuelle :
 >
-> - `FFI-L1` a `FFI-L16` sont livres cote architecture frontend
+> - `FFI-L1` a `FFI-L18B` sont livres cote architecture frontend
 > - `NI-13` est structurel cote serveur + client (`proxy.ts` + `ProtectedRoute`)
-> - le tree frontend courant est a `177` composants, `53` hooks et `8` themes visibles
+> - les chiffres de composants / hooks de ce document ne sont plus a jour ; suivre l'audit de standardisation et les catalogues actifs pour les compteurs courants
 > - la duplication AIGenerator brute n'est plus le seam principal
 > - la coherence end-user des defis (`challenge_type` vs `response_mode`) reste un **sidecar produit** documente dans `ROADMAP_FONCTIONNALITES.md` (`F44`), hors sequence FFI active
 >
-> Seams architecture encore prioritaires (hors shell / chatbot global, fermes sous `FFI-L16`) :
+> Seams architecture autrefois prioritaires dans cette photographie :
 >
 > - `components/profile/ProfileLearningPreferencesSection.tsx`
 > - `ChallengeSolverCommandBar.tsx`
 >
-> Ordre actif recommande :
-> `FFI-L17B` suite garde-fous, puis `FFI-L18` splits profonds des deux seams denses toleres.
+> Ces deux seams ont depuis ete traites dans `FFI-L18A` et `FFI-L18B`.
 >
 > Addendum 2026-04-07 : `FFI-L17A` ajoute `frontend/lib/architecture/frontendGuardrails.ts` + test Vitest + `npm run architecture:check` (non-regression tailles / seams / ownership chatbot).
+>
+> Addendum 2026-04-08 : l'eventuelle suite frontend ne se lit plus dans ce document. Les reliquats actifs sont maintenant pilotes par `session-plan.md` et l'audit de standardisation ; ce fichier conserve une valeur d'origine et de justification, pas un backlog vivant.
 >
 > Le detail de cet audit conserve volontairement la photographie du `03/03/2026`.
 > Plusieurs constats du corps du document sont donc des **constats d'origine** et non
@@ -412,7 +413,7 @@ Aucun constat critique â€” l'accessibilitÃ© est sÃ©rieusement traitÃ©
 
 ---
 
-### Phase 3 â€” Premium upgrade (~4h) ðŸŸ¡ EN COURS
+### Phase 3 â€” Premium upgrade (~4h) ðŸŸ¡ État historique de l'audit
 
 | #        | Action                                                                                                                                                                                             | Fichiers                                   | Effort |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------ |
@@ -453,7 +454,7 @@ Aucun constat critique â€” l'accessibilitÃ© est sÃ©rieusement traitÃ©
 | **Phase 3** â€” Premium           | ~4h    | Moyen (perception qualitÃ©)   | Faible | ðŸŸ¡ Planifier        |
 | **Phase 4** â€” Polish a11y       | ~2h    | Faible-Moyen (conformitÃ©)    | ZÃ©ro  | ðŸŸ¢ Quand possible   |
 
-### Scores par zone
+### Scores par zone (photographie historique)
 
 | Zone                    | Score actuel | Score cible |
 | ----------------------- | ------------ | ----------- |

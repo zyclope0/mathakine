@@ -27,3 +27,20 @@ Après clôture FFI-L19\*, la **priorité d’exécution** revient à la feuille
 - audits de contexte : `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`, `AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` (lecture / priorisation, pas de nouvelle digression backend rate-limit)
 
 Les changements backend hors périmètre roadmap frontend doivent rester **petits, nommés et reviewables** (pas de mélange avec une « suite » FFI-L19 ad hoc).
+
+### Hiérarchie de vérité documentaire
+
+1. `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` pour la priorité produit active
+2. `D:\Mathakine\.claude\session-plan.md` pour l’ordre d’exécution courant
+3. `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` pour la dette et les patterns frontend encore utiles
+4. `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme photographie historique, non comme backlog actif
+
+### État réel frontend après FFI-L18B
+
+- la séquence de standardisation structurelle `FFI-L1` à `FFI-L18B` est considérée **fermée**
+- les garde-fous d’architecture restent la protection active contre la rechute en monolithes
+- il n’existe plus de dense exception ouverte dans `ALLOWED_DENSE_EXCEPTIONS`
+- la suite frontend ne relève plus d’un gros chantier de découpage générique, mais d’un **durcissement ciblé** :
+  - vues encore denses hors exception formelle (`BadgeCard`, `BadgesProgressTabsSection`, `SettingsSecuritySection`, `ExerciseSolver`)
+  - homogénéisation design-system/premium encore partielle
+  - QA visuelle et a11y humaine sur les surfaces partagées

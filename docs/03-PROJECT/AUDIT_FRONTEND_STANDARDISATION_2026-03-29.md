@@ -44,14 +44,14 @@
 
 ### Points faibles
 
-- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants (solver, toolbar) ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
+- **Monolithes runtime/pages encore lourds** : plus de mega-page sur `app/admin/content/page.tsx` depuis FFI-L14 (container fin + sections) ; les surfaces les plus lourdes restantes sont surtout des composants secondaires (`ExerciseSolver`, `BadgeCard`, certaines visualisations) ; le shell `Header` est une facade avec sous-blocs extraits (`FFI-L16`)
 - **Plateforme content-list** : standardisee (`FFI-L15`) ; generators, cards et comportements route restent domaine-specifiques par design
 - **Dette shell / chatbot global** : classee **fermee** cote architecture frontend (`FFI-L16`) — ownership `components/chat/` ; decision produit invite documentee (FAB, quota session 5, autorite rate-limit serveur)
-- **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées existent encore, mais ne sont plus la priorité d'exécution tant que les seams d'architecture restent ouverts
+- **Balayage visuel volontairement secondaire** : tokens/couleurs hardcodées et homogénéisation premium restent encore possibles, mais relèvent désormais d'une phase de polish ciblée plus que d'un chantier structurel prioritaire
 
 ---
 
-### 1.1 État d'avancement réel — 2026-04-06
+### 1.1 État d'avancement réel — 2026-04-08
 
 La photographie initiale reste utile, mais le plan actif a ete requalifie autour des seams d'architecture les plus rentables depuis
 l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (shell / navigation / ownership chatbot global) sont livres cote architecture frontend ; `FFI-L17A` et `FFI-L17B` ferment la gouvernance garde-fous ; `FFI-L18A` et `FFI-L18B` ont decoupe les derniers hotspots denses cibles (profil learning prefs + command bar solver) ; il n'y a plus d'entree dans `ALLOWED_DENSE_EXCEPTIONS` — la prochaine dette structurelle releve d'une revue ciblee si de nouveaux monolithes apparaissent.
@@ -77,10 +77,19 @@ l'extraction du 2026-03-29 ; `FFI-L15` (plateforme content-list) et `FFI-L16` (s
 - `FFI-L17A` : garde-fous architecture **non-regression** — `frontend/lib/architecture/frontendGuardrails.ts` (budgets LOC facades/containers, exceptions denses nommees, seams obligatoires FFI-L11 a FFI-L16) + test Vitest + `npm run architecture:check` ; **pas** de split des deux hotspots denses (reporte FFI-L18)
 - `FFI-L17B` : complement **sans second fichier de regles** — `OWNERSHIP_RULE_GROUPS`, ancres `REQUIRED_CANONICAL_LIB_FILES`, interdiction `ChatbotFloatingGlobal` hors `components/chat/` (home + layout), doc `ARCHITECTURE.md` / `README_TECH.md` / `session-plan` ; toujours **pas** de split profond dans ce lot
 
-**Encore ouverts (ordre actif révisé)**
+**Séquence FFI de standardisation structurelle : fermée**
 
-- `FFI-L18A` : split `ProfileLearningPreferencesSection` en façade + sous-composants + `lib/profile/profileLearningPreferences.ts` (sans changement UX intentionnel)
-- `FFI-L18B` : split `ChallengeSolverCommandBar` en façade + sous-composants + `lib/challenges/challengeSolverCommandBar.ts` (sans changement UX intentionnel) ; `ALLOWED_DENSE_EXCEPTIONS` vide
+- `FFI-L18A` : `ProfileLearningPreferencesSection` découpée en façade + sous-composants + `lib/profile/profileLearningPreferences.ts`
+- `FFI-L18B` : `ChallengeSolverCommandBar` découpée en façade + sous-composants + `lib/challenges/challengeSolverCommandBar.ts`
+- `ALLOWED_DENSE_EXCEPTIONS` est maintenant vide
+
+**Reliquats frontend encore actifs hors séquence FFI**
+
+- `BadgeCard.tsx` reste une vue dense candidate à un lot ciblé ultérieur
+- `BadgesProgressTabsSection.tsx` reste une vue dense secondaire
+- `SettingsSecuritySection.tsx` reste une vue dense secondaire
+- `ExerciseSolver.tsx` reste volumineux, mais n’est plus le seam critique qui pilotait la séquence FFI
+- une QA visuelle / a11y humaine reste utile sur les surfaces shared après les gros refactors
 
 **Conséquences visibles**
 
@@ -820,7 +829,7 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 
 ### Recapitulatif mis a jour
 
-| Ordre | Lot                                                           | Priorite | Effort | Impact principal          | Statut au 2026-04-06 |
+| Ordre | Lot                                                           | Priorite | Effort | Impact principal          | Statut au 2026-04-08 |
 | ----- | ------------------------------------------------------------- | -------- | ------ | ------------------------- | -------------------- |
 | 1     | FFI-L1 Tokens critiques multi-theme                           | P0       | S      | Bug fix + multi-theme     | ✅ Livré             |
 | 2     | FFI-L2 Consolidation auth / bootstrap API                     | P1       | M      | Maintenabilite + securite | ✅ Livré             |
@@ -839,11 +848,13 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 | 15    | FFI-L15 Standardiser plateforme content-list                  | P1       | M-L    | DRY structurel            | ✅ Livré             |
 | 16    | FFI-L16 Split shell/navigation + chatbot                      | P2       | M      | Lisibilite shell          | ✅ Livré             |
 | 17    | FFI-L17 Garde-fous architecture / tests / doc runtime         | P2       | M      | Gouvernance               | Livré (L17A+L17B)    |
+| 18    | FFI-L18A Split ProfileLearningPreferencesSection              | P1       | M      | Fermeture hotspot profil  | ✅ Livré             |
+| 19    | FFI-L18B Split ChallengeSolverCommandBar                      | P1       | M      | Fermeture hotspot solver  | ✅ Livré             |
 
 **Recommandation solo founder mise a jour** :
 
-- `FFI-L1` a `FFI-L18B` sont deja livres pour les hotspots denses cibles profil + command bar solver
-- la priorite structurelle suivante est une revue ciblee si de nouveaux monolithes apparaissent (plus de lot FFI-L18 ouvert dans les garde-fous)
+- `FFI-L1` a `FFI-L18B` sont livres pour la standardisation structurelle prioritaire
+- la suite ne consiste plus a poursuivre une pseudo-sequence `FFI-L18` ouverte, mais a choisir des **lots cibles** sur les reliquats reels
 - avant de rouvrir de gros sweeps cosmetiques, verifier les budgets `PROTECTED_FRONTEND_SURFACES`
 - garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
 

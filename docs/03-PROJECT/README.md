@@ -23,6 +23,15 @@ It is no longer the place for the single active tracker of ongoing work.
 | [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md) | active product backlog and feature status truth      |
 | [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md)       | active AI governance and runtime observability truth |
 
+## Frontend Source Hierarchy
+
+| Document                                                                                                    | Role                                                                  |
+| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [../../.claude/session-plan.md](../../.claude/session-plan.md)                                              | active execution order for frontend and cross-cutting lots            |
+| [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)                    | active product prioritization                                         |
+| [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)            | active frontend architecture/debt reference                           |
+| [AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md)              | historical audit only; rationale and original findings, not backlog   |
+
 ## Active Root Documents
 
 | Document                                                                                               | Role                                                                          |
