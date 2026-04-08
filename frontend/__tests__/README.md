@@ -5,6 +5,7 @@
 ```
 __tests__/
 ├── unit/                    # Tests unitaires
+│   ├── architecture/       # FFI-L17A+B — garde-fous structure (budgets LOC, seams, ancres lib/, ownership)
 │   ├── components/         # Tests des composants React
 │   └── hooks/              # Tests des hooks personnalisés
 ├── integration/            # Tests d'intégration (à venir)
@@ -16,6 +17,14 @@ __tests__/
 ```
 
 ## 🚀 Commandes Disponibles
+
+### Garde-fous architecture (FFI-L17A + FFI-L17B)
+
+Vérifie l’existence des seams critiques, les budgets LOC des facades/pages livrées FFI-L11–L16, les fichiers `lib/` canoniques listés dans `REQUIRED_CANONICAL_LIB_FILES`, et l’ownership du chatbot global (`components/chat/ChatbotFloatingGlobal.tsx` uniquement — pas de doublon sous `components/home/` ni `components/layout/`). Source de vérité unique : `lib/architecture/frontendGuardrails.ts` (y compris `OWNERSHIP_RULE_GROUPS` pour les conventions documentées).
+
+```bash
+cd frontend && npm run architecture:check
+```
 
 ### Tests Unitaires (Vitest)
 
