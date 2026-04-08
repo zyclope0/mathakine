@@ -9,7 +9,7 @@
  */
 import { NextRequest } from "next/server";
 
-import { buildValidateTokenRequestHeaders } from "@/lib/auth/server/validateTokenBackendHeaders";
+import { validateAccessTokenWithBackend } from "@/lib/auth/server/validateTokenRuntime";
 
 const ACCESS_TOKEN_MAX_AGE = 15 * 60;
 const JWT_SEGMENT_COUNT = 3;
@@ -70,13 +70,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const verifyRes = await fetch(`${getBackendUrl()}/api/auth/validate-token`, {
-      method: "POST",
-      headers: buildValidateTokenRequestHeaders("syncCookie"),
-      body: JSON.stringify({ token: accessToken }),
-    });
+    const validation = await validateAccessTokenWithBackend(
+      getBackendUrl(),
+      accessToken,
+      "syncCookie"
+    );
 
-    if (!verifyRes.ok) {
+    if (validation !== true) {
       return new Response(JSON.stringify({ error: "Token invalide ou expire" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },

@@ -269,6 +269,21 @@ Decision d'execution :
     - reduction des appels Next vers `validate-token`
     - puis eventuelle revue infra / proxy trust si une cle plus fine devient necessaire
 
+#### FFI-L19B - Reduction des appels Next vers `validate-token` (livre)
+
+- but :
+  - supprimer les fetchs backend redondants cote Next autour de `POST /api/auth/validate-token`
+  - reduire le bruit operationnel sans changer le comportement auth visible
+- resultat :
+  - `frontend/lib/auth/server/validateTokenRuntime.ts` : point d'entree partage
+  - coalescence des appels concurrents pour la meme paire `(baseUrl, token)`
+  - micro-cache **succes uniquement** `VALIDATE_TOKEN_SUCCESS_TTL_MS = 2500`
+  - aucun cache des `401` ni des erreurs transitoires
+  - `routeSession` et `sync-cookie` reutilisent ce runtime partage
+- reliquat connu :
+  - une revocation peut rester invisible pendant au plus **2,5 s** apres un `200`
+  - la cle de rate limit backend reste **IP-only** ; lot suivant recommande : **FFI-L19C** (proxy trust / cle plus fine)
+
 ### 5. Parent / roles / NI-13
 
 Etat stable a ne pas rouvrir sans besoin produit explicite :

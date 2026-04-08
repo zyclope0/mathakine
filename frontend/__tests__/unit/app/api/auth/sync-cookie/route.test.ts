@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/auth/sync-cookie/route";
+import { resetValidateTokenRuntimeForTests } from "@/lib/auth/server/validateTokenRuntime";
 
 describe("POST /api/auth/sync-cookie", () => {
   beforeEach(() => {
@@ -12,6 +13,7 @@ describe("POST /api/auth/sync-cookie", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    resetValidateTokenRuntimeForTests();
   });
 
   it("returns 400 for syntactically invalid JWT before backend validation", async () => {

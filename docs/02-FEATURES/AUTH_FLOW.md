@@ -1,4 +1,4 @@
-# Authentication Flow - Mathakine
+﻿# Authentication Flow - Mathakine
 
 > User-facing auth journey and backend boundaries
 > Updated: 08/04/2026
@@ -79,7 +79,7 @@ Unverified account behavior:
 Refresh / bootstrap:
 
 - `POST /api/auth/refresh` accepts the refresh cookie (or body fallback if needed)
-- `POST /api/auth/validate-token` validates the access token before cookie sync; rate limit is **dedicated** (higher per-IP ceiling than login; see `RATE_LIMIT_VALIDATE_TOKEN_MAX` in `app/utils/rate_limit.py`)
+- `POST /api/auth/validate-token` validates the access token before cookie sync; rate limit is **dedicated** (higher per-IP ceiling than login; see `RATE_LIMIT_VALIDATE_TOKEN_MAX` in `app/utils/rate_limit.py`). Next server callers share `frontend/lib/auth/server/validateTokenRuntime.ts`: **in-flight deduplication** per token + **2.5s success-only** reuse (no caching of 401/transient failures).
 - `GET /api/users/me` rebuilds the current user from the validated token
 - `POST /api/auth/logout` clears auth cookies
 

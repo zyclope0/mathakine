@@ -1,11 +1,11 @@
 import { getBackendUrl } from "@/lib/api/backendUrl";
-import { buildValidateTokenRequestHeaders } from "@/lib/auth/server/validateTokenBackendHeaders";
 import {
   getRouteAccessRequirementsForPath,
   routeNeedsServerProfile,
   type RouteAccessRequirements,
   type RouteAccessUser,
 } from "@/lib/auth/routeAccess";
+import { validateAccessTokenWithBackend } from "@/lib/auth/server/validateTokenRuntime";
 import { normalizeUserRole } from "@/lib/auth/userRoles";
 
 interface LocalTokenPayload {
@@ -136,26 +136,7 @@ async function validateAccessTokenLocally(token: string): Promise<LocalTokenSess
 }
 
 async function validateAccessTokenViaBackend(token: string): Promise<boolean | null> {
-  try {
-    const response = await fetch(`${getBackendUrl()}/api/auth/validate-token`, {
-      method: "POST",
-      headers: buildValidateTokenRequestHeaders("routeSession"),
-      body: JSON.stringify({ token }),
-      cache: "no-store",
-    });
-
-    if (response.status === 401) {
-      return false;
-    }
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return true;
-  } catch {
-    return null;
-  }
+  return validateAccessTokenWithBackend(getBackendUrl(), token, "routeSession");
 }
 
 async function fetchCurrentUserFromBackend(

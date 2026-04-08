@@ -3,9 +3,10 @@
 **Date du constat initial :** 2026-04-07  
 **Mise à jour analytique :** 2026-04-08  
 **Correctif calibrage (FFI-L19A) :** 2026-04-08 — quota dédié `validate-token`, voir §15  
+**Réduction appels Next (FFI-L19B) :** 2026-04-08 — runtime partagé + coalescence + TTL succès 2,5 s, voir §16  
 **Périmètre :** production (logs Render), backend Starlette, frontend Next.js (App Router)  
 **Destinataires :** validation produit / responsable projet  
-**Statut :** constat historique conservé ; calibrage `validate-token` corrigé côté backend ; suites : audit appels Next / confiance proxy (hors ce lot)
+**Statut :** constat historique conservé ; calibrage backend (L19A) + dédup Next server (L19B) livrés ; suite : **FFI-L19C** confiance proxy / clé plus fine
 
 ---
 
@@ -212,12 +213,9 @@ Important :
 
 **Résolu (FFI-L19A)** : `validate-token` dispose d’un bucket et d’un plafond **distincts** du login — §15.
 
-### 9.2 Les appels Next redondants ne sont pas encore réduits
+### 9.2 Les appels Next redondants
 
-À ce stade :
-
-- `routeSession` et `syncCookie` existent toujours comme consommateurs
-- il n'y a pas encore de stratégie explicite de déduplication ou de cache court documentée pour ce flux
+**Réduit (FFI-L19B, 2026-04-06)** : module partagé `frontend/lib/auth/server/validateTokenRuntime.ts` — coalescence des requêtes **en cours** pour la même paire `(baseUrl, token)` (un seul `fetch` concurrent), et micro-cache **succès uniquement** **`VALIDATE_TOKEN_SUCCESS_TTL_MS` = 2500 ms** (pas de cache des 401 ni des erreurs transitoires). Consommateurs : `routeSession`, `sync-cookie`.
 
 ### 9.3 La politique proxy/CDN n'est pas explicitement figée
 
@@ -243,11 +241,7 @@ La fourchette **60–120** / min recommandée initialement est respectée (choix
 
 ### 10.2 Moyen terme — réduction du trafic côté Next
 
-Auditer ensuite :
-
-- fréquence réelle des appels `routeSession`
-- éventuelles revalidations inutiles
-- possibilité de déduplication / cache court local au cycle de requête
+**Partiellement fait (FFI-L19B)** : déduplication intra-runtime documentée (voir §9.2). Suite possible : audit des **fréquences** d’appel `routeSession` / parcours RSC, sans élargir le TTL côté client.
 
 ### 10.3 Long terme — clé plus fidèle à l'utilisateur réel
 
@@ -289,8 +283,8 @@ Non pertinent :
 
 ### Lot 2 — audit d'appels Next
 
-- mesurer qui appelle `validate-token`, à quelle fréquence, et sous quelles routes
-- identifier si `routeSession` peut être moins bavard
+- **FFI-L19B** : point d’entrée unique + coalescence + TTL succès 2,5 s (voir `validateTokenRuntime.ts`)
+- suite : mesurer fréquences par route RSC / réductions produit si pertinent
 
 ### Lot 3 — décision infra
 
@@ -317,6 +311,7 @@ Non pertinent :
 - `frontend/lib/auth/server/routeSession.ts`
 - `frontend/app/api/auth/sync-cookie/route.ts`
 - `frontend/lib/auth/server/validateTokenBackendHeaders.ts`
+- `frontend/lib/auth/server/validateTokenRuntime.ts`
 - `README_TECH.md`
 
 ---
@@ -336,6 +331,20 @@ Hors scope explicite : confiance `X-Forwarded-For` / CDN, re-key par utilisateur
 
 ---
 
+## 16. Livrable FFI-L19B (Next server — moins d’appels redondants)
+
+| Élément | Détail |
+| ------- | ------ |
+| Module | `frontend/lib/auth/server/validateTokenRuntime.ts` — `validateAccessTokenWithBackend(baseUrl, token, caller)` |
+| Coalescence | Une seule requête HTTP en vol pour la même clé mémoire `baseUrl + "\\0" + token` (synchrone) |
+| Micro-cache | **Succès 200 uniquement** ; TTL **`VALIDATE_TOKEN_SUCCESS_TTL_MS` = 2500 ms** ; pas de stockage persistant |
+| Non cache | 401, autres HTTP, erreurs réseau → jamais réutilisés comme « valide » |
+| Tests | `__tests__/unit/lib/auth/server/validateTokenRuntime.test.ts` + resets dans `routeSession` / `sync-cookie` tests |
+
+Prépare **FFI-L19C** (proxy trust / clé plus fine) sans le mélanger.
+
+---
+
 Document de décision technique.  
-Le diagnostic initial (2026-04-08) a conduit au lot **FFI-L19A** (quota dédié, 2026-04-06). La stratégie proxy / clé plus fine reste un chantier séparé.
+Le diagnostic initial (2026-04-08) a conduit au lot **FFI-L19A** (quota dédié, 2026-04-06), puis **FFI-L19B** (dédup Next server, 2026-04-06). La stratégie proxy / clé plus fine reste le lot **FFI-L19C**.
 

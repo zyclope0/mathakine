@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 08/04/2026 (FFI-L19A: validate-token rate limit bucket dédié 90/min IP ; login/forgot-password 5/min inchangés)
+> Updated: 08/04/2026 (FFI-L19A validate-token 90/min IP ; FFI-L19B Next `validateTokenRuntime.ts` coalescence + TTL succès 2,5 s)
 
 Visible product train:
 
@@ -157,11 +157,12 @@ Limite assumee :
 - **`POST /api/auth/validate-token`** : décorateur `rate_limit_validate_token`, plafond **`RATE_LIMIT_VALIDATE_TOKEN_MAX` (90/min par IP)**, clé `rate_limit:validate-token:{ip}`. **Login / forgot-password** : `rate_limit_auth`, **`RATE_LIMIT_AUTH_SENSITIVE_MAX` (5/min)**, inchangé.
 - Sur **429**, les logs **WARNING** incluent le **bucket** (`validate_token` vs `auth_sensitive`), l’**endpoint** (pour `auth_sensitive`), l’**IP** effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (Next : `routeSession` / `syncCookie` via `buildValidateTokenRequestHeaders` — indication seulement, falsifiable).
 - Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
-- Référence détaillée : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15 FFI-L19A). Suites possibles : audit fréquence appels Next, puis décision infra sur confiance proxy/CDN si besoin d’une clé plus fine que l’IP.
+- **FFI-L19B** : `routeSession` et `sync-cookie` passent par `frontend/lib/auth/server/validateTokenRuntime.ts` — une seule requête HTTP concurrente par `(baseUrl, token)` ; réutilisation d’un **succès** backend pendant **2,5 s** seulement (pas de cache des 401 / erreurs).
+- Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15 FFI-L19A, §16 FFI-L19B). Suite : **FFI-L19C** confiance proxy / clé plus fine que l’IP.
 
 **Rollback après diagnostic**
 
-1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py` (dont `rate_limit_validate_token` / constantes), `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
+1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py` (dont `rate_limit_validate_token` / constantes), `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, `frontend/lib/auth/server/validateTokenRuntime.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
 2. **Ciblé** : retirer uniquement le `logger.info` dans `api_validate_token` si le volume INFO gêne ; garder le WARNING enrichi sur 429 pour les autres endpoints auth.
 3. **Sans redéployer le frontend** : le backend ignore l’absence du header ; seule l’attribution `validate_caller` redevient `-` dans les logs.
 

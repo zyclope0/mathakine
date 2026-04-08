@@ -19,7 +19,7 @@
 |---|---|---|
 | POST | `/api/auth/login` | login + auth cookies, rate limited |
 | GET | `/api/auth/csrf` | fetches CSRF token |
-| POST | `/api/auth/validate-token` | token validation; dedicated rate limit (90/min/IP), separate from login (5/min) |
+| POST | `/api/auth/validate-token` | token validation; dedicated rate limit (90/min/IP); Next server uses shared runtime + short success dedup (`validateTokenRuntime.ts`) |
 | POST | `/api/auth/refresh` | refresh via cookie/body |
 | POST | `/api/auth/logout` | clears auth cookies |
 | POST | `/api/auth/forgot-password` | generic message, rate limited |
