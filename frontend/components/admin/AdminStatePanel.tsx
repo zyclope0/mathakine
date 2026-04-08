@@ -32,7 +32,9 @@ export function AdminStatePanel({
     return (
       <Card>
         <CardContent className="py-12">
-          <p className="text-center text-destructive">{errorMessage}</p>
+          <p className="text-center text-destructive" role="alert">
+            {errorMessage}
+          </p>
         </CardContent>
       </Card>
     );
@@ -44,7 +46,9 @@ export function AdminStatePanel({
     return (
       <Card>
         <CardContent className="py-12">
-          <p className="text-center text-muted-foreground">{emptyMessage}</p>
+          <p className="text-center text-muted-foreground" role="status">
+            {emptyMessage}
+          </p>
         </CardContent>
       </Card>
     );

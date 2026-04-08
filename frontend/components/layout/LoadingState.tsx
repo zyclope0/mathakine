@@ -28,6 +28,9 @@ export function LoadingState({ message, className, size = "md" }: LoadingStatePr
   const t = useTranslations("common");
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       className={cn("flex flex-col items-center justify-center py-12", "min-h-[12rem]", className)}
     >
       <Loader2
@@ -37,7 +40,6 @@ export function LoadingState({ message, className, size = "md" }: LoadingStatePr
       <p className="text-sm text-muted-foreground">
         {message || t("loading", { default: "Chargement..." })}
       </p>
-      <span className="sr-only">{t("loading", { default: "Chargement..." })}</span>
     </div>
   );
 }

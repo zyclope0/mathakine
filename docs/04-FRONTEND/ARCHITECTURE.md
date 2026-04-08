@@ -1,7 +1,7 @@
 ﻿# Architecture Frontend â€” Mathakine
 
 > DerniÃ¨re mise Ã  jour : 08/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F)
+> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F/G/H)
 
 ---
 
@@ -165,6 +165,7 @@ frontend/
 - **Hooks** : Toujours `"use client"`
 - Les pages admin utilisent toutes `"use client"` (donnÃ©es dynamiques)
 - Pages informatives **server-first** : `app/about/page.tsx` et `app/privacy/page.tsx` utilisent `getTranslations` (next-intl serveur) ; ce lot ne modifie pas l’architecture i18n globale au-delà de ces routes.
+- **FFI-L20H (livré)** : erreurs / vides admin (`role="alert"`, `role="status"`) ; `LoadingState` avec `aria-busy` et `aria-live` ; switches confidentialité avec `aria-describedby` ; `SaveButton` avec `aria-busy` pendant la sauvegarde.
 
 ### State management
 

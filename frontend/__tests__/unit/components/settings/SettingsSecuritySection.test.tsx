@@ -89,6 +89,15 @@ describe("SettingsSecuritySection", () => {
     expect(screen.getByLabelText("settings.privacy.publicProfile")).toBeInTheDocument();
   });
 
+  it("relie chaque Switch à sa description via aria-describedby", () => {
+    renderSection();
+    const sw = screen.getByLabelText("settings.privacy.publicProfile");
+    expect(sw).toHaveAttribute("aria-describedby", "privacy-public-profile-description");
+    expect(document.getElementById("privacy-public-profile-description")).toHaveTextContent(
+      "settings.privacy.publicProfileDescription"
+    );
+  });
+
   it("calls setPrivacySettings when a switch toggles", async () => {
     const user = userEvent.setup();
     const { setPrivacySettings } = renderSection();
@@ -99,11 +108,13 @@ describe("SettingsSecuritySection", () => {
   it("shows loading state for sessions", () => {
     renderSection({ isLoadingSessions: true });
     expect(document.querySelector(".animate-spin")).toBeTruthy();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows empty sessions message", () => {
     renderSection({ sessions: [], visibleSessions: [] });
     expect(screen.getByText("settings.sessions.noSessions")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("settings.sessions.noSessions");
   });
 
   it("calls onRevokeSession with session id when revoke is clicked", async () => {

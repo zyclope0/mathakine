@@ -125,7 +125,7 @@ export function ContentListProgressiveFilterToolbar({
   return (
     <div
       className={cn(
-        "p-4 rounded-xl border border-border/50 bg-card flex flex-col gap-3 animate-fade-in-up",
+        "p-4 rounded-xl border border-border/50 bg-card flex flex-col gap-3 animate-fade-in-up min-w-0",
         containerClassName
       )}
     >

@@ -92,7 +92,7 @@ export function SettingsSecuritySection({
       <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
         <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
           <CardTitle className="flex items-center gap-2 text-xl">
-            <Shield className="h-5 w-5 text-primary" />
+            <Shield className="h-5 w-5 text-primary" aria-hidden="true" />
             {tPrivacy("title")}
           </CardTitle>
           <CardDescription className="mt-1">{tPrivacy("description")}</CardDescription>
@@ -108,11 +108,14 @@ export function SettingsSecuritySection({
                   <Label htmlFor={item.id} className="text-sm font-medium text-foreground">
                     {item.label}
                   </Label>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  <p id={`${item.id}-description`} className="text-xs text-muted-foreground">
+                    {item.desc}
+                  </p>
                 </div>
                 <Switch
                   id={item.id}
                   checked={item.checked}
+                  aria-describedby={`${item.id}-description`}
                   onCheckedChange={(checked) =>
                     setPrivacySettings((prev) => ({ ...prev, [item.key]: checked }))
                   }

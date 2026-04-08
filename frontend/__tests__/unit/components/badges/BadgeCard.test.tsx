@@ -99,4 +99,19 @@ describe("BadgeCard", () => {
     );
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
+
+  it("progressbar aria-label utilise le code si le nom est vide", () => {
+    render(
+      wrap(
+        <BadgeCard
+          badge={{ ...badgeBronze, name: "", criteria_text: "Critère" }}
+          isEarned={false}
+          progress={{ current: 1, target: 5, progress: 0.2 }}
+        />
+      )
+    );
+    const bar = screen.getByRole("progressbar");
+    expect(bar.getAttribute("aria-label")).toMatch(/test_badge/);
+    expect(bar.getAttribute("aria-label")).toMatch(/20/);
+  });
 });

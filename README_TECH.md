@@ -1,6 +1,6 @@
-# Technical README - Mathakine
+﻿# Technical README - Mathakine
 
-> Updated: 08/04/2026 (FFI-L19A–C : validate-token 90/min IP, Next `validateTokenRuntime`, `RATE_LIMIT_TRUST_X_FORWARDED_FOR`)
+> Updated: 08/04/2026 (FFI-L20H : targeted frontend QA/a11y/polish after FFI-L20A–G)
 
 Visible product train:
 
@@ -10,11 +10,11 @@ Visible product train:
 
 ## Runtime Truth
 
-- **Dev** : `python enhanced_server.py` écoute par défaut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la même URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
+- **Dev** : `python enhanced_server.py` Ã©coute par dÃ©faut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la mÃªme URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
 - live backend runtime is the Starlette stack under `server/`
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
-- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — services import sync_db_session via db_boundary (G4); data access is selective (2 repositories) and direct ORM in many services — see `docs/00-REFERENCE/ARCHITECTURE.md` § Data-Layer Doctrine
+- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) â€” services import sync_db_session via db_boundary (G4); data access is selective (2 repositories) and direct ORM in many services â€” see `docs/00-REFERENCE/ARCHITECTURE.md` Â§ Data-Layer Doctrine
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
 ## Frontend Architecture Truth
@@ -60,13 +60,13 @@ Visible product train:
   - **authenticated**: unchanged; header Assistant CTA remains
   - explicit follow-up (not required to close FFI-L16): optional future server-aligned guest quota (cookie / IP / dedicated key)
 - `FFI-L17A` is now closed (structural guardrails only, no UI/behavior change):
-  - `frontend/lib/architecture/frontendGuardrails.ts` is the single source of truth for LOC budgets on FFI-L11–L16 thin pages/shells/shared facades/chat shells, named dense exceptions, and required seam files
+  - `frontend/lib/architecture/frontendGuardrails.ts` is the single source of truth for LOC budgets on FFI-L11â€“L16 thin pages/shells/shared facades/chat shells, named dense exceptions, and required seam files
   - `frontend/__tests__/unit/architecture/frontendGuardrails.test.ts` enforces existence, budgets, and `ChatbotFloatingGlobal` staying under `components/chat/` (not `components/home/` or `components/layout/`)
   - run `npm run architecture:check` from `frontend/` to execute that test alone
   - explicit non-goal in FFI-L17: splitting `ProfileLearningPreferencesSection` or `ChallengeSolverCommandBar` (deferred to **FFI-L18**)
 - `FFI-L17B` is now closed (governance only, same module as L17A, no UI/behavior change):
-  - `OWNERSHIP_RULE_GROUPS` documents active ownership conventions (constants/helpers, runtime vs view, facades, admin/content-list, pointer to FFI-L18) — mirrored in `docs/04-FRONTEND/ARCHITECTURE.md`
-  - `REQUIRED_CANONICAL_LIB_FILES` + `collectMissingCanonicalLibFiles` guard shared `lib/` anchors (HTTP client, roles, domain constants, FFI-L11–L16 page helpers, content-list, header navigation)
+  - `OWNERSHIP_RULE_GROUPS` documents active ownership conventions (constants/helpers, runtime vs view, facades, admin/content-list, pointer to FFI-L18) â€” mirrored in `docs/04-FRONTEND/ARCHITECTURE.md`
+  - `REQUIRED_CANONICAL_LIB_FILES` + `collectMissingCanonicalLibFiles` guard shared `lib/` anchors (HTTP client, roles, domain constants, FFI-L11â€“L16 page helpers, content-list, header navigation)
   - forbidden duplicate global chatbot mounts: `FORBIDDEN_CHATBOT_FLOATING_GLOBAL_PATHS` (home + layout)
 - `FFI-L18A` is now closed (profile learning preferences): thin `ProfileLearningPreferencesSection` facade + `ProfileLearningPreferences*` subcomponents + `lib/profile/profileLearningPreferences.ts` ; no intentional UX change
 - `FFI-L18B` is now closed (challenge solver command bar): thin `ChallengeSolverCommandBar` facade + `ChallengeSolverMcqGrid` / `ChallengeSolverVisualButtons` / order & grid blocks / `ChallengeSolverValidateActions` + `lib/challenges/challengeSolverCommandBar.ts` ; `ALLOWED_DENSE_EXCEPTIONS` is empty ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` for the command bar facade
@@ -77,13 +77,14 @@ Visible product train:
 - `FFI-L20E` is now closed (settings security tab): `frontend/components/settings/SettingsSecuritySection.tsx` composes the privacy card + `SettingsSessionsList` / `SettingsSessionRow` ; pure helpers in `frontend/lib/settings/settingsSecurity.ts` (privacy row model, session location line, show-more count) ; `useSettingsPageController` unchanged ; characterization tests + guardrails ; no intentional UX change
 - `FFI-L20F` is now closed (admin read-heavy shell): `frontend/components/admin/AdminReadHeavyPageShell.tsx` + `AdminStatePanel.tsx` deduplicate `PageHeader` / toolbar / error-loading-empty structure for `app/admin/analytics/page.tsx` and `app/admin/ai-monitoring/page.tsx` ; `app/admin/page.tsx` uses `AdminStatePanel` only inside its existing layout ; admin domain hooks unchanged ; characterization tests ; required seams + ownership in `frontendGuardrails.ts` ; no intentional UX change
 - `FFI-L20G` is now closed (informative pages RSC): `frontend/app/about/page.tsx` and `frontend/app/privacy/page.tsx` use `getTranslations` (no route-level `use client`) ; no global i18n/proxy rewrite in this lot ; unit tests under `__tests__/unit/app/about|privacy/`
-- next frontend architecture focus: `FFI-L20H` (QA/a11y/polish per audit) — no open FFI-L20G seam
+- `FFI-L20H` is now closed (targeted QA/a11y/polish, no structural reopen): `AdminStatePanel` / `LoadingState` / `SaveButton` / settings privacy+sessions / `BadgeCard` progressbar label / `ContentListProgressiveFilterToolbar` overflow guard ; characterization tests updated where touched
+- next frontend focus shifts to product backlog / small fixes per audit â€” no open FFI-L20H seam as a named architecture train
 
-## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
+## Current Stability Baseline (postâ€“iteration `I` closure, 2026-03-19)
 
-Jalon historique valide ; le dépôt a depuis accumulé d’autres preuves (dont reco **R** ci-dessous). Chiffres = **citations** de clôture documentée ; **re-lancer** les commandes si l’arbre a divergé.
+Jalon historique valide ; le dÃ©pÃ´t a depuis accumulÃ© dâ€™autres preuves (dont reco **R** ci-dessous). Chiffres = **citations** de clÃ´ture documentÃ©e ; **re-lancer** les commandes si lâ€™arbre a divergÃ©.
 
-Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial non-bloquant) :
+Gate standard backend (`test_admin_auth_stability.py` exclu â€” test spÃ©cial non-bloquant) :
 
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
 - `black app/ server/ tests/ --check` -> green
@@ -95,13 +96,13 @@ Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial no
 
 ## Recommendation Iteration R Closure (2026-03-21)
 
-Chiffres = **citations** de la clôture R7 (pas de nouvelle exécution imposée pour aligner la doc). **Micro-lot R7b** : mise à jour des README racine uniquement, **sans rerun** ; vérité runtime inchangée.
+Chiffres = **citations** de la clÃ´ture R7 (pas de nouvelle exÃ©cution imposÃ©e pour aligner la doc). **Micro-lot R7b** : mise Ã  jour des README racine uniquement, **sans rerun** ; vÃ©ritÃ© runtime inchangÃ©e.
 
-Moteur reco après **R** : règles heuristiques bornées et chemins testés ; **pas** d’apprentissage ML ni personnalisation « intelligente » au sens data-science.
+Moteur reco aprÃ¨s **R** : rÃ¨gles heuristiques bornÃ©es et chemins testÃ©s ; **pas** dâ€™apprentissage ML ni personnalisation Â« intelligente Â» au sens data-science.
 
-- Clôture gouvernance + réserves + non-revendications : [docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md)
-- Reco ciblée : `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` -> **`40 passed`**
-- Gate standard backend (même commande que la section post-I) -> **`991 passed, 2 skipped`**
+- ClÃ´ture gouvernance + rÃ©serves + non-revendications : [docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md)
+- Reco ciblÃ©e : `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` -> **`40 passed`**
+- Gate standard backend (mÃªme commande que la section post-I) -> **`991 passed, 2 skipped`**
 - Frontend (depuis `frontend/`) : Vitest `useRecommendationsReason` -> **`3 passed`** ; `npm run lint`, `npm run format:check`, `npm run build` -> **green**
 
 ## Post-AT Hardening Closure (2026-03-24)
@@ -158,26 +159,26 @@ Limite assumee :
 - `REDIS_URL` is mandatory in production
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
-- **FFI-L19C — client IP for rate-limit keys** (`app/utils/rate_limit.py`): `RATE_LIMIT_TRUST_X_FORWARDED_FOR` (default **false**, conservative). If **true**, first non-empty hop of `X-Forwarded-For` when present; else `request.client.host`. If **false**, **never** trust `X-Forwarded-For` (TCP peer only). Enable `true` only behind a trusted proxy that rewrites/appends XFF. See `.env.example` and [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) §17.
+- **FFI-L19C â€” client IP for rate-limit keys** (`app/utils/rate_limit.py`): `RATE_LIMIT_TRUST_X_FORWARDED_FOR` (default **false**, conservative). If **true**, first non-empty hop of `X-Forwarded-For` when present; else `request.client.host`. If **false**, **never** trust `X-Forwarded-For` (TCP peer only). Enable `true` only behind a trusted proxy that rewrites/appends XFF. See `.env.example` and [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) Â§17.
 
 #### Diagnostics `validate-token` (rafales 429 / attribution)
 
-- **`POST /api/auth/validate-token`** : décorateur `rate_limit_validate_token`, plafond **`RATE_LIMIT_VALIDATE_TOKEN_MAX` (90/min par IP)**, clé `rate_limit:validate-token:{ip}`. **Login / forgot-password** : `rate_limit_auth`, **`RATE_LIMIT_AUTH_SENSITIVE_MAX` (5/min)**, inchangé.
-- Sur **429**, les logs **WARNING** incluent le **bucket** (`validate_token` vs `auth_sensitive`), l’**endpoint** (pour `auth_sensitive`), l’**IP** effective, **User-Agent** et **Referer** tronqués, début de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si présent (Next : `routeSession` / `syncCookie` via `buildValidateTokenRequestHeaders` — indication seulement, falsifiable).
-- Sur **succès** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mêmes indices (aucun token ni en-tête `Authorization` dans les logs).
-- **FFI-L19B** : `routeSession` et `sync-cookie` passent par `frontend/lib/auth/server/validateTokenRuntime.ts` — une seule requête HTTP concurrente par `(baseUrl, token)` ; réutilisation d’un **succès** backend pendant **2,5 s** seulement (pas de cache des 401 / erreurs).
-- Référence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (§15–§17). **FFI-L19\*** **clos** ; priorité active : roadmap **frontend** principale (voir `.claude/session-plan.md`).
+- **`POST /api/auth/validate-token`** : dÃ©corateur `rate_limit_validate_token`, plafond **`RATE_LIMIT_VALIDATE_TOKEN_MAX` (90/min par IP)**, clÃ© `rate_limit:validate-token:{ip}`. **Login / forgot-password** : `rate_limit_auth`, **`RATE_LIMIT_AUTH_SENSITIVE_MAX` (5/min)**, inchangÃ©.
+- Sur **429**, les logs **WARNING** incluent le **bucket** (`validate_token` vs `auth_sensitive`), lâ€™**endpoint** (pour `auth_sensitive`), lâ€™**IP** effective, **User-Agent** et **Referer** tronquÃ©s, dÃ©but de **X-Forwarded-For** brut, et **`X-Mathakine-Validate-Caller`** si prÃ©sent (Next : `routeSession` / `syncCookie` via `buildValidateTokenRequestHeaders` â€” indication seulement, falsifiable).
+- Sur **succÃ¨s** de `validate-token`, une ligne **INFO** `auth.validate_token: ok` reprend les mÃªmes indices (aucun token ni en-tÃªte `Authorization` dans les logs).
+- **FFI-L19B** : `routeSession` et `sync-cookie` passent par `frontend/lib/auth/server/validateTokenRuntime.ts` â€” une seule requÃªte HTTP concurrente par `(baseUrl, token)` ; rÃ©utilisation dâ€™un **succÃ¨s** backend pendant **2,5 s** seulement (pas de cache des 401 / erreurs).
+- RÃ©fÃ©rence : [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](docs/03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (Â§15â€“Â§17). **FFI-L19\*** **clos** ; prioritÃ© active : roadmap **frontend** principale (voir `.claude/session-plan.md`).
 
-**Rollback après diagnostic**
+**Rollback aprÃ¨s diagnostic**
 
-1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py` (dont `rate_limit_validate_token` / constantes), `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, `frontend/lib/auth/server/validateTokenRuntime.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associés ; redéployer.
-2. **Ciblé** : retirer uniquement le `logger.info` dans `api_validate_token` si le volume INFO gêne ; garder le WARNING enrichi sur 429 pour les autres endpoints auth.
-3. **Sans redéployer le frontend** : le backend ignore l’absence du header ; seule l’attribution `validate_caller` redevient `-` dans les logs.
+1. **Complet** : revert du commit qui touche `app/utils/rate_limit.py` (dont `rate_limit_validate_token` / constantes), `server/handlers/auth_handlers.py`, `frontend/lib/auth/server/validateTokenBackendHeaders.ts`, `frontend/lib/auth/server/validateTokenRuntime.ts`, les appels dans `routeSession` / `sync-cookie`, `README_TECH.md`, et les tests associÃ©s ; redÃ©ployer.
+2. **CiblÃ©** : retirer uniquement le `logger.info` dans `api_validate_token` si le volume INFO gÃªne ; garder le WARNING enrichi sur 429 pour les autres endpoints auth.
+3. **Sans redÃ©ployer le frontend** : le backend ignore lâ€™absence du header ; seule lâ€™attribution `validate_caller` redevient `-` dans les logs.
 
-## Architecture Clean (Cible A + B — closed)
+## Architecture Clean (Cible A + B â€” closed)
 
-- **Cible A** : `app/models/` and `app/schemas/` use explicit per-module imports; `all_models.py` and `all_schemas.py` have been removed (A1–A6).
-- **Cible B** : `app/services/` is organised by DDD domains (auth, users, badges, exercises, challenges, progress, admin, analytics, communication, core, diagnostic, feedback, recommendation). No business logic file remains at root. See `docs/00-REFERENCE/ARCHITECTURE.md` § app/services/.
+- **Cible A** : `app/models/` and `app/schemas/` use explicit per-module imports; `all_models.py` and `all_schemas.py` have been removed (A1â€“A6).
+- **Cible B** : `app/services/` is organised by DDD domains (auth, users, badges, exercises, challenges, progress, admin, analytics, communication, core, diagnostic, feedback, recommendation). No business logic file remains at root. See `docs/00-REFERENCE/ARCHITECTURE.md` Â§ app/services/.
 
 ## Iteration E + F + G Outcome
 
@@ -197,3 +198,4 @@ The backend is now materially stronger on:
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/core/enhanced_server_adapter.py` remains legacy compatibility
+

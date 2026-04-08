@@ -454,7 +454,7 @@ export function BadgeCard({
                   aria-valuenow={Math.round(progress.progress * 100)}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`${badge.name}: ${Math.round(progress.progress * 100)}%`}
+                  aria-label={`${badge.name || badge.code || t("noName")}: ${Math.round(progress.progress * 100)}%`}
                 >
                   <div
                     className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"

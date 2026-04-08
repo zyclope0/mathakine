@@ -183,6 +183,7 @@ Decision d'execution :
 5. `FFI-L20E` est livré : `lib/settings/settingsSecurity.ts` + `SettingsSessionsList` / `SettingsSessionRow` ; `SettingsSecuritySection` reste la façade (confidentialité + liste sessions) ; tests de caractérisation ; pas de changement d’UX ni de déplacement du runtime hors `useSettingsPageController`.
 6. `FFI-L20F` est livré : shell read-heavy admin partagé + tests pages admin ; pas de fusion des hooks `useAdmin*` ; cartes KPI et contenus restent par page.
 7. `FFI-L20G` est livré : `app/about/page.tsx` et `app/privacy/page.tsx` en Server Components + `getTranslations` ; tests unitaires ciblés ; aucun redesign ni refonte i18n globale.
+8. `FFI-L20H` est livré : polish a11y / états sur surfaces déjà stabilisées (admin read-heavy, `LoadingState`, paramètres confidentialité / sessions, `BadgeCard`, barre de filtres listes) sans refonte structurelle.
 
 ---
 

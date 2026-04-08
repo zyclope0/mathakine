@@ -26,6 +26,7 @@ describe("AdminStatePanel", () => {
       { wrapper: Wrapper }
     );
     expect(screen.getByText("Custom admin error")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Custom admin error");
     expect(screen.queryByText("success")).not.toBeInTheDocument();
   });
 
@@ -37,6 +38,7 @@ describe("AdminStatePanel", () => {
       { wrapper: Wrapper }
     );
     expect(screen.getByText("Please wait")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
     expect(screen.queryByText("success")).not.toBeInTheDocument();
   });
 
@@ -55,6 +57,7 @@ describe("AdminStatePanel", () => {
       { wrapper: Wrapper }
     );
     expect(screen.getByText("Nothing here")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Nothing here");
     expect(screen.queryByText("success")).not.toBeInTheDocument();
   });
 

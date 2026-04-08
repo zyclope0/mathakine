@@ -18,15 +18,22 @@ interface SaveButtonProps {
 export function SaveButton({ onClick, isLoading, className }: SaveButtonProps) {
   const t = useTranslations("settings.actions");
   return (
-    <Button onClick={onClick} disabled={isLoading} size="sm" className={className}>
+    <Button
+      type="button"
+      onClick={onClick}
+      disabled={isLoading}
+      aria-busy={isLoading}
+      size="sm"
+      className={className}
+    >
       {isLoading ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
           {t("saving")}
         </>
       ) : (
         <>
-          <Save className="mr-2 h-4 w-4" />
+          <Save className="mr-2 h-4 w-4" aria-hidden="true" />
           {t("save")}
         </>
       )}

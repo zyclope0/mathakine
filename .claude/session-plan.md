@@ -71,9 +71,7 @@ Prochaines itérations architecturales recommandées :
 
 1. ~~**`FFI-L20F`** — shell partagé admin read-heavy~~ **fermé** (`AdminReadHeavyPageShell`, `AdminStatePanel`, tests admin).
 2. ~~**`FFI-L20G`** — pages informatives en Server Components~~ **fermé** : `app/about/page.tsx` et `app/privacy/page.tsx` en RSC avec `getTranslations` ; aucun changement produit ou visuel ; pas de refonte i18n globale ; tests unitaires `about` / `privacy`.
-3. **`FFI-L20H`** — QA visuelle / a11y et polish structurel ciblé  
-   Cibles : surfaces shared et shells déjà refactorés  
-   But : fermer les reliquats non structurels (cohérence d'états, polish premium, QA humaine) sans rouvrir un gros chantier de découpage.
+3. ~~**`FFI-L20H`** — QA visuelle / a11y et polish structurel ciblé~~ **fermé** : états admin (`AdminStatePanel`, `LoadingState`), confidentialité / sessions (`SettingsSecuritySection`, `SettingsSessionsList`, `SaveButton`), `BadgeCard` (progressbar), `ContentListProgressiveFilterToolbar` (`min-w-0`) ; tests mis à jour ; pas de refonte structurelle ni redesign.
 
 ### Avancement FFI-L20 — 2026-04-08
 
@@ -86,3 +84,4 @@ Prochaines itérations architecturales recommandées :
 | **FFI-L20E** | Fermé      | `SettingsSecuritySection` allégée : carte confidentialité + `SettingsSessionsList` / `SettingsSessionRow` ; helpers purs `lib/settings/settingsSecurity.ts` (lignes privacy, localisation session, pagination visible) ; tests section + lib ; `useSettingsPageController` inchangé ; budget `PROTECTED` + fichier canonique dans `frontendGuardrails.ts`. |
 | **FFI-L20F** | Fermé      | `AdminReadHeavyPageShell` + `AdminStatePanel` : factorisation erreur/chargement/vide + coque `PageHeader`/`PageSection`/toolbar pour analytics et monitoring IA ; vue d'ensemble admin utilise `AdminStatePanel` seul ; hooks `useAdmin*` inchangés ; tests `page.test` + analytics + ai-monitoring + `AdminStatePanel` ; seams + ownership dans `frontendGuardrails.ts`. |
 | **FFI-L20G** | Fermé      | `app/about/page.tsx` + `app/privacy/page.tsx` : Server Components + `getTranslations` ; suppression du `use client` inutile au niveau route ; aucun changement visuel ou produit ; tests unitaires `about` / `privacy`. |
+| **FFI-L20H** | Fermé      | Polish a11y / états : `role="alert"` / `status`, `LoadingState` (`aria-busy`, `aria-live`), `SaveButton` (`aria-busy`), confidentialité (`aria-describedby` sur Switch), liste sessions (statut chargement + vide), `BadgeCard` progressbar, `ContentListProgressiveFilterToolbar` `min-w-0` ; tests AdminStatePanel, SettingsSecuritySection, BadgeCard. |

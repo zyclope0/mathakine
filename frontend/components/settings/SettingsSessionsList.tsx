@@ -43,23 +43,30 @@ export function SettingsSessionsList({
 }: SettingsSessionsListProps) {
   const tSessions = useTranslations("settings.sessions");
   const tActions = useTranslations("settings.actions");
+  const tCommon = useTranslations("common");
 
   return (
     <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
       <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
         <CardTitle className="flex items-center gap-2 text-xl">
-          <Monitor className="h-5 w-5 text-primary" />
+          <Monitor className="h-5 w-5 text-primary" aria-hidden="true" />
           {tSessions("title")}
         </CardTitle>
         <CardDescription className="mt-1">{tSessions("description")}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         {isLoadingSessions ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div
+            className="flex flex-col items-center justify-center gap-2 py-8"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+            <span className="sr-only">{tCommon("loading")}</span>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
+          <div className="py-8 text-center text-muted-foreground" role="status">
             <p>{tSessions("noSessions")}</p>
           </div>
         ) : (
