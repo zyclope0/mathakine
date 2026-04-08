@@ -42,6 +42,81 @@ vi.mock("@/hooks/useAdminAiStats", () => ({
 }));
 
 describe("AdminAiMonitoringPage", () => {
+  const emptyStats = {
+    data: {
+      days: 7,
+      stats: {
+        total_tokens: 0,
+        total_cost: 0,
+        average_tokens: 0,
+        count: 0,
+        by_type: {},
+        by_model: {},
+        by_workload: {},
+        retention: {
+          max_age_days: 7,
+          max_events_per_key: 1000,
+          disclaimer_fr: "",
+        },
+      },
+      daily_summary: {},
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useAdminAiStats>;
+
+  const emptyMetrics = {
+    data: {
+      days: 7,
+      summary: {
+        success_rate: 0,
+        validation_failure_rate: 0,
+        auto_correction_rate: 0,
+        average_duration: 0,
+        by_type: {},
+        by_workload: {},
+        error_types: {},
+      },
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useAdminGenerationMetrics>;
+
+  const emptyHarness = {
+    data: { runs: [], limit: 25, disclaimer_fr: "" },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useAdminAiEvalHarnessRuns>;
+
+  it("affiche l'erreur quand un des hooks échoue", () => {
+    vi.mocked(useAdminAiStats).mockReturnValue({
+      ...emptyStats,
+      error: new Error("boom"),
+    });
+    vi.mocked(useAdminGenerationMetrics).mockReturnValue(emptyMetrics);
+    vi.mocked(useAdminAiEvalHarnessRuns).mockReturnValue(emptyHarness);
+
+    render(<AdminAiMonitoringPage />);
+    expect(
+      screen.getByText("Erreur de chargement. Verifiez vos droits admin.")
+    ).toBeInTheDocument();
+  });
+
+  it("affiche le chargement quand un des hooks charge", () => {
+    vi.mocked(useAdminAiStats).mockReturnValue({
+      ...emptyStats,
+      isLoading: true,
+    });
+    vi.mocked(useAdminGenerationMetrics).mockReturnValue(emptyMetrics);
+    vi.mocked(useAdminAiEvalHarnessRuns).mockReturnValue(emptyHarness);
+
+    render(<AdminAiMonitoringPage />);
+    expect(screen.getByText("Chargement du monitoring IA...")).toBeInTheDocument();
+  });
+
   it("affiche les sections workload et erreurs quand les metriques existent", () => {
     vi.mocked(useAdminAiStats).mockReturnValue({
       data: {

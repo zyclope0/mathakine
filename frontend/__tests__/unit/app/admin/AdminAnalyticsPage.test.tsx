@@ -19,6 +19,44 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 }
 
 describe("AdminAnalyticsPage", () => {
+  it("affiche l'erreur API quand le hook renvoie une erreur", () => {
+    vi.mocked(useAdminEdTechAnalytics).mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: new Error("fail"),
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useAdminEdTechAnalytics>);
+
+    render(<AdminAnalyticsPage />, { wrapper: TestWrapper });
+    expect(
+      screen.getByText("Erreur de chargement. Vérifiez vos droits admin.")
+    ).toBeInTheDocument();
+  });
+
+  it("affiche le chargement quand isLoading", () => {
+    vi.mocked(useAdminEdTechAnalytics).mockReturnValue({
+      data: null,
+      isLoading: true,
+      error: null,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useAdminEdTechAnalytics>);
+
+    render(<AdminAnalyticsPage />, { wrapper: TestWrapper });
+    expect(screen.getByText("Chargement des analytics...")).toBeInTheDocument();
+  });
+
+  it("affiche l'état vide global quand pas de données", () => {
+    vi.mocked(useAdminEdTechAnalytics).mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useAdminEdTechAnalytics>);
+
+    render(<AdminAnalyticsPage />, { wrapper: TestWrapper });
+    expect(screen.getByText("Aucune donnée.")).toBeInTheDocument();
+  });
+
   it("affiche le libellé 'depuis le clic Quick Start' pour la métrique temps moyen", () => {
     vi.mocked(useAdminEdTechAnalytics).mockReturnValue({
       data: {

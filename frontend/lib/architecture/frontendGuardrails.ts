@@ -238,6 +238,14 @@ export const REQUIRED_ARCHITECTURE_SEAMS: readonly RequiredArchitectureSeam[] = 
     role: "FFI-L14 admin content domain — badges",
   },
   {
+    relativePath: "components/admin/AdminReadHeavyPageShell.tsx",
+    role: "FFI-L20F shared read-heavy admin page shell (analytics + ai-monitoring)",
+  },
+  {
+    relativePath: "components/admin/AdminStatePanel.tsx",
+    role: "FFI-L20F admin error / loading / empty state panel (overview + shell)",
+  },
+  {
     relativePath: "components/layout/HeaderDesktopNav.tsx",
     role: "FFI-L16 shell — desktop navigation + authenticated Assistant CTA",
   },
@@ -409,6 +417,15 @@ export const OWNERSHIP_RULE_GROUPS: readonly OwnershipRuleGroup[] = [
       "SettingsSecuritySection composes the privacy card and SettingsSessionsList; session rows live in SettingsSessionRow.",
       "Pure row-building and location/show-more math live in lib/settings/settingsSecurity.ts; page runtime stays in useSettingsPageController.",
       "Progressive session disclosure and revoke confirmation UX remain unchanged; no new global store.",
+    ],
+  },
+  {
+    id: "ffi-l20f-admin-read-heavy",
+    summary: "Admin read-heavy page shell (FFI-L20F)",
+    bullets: [
+      "AdminReadHeavyPageShell composes space-y-8 + PageHeader + PageSection + optional toolbar + AdminStatePanel for analytics and ai-monitoring routes.",
+      "AdminStatePanel centralises the error Card, LoadingState, and optional empty Card; app/admin/page.tsx uses AdminStatePanel inside its existing PageLayout stack.",
+      "Domain hooks (useAdminOverview, useAdminEdTechAnalytics, useAdminAiStats, etc.) stay separate; only view structure is shared.",
     ],
   },
 ];

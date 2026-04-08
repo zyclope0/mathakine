@@ -7,7 +7,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ADMIN_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
 import { useAdminOverview } from "@/hooks/useAdminOverview";
 import { useAdminReports } from "@/hooks/useAdminReports";
-import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
+import { PageLayout, PageHeader, PageSection } from "@/components/layout";
+import { AdminStatePanel } from "@/components/admin/AdminStatePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,17 +67,12 @@ export default function AdminPage() {
         <PageHeader title="Espace Admin" description="Vue d'ensemble de la plateforme" />
 
         <PageSection>
-          {error ? (
-            <Card>
-              <CardContent className="py-12">
-                <p className="text-center text-destructive">
-                  Erreur de chargement. Droits insuffisants ou API indisponible.
-                </p>
-              </CardContent>
-            </Card>
-          ) : overviewLoading ? (
-            <LoadingState message="Chargement..." />
-          ) : (
+          <AdminStatePanel
+            hasError={!!error}
+            errorMessage="Erreur de chargement. Droits insuffisants ou API indisponible."
+            isLoading={overviewLoading}
+            loadingMessage="Chargement..."
+          >
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Link href="/admin/users">
@@ -220,7 +216,7 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
             </>
-          )}
+          </AdminStatePanel>
         </PageSection>
       </PageLayout>
     </ProtectedRoute>

@@ -1,14 +1,14 @@
 ﻿# Catalogue des composants React â€” Mathakine
 
 > Scope : `frontend/components/`
-> Updated : 2026-04-08 (FFI-L20E settings security)
+> Updated : 2026-04-08 (FFI-L20F admin read-heavy shell)
 > Source : audit rÃ©pertoire + ARCHITECTURE.md
 
 ---
 
 ## Vue d'ensemble
 
-**201 composants TSX** repartis en 23 categories.
+**203 composants TSX** repartis en 23 categories.
 Tous les composants sont `"use client"` sauf indication contraire.
 
 ---
@@ -21,7 +21,7 @@ Tous les composants sont `"use client"` sauf indication contraire.
 | Dashboard     | `dashboard/`     | 34         | Widgets stats, visualisations et tabs sections                    |
 | DÃ©fis        | `challenges/`    | 30         | Interface dÃ©fis logiques + sous-blocs command bar (FFI-L18B)     |
 | Layout        | `layout/`        | 15         | Structure de page                                                 |
-| Admin         | `admin/`         | 12         | Modales CRUD + sections page contenu admin                         |
+| Admin         | `admin/`         | 14         | Modales CRUD + sections contenu + shell read-heavy FFI-L20F        |
 | Spatial       | `spatial/`       | 6          | Animations et decor theme-aware                                   |
 | Exercices     | `exercises/`     | 9          | Interface exercices                                               |
 | Shared        | `shared/`        | 15         | Composants cross-domaine                                          |
@@ -295,6 +295,13 @@ Quota **invite** : **5 messages** / session navigateur (`useGuestChatAccess`, se
 ## `admin/` â€” Backoffice
 
 Modales CRUD : `ExerciseCreateModal`, `ExerciseEditModal`, `ChallengeCreateModal`, `ChallengeEditModal`, `BadgeCreateModal`, `BadgeEditModal`, `AdminAcademyStatsSection`.
+
+**FFI-L20F** : `AdminReadHeavyPageShell` + `AdminStatePanel` factorisent l'en-tête, la barre filtres et les branches erreur/chargement/vide pour les routes admin read-heavy (analytics, monitoring IA) ; la vue d'ensemble (`app/admin/page`) réutilise `AdminStatePanel` seul.
+
+| Composant                 | Rôle |
+| ------------------------- | ---- |
+| `AdminReadHeavyPageShell` | `PageHeader` + `PageSection` + toolbar + `AdminStatePanel` |
+| `AdminStatePanel`         | Card erreur, `LoadingState`, card vide optionnelle, enfants |
 
 ### `admin/content/` â€” Page contenu (FFI-L14)
 

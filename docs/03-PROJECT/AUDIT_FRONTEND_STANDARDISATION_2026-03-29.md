@@ -163,14 +163,12 @@ Decision d'execution :
 - `FFI-L20B` est livré : `components/exercises/ExerciseSolver.tsx` est une façade de composition ; le runtime (review F04, session entrelacée, `sessionStorage`, navigation) vit dans `hooks/useExerciseSolverController.ts` ; dérivations pures dans `lib/exercises/exerciseSolverFlow.ts`.
 - `FFI-L20C` est livré : contrats `lib/auth/types.ts`, helpers `lib/auth/authLoginFlow.ts`, override `lib/auth/postLoginRedirect.ts` ; `useAuth.ts` reste la façade React Query + effets (sync, Sentry, routing, toasts) ; `Providers.tsx` est une composition racine avec `ThemeBootstrap` / `AccessibilityDomSync` / `AccessibilityHotkeys` + `AuthSyncProvider` / `AccessScopeSync`.
 - `FFI-L20E` est livré : `SettingsSecuritySection` reste la façade onglet sécurité ; `SettingsSessionsList` / `SettingsSessionRow` portent la liste sessions ; dérivations présentation dans `lib/settings/settingsSecurity.ts` ; runtime inchangé dans `useSettingsPageController`.
+- `FFI-L20F` est livré : `AdminReadHeavyPageShell` + `AdminStatePanel` pour les routes admin read-heavy (analytics, monitoring IA) et branche d’états partagée sur la vue d’ensemble ; hooks métier admin non fusionnés.
 
 ##### P2 — Dette DRY / duplication cachée
 
 - ~~Le domaine badges dupliquait types et mappings de présentation entre `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection`~~ — **FFI-L20D (2026-04-06)** : contrats partagés `lib/badges/types.ts`, helpers purs `lib/badges/badgePresentation.ts` ; vues inchangées côté UX.
-- Les pages admin read-heavy répètent encore un shell similaire (filtres + `PageHeader` + gestion `error/loading/empty` + cartes KPI) sans template partagé :
-  - `app/admin/analytics/page.tsx`
-  - `app/admin/ai-monitoring/page.tsx`
-  - `app/admin/page.tsx`
+- ~~Shell admin read-heavy dupliqué~~ — **FFI-L20F** : `components/admin/AdminReadHeavyPageShell.tsx` + `AdminStatePanel.tsx` ; analytics et monitoring IA partagent la coque ; la vue d'ensemble réutilise `AdminStatePanel` ; hooks métier inchangés.
 
 ##### P3 — Standards / best-practices React-Next
 
@@ -186,6 +184,7 @@ Decision d'execution :
 3. `FFI-L20C` est livré : types + helpers purs + sous-blocs providers (voir ci-dessus).
 4. `FFI-L20D` est livré : `lib/badges/types.ts` + `lib/badges/badgePresentation.ts` ; `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection` réutilisent les mêmes dérivations (médailles, motivation, tri) ; tests de caractérisation ciblés ; budgets dans `PROTECTED_FRONTEND_SURFACES`.
 5. `FFI-L20E` est livré : `lib/settings/settingsSecurity.ts` + `SettingsSessionsList` / `SettingsSessionRow` ; `SettingsSecuritySection` reste la façade (confidentialité + liste sessions) ; tests de caractérisation ; pas de changement d’UX ni de déplacement du runtime hors `useSettingsPageController`.
+6. `FFI-L20F` est livré : shell read-heavy admin partagé + tests pages admin ; pas de fusion des hooks `useAdmin*` ; cartes KPI et contenus restent par page.
 
 ---
 
