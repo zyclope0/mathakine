@@ -136,6 +136,8 @@ export function useChallengeSolverController({
       setVisualSelections({});
       startTimeRef.current = Date.now();
     }
+    // Reset only on visible challenge identity change; full object deps would wipe
+    // in-progress answers on refetch, while setters are stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge?.id]);
 

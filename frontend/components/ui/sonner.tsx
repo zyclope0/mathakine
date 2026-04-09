@@ -13,7 +13,7 @@ import { readStoredDarkMode } from "@/lib/theme/themeDom";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   // Sync with actual .dark class on <html> instead of guessing from theme name.
-  // This correctly handles all theme × dark-mode combinations.
+  // This correctly handles all theme x dark-mode combinations.
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof document === "undefined") return false;
     return document.documentElement.classList.contains("dark");
@@ -22,10 +22,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
   useEffect(() => {
     const root = document.documentElement;
 
-    // Initial sync after hydration — deferred to avoid SSR mismatch
+    // Initial sync after hydration - deferred to avoid SSR mismatch
     const initial = root.classList.contains("dark") || readStoredDarkMode();
     if (initial !== isDark) {
-      // Intentional setState in effect — post-hydration DOM sync, runs once
+      // Intentional setState in effect - post-hydration DOM sync, runs once
       setIsDark(initial);
     }
 
@@ -34,6 +34,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     });
     observer.observe(root, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
+    // Register once; MutationObserver handles subsequent theme class changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
