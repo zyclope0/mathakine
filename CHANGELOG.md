@@ -42,6 +42,13 @@ Active references:
 
 ### Changed
 
+- Project hygiene and documentation governance were tightened without changing runtime behavior:
+  - the historical frontend industrialization audit was moved out of `docs/03-PROJECT/` root into `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/`
+  - active references were realigned in `.claude/session-plan.md`, `README_TECH.md`, `docs/03-PROJECT/README.md`, and archive cross-links so the archived audit stays discoverable but is no longer presented as an active root document
+  - root/frontend ignore rules now explicitly cover local generated artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `frontend/junit.xml`, `frontend/vitest-coverage.log`, `frontend/coverage/`, `frontend/tsconfig.tsbuildinfo`)
+  - `frontend/.prettierignore` now ignores generated frontend outputs that should never participate in `prettier --check .`
+  - the root `.gitignore` now keeps `.claude/session-plan.md` tracked while still ignoring other local `.claude` artifacts, and no longer ignores the tracked `CLAUDE.md`
+
 - Frontend architecture documentation is now aligned on the post-`FFI-L10` truth:
   - `ChallengeSolver` is no longer tracked as a monolithic runtime seam
   - `ProfilePage` is no longer tracked as a mega-page runtime seam
@@ -54,6 +61,11 @@ Active references:
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed
+
+- Local workspace cleanup no longer leaves stale generated artifacts in place:
+  - Python caches/coverage outputs (`htmlcov`, `.pytest_cache`, `.mypy_cache`, `__pycache__`, `.coverage`, `coverage.xml`, `junit.xml`) were removed from the working tree
+  - frontend generated outputs (`.next`, `coverage`, `junit.xml`, `vitest-coverage.log`, `tsconfig.tsbuildinfo`) were removed from the working tree
+  - `npm run format:check` in `frontend/` is green again after ignore coverage was aligned with the actual generated files
 
 - The challenge solver retry flow now fully resets multi-position visual selections through `useChallengeSolverController`, matching the expected learner-facing “retry from zero” behavior.
 

@@ -22,7 +22,7 @@ Visible product train:
 - active execution source of truth for frontend industrialization:
   - `.claude/session-plan.md`
   - `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
-  - `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` remains historical context only
+  - `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` remains historical context only
 - `FFI-L10` is now closed:
   - `frontend/components/challenges/ChallengeSolver.tsx` is reduced to a thin orchestrator
   - runtime logic lives in `frontend/hooks/useChallengeSolverController.ts`

@@ -150,9 +150,9 @@ CONFIGURATION_INFOMANIAK.md
 *_fixed.py
 
 # Artefacts locaux d'outillage IA / revue
-.claude/
+.claude/*
+!.claude/session-plan.md
 .claude-octopus/
-CLAUDE.md
 reports/
 
 # Skills et lock tooling IA (Cursor / Codex agents)
@@ -181,5 +181,8 @@ frontend/playwright-report/
 frontend/test-results/
 frontend/lint-*.txt
 frontend/junit.xml
+frontend/vitest-coverage.log
+frontend/coverage/
+frontend/tsconfig.tsbuildinfo
 
 sources/

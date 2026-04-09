@@ -25,7 +25,7 @@ Après clôture FFI-L19\*, la priorité d'exécution revient à la feuille de ro
 - `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
 - `docs/03-PROJECT/README.md`
 - `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
-- `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme contexte historique
+- `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme contexte historique archivÃ©
 
 Les changements backend hors périmètre roadmap frontend doivent rester petits, nommés et reviewables.
 
@@ -34,7 +34,7 @@ Les changements backend hors périmètre roadmap frontend doivent rester petits,
 1. `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` pour la priorité produit active
 2. `D:\Mathakine\.claude\session-plan.md` pour l'ordre d'exécution courant
 3. `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` pour la dette frontend encore utile
-4. `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme photographie historique, non comme backlog actif
+4. `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme photographie historique, non comme backlog actif
 
 ### État réel frontend après FFI-L18B
 

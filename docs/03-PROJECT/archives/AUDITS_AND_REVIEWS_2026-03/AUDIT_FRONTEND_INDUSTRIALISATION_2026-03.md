@@ -6,7 +6,7 @@
 **MÃ©thode :** Inspection systÃ©matique composant par composant, analyse cross-cutting des patterns
 **Statut :** âœ… AUDIT HISTORIQUE TERMINÃ‰ (03/03/2026) â€” ne plus utiliser ce fichier comme plan d'exÃ©cution actif
 
-**ComplÃ©mentaire Ã  :** [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](./AUDIT_ARCHITECTURE_BACKEND_2026-03.md) (backend â€” terminÃ©)
+**ComplÃ©mentaire Ã  :** [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](../HISTORIQUE_PRE_REFACTOR_2026-03-13/AUDIT_ARCHITECTURE_BACKEND_2026-03.md) (backend â€” terminÃ©)
 
 > **Mise Ã  jour 2026-04-06 (addendum FFI-L16 lot C)**
 > Ce document reste utile comme photographie de la dette initiale, mais il ne doit plus etre
@@ -14,8 +14,8 @@
 >
 > Sources de verite actuelles :
 >
-> 1. [D:\\Mathakine\\.claude\\session-plan.md](../../.claude/session-plan.md)
-> 2. [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)
+> 1. [D:\\Mathakine\\.claude\\session-plan.md](../../../../.claude/session-plan.md)
+> 2. [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](../../AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)
 >
 > Verite terrain actuelle :
 >
@@ -482,6 +482,6 @@ Aucun constat critique â€” l'accessibilitÃ© est sÃ©rieusement traitÃ©
 
 ## Navigation
 
-- [â† Audit Backend (terminÃ©)](./AUDIT_ARCHITECTURE_BACKEND_2026-03.md)
-- [â† Index projet](./README.md)
-- [â† Index documentation](../INDEX.md)
+- [â† Audit Backend (terminÃ©)](../HISTORIQUE_PRE_REFACTOR_2026-03-13/AUDIT_ARCHITECTURE_BACKEND_2026-03.md)
+- [â† Index projet](../../README.md)
+- [â† Archive audits 2026-03](./README.md)
