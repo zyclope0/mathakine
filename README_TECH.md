@@ -1,6 +1,6 @@
 ﻿# Technical README - Mathakine
 
-> Updated: 08/04/2026 (FFI-L20H : targeted frontend QA/a11y/polish after FFI-L20A–G)
+> Updated: 09/04/2026 (CHAT-AUTH-01 : chat assistant authentifié ; RQ-PROVIDERS-02 : QueryClient stable par montage ; CHAT-I18N-03 : copies chat/error externalisées)
 
 Visible product train:
 
@@ -56,9 +56,8 @@ Visible product train:
 - `FFI-L16` is now closed (frontend architecture):
   - `frontend/components/layout/Header.tsx` is a thin shell facade orchestrating `HeaderDesktopNav`, `HeaderUserMenu`, and `HeaderMobileMenu`
   - global floating chatbot ownership lives under `frontend/components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`)
-  - **guest (public)**: assistant remains available; **no** header Assistant CTA; entry via the **global FAB**; **5 messages per browser session** enforced client-side via `useGuestChatAccess` (sessionStorage), complementary to existing **server-side** chat rate limiting (authoritative)
-  - **authenticated**: unchanged; header Assistant CTA remains
-  - explicit follow-up (not required to close FFI-L16): optional future server-aligned guest quota (cookie / IP / dedicated key)
+  - **guest (public)**: assistant shell remains discoverable (**global FAB** on most pages, marketing block on home); **no** header Assistant CTA; **sending** requires a session (**CHAT-AUTH-01**): backend JWT + Next proxy gate on cookie `access_token`, with `guestLimitCta` + login/register in the drawer and on the home embedded card; `hooks/chat/useGuestChatAccess.ts` is **no longer wired** to the product chat surfaces (legacy hook + tests retained)
+  - **authenticated**: unchanged for connected users (cookies + CSRF on `streamChat`); header Assistant CTA remains
 - `FFI-L17A` is now closed (structural guardrails only, no UI/behavior change):
   - `frontend/lib/architecture/frontendGuardrails.ts` is the single source of truth for LOC budgets on FFI-L11â€“L16 thin pages/shells/shared facades/chat shells, named dense exceptions, and required seam files
   - `frontend/__tests__/unit/architecture/frontendGuardrails.test.ts` enforces existence, budgets, and `ChatbotFloatingGlobal` staying under `components/chat/` (not `components/home/` or `components/layout/`)
@@ -73,6 +72,8 @@ Visible product train:
 - `FFI-L20A` is now closed (dashboard shell): `frontend/app/dashboard/page.tsx` is a thin container (~174 LOC) ; runtime lives in `frontend/hooks/useDashboardPageController.ts` ; tabs are split into `frontend/components/dashboard/Dashboard*Section.tsx` + `DashboardTabsNav.tsx` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES`
 - `FFI-L20B` is now closed (exercise solver): `frontend/components/exercises/ExerciseSolver.tsx` is a thin facade (~366 LOC) ; runtime lives in `frontend/hooks/useExerciseSolverController.ts` ; pure flow helpers in `frontend/lib/exercises/exerciseSolverFlow.ts` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` + required seams/canonical lib entries
 - `FFI-L20C` is now closed (auth + root providers): shared contracts in `frontend/lib/auth/types.ts` ; pure branches in `frontend/lib/auth/authLoginFlow.ts` ; post-login override seam in `frontend/lib/auth/postLoginRedirect.ts` ; `hooks/useAuth.ts` remains the public hook facade ; `components/providers/Providers.tsx` composes `ThemeBootstrap` + `AccessibilityDomSync` + `AccessibilityHotkeys` + existing `AuthSyncProvider` / `AccessScopeSync` ; regrowth guarded via `PROTECTED_FRONTEND_SURFACES` + required seams/canonical lib entries
+- **RQ-PROVIDERS-02** (closed): `QueryClient` is created inside `Providers` with `useState(() => new QueryClient({ ... }))` — one stable instance per mount, same `defaultOptions` (`staleTime` 60s, `refetchOnWindowFocus: false`, `retry: 1`) ; no module-scope singleton
+- **CHAT-I18N-03** (closed): `global-error` uses `createTranslator` + persisted locale (`locale-preferences`) ; `not-found` CTA exercises via `errors.404.ctaExercises` ; chat Next proxies use `apiChat.proxy.*` from `messages/*` with `resolveChatProxyLocale` / `getChatProxyCopy` (`lib/api/chatProxyLocale.ts`) ; `i18n:validate` + `i18n:check` are green for this scope, while repo-wide `i18n:extract` still reports unrelated hardcoded strings outside the lot
 - `FFI-L20D` is now closed (badges presentation domain): shared contracts in `frontend/lib/badges/types.ts` ; pure presentation helpers in `frontend/lib/badges/badgePresentation.ts` (medal paths, difficulty/glow, grid sort, locked motivation branches) consumed by `BadgeCard`, `BadgeGrid`, `BadgesProgressTabsSection` ; characterization tests + `PROTECTED_FRONTEND_SURFACES` budgets + `REQUIRED_CANONICAL_LIB_FILES` entries ; no intentional UX change
 - `FFI-L20E` is now closed (settings security tab): `frontend/components/settings/SettingsSecuritySection.tsx` composes the privacy card + `SettingsSessionsList` / `SettingsSessionRow` ; pure helpers in `frontend/lib/settings/settingsSecurity.ts` (privacy row model, session location line, show-more count) ; `useSettingsPageController` unchanged ; characterization tests + guardrails ; no intentional UX change
 - `FFI-L20F` is now closed (admin read-heavy shell): `frontend/components/admin/AdminReadHeavyPageShell.tsx` + `AdminStatePanel.tsx` deduplicate `PageHeader` / toolbar / error-loading-empty structure for `app/admin/analytics/page.tsx` and `app/admin/ai-monitoring/page.tsx` ; `app/admin/page.tsx` uses `AdminStatePanel` only inside its existing layout ; admin domain hooks unchanged ; characterization tests ; required seams + ownership in `frontendGuardrails.ts` ; no intentional UX change
@@ -145,7 +146,8 @@ Limite assumee :
 
 ### AI runtime hardening
 
-- frontend proxy routes (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont maintenant couverts par des tests de handlers Next.js au niveau route, pas seulement par des tests de helper
+- **`POST /api/chat`** et **`POST /api/chat/stream`** (Starlette + routes Next `app/api/chat/*`) exigent une session valide (**CHAT-AUTH-01**) : plus de whitelist publique middleware ; le proxy Next refuse sans cookie `access_token` (401 JSON `UNAUTHORIZED`) et relaie `Cookie` + `X-CSRF-Token` lorsque la session est présente ; rate-limit chat inchangé côté backend
+- frontend proxy routes (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont couverts par des tests de handlers Next.js au niveau route, pas seulement par des tests de helper
 - les flux pedagogiques SSE utilisent un circuit breaker process-local partage pour eviter de relancer indefiniment des appels OpenAI manifestement indisponibles
 - les erreurs de generation IA cote frontend distinguent maintenant explicitement :
   - CSRF absent
@@ -198,4 +200,3 @@ The backend is now materially stronger on:
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/core/enhanced_server_adapter.py` remains legacy compatibility
-

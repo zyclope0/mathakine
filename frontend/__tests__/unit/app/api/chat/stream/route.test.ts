@@ -25,6 +25,20 @@ describe("POST /api/chat/stream", () => {
     vi.unstubAllGlobals();
   });
 
+  it("returns 401 when access_token cookie is missing", async () => {
+    const req = new NextRequest("http://localhost/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "hi", conversation_history: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
+    const data = await res.json();
+    expect(data.code).toBe("UNAUTHORIZED");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it("forwards backend 200 stream as SSE Response with text/event-stream", async () => {
     const body = sseStream('data: {"type":"token","content":"a"}\n\n');
     vi.mocked(globalThis.fetch).mockResolvedValue({
@@ -35,7 +49,12 @@ describe("POST /api/chat/stream", () => {
 
     const req = new NextRequest("http://localhost/api/chat/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=tok; csrf_token=c1",
+        "X-CSRF-Token": "c1",
+        "Accept-Language": "en",
+      },
       body: JSON.stringify({ message: "hi", conversation_history: [] }),
     });
 
@@ -44,15 +63,20 @@ describe("POST /api/chat/stream", () => {
     expect(res.headers.get("content-type")).toBe("text/event-stream");
     expect(res.headers.get("cache-control")).toBe("no-cache");
 
-    expect(globalThis.fetch).toHaveBeenCalledWith("https://api.test/api/chat/stream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const call = vi.mocked(globalThis.fetch).mock.calls[0];
+    expect(call?.[0]).toBe("https://api.test/api/chat/stream");
+    const init = call?.[1] as RequestInit;
+    const h = init?.headers as Record<string, string>;
+    expect(h.Cookie).toContain("access_token=tok");
+    expect(h["X-CSRF-Token"]).toBe("c1");
+    expect(init?.body).toBe(
+      JSON.stringify({
         message: "hi",
         conversation_history: [],
         stream: true,
-      }),
-    });
+      })
+    );
   });
 
   it("returns 500 JSON when getBackendUrl throws (no silent localhost in prod config)", async () => {
@@ -62,7 +86,10 @@ describe("POST /api/chat/stream", () => {
 
     const req = new NextRequest("http://localhost/api/chat/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=x",
+      },
       body: JSON.stringify({ message: "hi", conversation_history: [] }),
     });
 
@@ -74,36 +101,121 @@ describe("POST /api/chat/stream", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
-  it("when backend fetch returns !ok, returns SSE error event at status 200", async () => {
+  it("returns JSON 401 when backend returns 401", async () => {
     vi.mocked(globalThis.fetch).mockResolvedValue({
       ok: false,
-      status: 502,
-      statusText: "Bad Gateway",
+      status: 401,
+      text: async () =>
+        JSON.stringify({
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+          error: "Authentication required",
+        }),
     } as Response);
 
     const req = new NextRequest("http://localhost/api/chat/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=bad",
+      },
       body: JSON.stringify({ message: "hi", conversation_history: [] }),
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toBe("text/event-stream");
-    const text = await res.text();
-    expect(text).toContain("error");
-    expect(globalThis.fetch).toHaveBeenCalledOnce();
+    expect(res.status).toBe(401);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    const data = await res.json();
+    expect(data.code).toBe("UNAUTHORIZED");
+  });
+
+  it("returns JSON 403 when backend returns 403", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: async () =>
+        JSON.stringify({
+          code: "FORBIDDEN",
+          message: "Token CSRF manquant. Rafraichissez la page et reessayez.",
+          error: "Token CSRF manquant. Rafraichissez la page et reessayez.",
+        }),
+    } as Response);
+
+    const req = new NextRequest("http://localhost/api/chat/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=bad; csrf_token=stale",
+      },
+      body: JSON.stringify({ message: "hi", conversation_history: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    const data = await res.json();
+    expect(data.code).toBe("FORBIDDEN");
+  });
+
+  it("when backend fetch returns !ok (non-401), returns SSE error event at status 200", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      vi.mocked(globalThis.fetch).mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: "Bad Gateway",
+      } as Response);
+
+      const req = new NextRequest("http://localhost/api/chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          cookie: "access_token=t",
+        },
+        body: JSON.stringify({ message: "hi", conversation_history: [] }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("text/event-stream");
+      const text = await res.text();
+      expect(text).toContain("error");
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    } finally {
+      errSpy.mockRestore();
+    }
   });
 
   it("returns 400 when message is missing", async () => {
     const req = new NextRequest("http://localhost/api/chat/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=t",
+      },
       body: JSON.stringify({ conversation_history: [] }),
     });
 
     const res = await POST(req);
     expect(res.status).toBe(400);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 with English error when Accept-Language prefers English", async () => {
+    const req = new NextRequest("http://localhost/api/chat/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept-Language": "en-GB",
+        cookie: "access_token=t",
+      },
+      body: JSON.stringify({ conversation_history: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = JSON.parse(await res.text());
+    expect(data.error).toBe("Message is required");
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });

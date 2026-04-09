@@ -1347,7 +1347,11 @@
     "404": {
       "title": "Page non trouvée",
       "message": "La page que vous recherchez n'existe pas",
-      "backHome": "Retour à l'accueil"
+      "backHome": "Retour à l'accueil",
+      "ctaExercises": "Voir les exercices"
+    },
+    "global": {
+      "description": "L'application a rencontré un problème. Veuillez réessayer."
     },
     "500": {
       "title": "Erreur serveur",
@@ -1360,6 +1364,18 @@
     "forbidden": "Accès interdit",
     "notFound": "Ressource non trouvée",
     "generic": "Une erreur s'est produite"
+  },
+  "apiChat": {
+    "proxy": {
+      "messageRequired": "Message requis",
+      "backendConfigInvalid": "Configuration backend invalide en production",
+      "fallbackServiceUnavailable": "Désolé, le service d'assistance mathématique n'est pas disponible pour le moment. Veuillez réessayer plus tard ou consulter les exercices disponibles sur la plateforme !",
+      "fallbackAssistantError": "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer.",
+      "fallbackGeneric": "Une erreur est survenue. Veuillez réessayer.",
+      "sseServiceUnavailable": "Service non disponible",
+      "sseConnectionError": "Erreur lors de la connexion",
+      "sseProcessingError": "Erreur lors du traitement"
+    }
   },
   "toasts": {
     "auth": {

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getBackendUrl } from "@/lib/api/backendUrl";
+import { getChatProxyCopy, resolveChatProxyLocale } from "@/lib/api/chatProxyLocale";
+import {
+  buildChatBackendForwardHeaders,
+  chatProxyUnauthorizedResponse,
+  hasChatProxyAccessToken,
+} from "@/lib/api/chatProxyRequest";
 
 /**
  * API Route pour le chatbot
@@ -8,12 +14,20 @@ import { getBackendUrl } from "@/lib/api/backendUrl";
  * Proxy vers le backend qui utilise OpenAI pour répondre aux questions
  */
 export async function POST(request: NextRequest) {
+  const proxyCopy = getChatProxyCopy(
+    resolveChatProxyLocale(request.headers.get("Accept-Language"))
+  );
+
   try {
     const body = await request.json();
     const { message, conversation_history } = body;
 
     if (!message || typeof message !== "string") {
-      return NextResponse.json({ error: "Message requis" }, { status: 400 });
+      return NextResponse.json({ error: proxyCopy.messageRequired }, { status: 400 });
+    }
+
+    if (!hasChatProxyAccessToken(request)) {
+      return chatProxyUnauthorizedResponse();
     }
 
     let backendBase: string;
@@ -22,7 +36,7 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       return NextResponse.json(
         {
-          error: e instanceof Error ? e.message : "Configuration backend invalide en production",
+          error: e instanceof Error ? e.message : proxyCopy.backendConfigInvalid,
         },
         { status: 500 }
       );
@@ -31,9 +45,7 @@ export async function POST(request: NextRequest) {
     try {
       const response = await fetch(`${backendBase}/api/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: buildChatBackendForwardHeaders(request),
         body: JSON.stringify({
           message,
           conversation_history: conversation_history || [],
@@ -41,6 +53,22 @@ export async function POST(request: NextRequest) {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+          if (data && typeof data === "object") {
+            return NextResponse.json(data, { status: response.status });
+          }
+          return response.status === 401
+            ? chatProxyUnauthorizedResponse()
+            : NextResponse.json(
+                {
+                  code: "FORBIDDEN",
+                  message: "CSRF token missing or invalid",
+                  error: "CSRF token missing or invalid",
+                },
+                { status: 403 }
+              );
+        }
         throw new Error(`Backend error: ${response.status}`);
       }
 
@@ -63,8 +91,7 @@ export async function POST(request: NextRequest) {
         (err?.cause && String(err.cause).includes("ECONNREFUSED"))
       ) {
         return NextResponse.json({
-          response:
-            "Désolé, le service d'assistance mathématique n'est pas disponible pour le moment. Veuillez réessayer plus tard ou consulter les exercices disponibles sur la plateforme !",
+          response: proxyCopy.fallbackServiceUnavailable,
         });
       }
 
@@ -73,8 +100,7 @@ export async function POST(request: NextRequest) {
         console.error("Chat API error:", err);
       }
       return NextResponse.json({
-        response:
-          "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer.",
+        response: proxyCopy.fallbackAssistantError,
       });
     }
   } catch (error) {
@@ -82,9 +108,6 @@ export async function POST(request: NextRequest) {
     if (process.env.NODE_ENV === "development") {
       console.error("Chat API error:", error);
     }
-    return NextResponse.json(
-      { response: "Une erreur est survenue. Veuillez réessayer." },
-      { status: 500 }
-    );
+    return NextResponse.json({ response: proxyCopy.fallbackGeneric }, { status: 500 });
   }
 }

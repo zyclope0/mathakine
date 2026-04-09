@@ -79,25 +79,13 @@ La suite frontend relève maintenant de lots **ciblés**, petits et reviewables,
   - accessibilité structurelle renforcée par `FFI-L20H`
 - point à nuancer :
   - le constat historique sur les **7 thèmes CSS** n'a pas été revalidé exhaustivement dans cette passe ; rien de contradictoire trouvé, mais ce n'est pas un axe de pilotage prioritaire sans audit dédié
-- point explicitement **non corrigé à date** :
-  - `frontend/components/providers/Providers.tsx` garde un `QueryClient` **singleton module-scope**
-  - preuve : lignes `13-21`
-  - ce point n'a **pas** été fermé par `FFI-L20C`
-
 ### File active recommandée
 
 #### P1 immédiats
 
-1. **CHAT-AUTH-01** - auth sur `/api/chat` et `/api/chat/stream` (frontend + backend)
-   - fermer l'exposition coût OpenAI publique
-   - aligner proxy/frontend et whitelist backend
-2. **RQ-PROVIDERS-02** - instancier `QueryClient` via `useState`/factory locale dans `Providers.tsx`
-   - durcir le cycle de vie React Query sans changement produit
-3. **CHAT-I18N-03** - extraire les hardcoded FR restants
-   - `app/global-error.tsx`
-   - `app/not-found.tsx` (CTA restant)
-   - `app/api/chat/route.ts`
-   - `app/api/chat/stream/route.ts`
+1. ~~**CHAT-AUTH-01**~~ — **Fermé (2026-04-06)** — `POST /api/chat` et `POST /api/chat/stream` : barrière JWT côté Starlette (hors whitelist publique) + garde cookie `access_token` sur les routes Next proxy (`chatProxyRequest.ts`) ; relais `Cookie` / `X-CSRF-Token` ; UI drawer + bloc home : invités voient le CTA existant `guestLimitCta` (pas d’envoi) ; voir `README_TECH` § chat.
+2. ~~**RQ-PROVIDERS-02**~~ — **Fermé** — `QueryClient` via `useState(() => new QueryClient(...))` dans `Providers.tsx` (instance stable par montage, mêmes `defaultOptions`) ; voir `README_TECH` / tests `Providers.test.tsx`.
+3. ~~**CHAT-I18N-03**~~ — **Fermé** — chaînes des surfaces `global-error`, `not-found` (CTA), proxies `app/api/chat/*` externalisées dans `messages/fr|en.json` (`errors.*`, `apiChat.proxy.*`) + `lib/api/chatProxyLocale.ts` ; `Accept-Language` pour les réponses proxy ; `i18n:validate` + `i18n:check` verts ; `i18n:extract` reste une dette repo-wide hors périmètre de ce lot ciblé.
 4. **CHAT-LOG-04** - conditionner / supprimer les `console.error` en production dans `app/api/chat/stream/route.ts`
 
 #### P1 qualité
@@ -125,9 +113,9 @@ La suite frontend relève maintenant de lots **ciblés**, petits et reviewables,
 
 ### Ordre d'exécution recommandé
 
-1. `CHAT-AUTH-01`
-2. `RQ-PROVIDERS-02`
-3. `CHAT-I18N-03`
+1. ~~`CHAT-AUTH-01`~~ (fermé)
+2. ~~`RQ-PROVIDERS-02`~~ (fermé)
+3. ~~`CHAT-I18N-03`~~ (fermé)
 4. `CHAT-LOG-04`
 5. `LINT-STRICT-05`
 6. `E2E-CORE-06`

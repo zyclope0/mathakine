@@ -28,7 +28,7 @@ export default function NotFound() {
             <Button asChild variant="outline" className="flex-1">
               <Link href="/exercises">
                 <Search className="mr-2 h-4 w-4" />
-                Voir les exercices
+                {t("ctaExercises")}
               </Link>
             </Button>
           </div>

@@ -15,8 +15,6 @@ import { ChatMessagesView } from "@/components/chat/ChatMessagesView";
 import { ChatSuggestionsBar } from "@/components/chat/ChatSuggestionsBar";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { useAuth } from "@/hooks/useAuth";
-import { useGuestChatAccess } from "@/hooks/chat/useGuestChatAccess";
-import { GUEST_CHAT_MESSAGE_QUOTA } from "@/lib/chat/guestChatSession";
 
 interface ChatbotFloatingProps {
   isOpen?: boolean;
@@ -24,26 +22,13 @@ interface ChatbotFloatingProps {
 }
 
 /**
- * Global shell chatbot: portal + drawer. Stream logic via `useChat`; guest quota via `useGuestChatAccess`.
+ * Global shell chatbot: portal + drawer. Stream logic via `useChat`.
+ * CHAT-AUTH-01: sending requires an authenticated session (backend + Next proxy enforce).
  */
 export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatingProps) {
   const t = useTranslations("home.chatbot");
   const tAuth = useTranslations("auth");
   const { isAuthenticated } = useAuth();
-  const {
-    hydrated: guestHydrated,
-    sentCount: guestSentCount,
-    remainingMessages: guestRemaining,
-    guestLimitReached,
-    canSendGuestMessage,
-    incrementGuestMessageCount,
-  } = useGuestChatAccess(isAuthenticated);
-
-  const onUserMessageCommitted = useCallback(() => {
-    if (!isAuthenticated) {
-      incrementGuestMessageCount();
-    }
-  }, [incrementGuestMessageCount, isAuthenticated]);
 
   const {
     messages,
@@ -65,7 +50,6 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       },
     ],
     initialSuggestions: ["Qu'est-ce que Mathakine ?", "Comment progresser ?", "Créer un exercice"],
-    onUserMessageCommitted,
   });
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -77,16 +61,16 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   const guardedHandleSend = useCallback(
     async (messageContent: string) => {
-      if (!isAuthenticated && !canSendGuestMessage) return;
+      if (!isAuthenticated) return;
       await handleSend(messageContent);
     },
-    [canSendGuestMessage, handleSend, isAuthenticated]
+    [handleSend, isAuthenticated]
   );
 
   const guardedSendInputMessage = useCallback(() => {
-    if (!isAuthenticated && !canSendGuestMessage) return;
+    if (!isAuthenticated) return;
     sendInputMessage();
-  }, [canSendGuestMessage, isAuthenticated, sendInputMessage]);
+  }, [isAuthenticated, sendInputMessage]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -106,11 +90,9 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     }
   }, [isOpen]);
 
-  const guestComposerBlocked = !isAuthenticated && guestLimitReached;
+  const guestComposerBlocked = !isAuthenticated;
   const suggestionDisabled = isLoading || guestComposerBlocked;
-  const showGuestQuotaHint =
-    !isAuthenticated && guestHydrated && !guestLimitReached && guestSentCount > 0;
-  const showGuestLimitPanel = !isAuthenticated && guestHydrated && guestLimitReached;
+  const showGuestAuthPanel = !isAuthenticated;
 
   if (typeof document === "undefined") return null;
 
@@ -166,23 +148,13 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
             />
           </div>
 
-          {showGuestQuotaHint ? (
-            <p className="border-t px-4 pt-3 text-xs text-muted-foreground" role="status">
-              {t("guestQuotaRemaining", {
-                remaining: guestRemaining,
-                total: GUEST_CHAT_MESSAGE_QUOTA,
-              })}
-            </p>
-          ) : null}
-
-          {showGuestLimitPanel ? (
+          {showGuestAuthPanel ? (
             <div
               className="border-t px-4 py-3 text-sm text-muted-foreground"
               role="status"
               aria-live="polite"
             >
-              <p className="mb-2">{t("guestLimitReached")}</p>
-              <p className="mb-3 text-xs">{t("guestLimitCta")}</p>
+              <p className="mb-3">{t("guestLimitCta")}</p>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/login">{tAuth("login.title")}</Link>
@@ -211,7 +183,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
             onKeyDown={handleKeyDown}
             onSend={guardedSendInputMessage}
             disabled={isLoading || guestComposerBlocked}
-            canSend={Boolean(input.trim()) && (isAuthenticated || canSendGuestMessage)}
+            canSend={Boolean(input.trim()) && isAuthenticated}
             placeholder={t("inputPlaceholder")}
             inputAriaLabel={t("inputLabel")}
             sendAriaLabel={t("sendButton")}

@@ -258,9 +258,8 @@ Les hooks `useAIExerciseGenerator` et `useAIChallengeGenerator` convertissent ce
 
 - **Header** : `components/layout/Header.tsx` est une facade shell ; navigation desktop, menu utilisateur et menu mobile sont des sous-blocs dedies (`HeaderDesktopNav`, `HeaderUserMenu`, `HeaderMobileMenu`).
 - **Assistant global** : drawer / FAB sous `components/chat/` (`ChatbotFloating.tsx`, `ChatbotFloatingGlobal.tsx`). Aucun second `ChatbotFloatingGlobal` sous `components/home/` ou `components/layout/` (garde-fou FFI-L17B). La carte embarquee marketing reste `components/home/Chatbot.tsx` (home), distincte du shell global.
-- **Invites (public)** : l'assistant reste accessible ; **pas** de CTA Assistant dans le header ; entree via le **FAB global**. Plafond **5 messages** par session navigateur via `hooks/chat/useGuestChatAccess.ts` (sessionStorage), en complement du **rate-limit chat serveur** (autorite inchangee).
-- **Authentifies** : comportement historique conserve, y compris le CTA Assistant dans le header.
-- **Reliquat** (hors perimetre FFI-L16 frontend) : eventuel durcissement serveur du quota invite (cookie / IP / cle dediee) — optionnel, non bloquant pour la cloture architecture.
+- **Invites (public)** : le shell assistant reste visible (**FAB global**, bloc home) ; **pas** de CTA Assistant dans le header ; **l'envoi** exige une session (**CHAT-AUTH-01**) : JWT backend + garde cookie sur les routes Next proxy ; CTA `guestLimitCta` + login / register ; le hook `useGuestChatAccess` n'est plus branche sur ces surfaces (legacy). Le **rate-limit chat serveur** reste l'autorite cote debits.
+- **Authentifies** : comportement nominal conserve pour l'envoi (cookies + CSRF), y compris le CTA Assistant dans le header.
 
 ### Garde-fous architecture (FFI-L17A + FFI-L17B)
 

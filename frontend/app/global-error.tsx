@@ -1,7 +1,25 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { useEffect } from "react";
+import { createTranslator } from "next-intl";
+import { useEffect, useState } from "react";
+
+import enMessages from "@/messages/en.json";
+import frMessages from "@/messages/fr.json";
+
+type UiLocale = "fr" | "en";
+
+function readPersistedLocale(): UiLocale {
+  if (typeof window === "undefined") return "fr";
+  try {
+    const raw = window.localStorage.getItem("locale-preferences");
+    if (!raw) return "fr";
+    const parsed = JSON.parse(raw) as { state?: { locale?: string } };
+    return parsed.state?.locale === "en" ? "en" : "fr";
+  } catch {
+    return "fr";
+  }
+}
 
 export default function GlobalError({
   error,
@@ -10,15 +28,25 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [locale] = useState<UiLocale>(() => readPersistedLocale());
+  const messages = locale === "en" ? enMessages : frMessages;
+  const t = createTranslator({ locale, messages, namespace: "errors" });
+
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = locale;
+    }
+  }, [locale]);
+
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
-        <h1>Une erreur s&apos;est produite</h1>
-        <p>L&apos;application a rencontré un problème. Veuillez réessayer.</p>
+        <h1>{t("generic")}</h1>
+        <p>{t("global.description")}</p>
         <button
           type="button"
           onClick={reset}
@@ -31,7 +59,7 @@ export default function GlobalError({
             borderRadius: "4px",
           }}
         >
-          Réessayer
+          {t("500.retry")}
         </button>
       </body>
     </html>

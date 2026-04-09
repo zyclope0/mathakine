@@ -169,9 +169,7 @@ _ROUTE_REGISTRY: List[Tuple[str, Set[str], bool]] = [
     ("/api/challenges/completed-ids", {"GET"}, False),
     ("/api/badges/available", {"GET"}, False),
     ("/api/badges/rarity", {"GET"}, False),
-    # Chatbot — accessible sans session (page d'accueil publique, pas de cookie CSRF)
-    ("/api/chat", {"POST"}, True),
-    ("/api/chat/stream", {"POST"}, True),
+    # Chatbot — auth obligatoire (CHAT-AUTH-01) ; plus de whitelist publique
 ]
 
 # Dérivations — calculées une seule fois au chargement du module
@@ -186,6 +184,16 @@ _CSRF_EXEMPT_NORMALIZED: frozenset = frozenset(
     path.rstrip("/") for path, _, csrf in _ROUTE_REGISTRY if csrf
 )
 _CSRF_MUTATING_METHODS: Set[str] = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+def _has_auth_credentials(request: Request) -> bool:
+    """True si la requête porte déjà des credentials d'authentification exploitables."""
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        return True
+
+    auth_header = request.headers.get("Authorization", "")
+    return auth_header.startswith("Bearer ") and len(auth_header[7:].strip()) > 0
 
 
 def _is_auth_public(path: str, method: str) -> bool:
@@ -215,6 +223,9 @@ class CsrfMiddleware(BaseHTTPMiddleware):
         if path in _CSRF_EXEMPT_NORMALIZED:
             return await call_next(request)
         if not path.startswith("/api/"):
+            return await call_next(request)
+        if not _has_auth_credentials(request):
+            # Laisse l'AuthenticationMiddleware produire le 401 canonique.
             return await call_next(request)
 
         from app.utils.csrf import validate_csrf_token

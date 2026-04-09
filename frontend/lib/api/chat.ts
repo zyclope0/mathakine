@@ -1,3 +1,4 @@
+import { getCsrfTokenFromCookie } from "@/lib/api/client";
 import { consumeSseJsonEvents, type SseJsonEvent } from "@/lib/utils/ssePostStream";
 
 /** Route Next (proxy → backend), même origine + cookies. */
@@ -63,12 +64,15 @@ export async function streamChat(
   options?: StreamChatOptions
 ): Promise<void> {
   try {
+    const csrf = getCsrfTokenFromCookie();
     const requestInit: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
         "Accept-Language": typeof navigator !== "undefined" ? navigator.language : "fr",
+        ...(csrf ? { "X-CSRF-Token": csrf } : {}),
       },
       body: JSON.stringify(payload),
     };

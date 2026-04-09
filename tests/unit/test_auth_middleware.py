@@ -65,3 +65,9 @@ class TestIsAuthPublic:
 
     def test_users_me_rank_get_requires_auth(self):
         assert _is_auth_public("/api/users/me/rank", "GET") is False
+
+    def test_chat_post_requires_auth(self):
+        assert _is_auth_public("/api/chat", "POST") is False
+
+    def test_chat_stream_post_requires_auth(self):
+        assert _is_auth_public("/api/chat/stream", "POST") is False

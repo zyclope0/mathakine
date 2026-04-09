@@ -1347,7 +1347,11 @@
     "404": {
       "title": "Page not found",
       "message": "The page you are looking for does not exist",
-      "backHome": "Back to home"
+      "backHome": "Back to home",
+      "ctaExercises": "Browse exercises"
+    },
+    "global": {
+      "description": "The app ran into a problem. Please try again."
     },
     "500": {
       "title": "Server error",
@@ -1360,6 +1364,18 @@
     "forbidden": "Access forbidden",
     "notFound": "Resource not found",
     "generic": "An error occurred"
+  },
+  "apiChat": {
+    "proxy": {
+      "messageRequired": "Message is required",
+      "backendConfigInvalid": "Invalid backend configuration in production",
+      "fallbackServiceUnavailable": "Sorry, the math assistant is not available right now. Please try again later or browse the exercises on the platform!",
+      "fallbackAssistantError": "Something went wrong while talking to the assistant. Please try again.",
+      "fallbackGeneric": "Something went wrong. Please try again.",
+      "sseServiceUnavailable": "Service unavailable",
+      "sseConnectionError": "Connection error",
+      "sseProcessingError": "Processing error"
+    }
   },
   "toasts": {
     "auth": {

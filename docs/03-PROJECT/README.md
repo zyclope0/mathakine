@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project governance and traceability index
-> Updated: 08/04/2026
+> Updated: 09/04/2026
 
 ## Purpose
 
@@ -34,7 +34,7 @@ It is no longer the place for the single active tracker of ongoing work.
 
 Latest active frontend audit checkpoint:
 
-- `2026-04-08` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20C` address dashboard, exercise solver, and auth/provider kernel; remaining industrialisation focus is mainly badge-domain density and polish (see active standardisation audit and `session-plan.md`).
+- `2026-04-09` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02** and **CHAT-I18N-03** are closed; next targeted lot in `session-plan.md` : **CHAT-LOG-04**.
 
 ## Active Root Documents
 
@@ -65,4 +65,3 @@ Latest active frontend audit checkpoint:
 - runtime truth lives in the code and the active references under `docs/00-REFERENCE/`
 - a dated audit, review, pilotage, or closure note is historical by default once its lot is closed
 - if a closed note still contains useful rationale, it should live in an archive bucket, not at the root of this folder
-

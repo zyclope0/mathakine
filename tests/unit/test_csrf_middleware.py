@@ -142,6 +142,16 @@ class TestCsrfMiddlewareDispatch:
         call_next.assert_awaited_once()
 
     @pytest.mark.asyncio
+    async def test_protected_post_without_auth_skips_csrf_and_calls_next(self):
+        """Sans credentials auth, le CSRF laisse l'auth produire le 401 canonique."""
+        mw = CsrfMiddleware(app=None)
+        req = _make_request("POST", "/api/chat")
+        call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
+        resp = await mw.dispatch(req, call_next)
+        assert resp.status_code == 200
+        call_next.assert_awaited_once()
+
+    @pytest.mark.asyncio
     async def test_non_api_post_passes_without_csrf(self):
         """POST sur une route non-API (webhook, etc.) passe sans CSRF."""
         mw = CsrfMiddleware(app=None)
@@ -154,7 +164,9 @@ class TestCsrfMiddlewareDispatch:
     async def test_protected_post_without_csrf_returns_403(self):
         """POST sur un endpoint protégé sans token CSRF -> 403."""
         mw = CsrfMiddleware(app=None)
-        req = _make_request("POST", "/api/exercises/1/attempt")
+        req = _make_request(
+            "POST", "/api/exercises/1/attempt", cookies={"access_token": "jwt-test"}
+        )
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
         resp = await mw.dispatch(req, call_next)
         assert resp.status_code == 403
@@ -164,7 +176,7 @@ class TestCsrfMiddlewareDispatch:
     async def test_protected_put_without_csrf_returns_403(self):
         """PUT sur un endpoint protégé sans token CSRF -> 403."""
         mw = CsrfMiddleware(app=None)
-        req = _make_request("PUT", "/api/users/me")
+        req = _make_request("PUT", "/api/users/me", cookies={"access_token": "jwt-test"})
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
         resp = await mw.dispatch(req, call_next)
         assert resp.status_code == 403
@@ -174,7 +186,7 @@ class TestCsrfMiddlewareDispatch:
     async def test_protected_delete_without_csrf_returns_403(self):
         """DELETE sur un endpoint protégé sans token CSRF -> 403."""
         mw = CsrfMiddleware(app=None)
-        req = _make_request("DELETE", "/api/users/me")
+        req = _make_request("DELETE", "/api/users/me", cookies={"access_token": "jwt-test"})
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
         resp = await mw.dispatch(req, call_next)
         assert resp.status_code == 403
@@ -188,7 +200,7 @@ class TestCsrfMiddlewareDispatch:
         req = _make_request(
             "POST",
             "/api/exercises/1/attempt",
-            cookies={"csrf_token": token},
+            cookies={"access_token": "jwt-test", "csrf_token": token},
             headers={"X-CSRF-Token": token},
         )
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
@@ -202,7 +214,7 @@ class TestCsrfMiddlewareDispatch:
         req = _make_request(
             "POST",
             "/api/exercises/1/attempt",
-            cookies={"csrf_token": "token-a"},
+            cookies={"access_token": "jwt-test", "csrf_token": "token-a"},
             headers={"X-CSRF-Token": "token-b"},
         )
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
@@ -220,7 +232,9 @@ class TestCsrfMiddlewareDispatch:
         """
         monkeypatch.setenv("TESTING", "true")
         mw = CsrfMiddleware(app=None)
-        req = _make_request("POST", "/api/exercises/1/attempt")
+        req = _make_request(
+            "POST", "/api/exercises/1/attempt", cookies={"access_token": "jwt-test"}
+        )
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
         resp = await mw.dispatch(req, call_next)
         # Le middleware doit bloquer la requête malgré TESTING=true

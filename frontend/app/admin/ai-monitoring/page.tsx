@@ -42,7 +42,7 @@ function formatDuration(seconds: number): string {
 function formatWorkloadLabel(workload: string): string {
   switch (workload) {
     case "assistant_chat":
-      return "Assistant chat (public, rate-limite)";
+      return "Assistant chat (authentifie, rate-limite)";
     case "exercises_ai":
       return "Exercices IA";
     case "challenges_ai":
@@ -97,7 +97,7 @@ export default function AdminAiMonitoringPage() {
   return (
     <AdminReadHeavyPageShell
       title="Monitoring IA"
-      description="Couts estimes et qualite runtime : chat public rate-limite, exercices IA, defis IA. Donnees process a retention bornee ; harness persisté en bas de page."
+      description="Couts estimes et qualite runtime : chat assistant authentifie rate-limite, exercices IA, defis IA. Donnees process a retention bornee ; harness persisté en bas de page."
       toolbar={toolbar}
       hasError={!!error}
       errorMessage="Erreur de chargement. Verifiez vos droits admin."
@@ -109,8 +109,8 @@ export default function AdminAiMonitoringPage() {
           <p className="font-medium">Limites a connaitre (IA12)</p>
           <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
             <li>
-              Le chat d&apos;assistance est <strong>public</strong> (pas d&apos;auth sur{" "}
-              <code className="rounded bg-muted px-1">/api/chat</code>) mais{" "}
+              Le chat d&apos;assistance est <strong>authentifié</strong> (JWT + cookies sur{" "}
+              <code className="rounded bg-muted px-1">/api/chat</code> et le proxy Next) et{" "}
               <strong>rate-limité</strong> — son poids apparaît dans les workloads ci-dessous.
             </li>
             <li>

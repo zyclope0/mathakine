@@ -1,6 +1,12 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getBackendUrl } from "@/lib/api/backendUrl";
+import { getChatProxyCopy, resolveChatProxyLocale } from "@/lib/api/chatProxyLocale";
+import {
+  buildChatBackendForwardHeaders,
+  chatProxyUnauthorizedResponse,
+  hasChatProxyAccessToken,
+} from "@/lib/api/chatProxyRequest";
 
 /**
  * API Route pour le chatbot avec streaming SSE
@@ -9,15 +15,23 @@ import { getBackendUrl } from "@/lib/api/backendUrl";
  * Best practice : Streaming pour meilleure UX - réponse progressive
  */
 export async function POST(request: NextRequest) {
+  const proxyCopy = getChatProxyCopy(
+    resolveChatProxyLocale(request.headers.get("Accept-Language"))
+  );
+
   try {
     const body = await request.json();
     const { message, conversation_history } = body;
 
     if (!message || typeof message !== "string") {
-      return new Response(JSON.stringify({ error: "Message requis" }), {
+      return new Response(JSON.stringify({ error: proxyCopy.messageRequired }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    if (!hasChatProxyAccessToken(request)) {
+      return chatProxyUnauthorizedResponse();
     }
 
     let backendBase: string;
@@ -26,7 +40,7 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       return new Response(
         JSON.stringify({
-          error: e instanceof Error ? e.message : "Configuration backend invalide en production",
+          error: e instanceof Error ? e.message : proxyCopy.backendConfigInvalid,
         }),
         {
           status: 500,
@@ -38,9 +52,7 @@ export async function POST(request: NextRequest) {
     try {
       const backendResponse = await fetch(`${backendBase}/api/chat/stream`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: buildChatBackendForwardHeaders(request),
         body: JSON.stringify({
           message,
           conversation_history: conversation_history || [],
@@ -49,6 +61,27 @@ export async function POST(request: NextRequest) {
       });
 
       if (!backendResponse.ok) {
+        if (backendResponse.status === 401 || backendResponse.status === 403) {
+          const text = await backendResponse.text();
+          try {
+            const data: unknown = JSON.parse(text);
+            if (data !== null && typeof data === "object" && !Array.isArray(data)) {
+              return NextResponse.json(data, { status: backendResponse.status });
+            }
+          } catch {
+            /* fall through */
+          }
+          return backendResponse.status === 401
+            ? chatProxyUnauthorizedResponse()
+            : NextResponse.json(
+                {
+                  code: "FORBIDDEN",
+                  message: "CSRF token missing or invalid",
+                  error: "CSRF token missing or invalid",
+                },
+                { status: 403 }
+              );
+        }
         throw new Error(`Backend error: ${backendResponse.status}`);
       }
 
@@ -72,7 +105,7 @@ export async function POST(request: NextRequest) {
         errorMessage.includes("NetworkError")
       ) {
         return new Response(
-          `data: ${JSON.stringify({ type: "error", message: "Service non disponible" })}\n\n`,
+          `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseServiceUnavailable })}\n\n`,
           {
             headers: {
               "Content-Type": "text/event-stream",
@@ -85,7 +118,7 @@ export async function POST(request: NextRequest) {
 
       console.error("Chat Stream API error:", error);
       return new Response(
-        `data: ${JSON.stringify({ type: "error", message: "Erreur lors de la connexion" })}\n\n`,
+        `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseConnectionError })}\n\n`,
         {
           headers: {
             "Content-Type": "text/event-stream",
@@ -98,7 +131,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Chat Stream API error:", error);
     return new Response(
-      `data: ${JSON.stringify({ type: "error", message: "Erreur lors du traitement" })}\n\n`,
+      `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseProcessingError })}\n\n`,
       {
         status: 500,
         headers: {

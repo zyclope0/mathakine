@@ -4,7 +4,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
 import { ChatbotFloating } from "@/components/chat/ChatbotFloating";
-import { GUEST_CHAT_SESSION_STORAGE_KEY } from "@/lib/chat/guestChatSession";
 import fr from "@/messages/fr.json";
 
 vi.mock("react-dom", async () => {
@@ -37,7 +36,6 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 describe("ChatbotFloating", () => {
   beforeEach(() => {
-    sessionStorage.clear();
     vi.clearAllMocks();
     streamChatMock.mockImplementation(
       async (
@@ -53,23 +51,23 @@ describe("ChatbotFloating", () => {
     );
   });
 
-  it("affiche le panneau limite invite lorsque le quota session est atteint", async () => {
-    sessionStorage.setItem(GUEST_CHAT_SESSION_STORAGE_KEY, "5");
+  it("affiche l’appel à connexion pour un invité (CHAT-AUTH-01)", async () => {
     render(
       <Wrapper>
         <ChatbotFloating isOpen onOpenChange={vi.fn()} />
       </Wrapper>
     );
 
+    const cta = fr.home.chatbot.guestLimitCta;
     await waitFor(() => {
-      expect(screen.getByText(/limite de messages en mode/i)).toBeInTheDocument();
+      expect(screen.getByText(cta)).toBeInTheDocument();
     });
 
     expect(screen.getByRole("link", { name: "Connexion" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Inscription" })).toBeInTheDocument();
   });
 
-  it("bloque l'envoi quand le quota invite est deja atteint", async () => {
-    sessionStorage.setItem(GUEST_CHAT_SESSION_STORAGE_KEY, "5");
+  it("ne déclenche pas streamChat pour un invité (composer et envoi bloqués)", async () => {
     render(
       <Wrapper>
         <ChatbotFloating isOpen onOpenChange={vi.fn()} />
@@ -77,12 +75,11 @@ describe("ChatbotFloating", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/limite de messages en mode/i)).toBeInTheDocument();
+      expect(screen.getByText(fr.home.chatbot.guestLimitCta)).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByRole("textbox", { name: /message/i }), {
-      target: { value: "Bonjour" },
-    });
+    const textbox = screen.getByRole("textbox", { name: /message/i });
+    expect(textbox).toBeDisabled();
 
     const sendButton = screen.getByRole("button", { name: /envoyer le message/i });
     expect(sendButton).toBeDisabled();
