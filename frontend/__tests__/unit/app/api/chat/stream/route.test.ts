@@ -79,6 +79,29 @@ describe("POST /api/chat/stream", () => {
     );
   });
 
+  it("returns SSE error event when backend responds 200 with an empty stream body", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: null,
+    } as Response);
+
+    const req = new NextRequest("http://localhost/api/chat/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: "access_token=tok; csrf_token=c1",
+      },
+      body: JSON.stringify({ message: "hi", conversation_history: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("text/event-stream");
+    const text = await res.text();
+    expect(text).toContain("error");
+  });
+
   it("returns 500 JSON when getBackendUrl throws (no silent localhost in prod config)", async () => {
     vi.spyOn(backendUrl, "getBackendUrl").mockImplementation(() => {
       throw new Error("NEXT_PUBLIC_API_BASE_URL doit être défini en production.");
@@ -182,6 +205,36 @@ describe("POST /api/chat/stream", () => {
       expect(text).toContain("error");
       expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     } finally {
+      errSpy.mockRestore();
+    }
+  });
+
+  it("does not log console.error in production for backend runtime errors", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      vi.mocked(globalThis.fetch).mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: "Bad Gateway",
+      } as Response);
+
+      const req = new NextRequest("http://localhost/api/chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          cookie: "access_token=t",
+        },
+        body: JSON.stringify({ message: "hi", conversation_history: [] }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      expect(await res.text()).toContain("error");
+      expect(errSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
       errSpy.mockRestore();
     }
   });

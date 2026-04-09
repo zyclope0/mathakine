@@ -4,6 +4,8 @@ import withPWA from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { buildContentSecurityPolicy } from "./lib/security/buildContentSecurityPolicy";
+
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
@@ -47,22 +49,8 @@ const nextConfig: NextConfig = {
 
   // Headers sécurité
   async headers() {
-    // En dev : autoriser localhost:10000 pour le backend
-    const backendDev =
-      process.env.NODE_ENV === "development"
-        ? " http://localhost:10000 http://127.0.0.1:10000"
-        : "";
-    const csp = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js / React
-      "worker-src 'self' blob:", // Sentry compression worker
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self'${backendDev} https://*.sentry.io https://*.ingest.sentry.io https://*.render.com https://*.onrender.com https://*.mathakine.fun`,
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-    ].join("; ");
+    const isDevelopment = process.env.NODE_ENV === "development";
+    const csp = buildContentSecurityPolicy(isDevelopment);
     return [
       {
         source: "/:path*",

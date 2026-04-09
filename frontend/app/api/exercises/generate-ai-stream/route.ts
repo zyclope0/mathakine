@@ -3,101 +3,14 @@
  */
 import { NextRequest } from "next/server";
 
-import { getBackendUrl } from "@/lib/api/backendUrl";
+import { proxySseGenerateAiStreamPost } from "@/lib/api/sseProxyRequest";
 
 export async function POST(request: NextRequest) {
-  try {
-    let payload: unknown;
-    try {
-      payload = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Corps JSON invalide" }), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
-      return new Response(JSON.stringify({ error: "Le corps doit être un objet JSON" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const allCookies = request.cookies.getAll();
-    const cookies = allCookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
-
-    const hasAuthCookie = request.cookies.get("access_token");
-    const cookieNames = request.cookies.getAll().map((c) => c.name);
-
-    if (!hasAuthCookie) {
-      console.error(
-        "[Exercise AI Stream Proxy] Missing auth cookie. Cookies reçus:",
-        cookieNames.join(", ") || "(aucun)"
-      );
-      return new Response(
-        `data: ${JSON.stringify({
-          type: "error",
-          message: "Non authentifié - Cookie manquant. Déconnectez-vous puis reconnectez-vous.",
-        })}\n\n`,
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
-    }
-
-    const backendUrl = `${getBackendUrl()}/api/exercises/generate-ai-stream`;
-
-    const backendResponse = await fetch(backendUrl, {
-      method: "POST",
-      headers: {
-        Cookie: cookies,
-        "Content-Type": "application/json",
-        "X-CSRF-Token": request.headers.get("X-CSRF-Token") ?? "",
-        "Accept-Language": request.headers.get("Accept-Language") ?? "",
-      },
-      body: JSON.stringify(payload),
-      redirect: "manual",
-    });
-
-    if (!backendResponse.ok) {
-      return new Response(
-        JSON.stringify({
-          error: `Backend error: ${backendResponse.status} ${backendResponse.statusText}`,
-        }),
-        {
-          status: backendResponse.status,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    return new Response(backendResponse.body, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no",
-      },
-    });
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Erreur proxy SSE exercices:", error);
-    }
-    return new Response(
-      JSON.stringify({
-        error: "Erreur lors de la connexion au backend",
-        details: error instanceof Error ? error.message : String(error),
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+  return proxySseGenerateAiStreamPost(request, {
+    backendPath: "/api/exercises/generate-ai-stream",
+    debugContext: "Exercise AI Stream Proxy",
+    unauthenticatedSseMessage:
+      "Non authentifié - Cookie manquant. Déconnectez-vous puis reconnectez-vous.",
+    devRuntimeErrorLabel: "Erreur proxy SSE exercices:",
+  });
 }

@@ -15,6 +15,10 @@ import { FeedbackFab } from "@/components/feedback/FeedbackFab";
 import { ChatbotFloatingGlobal } from "@/components/chat/ChatbotFloatingGlobal";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { SpatialBackground } from "@/components/spatial/SpatialBackground";
+import {
+  getDefaultOpenGraphImages,
+  getDefaultTwitterImages,
+} from "@/lib/social/socialShareImageMeta";
 
 const exo2 = Exo_2({
   variable: "--font-exo-2",
@@ -33,7 +37,7 @@ const getMetadataBase = (): string => {
 const SITE_URL = getMetadataBase();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getMetadataBase()),
+  metadataBase: new URL(SITE_URL),
   title: "Mathakine - Apprentissage Mathématique Adaptatif",
   description:
     "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification pour progresser en mathématiques.",
@@ -78,20 +82,13 @@ export const metadata: Metadata = {
     description:
       "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.",
     siteName: "Mathakine",
-    images: [
-      {
-        url: "/icons/icon-512x512.png",
-        width: 512,
-        height: 512,
-        alt: "Logo Mathakine",
-      },
-    ],
+    images: getDefaultOpenGraphImages(),
   },
   twitter: {
     card: "summary_large_image",
     title: "Mathakine - Apprentissage Mathématique Adaptatif",
     description: "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans.",
-    images: ["/icons/icon-512x512.png"],
+    images: getDefaultTwitterImages(),
   },
   robots: {
     index: true,

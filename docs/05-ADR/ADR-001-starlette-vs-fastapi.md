@@ -9,6 +9,7 @@
 ## Context
 
 Mathakine currently runs on a Starlette application assembled in:
+
 - `enhanced_server.py`
 - `server/app.py`
 - `server/routes/*.py`
@@ -28,6 +29,7 @@ Mathakine keeps **Starlette** as the single backend web framework for the live
 runtime.
 
 Implications:
+
 - active HTTP routing remains centered in `server/routes/`
 - handlers remain thin transport adapters in `server/handlers/`
 - backend docs must describe Starlette as the runtime framework
@@ -59,6 +61,7 @@ Implications:
 ### Alternative A - Reintroduce FastAPI as the runtime framework
 
 Rejected because:
+
 - it does not reflect the current running application
 - it would require a migration project, not a documentation cleanup
 - there is no proven blocker today caused by Starlette
@@ -66,6 +69,7 @@ Rejected because:
 ### Alternative B - Keep Starlette in code but keep both Starlette/FastAPI in docs
 
 Rejected because:
+
 - it weakens the source of truth
 - it makes onboarding and incident response slower
 - it invites incorrect implementation assumptions
@@ -98,7 +102,7 @@ Rejected because:
 
 ## Follow-up ADRs that may still be needed
 
-- chat public without auth but rate-limited
+- chat assistant access boundary and proxy/auth doctrine (historical public decision now superseded)
 - gamification ledger transaction strategy without `with_for_update`
 - AI model policy layering and ops override doctrine
 

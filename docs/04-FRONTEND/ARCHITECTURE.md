@@ -1,7 +1,7 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> DerniÃ¨re mise Ã  jour : 08/04/2026  
-> ValidÃ© contre le code source rÃ©el (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F/G/H)
+> Dernière mise à jour : 09/04/2026  
+> Validé contre le code source réel (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F/G/H + lots ciblés CHAT-AUTH-01 à OG-META-09)
 
 ---
 
@@ -73,6 +73,8 @@ frontend/
 â”‚   â”œâ”€â”€ verify-email/page.tsx
 â”‚   â”œâ”€â”€ layout.tsx                # Layout racine
 â”‚   â”œâ”€â”€ page.tsx                  # Accueil
+â”‚   â”œâ”€â”€ opengraph-image.tsx       # Image sociale 1200x630 (OG-META-09)
+â”‚   â”œâ”€â”€ twitter-image.tsx         # Image sociale 1200x630 (OG-META-09)
 â”‚   â”œâ”€â”€ error.tsx / global-error.tsx / not-found.tsx
 â”‚   â””â”€â”€ globals.css               # Styles globaux + variables thÃ¨mes CSS
 â”‚
@@ -127,13 +129,18 @@ frontend/
 â”œâ”€â”€ lib/
 â”‚   â”œâ”€â”€ chat/                     # Types + mapping historique API chat (`README.md`)
 â”‚   â”œâ”€â”€ api/client.ts             # Client HTTP (fetch + CSRF + auth)
+â”‚   â”œâ”€â”€ api/proxyForwardHeaders.ts # Headers proxy partagÃ©s (chat + SSE)
+â”‚   â”œâ”€â”€ api/sseProxyRequest.ts    # Proxy SSE partagÃ© exercices/dÃ©fis
 â”‚   â”œâ”€â”€ constants/                # Constantes centralisÃ©es (exercises, challenges, badges)
+â”‚   â”œâ”€â”€ security/                 # CSP et helpers sÃ©curitÃ© frontend
+â”‚   â”œâ”€â”€ social/                   # Metadata et rendu image sociale OG/Twitter
 â”‚   â”œâ”€â”€ stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
 â”‚   â”œâ”€â”€ spacedReviewSession.ts    # handoff review-safe entre dashboard F04 et solver
 â”‚   â”œâ”€â”€ hooks/                    # Hooks utilitaires (useAccessibleAnimation, useKeyboardNavigation)
 â”‚   â”œâ”€â”€ utils/
 â”‚   â”‚   â”œâ”€â”€ cn.ts                 # clsx + tailwind-merge (source de vÃ©ritÃ© interne)
-â”‚   â”‚   â””â”€â”€ format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
+â”‚   â”‚   â”œâ”€â”€ format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
+â”‚   â”‚   â””â”€â”€ logInDevelopment.ts   # Helper logs dev-only partagÃ©
 â”‚   â”œâ”€â”€ utils.ts                  # Re-export de cn â€” TOUJOURS importer depuis @/lib/utils
 â”‚   â””â”€â”€ validation/               # SchÃ©mas de validation (dashboard, exercise, next review F04â€¦)
 â”‚
@@ -165,6 +172,7 @@ frontend/
 - **Hooks** : Toujours `"use client"`
 - Les pages admin utilisent toutes `"use client"` (donnÃ©es dynamiques)
 - Pages informatives **server-first** : `app/about/page.tsx` et `app/privacy/page.tsx` utilisent `getTranslations` (next-intl serveur) ; ce lot ne modifie pas l’architecture i18n globale au-delà de ces routes.
+- Images sociales **server-side** : `app/opengraph-image.tsx` et `app/twitter-image.tsx` utilisent `ImageResponse` avec `runtime = "nodejs"` ; rendu partagé dans `lib/social/renderSocialShareImageResponse.tsx`, métadonnées dans `lib/social/socialShareImageMeta.ts`, polices explicites via `lib/social/socialShareImageFonts.ts`.
 - **FFI-L20H (livré)** : erreurs / vides admin (`role="alert"`, `role="status"`) ; `LoadingState` avec `aria-busy` et `aria-live` ; switches confidentialité avec `aria-describedby` ; `SaveButton` avec `aria-busy` pendant la sauvegarde.
 
 ### State management
@@ -197,7 +205,20 @@ Les routes sensibles passent par les API Routes Next.js (`app/api/`) pour :
 - GÃ©rer le streaming SSE (gÃ©nÃ©ration IA) cÃ´tÃ© serveur
 - Synchroniser les cookies entre domaines (cross-domain prod)
 
-Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (mÃªme origine), comme les flux gÃ©nÃ©ration IA â€” sans rÃ©utiliser leurs dispatchers dâ€™Ã©vÃ©nements (schÃ©ma diffÃ©rent). DÃ©tail : `lib/chat/README.md`.
+Le **chat discussionnel** (`lib/api/chat.ts`) appelle en navigateur `POST /api/chat/stream` (même origine), comme les flux génération IA, sans réutiliser leurs dispatchers d’événements (schéma différent). Détail : `lib/chat/README.md`.
+
+Depuis **CHAT-AUTH-01**, `/api/chat` et `/api/chat/stream` exigent aussi une session valide :
+
+- garde `access_token` côté Next proxy via `lib/api/chatProxyRequest.ts`
+- backend Starlette hors whitelist publique
+- réponses `401` JSON `UNAUTHORIZED` alignées
+- `Accept-Language` et `X-CSRF-Token` relayés quand présents
+
+Depuis **SSE-DRY-07**, les deux proxies SSE pédagogiques partagent :
+
+- `lib/api/sseProxyRequest.ts` pour parse JSON, garde auth cookie, fetch backend, mapping `!ok`, garde `body === null`
+- `lib/api/proxyForwardHeaders.ts` pour la construction des headers forwardés
+- `lib/utils/logInDevelopment.ts` pour limiter certains logs de debug au développement
 
 La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/backendUrl.ts` :
 
@@ -209,8 +230,8 @@ La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/ba
 Les handlers de routes Next.js sont maintenant couverts par des tests dedies (`frontend/__tests__/unit/app/api/...`) :
 
 - succes et erreur JSON sur `/api/chat`
-- succes SSE et garde config invalide sur `/api/chat/stream`
-- succes SSE, refus auth/cookie, et propagation `!ok` sur `/api/exercises/generate-ai-stream`
+- succes SSE, auth, non-log en prod, et garde `body === null` sur `/api/chat/stream`
+- succes SSE, refus auth/cookie, propagation `!ok` et garde `body === null` sur `/api/exercises/generate-ai-stream`
 - idem pour `/api/challenges/generate-ai-stream`
 
 ### Convention SSE IA
@@ -372,6 +393,11 @@ npm run i18n:check       # CohÃ©rence clÃ©s FR/EN
 npm run i18n:extract     # DÃ©tecter strings hardcodÃ©es
 npm run i18n:validate    # Valider structure JSON
 ```
+
+Note E2E active :
+
+- la suite Playwright minimale (`frontend/__tests__/e2e/`) est exécutée en série via `frontend/playwright.config.ts` (`workers: 1`, `fullyParallel: false`)
+- elle couvre volontairement surtout les surfaces invitées et le contrôle d'accès ; la suite authentifiée admin reste hors périmètre (`describe.skip`)
 
 ---
 

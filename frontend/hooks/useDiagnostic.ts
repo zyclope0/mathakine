@@ -58,9 +58,8 @@ export interface DiagnosticResult {
   scores: DiagnosticScores;
 }
 
-// Etat de session opaque — synchronisé avec le backend
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SessionState = Record<string, any>;
+// Etat de session opaque — synchronisé avec le backend (JSON arbitraire)
+type SessionState = Record<string, unknown>;
 
 // -------------------------------------------------------------------------- //
 // Hook                                                                        //

@@ -25,27 +25,27 @@ It is no longer the place for the single active tracker of ongoing work.
 
 ## Frontend Source Hierarchy
 
-| Document                                                                                                    | Role                                                                  |
-| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [../../.claude/session-plan.md](../../.claude/session-plan.md)                                              | active execution order for frontend and cross-cutting lots            |
-| [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)                    | active product prioritization                                         |
-| [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)            | active frontend architecture/debt reference                           |
-| [AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md)              | historical audit only; rationale and original findings, not backlog   |
+| Document                                                                                       | Role                                                                |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [../../.claude/session-plan.md](../../.claude/session-plan.md)                                 | active execution order for frontend and cross-cutting lots          |
+| [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)         | active product prioritization                                       |
+| [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md) | active frontend architecture/debt reference                         |
+| [AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md)   | historical audit only; rationale and original findings, not backlog |
 
 Latest active frontend audit checkpoint:
 
-- `2026-04-09` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02** and **CHAT-I18N-03** are closed; next targeted lot in `session-plan.md` : **CHAT-LOG-04**.
+- `2026-04-09` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02**, **CHAT-I18N-03**, **CHAT-LOG-04**, **LINT-STRICT-05**, **E2E-CORE-06** (minimal), **SSE-DRY-07**, **CSP-HARDEN-08** and **OG-META-09** are closed; there is no next named lot in `session-plan.md`.
 
 ## Active Root Documents
 
-| Document                                                                                               | Role                                                                          |
-| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| [CICD_DEPLOY.md](./CICD_DEPLOY.md)                                                                     | CI/CD, quality gates, deploy and rollback                                     |
-| [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first execution protocol                                              |
-| [IMPLEMENTATION_F07_TIMELINE.md](./IMPLEMENTATION_F07_TIMELINE.md)                                     | implementation note for timeline progress                                     |
-| [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)                 | implementation note for interleaved sessions                                  |
-| [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)                   | implementation note for DB log redaction                                      |
-| [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                           |
+| Document                                                                                               | Role                                                                           |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| [CICD_DEPLOY.md](./CICD_DEPLOY.md)                                                                     | CI/CD, quality gates, deploy and rollback                                      |
+| [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first execution protocol                                               |
+| [IMPLEMENTATION_F07_TIMELINE.md](./IMPLEMENTATION_F07_TIMELINE.md)                                     | implementation note for timeline progress                                      |
+| [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)                 | implementation note for interleaved sessions                                   |
+| [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)                   | implementation note for DB log redaction                                       |
+| [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                            |
 | [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | 429 `validate-token` : diagnostic + correctif FFI-L19A (quota dédié 90/min IP) |
 
 ## Archive Buckets

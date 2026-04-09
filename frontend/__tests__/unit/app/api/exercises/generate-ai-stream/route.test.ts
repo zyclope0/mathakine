@@ -77,6 +77,27 @@ describe("POST /api/exercises/generate-ai-stream", () => {
     expect(data.error).toContain("Service Unavailable");
   });
 
+  it("returns SSE error when backend responds 200 with an empty stream body", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: null,
+    } as Response);
+
+    const req = createPostJsonRequest(
+      "/api/exercises/generate-ai-stream",
+      { exercise_type: "addition", age_group: "6-8" },
+      { Cookie: "access_token=x" }
+    );
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("text/event-stream");
+    const text = await res.text();
+    expect(text).toContain("error");
+    expect(text).toContain("Réponse vide");
+  });
+
   it("returns SSE error when access_token cookie is missing (no backend call)", async () => {
     const req = createPostJsonRequest("/api/exercises/generate-ai-stream", {
       exercise_type: "addition",
@@ -89,6 +110,20 @@ describe("POST /api/exercises/generate-ai-stream", () => {
     const text = await res.text();
     expect(text).toContain("error");
     expect(text).toContain("Non authentifié");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not log missing auth cookie noise in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    const req = createPostJsonRequest("/api/exercises/generate-ai-stream", {
+      exercise_type: "addition",
+      age_group: "6-8",
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(console.error).not.toHaveBeenCalled();
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 

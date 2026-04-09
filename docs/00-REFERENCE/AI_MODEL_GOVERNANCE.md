@@ -49,11 +49,11 @@ References : `app/core/app_model_policy.py:100-187`, `app/core/ai_generation_pol
 
 ## 4. Modeles en production
 
-| Workload | Modele par defaut | Allowlist / fallback | Fichier source |
-|---|---|---|---|
-| `assistant_chat` | `gpt-5-mini` | allowlist fail-closed : `gpt-5-mini`, `gpt-5.4`, `gpt-4o-mini`, `gpt-4o` ; fallback cheap controle `gpt-4o-mini` | `app/core/app_model_policy.py:61-73`, `app/core/app_model_policy.py:83-143` |
-| `exercises_ai` | `o3` | allowlist `EXERCISES_AI_ALLOWED_MODEL_IDS` ; comportement par famille dans `MODEL_FAMILY_CAPABILITIES` | `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-262` |
-| `challenges_ai` | `o3` | allowlist heritee des exercices ; fallback stream `gpt-4o-mini` | `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112` |
+| Workload         | Modele par defaut | Allowlist / fallback                                                                                             | Fichier source                                                                                                                   |
+| ---------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `assistant_chat` | `gpt-5-mini`      | allowlist fail-closed : `gpt-5-mini`, `gpt-5.4`, `gpt-4o-mini`, `gpt-4o` ; fallback cheap controle `gpt-4o-mini` | `app/core/app_model_policy.py:61-73`, `app/core/app_model_policy.py:83-143`                                                      |
+| `exercises_ai`   | `o3`              | allowlist `EXERCISES_AI_ALLOWED_MODEL_IDS` ; comportement par famille dans `MODEL_FAMILY_CAPABILITIES`           | `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-262` |
+| `challenges_ai`  | `o3`              | allowlist heritee des exercices ; fallback stream `gpt-4o-mini`                                                  | `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`      |
 
 ## 5. Observabilite runtime
 
@@ -69,7 +69,7 @@ References : `app/core/app_model_policy.py:100-187`, `app/core/ai_generation_pol
 ### Comment lire les metriques
 
 - `stats.by_workload` et `summary.by_workload` donnent la vue stable par workload ; `by_type` garde la granularite fine (`assistant_chat:simple`, `exercise_ai:addition`, etc.). Sources : `app/utils/token_tracker.py:207-221`, `app/utils/generation_metrics.py:123-158`, `frontend/app/admin/ai-monitoring/page.tsx:73-79`.
-- La page admin rappelle explicitement que le chat est public, que les couts sont estimatifs et que la retention runtime est bornee. Sources : `frontend/app/admin/ai-monitoring/page.tsx:81-127`.
+- La page admin rappelle explicitement que les couts sont estimatifs et que la retention runtime est bornee ; la ventilation `assistant_chat` reste visible mais n'implique plus un acces public anonyme. Sources : `frontend/app/admin/ai-monitoring/page.tsx:81-127`.
 - Les runs harness persistants servent a relire des campagnes figees et ne doivent pas etre confondus avec les agregats process. Sources : `app/services/admin/admin_read_service.py:214-229`, `frontend/app/admin/ai-monitoring/page.tsx:551-604`.
 
 ### Limites explicites
@@ -124,11 +124,11 @@ Les deux flux IA pedagogiques (exercices et defis) partagent le meme pattern de 
 
 ### Routes actives par workload
 
-| Workload | Route Next.js (proxy) | Route backend |
-|---|---|---|
-| `exercises_ai` | `POST /api/exercises/generate-ai-stream` | `POST /api/exercises/generate` |
-| `challenges_ai` | `POST /api/challenges/generate-ai-stream` | `POST /api/challenges/generate` |
-| `assistant_chat` | `POST /api/chat/stream` | `POST /api/chat/stream` (Starlette direct) |
+| Workload         | Route Next.js (proxy)                     | Route backend                              |
+| ---------------- | ----------------------------------------- | ------------------------------------------ |
+| `exercises_ai`   | `POST /api/exercises/generate-ai-stream`  | `POST /api/exercises/generate`             |
+| `challenges_ai`  | `POST /api/challenges/generate-ai-stream` | `POST /api/challenges/generate`            |
+| `assistant_chat` | `POST /api/chat/stream`                   | `POST /api/chat/stream` (Starlette direct) |
 
 Sources : `server/routes/exercises.py`, `server/routes/challenges.py`, `server/routes/chat.py`, `frontend/app/api/exercises/generate-ai-stream/route.ts`, `frontend/app/api/challenges/generate-ai-stream/route.ts`, `frontend/app/api/chat/stream/route.ts`.
 
@@ -138,12 +138,12 @@ Tous les flux emettent `data: <json>\n\n`. Les types d'evenements reconnus sont 
 
 ### Divergences de resilience entre workloads
 
-| Aspect | `exercises_ai` | `challenges_ai` | `assistant_chat` |
-|---|---|---|---|
-| Timeout OpenAI | `AIConfig.DEFAULT_TIMEOUT` | `AIConfig.DEFAULT_TIMEOUT` | Pas de timeout explicite |
-| Retry sur erreurs transitoires | tenacity, borne | tenacity, borne | Aucun retry |
-| Fallback modele sur echec | `gpt-4o-mini` (log separe) | `gpt-4o-mini` (log separe) | Pas de fallback |
-| Token tracking sur echec | `_flush_usage_events()` avant parsing | `_flush_usage_events()` avant parsing | `token_tracker` sur reponse complete |
+| Aspect                         | `exercises_ai`                        | `challenges_ai`                       | `assistant_chat`                     |
+| ------------------------------ | ------------------------------------- | ------------------------------------- | ------------------------------------ |
+| Timeout OpenAI                 | `AIConfig.DEFAULT_TIMEOUT`            | `AIConfig.DEFAULT_TIMEOUT`            | Pas de timeout explicite             |
+| Retry sur erreurs transitoires | tenacity, borne                       | tenacity, borne                       | Aucun retry                          |
+| Fallback modele sur echec      | `gpt-4o-mini` (log separe)            | `gpt-4o-mini` (log separe)            | Pas de fallback                      |
+| Token tracking sur echec       | `_flush_usage_events()` avant parsing | `_flush_usage_events()` avant parsing | `token_tracker` sur reponse complete |
 
 Sources : `app/services/exercises/exercise_ai_service.py`, `app/services/challenges/challenge_ai_service.py`, `server/handlers/chat_handlers.py`.
 
@@ -155,11 +155,11 @@ Le contrat IA9 dicte la structure de la reponse IA pour les defis logiques. La p
 
 ### Valeurs de `response_mode`
 
-| Valeur | Description | Validation frontend |
-|---|---|---|
-| `qcm` | Reponse a choix multiples, champ `choices` obligatoire | `ChallengeSolver` affiche les boutons |
-| `text` | Reponse texte libre | Champ de saisie libre |
-| `interaction` | Interaction multi-etapes | Mode interactif |
+| Valeur        | Description                                            | Validation frontend                   |
+| ------------- | ------------------------------------------------------ | ------------------------------------- |
+| `qcm`         | Reponse a choix multiples, champ `choices` obligatoire | `ChallengeSolver` affiche les boutons |
+| `text`        | Reponse texte libre                                    | Champ de saisie libre                 |
+| `interaction` | Interaction multi-etapes                               | Mode interactif                       |
 
 ### Politique `choices` par type de defi
 
@@ -173,17 +173,17 @@ Sources : `app/services/challenges/challenge_contract_policy.py`, `app/services/
 
 ## 10. Risques connus — TokenTracker et metriques runtime
 
-| Risque | Severite | Detail | Fichier source |
-|---|---|---|---|
-| Fragmentation multi-worker | P1 | Gunicorn multi-worker = N instances de `token_tracker` independantes. Les stats admin agregent uniquement le worker qui repond. | `app/utils/token_tracker.py:20-26` |
-| Couts = estimations | INFO | La table de prix est locale et peut diverger des tarifs OpenAI reels. Fallback `gpt-4o-mini` si modele absent avec log warning. | `app/utils/token_tracker.py:88-128` |
-| Rétention bornée | INFO | TTL 90j + cap 2000 evenements/cle. Les stats ne survivent pas a un restart process. | `app/utils/ai_workload_keys.py:34-36`, `app/utils/token_tracker.py:313-332` |
+| Risque                     | Severite | Detail                                                                                                                          | Fichier source                                                              |
+| -------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Fragmentation multi-worker | P1       | Gunicorn multi-worker = N instances de `token_tracker` independantes. Les stats admin agregent uniquement le worker qui repond. | `app/utils/token_tracker.py:20-26`                                          |
+| Couts = estimations        | INFO     | La table de prix est locale et peut diverger des tarifs OpenAI reels. Fallback `gpt-4o-mini` si modele absent avec log warning. | `app/utils/token_tracker.py:88-128`                                         |
+| Rétention bornée           | INFO     | TTL 90j + cap 2000 evenements/cle. Les stats ne survivent pas a un restart process.                                             | `app/utils/ai_workload_keys.py:34-36`, `app/utils/token_tracker.py:313-332` |
 
 ---
 
 ## 11. Limites et decisions assumees
 
-- Chat public sans auth : les handlers chat sont exposes avec `@rate_limit_chat` mais sans `require_auth`, par decision produit. Sources : `server/handlers/chat_handlers.py:41`, `server/handlers/chat_handlers.py:133`.
+- Chat authentifie : les handlers chat exigent desormais une session valide ; le proxy Next `app/api/chat/*` garde aussi le cookie `access_token` et relaie `X-CSRF-Token` / `Accept-Language`. Sources : `server/handlers/chat_handlers.py`, `frontend/app/api/chat/route.ts`, `frontend/app/api/chat/stream/route.ts`, `frontend/lib/api/chatProxyRequest.ts`.
 - Couts = estimations, pas comptabilite : la page admin et `token_tracker` le disent explicitement. Sources : `app/utils/token_tracker.py:193-221`, `frontend/app/admin/ai-monitoring/page.tsx:81-127`.
 - Runtime in-memory, pas persistant cross-restart : les agregats admin runtime viennent de structures process bornees. Sources : `app/utils/token_tracker.py:167-221`, `app/utils/token_tracker.py:313-332`, `app/utils/generation_metrics.py:123-136`, `app/utils/generation_metrics.py:231-240`.
 - Les runs harness persistants ne remplacent pas les stats runtime ; ils servent aux campagnes figees et a la reproductibilite. Sources : `app/evaluation/ai_generation_harness.py:128-199`, `app/services/admin/admin_read_service.py:214-229`.

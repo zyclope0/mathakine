@@ -7,6 +7,24 @@ import {
   chatProxyUnauthorizedResponse,
   hasChatProxyAccessToken,
 } from "@/lib/api/chatProxyRequest";
+import { logInDevelopment } from "@/lib/utils/logInDevelopment";
+
+function logChatStreamError(error: unknown): void {
+  logInDevelopment(() => {
+    console.error("Chat Stream API error:", error);
+  });
+}
+
+function sseChatErrorResponse(message: string, status: number = 200): Response {
+  return new Response(`data: ${JSON.stringify({ type: "error", message })}\n\n`, {
+    status,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
 
 /**
  * API Route pour le chatbot avec streaming SSE
@@ -85,6 +103,11 @@ export async function POST(request: NextRequest) {
         throw new Error(`Backend error: ${backendResponse.status}`);
       }
 
+      if (!backendResponse.body) {
+        logChatStreamError(new Error("Chat stream backend returned an empty body"));
+        return sseChatErrorResponse(proxyCopy.sseConnectionError);
+      }
+
       // Retourner le stream SSE directement au client
       return new Response(backendResponse.body, {
         headers: {
@@ -104,42 +127,14 @@ export async function POST(request: NextRequest) {
         errorMessage.includes("fetch failed") ||
         errorMessage.includes("NetworkError")
       ) {
-        return new Response(
-          `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseServiceUnavailable })}\n\n`,
-          {
-            headers: {
-              "Content-Type": "text/event-stream",
-              "Cache-Control": "no-cache",
-              Connection: "keep-alive",
-            },
-          }
-        );
+        return sseChatErrorResponse(proxyCopy.sseServiceUnavailable);
       }
 
-      console.error("Chat Stream API error:", error);
-      return new Response(
-        `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseConnectionError })}\n\n`,
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      logChatStreamError(error);
+      return sseChatErrorResponse(proxyCopy.sseConnectionError);
     }
   } catch (error) {
-    console.error("Chat Stream API error:", error);
-    return new Response(
-      `data: ${JSON.stringify({ type: "error", message: proxyCopy.sseProcessingError })}\n\n`,
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
-      }
-    );
+    logChatStreamError(error);
+    return sseChatErrorResponse(proxyCopy.sseProcessingError, 500);
   }
 }

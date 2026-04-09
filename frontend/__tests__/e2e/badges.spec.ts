@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Exercices (invité)", () => {
+test.describe("Badges (invité)", () => {
   test("invité est redirigé vers /login", async ({ page }) => {
-    await page.goto("/exercises", { waitUntil: "domcontentloaded" });
+    await page.goto("/badges", { waitUntil: "domcontentloaded" });
 
     await page.waitForFunction(() => window.location.pathname === "/login", undefined, {
       timeout: 20_000,

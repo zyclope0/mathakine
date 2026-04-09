@@ -9,6 +9,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 **Mathakine** - plateforme EdTech SaaS d'apprentissage des mathematiques pour enfants.
 
 **Position produit au 2026-03-26 :**
+
 - transition active d'un ancien theme Star Wars/Jedi vers un theme spatial plus neutre ;
 - le codebase est encore **hybride** ;
 - ne pas introduire de nouvelles references Star Wars/Jedi dans les nouveaux flux, libelles, prompts ou tags sans raison explicite de compatibilite.
@@ -22,15 +23,15 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ## Stack technique
 
-| Couche | Techno |
-|--------|--------|
-| Backend | Python / Starlette (PAS FastAPI) + SQLAlchemy + PostgreSQL |
-| Frontend | Next.js 15 + TypeScript + Tailwind, i18n fr/en |
-| IA | OpenAI GPT via SSE POST (`exercise_ai_service`, `challenge_ai_service`) |
-| Auth | JWT (access 15min + refresh 7j), cookies HTTP-only |
-| Rate limiting | Redis (prod) / memoire (dev/test) |
-| Deploiement | Render (multi-worker Gunicorn) |
-| Version | 2.1.0 |
+| Couche        | Techno                                                                  |
+| ------------- | ----------------------------------------------------------------------- |
+| Backend       | Python / Starlette (PAS FastAPI) + SQLAlchemy + PostgreSQL              |
+| Frontend      | Next.js 15 + TypeScript + Tailwind, i18n fr/en                          |
+| IA            | OpenAI GPT via SSE POST (`exercise_ai_service`, `challenge_ai_service`) |
+| Auth          | JWT (access 15min + refresh 7j), cookies HTTP-only                      |
+| Rate limiting | Redis (prod) / memoire (dev/test)                                       |
+| Deploiement   | Render (multi-worker Gunicorn)                                          |
+| Version       | 2.1.0                                                                   |
 
 ---
 
@@ -58,27 +59,27 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ## Risques prioritaires connus
 
-| Priorite | Fichier | Probleme |
-|----------|---------|----------|
-| ~~P0~~ | ~~`app/utils/token_tracker.py`~~ | ~~Fuite memoire read-path (`get_stats` + `defaultdict` -> buckets vides)~~ - **RESOLU** |
-| ~~P0~~ | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU** |
-| P1 | `frontend/app/api/chat/route.ts` | Routes chat sans authentification (cout OpenAI non controle) |
-| P1 | `.env.example` | `REDIS_URL` absente -> crash demarrage prod |
-| ~~P1~~ | ~~`app/services/challenges/challenge_service.py:353`~~ | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU** |
-| ~~P1~~ | ~~`app/services/exercises/exercise_attempt_service.py`~~ | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU** |
+| Priorite | Fichier                                                    | Probleme                                                                                                   |
+| -------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| ~~P0~~   | ~~`app/utils/token_tracker.py`~~                           | ~~Fuite memoire read-path (`get_stats` + `defaultdict` -> buckets vides)~~ - **RESOLU**                    |
+| ~~P0~~   | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU**                                               |
+| P1       | `frontend/lib/security/buildContentSecurityPolicy.ts`      | `script-src` production garde encore `'unsafe-inline'` tant qu'une strategie nonce/hash n'est pas deployee |
+| P1       | `.env.example`                                             | `REDIS_URL` absente -> crash demarrage prod                                                                |
+| ~~P1~~   | ~~`app/services/challenges/challenge_service.py:353`~~     | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU**                                      |
+| ~~P1~~   | ~~`app/services/exercises/exercise_attempt_service.py`~~   | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU**                                         |
 
 ---
 
 ## Workflow outils IA
 
-| Situation | Outil |
-|-----------|-------|
-| Planifier une feature, sequencer les taches | **Codex** |
-| Verifier une approche avant de coder | **Claude Code** |
-| Implementer, editer des fichiers | **Cursor Composer** |
-| Valider apres implementation | **Claude Code** `/octo:review` |
-| Debugger un probleme difficile | **Claude Code** `/octo:debug` |
-| Audit avant mise en prod | **Claude Code** `/octo:security` |
+| Situation                                   | Outil                            |
+| ------------------------------------------- | -------------------------------- |
+| Planifier une feature, sequencer les taches | **Codex**                        |
+| Verifier une approche avant de coder        | **Claude Code**                  |
+| Implementer, editer des fichiers            | **Cursor Composer**              |
+| Valider apres implementation                | **Claude Code** `/octo:review`   |
+| Debugger un probleme difficile              | **Claude Code** `/octo:debug`    |
+| Audit avant mise en prod                    | **Claude Code** `/octo:security` |
 
 **Regle imperative** : `git commit` avant de changer d'outil. Un seul outil ecrit le code a la fois.
 
@@ -88,9 +89,9 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 1. **F42 completion end-to-end** - generation, progression/evaluation, defis, surfaces publiques
 2. **Neutralisation thematique progressive** - ne plus etendre Star Wars/Jedi, converger vers spatial neutre
-3. **Securisation route chat** - authentification / controle du cout OpenAI
+3. **Durcissement CSP front** - sortie de `'unsafe-inline'` en production via nonce/hash
 4. **Fiabilisation deploiement** - `.env.example` / `REDIS_URL`
-5. **Tableau de bord parent minimal** - premiere brique payante
+5. **Couverture E2E authentifiee** - suite navigateur plus representative des flux connectes
 
 ---
 
@@ -108,11 +109,11 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ## Reference rapide docs
 
-| Document | Role |
-|----------|------|
-| `docs/03-PROJECT/README.md` | Index gouvernance projet |
-| `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` | Backlog produit source de verite |
-| `docs/02-FEATURES/API_QUICK_REFERENCE.md` | Reference API runtime |
-| `docs/02-FEATURES/CHALLENGE_CONTRACT_IA9.md` | Contrat defis response_mode |
-| `docs/03-PROJECT/CODE_REVIEW_2026-03-22.md` | Derniere revue de code |
-| `docs/03-PROJECT/AUDIT_TECHNIQUE_2026-03-22.md` | Dernier audit technique |
+| Document                                        | Role                             |
+| ----------------------------------------------- | -------------------------------- |
+| `docs/03-PROJECT/README.md`                     | Index gouvernance projet         |
+| `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`   | Backlog produit source de verite |
+| `docs/02-FEATURES/API_QUICK_REFERENCE.md`       | Reference API runtime            |
+| `docs/02-FEATURES/CHALLENGE_CONTRACT_IA9.md`    | Contrat defis response_mode      |
+| `docs/03-PROJECT/CODE_REVIEW_2026-03-22.md`     | Derniere revue de code           |
+| `docs/03-PROJECT/AUDIT_TECHNIQUE_2026-03-22.md` | Dernier audit technique          |

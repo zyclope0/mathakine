@@ -1,27 +1,27 @@
-# API Routes Next.js — Mathakine Frontend
+# API Routes Next.js - Mathakine Frontend
 
-> Scope : `frontend/app/api/`
-> Updated : 2026-03-27
-> Voir aussi : [ADR-002](../05-ADR/ADR-002-chat-assistant-public-boundary.md) — décision route chat publique
+> Scope: `frontend/app/api/`
+> Updated: 2026-04-09
+> Voir aussi: [frontend/lib/chat/README.md](../../frontend/lib/chat/README.md), [README_TECH.md](../../README_TECH.md), [ADR-002](../05-ADR/ADR-002-chat-assistant-public-boundary.md) pour l'historique superseded du chat public
 
 ---
 
 ## Vue d'ensemble
 
-Les routes API Next.js (`app/api/`) servent de **proxy** entre le client (même origine) et le backend Starlette.
-Elles évitent d'exposer l'URL backend en CORS direct et permettent la gestion des cookies cross-domain en production.
+Les routes API Next.js (`app/api/`) servent de proxy entre le client (même origine) et le backend Starlette.
+Elles évitent d'exposer directement l'URL backend en CORS, portent certaines gardes auth/cookies côté serveur Next, et permettent le streaming SSE sans logique réseau dupliquée dans le navigateur.
 
 **7 routes actives** :
 
-| Route | Méthode | Auth requis | Type réponse |
-|-------|---------|-------------|--------------|
-| `POST /api/auth/sync-cookie` | POST | Non | JSON |
-| `GET /api/auth/check-cookie` | GET | Non | JSON |
-| `POST /api/exercises/generate-ai-stream` | POST | **Oui** (cookie) | SSE |
-| `POST /api/challenges/generate-ai-stream` | POST | **Oui** (cookie) | SSE |
-| `POST /api/chat` | POST | **Non** ⚠️ | JSON |
-| `POST /api/chat/stream` | POST | **Non** ⚠️ | SSE |
-| `GET /api/sentry-status` | GET | Non | JSON |
+| Route                                     | Méthode | Auth requis                 | Type réponse |
+| ----------------------------------------- | ------- | --------------------------- | ------------ |
+| `POST /api/auth/sync-cookie`              | POST    | Non                         | JSON         |
+| `GET /api/auth/check-cookie`              | GET     | Non                         | JSON         |
+| `POST /api/exercises/generate-ai-stream`  | POST    | Oui (cookie `access_token`) | SSE          |
+| `POST /api/challenges/generate-ai-stream` | POST    | Oui (cookie `access_token`) | SSE          |
+| `POST /api/chat`                          | POST    | Oui (cookie `access_token`) | JSON         |
+| `POST /api/chat/stream`                   | POST    | Oui (cookie `access_token`) | SSE          |
+| `GET /api/sentry-status`                  | GET     | Non                         | JSON         |
 
 ---
 
@@ -31,155 +31,142 @@ Elles évitent d'exposer l'URL backend en CORS direct et permettent la gestion d
 
 **Fichier** : `frontend/app/api/auth/sync-cookie/route.ts`
 
-**Rôle** : Synchronise le token JWT `access_token` en cookie sur le domaine frontend après login.
-En production, le backend pose le cookie sur son propre domaine ; cette route le repose sur l'origine frontend.
+**Rôle** : synchronise le token JWT `access_token` en cookie sur le domaine frontend après login.
 
 **Body** :
+
 ```json
 { "access_token": "eyJ..." }
-// ou
-{ "clear": true }  // pour logout
+```
+
+ou
+
+```json
+{ "clear": true }
 ```
 
 **Flux** :
-1. Valide le token auprès de `POST /api/auth/validate-token` backend.
-2. Pose `Set-Cookie: access_token=...; HttpOnly; SameSite=Lax; Secure (prod); Max-Age=900`.
-3. `clear: true` → Max-Age=0 (efface le cookie).
 
-**Réponses** : `200 { ok: true }` / `400` / `401 Token invalide`
+1. valide le token auprès de `POST /api/auth/validate-token` backend
+2. pose `Set-Cookie: access_token=...; HttpOnly; SameSite=Lax; Secure (prod); Max-Age=900`
+3. `clear: true` efface le cookie
 
----
+**Réponses** : `200 { ok: true }`, `400`, `401`
 
 ### `GET /api/auth/check-cookie`
 
 **Fichier** : `frontend/app/api/auth/check-cookie/route.ts`
 
-**Rôle** : Diagnostic — vérifie si le cookie `access_token` est présent côté frontend.
-
-**Réponses** :
-```json
-// 200 cookie présent
-{ "ok": true, "has_access_token_cookie": true, "hint": "Cookie présent..." }
-
-// 401 cookie absent
-{ "ok": false, "has_access_token_cookie": false, "hint": "Cookie manquant..." }
-```
-
----
+**Rôle** : diagnostic simple de présence du cookie `access_token` côté frontend.
 
 ### `POST /api/exercises/generate-ai-stream`
 
 **Fichier** : `frontend/app/api/exercises/generate-ai-stream/route.ts`
 
-**Rôle** : Proxy SSE vers `POST /api/exercises/generate-ai-stream` backend.
-Transmet les cookies d'authentification et le token CSRF.
+**Rôle** : façade SSE fine vers `POST /api/exercises/generate-ai-stream` backend.
 
-**Auth** : Vérifie la présence du cookie `access_token` ; erreur SSE `error` si absent.
+**Auth** :
 
-**Body** : transféré tel quel au backend (objet JSON).
+- exige le cookie `access_token`
+- sans cookie, retourne un event SSE `error` côté client
+- les logs debug "missing auth cookie" sont limités au développement
 
-**SSE events** : `status` · `exercise` · `error` · `done`
+**Transport partagé** :
 
-**Headers propagés** : `Cookie`, `X-CSRF-Token`, `Accept-Language`
+- parse JSON / validation objet dans `frontend/lib/api/sseProxyRequest.ts`
+- forwarding headers dans `frontend/lib/api/proxyForwardHeaders.ts`
+- headers propagés : `Cookie`, `Content-Type`, `X-CSRF-Token`, `Accept-Language`
+- garde `body === null` backend : conversion en event SSE d'erreur au lieu d'un flux vide silencieux
 
----
+**SSE events attendus** : `status`, `exercise`, `error`, `done`
 
 ### `POST /api/challenges/generate-ai-stream`
 
 **Fichier** : `frontend/app/api/challenges/generate-ai-stream/route.ts`
 
-**Rôle** : Proxy SSE vers `POST /api/challenges/generate-ai-stream` backend.
-Même pattern que exercices.
+**Rôle** : même pattern que la route exercices, avec backend `POST /api/challenges/generate-ai-stream`.
 
-**SSE events** : `status` · `warning` · `challenge` · `error` · `done`
+**Transport partagé** : identique à la route exercices via `sseProxyRequest.ts`.
 
----
+**SSE events attendus** : `status`, `warning`, `challenge`, `error`, `done`
 
 ### `POST /api/chat`
 
 **Fichier** : `frontend/app/api/chat/route.ts`
 
-**Rôle** : Chatbot assistant mathématique — réponse JSON non-streaming.
+**Rôle** : chatbot assistant mathématique, réponse JSON non-streaming.
 
-**⚠️ SANS AUTHENTIFICATION** — voir [ADR-002](../05-ADR/ADR-002-chat-assistant-public-boundary.md).
-Seul le rate limiting Redis limite les abus. Risque de coût OpenAI non maîtrisé sans REDIS_URL.
+**Auth** :
 
-**Body** :
-```json
-{ "message": "...", "conversation_history": [...] }
-```
+- **authentification requise**
+- garde Next proxy sur le cookie `access_token`
+- sans session, réponse `401` JSON `UNAUTHORIZED`, alignée sur le backend
 
-**Réponse** : `200 { "response": "..." }` (avec fallback si backend indisponible)
+**Transport** :
 
----
+- headers backend via `frontend/lib/api/chatProxyRequest.ts`
+- copie utilisateur localisée via `frontend/lib/api/chatProxyLocale.ts`
+- `Accept-Language` répercuté vers les messages proxy
 
 ### `POST /api/chat/stream`
 
 **Fichier** : `frontend/app/api/chat/stream/route.ts`
 
-**Rôle** : Chatbot assistant mathématique — réponse SSE streaming.
+**Rôle** : chatbot assistant mathématique, réponse SSE streaming.
 
-**⚠️ SANS AUTHENTIFICATION** — même contrainte que `/api/chat`.
+**Auth** :
 
-**Body** :
-```json
-{ "message": "...", "conversation_history": [...], "stream": true }
-```
+- **authentification requise**
+- sans session, réponse `401` JSON côté proxy
 
-**SSE events** : `status` · `chunk` · `image` · `error` · `done`
+**Comportement notable** :
 
----
+- logs runtime gérés via `frontend/lib/utils/logInDevelopment.ts` (pas de bruit `console.error` en prod pour les branches gérées)
+- erreurs `401/403` backend repropagées en JSON
+- backend `200` avec `body === null` transformé en event SSE d'erreur explicite
+- succès : stream SSE direct avec `X-Accel-Buffering: no`
+
+**SSE events attendus** : `status`, `chunk`, `image`, `error`, `done`
 
 ### `GET /api/sentry-status`
 
 **Fichier** : `frontend/app/api/sentry-status/route.ts`
 
-**Rôle** : Diagnostic Sentry — vérifie la présence des variables d'environnement et envoie une métrique de test en production.
-
-**Réponse** :
-```json
-{
-  "dsnPresent": true,
-  "nodeEnv": "production",
-  "release": "cae7b43",
-  "tracesSampleRate": "0.1",
-  "replaysSessionSampleRate": "0.1",
-  "replaysOnErrorSampleRate": "1.0",
-  "tunnelRoute": "/monitoring",
-  "metricsSent": true
-}
-```
+**Rôle** : diagnostic Sentry ; vérifie la présence des variables d'environnement et expose l'état des options frontend Sentry.
 
 ---
 
 ## Résolution URL backend
 
-Toutes les routes (sauf `check-cookie`) utilisent `lib/api/backendUrl.ts` :
+Toutes les routes proxy backend utilisent `frontend/lib/api/backendUrl.ts` :
 
-1. `NEXT_PUBLIC_API_BASE_URL` (priorité)
-2. `NEXT_PUBLIC_API_URL` (legacy fallback)
-3. `http://localhost:10000` (dev uniquement)
-4. Erreur explicite en production si URL absente, mal formée ou locale
+1. `NEXT_PUBLIC_API_BASE_URL`
+2. `NEXT_PUBLIC_API_URL` (fallback legacy)
+3. `http://localhost:10000` en développement uniquement
+4. erreur explicite en production si URL absente, mal formée ou locale
 
 ---
 
 ## Sécurité
 
-| Route | Protection |
-|-------|-----------|
-| `exercises/generate-ai-stream` | Cookie `access_token` obligatoire + CSRF |
-| `challenges/generate-ai-stream` | Cookie `access_token` obligatoire + CSRF |
-| `chat` | Rate limiting Redis uniquement (⚠️ sans REDIS_URL = aucune protection) |
-| `chat/stream` | Rate limiting Redis uniquement (⚠️ même contrainte) |
-| `auth/*` | Validation token backend avant pose cookie |
-| `sentry-status` | Public (diagnostic uniquement, pas de données sensibles) |
+| Route                           | Protection                                               |
+| ------------------------------- | -------------------------------------------------------- |
+| `exercises/generate-ai-stream`  | cookie `access_token` obligatoire + CSRF forwardé        |
+| `challenges/generate-ai-stream` | cookie `access_token` obligatoire + CSRF forwardé        |
+| `chat`                          | cookie `access_token` obligatoire + proxy aligné backend |
+| `chat/stream`                   | cookie `access_token` obligatoire + proxy aligné backend |
+| `auth/*`                        | validation token backend avant pose cookie               |
+| `sentry-status`                 | public, diagnostic uniquement                            |
 
 ---
 
 ## Tests
 
 Les handlers de routes sont couverts par `frontend/__tests__/unit/app/api/` :
-- succès et erreur JSON sur `/api/chat`
-- succès SSE et garde config invalide sur `/api/chat/stream`
-- succès SSE, refus auth/cookie, et propagation `!ok` sur `/api/exercises/generate-ai-stream`
-- idem pour `/api/challenges/generate-ai-stream`
+
+- `/api/chat` : succès, erreurs JSON, auth
+- `/api/chat/stream` : auth, erreurs backend, branche `body === null`, non-log en production
+- `/api/exercises/generate-ai-stream` : succès, refus cookie, propagation backend `!ok`, branche `body === null`
+- `/api/challenges/generate-ai-stream` : mêmes garanties que la route exercices
+
+Ces tests sont des tests de handlers Next.js, pas des E2E navigateur.
