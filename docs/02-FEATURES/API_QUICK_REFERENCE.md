@@ -183,7 +183,9 @@ Long reference: `docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md`
 | POST   | `/api/recommendations/complete` | mark recommendation complete                                                                                                         |
 | POST   | `/api/chat`                     | authenticated chat ; requires a valid session ; Next proxy also gates `access_token` before forwarding                               |
 | POST   | `/api/chat/stream`              | authenticated chat SSE ; requires a valid session ; Next proxy tests cover auth, invalid backend config, and empty-body SSE fallback |
-| GET    | `/health`                       | backend health                                                                                                                       |
+| GET    | `/live`                         | liveness (process only)                                                                                                              |
+| GET    | `/ready`                        | readiness (DB + Redis in prod when `REDIS_URL` set) ; Render `healthCheckPath`                                                       |
+| GET    | `/health`                       | alias of `/ready` (readiness)                                                                                                        |
 | GET    | `/robots.txt`                   | robots                                                                                                                               |
 | GET    | `/metrics`                      | Prometheus metrics                                                                                                                   |
 

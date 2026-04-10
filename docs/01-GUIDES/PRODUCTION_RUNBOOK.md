@@ -41,12 +41,14 @@ Minimum data to collect first:
 ### Public checks
 
 ```bash
-curl https://<backend>/health
+curl https://<backend>/live
+curl https://<backend>/ready
 curl https://<backend>/metrics
 ```
 
 Expected:
-- `/health` -> `200 ok`
+- `/live` -> `200` JSON `{"status":"live"}` (liveness)
+- `/ready` -> `200` JSON `{"status":"ready",...}` when DB/Redis (prod) are OK ; `503` if not (`/health` is the same readiness probe)
 - `/metrics` -> Prometheus payload
 
 ### What startup validates automatically
@@ -154,7 +156,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 3. update `SECRET_KEY` in the production environment
 4. redeploy the backend
 5. verify:
-   - `/health`
+   - `/ready` (readiness)
    - login
    - refresh
    - `/api/users/me`
@@ -192,7 +194,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ## 7. Post-incident verification checklist
 
-- [ ] `/health` returns `200`
+- [ ] `/ready` returns `200` (dependencies OK)
 - [ ] critical auth flow works (`login`, `refresh`, `/api/users/me`)
 - [ ] AI routes answer as expected for the intended scope
 - [ ] no unexpected Alembic drift remains (`alembic current`)

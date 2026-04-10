@@ -12,6 +12,7 @@ Visible product train:
 
 - **Dev** : `python enhanced_server.py` écoute par défaut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la même URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
 - live backend runtime is the Starlette stack under `server/`
+- **OPS-HEALTH-02** : `GET /live` = liveness (JSON `{"status":"live"}`) ; `GET /ready` = readiness (PostgreSQL + Redis when production + `REDIS_URL`) with **2s** bounded checks → `200` / `503` ; `GET /health` aliases readiness ; `render.yaml` `healthCheckPath` = `/ready` (`app/utils/readiness_probe.py`)
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
 - runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — services import sync_db_session via db_boundary (G4); data access is selective (2 repositories) and direct ORM in many services — see `docs/00-REFERENCE/ARCHITECTURE.md` § Data-Layer Doctrine
@@ -161,7 +162,7 @@ Limite assumee :
 
 ### AI runtime hardening
 
-- **`POST /api/chat`** et **`POST /api/chat/stream`** (Starlette + routes Next `app/api/chat/*`) exigent une session valide (**CHAT-AUTH-01**) : plus de whitelist publique middleware ; le proxy Next refuse sans cookie `access_token` (401 JSON `UNAUTHORIZED`) et relaie `Cookie` + `X-CSRF-Token` lorsque la session est pr�sente ; rate-limit chat inchang� c�t� backend
+- **`POST /api/chat`** et **`POST /api/chat/stream`** (Starlette + routes Next `app/api/chat/*`) exigent une session valide (**CHAT-AUTH-01**) : plus de whitelist publique middleware ; le proxy Next refuse sans cookie `access_token` (401 JSON `UNAUTHORIZED`) et relaie `Cookie` + `X-CSRF-Token` lorsque la session est pr�sente ; rate-limit chat inchang� c�t� backend ; **CHAT-DEFENSE-01**: `require_auth` / `require_auth_sse` on `server/handlers/chat_handlers.py` (defense in depth, same `server.auth` decorators, middleware unchanged).
 - frontend proxy routes (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont couverts par des tests de handlers Next.js au niveau route ; les deux POST SSE p�dagogiques partagent `lib/api/sseProxyRequest.ts` (`proxySseGenerateAiStreamPost`) et `lib/api/proxyForwardHeaders.ts` pour parse JSON, auth cookie, forward headers, garde `body === null` backend et stream
 - les flux pedagogiques SSE utilisent un circuit breaker process-local partage pour eviter de relancer indefiniment des appels OpenAI manifestement indisponibles
 - les erreurs de generation IA cote frontend distinguent maintenant explicitement :

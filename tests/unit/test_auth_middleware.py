@@ -19,6 +19,10 @@ class TestIsAuthPublic:
     def test_health_get_public(self):
         assert _is_auth_public("/health", "GET") is True
 
+    def test_live_ready_get_public(self):
+        assert _is_auth_public("/live", "GET") is True
+        assert _is_auth_public("/ready", "GET") is True
+
     def test_metrics_get_public(self):
         assert _is_auth_public("/metrics", "GET") is True
 

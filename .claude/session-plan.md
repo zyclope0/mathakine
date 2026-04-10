@@ -174,6 +174,18 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 - Commentaire dans `instrumentation-client.ts` pour d’éventuels widgets Sentry injectant du inline plus tard.
 - Tests : `middlewareCsp.test.ts` ; vérifs `tsc`, `lint`, `build`, vitest ciblé, Prettier.
 
+### CHAT-DEFENSE-01 (2026-04-10) - fermé
+
+- Handlers **`chat_api`** / **`chat_api_stream`** : **`@require_auth`** et **`@require_auth_sse`** (ordre au-dessus de **`@rate_limit_chat`**) dans `server/handlers/chat_handlers.py` ; middleware global **inchangé** ; pas de changement prompts / OpenAI / proxy Next.
+- Tests : `tests/api/test_chat_endpoints.py` ; **`tests/unit/test_chat_handlers_auth.py`** (couche handler sans middleware) ; `pytest` ciblé vert.
+
+### OPS-HEALTH-02 (2026-04-10) - fermé
+
+- **Liveness** : `GET /live` → `200` JSON `{"status":"live"}` (aucune dépendance).
+- **Readiness** : `GET /ready` → sondes **PostgreSQL** (+ **Redis** si prod + `REDIS_URL`) via `app/utils/readiness_probe.py`, timeout **2s** par étape, `200` / `503` JSON minimal (`not_ready` + `checks`) ; **`GET /health`** = alias readiness.
+- **`render.yaml`** : `healthCheckPath: /ready` ; middleware maintenance + auth public : `/live`, `/ready`, `/health` ; Sentry `before_send` étendu aux nouveaux chemins.
+- Tests : `tests/unit/test_readiness_probe.py`, `tests/api/test_base_endpoints.py`, `tests/unit/test_auth_middleware.py` ; CI smoke `GET /ready` ; doc `DEPLOYMENT_ENV`, `PRODUCTION_RUNBOOK`, `CICD_DEPLOY`, `README_TECH`.
+
 ### Règle de pilotage
 
 - traiter la suite comme :

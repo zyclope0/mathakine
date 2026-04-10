@@ -39,7 +39,7 @@ services:
         value: 0.1
       - key: NEXT_PUBLIC_SENTRY_DSN
         sync: false  # Rétrocompat Sentry backend si SENTRY_DSN absent
-    healthCheckPath: /health
+    healthCheckPath: /ready
     autoDeploy: true
 
   # ============================================

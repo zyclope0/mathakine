@@ -4,13 +4,15 @@ Verifie la sante de l'application, le routage et les reponses d'erreur.
 
 Routes testees :
 - GET|HEAD / (sondes plateforme)
-- GET /health
+- GET /live, /ready, /health (readiness ; /health = alias /ready)
 - GET /robots.txt
 - GET /api/exercises (route publique, whitelist deny-by-default)
 - GET /api/challenges (requiert auth → 401)
 - GET /nonexistent (404)
 - GET /api/auth/login (methode GET non autorisee → 405)
 """
+
+from unittest.mock import patch
 
 import pytest
 
@@ -29,11 +31,42 @@ async def test_root_head_ok(client):
     assert response.text == ""
 
 
-async def test_health_endpoint(client):
-    """GET /health — health check pour Render et load balancers (stable)."""
-    response = await client.get("/health")
+async def test_live_endpoint(client):
+    """GET /live — liveness sans dépendances externes."""
+    response = await client.get("/live")
     assert response.status_code == 200
-    assert response.text.strip() == "ok"
+    data = response.json()
+    assert data.get("status") == "live"
+
+
+async def test_ready_endpoint(client):
+    """GET /ready — readiness (DB en CI ; Redis si prod + REDIS_URL)."""
+    response = await client.get("/ready")
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("status") == "ready"
+    assert data.get("checks", {}).get("db") == "ok"
+
+
+async def test_health_alias_matches_ready(client):
+    """GET /health — alias readiness (rétrocompat)."""
+    r_ready = await client.get("/ready")
+    r_health = await client.get("/health")
+    assert r_health.status_code == r_ready.status_code
+    assert r_health.json() == r_ready.json()
+
+
+async def test_ready_returns_503_when_db_unavailable(client):
+    """GET /ready — 503 si la sonde PostgreSQL échoue (défense OPS-HEALTH-02)."""
+    with patch(
+        "app.utils.readiness_probe._ping_postgres_sync",
+        side_effect=RuntimeError("simulated"),
+    ):
+        response = await client.get("/ready")
+    assert response.status_code == 503
+    data = response.json()
+    assert data.get("status") == "not_ready"
+    assert data.get("checks", {}).get("db") == "unavailable"
 
 
 async def test_request_id_header(client):

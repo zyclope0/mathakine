@@ -224,7 +224,7 @@ python scripts/test_backend_local.py
 
 Sortie attendue :
 ```
-[OK] GET /health → 200
+[OK] GET /ready → 200
 [OK] POST /api/auth/login → 200
 [OK] GET /api/exercises → 200
 ...

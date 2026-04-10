@@ -75,7 +75,12 @@ def _sentry_before_send(event, hint):
     """Filtre optionnel : ignorer certaines URLs (health, metrics)."""
     if event.get("request", {}).get("url"):
         url = event["request"]["url"]
-        if "/health" in url or "/metrics" in url:
+        if (
+            "/health" in url
+            or "/live" in url
+            or "/ready" in url
+            or "/metrics" in url
+        ):
             return None  # Ne pas envoyer les erreurs sur health/metrics
     return event
 

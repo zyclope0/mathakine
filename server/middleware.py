@@ -102,6 +102,8 @@ class SecureHeadersMiddleware(BaseHTTPMiddleware):
 
 
 MAINTENANCE_EXEMPT_PREFIXES = (
+    "/live",
+    "/ready",
     "/health",
     "/metrics",
     "/api/admin",
@@ -147,6 +149,8 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
 _ROUTE_REGISTRY: List[Tuple[str, Set[str], bool]] = [
     # Infra
     ("/", {"GET", "HEAD"}, False),
+    ("/live", {"GET"}, False),
+    ("/ready", {"GET"}, False),
     ("/health", {"GET"}, False),
     ("/robots.txt", {"GET"}, False),
     ("/metrics", {"GET"}, False),

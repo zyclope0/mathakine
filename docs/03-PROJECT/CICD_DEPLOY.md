@@ -21,7 +21,7 @@ Declenchement:
 
 Jobs actifs:
 
-- `test` : backend pytest + couverture + smoke `/health`
+- `test` : backend pytest + couverture + smoke `GET /ready`
 - `lint` : flake8 critique, black, isort, mypy
 - `frontend` : TypeScript, ESLint, Prettier, Vitest, build Next.js
 - `codecov` : agrege les artefacts de couverture
@@ -33,7 +33,7 @@ Jobs actifs:
 - PostgreSQL 15 en service GitHub Actions
 - creation / initialisation de `test_mathakine`
 - `python -m pytest tests/ -v --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=63 --tb=short -m "not slow"`
-- smoke test `GET /health`
+- smoke test `GET /ready`
 
 ### Lint job
 
@@ -82,7 +82,7 @@ cd frontend && npm run lint
 Verifications minimales:
 
 ```bash
-curl -s https://mathakine-backend.onrender.com/health
+curl -s https://mathakine-backend.onrender.com/ready
 curl -s -o /dev/null -w "%{http_code}" https://mathakine-frontend.onrender.com/
 ```
 

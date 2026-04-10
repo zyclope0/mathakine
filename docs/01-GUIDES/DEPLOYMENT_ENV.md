@@ -79,7 +79,8 @@ Use one of the two families below:
 - [ ] one email provider family is configured
 - [ ] `SENTRY_DSN` is defined if backend Sentry is enabled
 - [ ] `SENTRY_RELEASE` matches the deployed commit if release correlation is desired
-- [ ] `GET /health` returns 200
+- [ ] `GET /live` returns 200 (liveness — process only)
+- [ ] `GET /ready` returns 200 when PostgreSQL (and Redis in production) are reachable (`render.yaml` health check uses `/ready`; `GET /health` is an alias of readiness)
 
 ### Frontend
 

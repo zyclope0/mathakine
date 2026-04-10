@@ -161,10 +161,10 @@ jobs:
         async def check():
             transport = ASGITransport(app=create_app())
             async with AsyncClient(transport=transport, base_url='http://test') as client:
-                r = await client.get('/health')
+                r = await client.get('/ready')
                 assert r.status_code == 200, f'Expected 200, got {r.status_code}'
         asyncio.run(check())
-        print('Smoke OK: /health returned 200')
+        print('Smoke OK: /ready returned 200')
         "
 
   lint:

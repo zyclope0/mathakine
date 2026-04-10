@@ -1,6 +1,7 @@
 """
 Tests des endpoints API chat (/api/chat, /api/chat/stream).
-CHAT-AUTH-01 : auth obligatoire ; branches erreur OpenAI / validation inchangées côté handler.
+CHAT-AUTH-01 : auth obligatoire (middleware) ; branches erreur OpenAI / validation inchangées.
+CHAT-DEFENSE-01 : décorateurs ``require_auth`` / ``require_auth_sse`` sur les handlers (défense en profondeur).
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

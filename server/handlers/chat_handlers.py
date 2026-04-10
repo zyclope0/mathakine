@@ -34,10 +34,12 @@ from app.utils.generation_metrics import generation_metrics
 from app.utils.rate_limit import rate_limit_chat
 from app.utils.request_utils import parse_json_body, parse_json_body_any
 from app.utils.token_tracker import token_tracker
+from server.auth import require_auth, require_auth_sse
 
 logger = get_logger(__name__)
 
 
+@require_auth
 @rate_limit_chat
 async def chat_api(request: Request) -> JSONResponse:
     """
@@ -130,6 +132,7 @@ async def chat_api(request: Request) -> JSONResponse:
         return api_error_response(500, get_safe_error_message(chat_api_error))
 
 
+@require_auth_sse
 @rate_limit_chat
 async def chat_api_stream(request: Request) -> Response:
     """

@@ -49,7 +49,7 @@ Détecter les régressions de performance et valider la capacité de charge de l
 
 ```bash
 # Vérifier que le backend est démarré
-curl http://localhost:10000/health
+curl http://localhost:10000/ready
 
 # Configurer les variables d'environnement
 export BACKEND_URL=http://localhost:10000
@@ -254,7 +254,7 @@ Si échec :
 
 ```bash
 # 1. Vérifier que le backend est démarré
-curl http://localhost:10000/health
+curl http://localhost:10000/ready
 
 # 2. Vérifier les logs du backend
 tail -f logs/app.log
