@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import {
   clearFrontendAuthSyncCookie,
   syncAccessTokenToFrontend,

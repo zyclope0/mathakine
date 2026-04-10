@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 
 export interface AdminChallenge {
   id: number;
@@ -66,8 +66,8 @@ export function useAdminChallenges(params: AdminChallengesParams = {}) {
       }>(`/api/admin/challenges/${challengeId}`, { is_archived: isArchived });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "challenges"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "overview"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "challenges"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "overview"] });
     },
   });
 

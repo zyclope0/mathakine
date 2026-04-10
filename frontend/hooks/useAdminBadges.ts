@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 
 export interface AdminBadge {
   id: number;
@@ -39,7 +39,7 @@ export function useAdminBadges() {
     mutationFn: async (payload: Omit<AdminBadge, "id" | "created_at">) =>
       api.post<AdminBadge>("/api/admin/badges", payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
     },
   });
 
@@ -47,7 +47,7 @@ export function useAdminBadges() {
     mutationFn: async ({ id, payload }: { id: number; payload: Partial<AdminBadge> }) =>
       api.put<AdminBadge>(`/api/admin/badges/${id}`, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
     },
   });
 
@@ -55,7 +55,7 @@ export function useAdminBadges() {
     mutationFn: async (badgeId: number) =>
       api.delete<{ success: boolean; id: number }>(`/api/admin/badges/${badgeId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });
     },
   });
 

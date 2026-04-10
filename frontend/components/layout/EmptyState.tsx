@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
   title: string;

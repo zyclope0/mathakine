@@ -176,8 +176,8 @@ function ChallengesPageContent() {
         <AIGenerator
           compact
           onChallengeGenerated={() => {
-            queryClient.invalidateQueries({ queryKey: ["challenges"] });
-            queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
+            void queryClient.invalidateQueries({ queryKey: ["challenges"] });
+            void queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
           }}
         />
 

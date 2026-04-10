@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import type { Exercise } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";

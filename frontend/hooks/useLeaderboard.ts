@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 
 export const LEADERBOARD_PERIODS = ["all", "week", "month"] as const;
 export type LeaderboardPeriod = (typeof LEADERBOARD_PERIODS)[number];

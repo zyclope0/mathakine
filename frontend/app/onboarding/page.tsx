@@ -75,7 +75,7 @@ function OnboardingContent() {
         learning_goal: learningGoal || undefined,
         practice_rhythm: practiceRhythm || undefined,
       });
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       // Rediriger vers le diagnostic initial pour calibrer le niveau (F03)
       router.replace("/diagnostic?from=onboarding");
     } catch (err: unknown) {

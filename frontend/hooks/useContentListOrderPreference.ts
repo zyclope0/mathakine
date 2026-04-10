@@ -1,30 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   CONTENT_LIST_ORDER,
   type ContentListOrder,
   isValidStoredContentListOrder,
 } from "@/lib/constants/contentListOrder";
-import { getLocalString, removeLocalKey, setLocalString, STORAGE_KEYS } from "@/lib/storage";
+import { getLocalString, removeLocalKey, setLocalString, type STORAGE_KEYS } from "@/lib/storage";
 
 type OrderPreferenceStorageKey =
   | typeof STORAGE_KEYS.prefExerciseOrder
   | typeof STORAGE_KEYS.prefChallengeOrder;
 
+function readStoredOrder(storageKey: OrderPreferenceStorageKey): ContentListOrder {
+  if (typeof window === "undefined") return CONTENT_LIST_ORDER.RANDOM;
+  const raw = getLocalString(storageKey);
+  return isValidStoredContentListOrder(raw) ? raw : CONTENT_LIST_ORDER.RANDOM;
+}
+
 /**
- * Hydrates list sort preference from localStorage after mount; persists on change.
+ * Hydrates list sort preference from localStorage on mount; persists on change.
+ * `orderPreferenceStorageKey` is stable for each hook instance (separate routes use separate mounts).
  */
 export function useContentListOrderPreference(storageKey: OrderPreferenceStorageKey) {
-  const [orderFilter, setOrderFilter] = useState<ContentListOrder>(CONTENT_LIST_ORDER.RANDOM);
-
-  useEffect(() => {
-    const raw = getLocalString(storageKey);
-    if (isValidStoredContentListOrder(raw)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional post-hydration sync
-      setOrderFilter(raw);
-    }
-  }, [storageKey]);
+  const [orderFilter, setOrderFilter] = useState<ContentListOrder>(() =>
+    readStoredOrder(storageKey)
+  );
 
   const handleOrderChange = useCallback(
     (value: ContentListOrder) => {

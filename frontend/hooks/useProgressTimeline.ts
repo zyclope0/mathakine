@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 
 /** Période de la timeline : 7 ou 30 jours */
 export type TimelinePeriod = "7d" | "30d";

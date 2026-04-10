@@ -218,9 +218,9 @@ export function useBadgesPageController({
 
       confettiRef.current = true;
       localStorage.setItem(CONFETTI_STORAGE_KEY, String(earnedCount));
-      import("canvas-confetti")
+      void import("canvas-confetti")
         .then(({ default: confetti }) => {
-          confetti({
+          void confetti({
             particleCount: 100,
             spread: 80,
             origin: { y: 0.4 },

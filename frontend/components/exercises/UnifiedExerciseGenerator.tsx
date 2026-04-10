@@ -83,9 +83,9 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
 
   const handleGenerate = () => {
     if (isIAEnabled) {
-      generateAI(exerciseType, ageGroup, customPrompt);
+      void generateAI(exerciseType, ageGroup, customPrompt);
     } else {
-      handleQuickGenerate();
+      void handleQuickGenerate();
     }
   };
 

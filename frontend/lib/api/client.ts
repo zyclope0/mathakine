@@ -229,7 +229,7 @@ export async function apiRequest<T>(
         (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast ?? 0;
       if (now - last > 15000) {
         (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast = now;
-        import("sonner").then(({ toast }) => {
+        void import("sonner").then(({ toast }) => {
           toast.error("Service temporairement indisponible. Réessayez dans quelques instants.", {
             duration: 5000,
           });

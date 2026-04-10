@@ -155,11 +155,11 @@ function ProfilePageContent() {
                     ...prev,
                     preferred_theme: theme,
                   }));
-                  ctrl.handleSaveAccessibility({ preferred_theme: theme });
+                  void ctrl.handleSaveAccessibility({ preferred_theme: theme });
                 }}
                 onToggle={(field, checked) => {
                   ctrl.setAccessibilitySettings((prev) => ({ ...prev, [field]: checked }));
-                  ctrl.handleSaveAccessibility({ [field]: checked });
+                  void ctrl.handleSaveAccessibility({ [field]: checked });
                 }}
               />
             </div>

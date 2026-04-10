@@ -96,7 +96,7 @@ export function useRecommendations() {
       return await api.post("/api/recommendations/generate");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+      void queryClient.invalidateQueries({ queryKey: ["recommendations"] });
       toast.success(t("updatedSuccess"));
     },
     onError: (error: ApiClientError) => {
@@ -134,7 +134,7 @@ export function useRecommendations() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+      void queryClient.invalidateQueries({ queryKey: ["recommendations"] });
       toast.success(t("completedSuccess", { default: "Marqué comme fait" }));
     },
     onError: (error: ApiClientError) => {

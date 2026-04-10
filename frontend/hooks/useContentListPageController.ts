@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { STORAGE_KEYS } from "@/lib/storage";
+import { type STORAGE_KEYS } from "@/lib/storage";
 import {
   contentListAdvancedFilterActiveCount,
   hasActiveContentListFilters,

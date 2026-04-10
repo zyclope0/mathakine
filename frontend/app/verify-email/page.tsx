@@ -74,7 +74,7 @@ function VerifyEmailContent() {
       return;
     }
 
-    verifyToken(token);
+    void verifyToken(token);
   }, [searchParams, verifyToken]);
 
   const handleResend = async (e?: React.FormEvent) => {

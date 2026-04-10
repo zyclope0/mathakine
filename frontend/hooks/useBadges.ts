@@ -3,7 +3,7 @@
 import { useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import type { UserBadgesResponse, GamificationStats, Badge, UserBadge } from "@/types/api";
 import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ export function useBadges() {
 
   // Invalider les queries quand la locale change
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["badges"] });
+    void queryClient.invalidateQueries({ queryKey: ["badges"] });
   }, [locale, queryClient]);
 
   // Récupérer les badges de l'utilisateur
@@ -96,8 +96,8 @@ export function useBadges() {
       }>("/api/badges/check");
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["badges"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["badges"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
       // Les toasts seront traduits côté composant si nécessaire
       // Pour l'instant, garder les messages en français comme fallback
@@ -118,7 +118,7 @@ export function useBadges() {
     },
     onError: (error: ApiClientError) => {
       if (error.status === 401) {
-        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+        void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
         router.push("/login");
         return;
       }
@@ -188,7 +188,7 @@ export function useBadges() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["badges"] });
+      void queryClient.invalidateQueries({ queryKey: ["badges"] });
     },
   });
 

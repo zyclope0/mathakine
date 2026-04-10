@@ -21,7 +21,7 @@ export function AccessScopeSync() {
     if (typeof window === "undefined") return;
 
     const handleAccessScopeLimited = () => {
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       const isFullAccessPath =
         FULL_ACCESS_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
         pathname.startsWith(FULL_ACCESS_PREFIX);

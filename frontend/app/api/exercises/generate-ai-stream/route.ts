@@ -1,7 +1,7 @@
 /**
  * Proxy SSE : POST JSON vers le backend (prompt et paramètres hors URL).
  */
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 import { proxySseGenerateAiStreamPost } from "@/lib/api/sseProxyRequest";
 

@@ -176,8 +176,8 @@ export function useSettingsPageController(): UseSettingsPageControllerResult {
         // Non bloquant
       }
     };
-    loadSessions();
-    loadDiagnosticStatus();
+    void loadSessions();
+    void loadDiagnosticStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only load; useSettings callbacks are unstable
   }, []);
 

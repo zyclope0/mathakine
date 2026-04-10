@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
-import { useDiagnostic, DiagnosticScores, DiagnosticTypeScore } from "@/hooks/useDiagnostic";
+import { useDiagnostic, type DiagnosticScores, type DiagnosticTypeScore } from "@/hooks/useDiagnostic";
 
 // -------------------------------------------------------------------------- //
 // FocusBoard — défini au niveau MODULE pour éviter le remontage React         //

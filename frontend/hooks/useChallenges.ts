@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import { readBadgeThematicTitleRaw } from "@/lib/gamification/badgeThematicTitle";
 import type { Challenge, ChallengeAttemptResponse } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ChallengeType, AgeGroup } from "@/lib/constants/challenges";
+import { type ChallengeType, type AgeGroup } from "@/lib/constants/challenges";
 import { usePaginatedContent } from "./usePaginatedContent";
 import { trackFirstAttempt } from "@/lib/analytics/edtech";
 
@@ -75,23 +75,23 @@ export function useChallenges(filters?: ChallengeFilters) {
       trackFirstAttempt("challenge", variables.challenge_id);
 
       // Invalider le cache du défi pour recharger les stats
-      queryClient.invalidateQueries({ queryKey: ["challenge", variables.challenge_id] });
-      queryClient.invalidateQueries({ queryKey: ["challenges"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["challenge", variables.challenge_id] });
+      void queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
       // Timeline et progression défis : toute tentative (correcte ou non) est comptabilisée
-      queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "challenges", "detailed-progress"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "challenges", "detailed-progress"] });
 
       // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations + défis quotidiens
       if (data.is_correct) {
-        queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
-        queryClient.refetchQueries({ queryKey: ["completed-challenges"] });
-        queryClient.invalidateQueries({ queryKey: ["badges"] });
-        queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
-        queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-        queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
-        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+        void queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
+        void queryClient.refetchQueries({ queryKey: ["completed-challenges"] });
+        void queryClient.invalidateQueries({ queryKey: ["badges"] });
+        void queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
+        void queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+        void queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
+        void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       }
 
       // Afficher les badges gagnés si présents

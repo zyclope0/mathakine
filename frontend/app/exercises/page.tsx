@@ -107,7 +107,7 @@ function ExercisesPageContent() {
     const generated = searchParams.get("generated");
     if (generated === "true") {
       // Invalider les queries pour forcer le refetch avec les bons filtres
-      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      void queryClient.invalidateQueries({ queryKey: ["exercises"] });
       // Retirer le paramètre de l'URL sans recharger la page
       const newSearchParams = new URLSearchParams(searchParams.toString());
       newSearchParams.delete("generated");
@@ -201,8 +201,8 @@ function ExercisesPageContent() {
         {/* Générateur unifié — Toolbar compacte */}
         <UnifiedExerciseGenerator
           onExerciseGenerated={() => {
-            queryClient.invalidateQueries({ queryKey: ["exercises"] });
-            queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
+            void queryClient.invalidateQueries({ queryKey: ["exercises"] });
+            void queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
           }}
         />
 
@@ -286,7 +286,7 @@ function ExercisesPageContent() {
           open={isModalOpen}
           onOpenChange={handleModalOpenChange}
           onExerciseCompleted={() => {
-            queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
+            void queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
           }}
         />
       </PageLayout>

@@ -761,6 +761,16 @@ Travaux effectués :
 
 **Résidu volontaire :** i18n complète des composants admin internes et chaînes métier ailleurs dans le dépôt.
 
+## Addendum 2026-04-10 - QF-04 (ESLint TypeScript durci)
+
+Cohérent avec **§D4 — ESLint / Hooks** : `@typescript-eslint/no-unused-vars`, `no-require-imports` et `consistent-type-imports` sont en **error** dans `frontend/eslint.config.mjs` (mesure initiale : **0** sur les deux premières sur l’arbre linté). Option `disallowTypeAnnotations: false` sur `consistent-type-imports` pour conserver `vi.importActual<typeof import("…")>` (tests).
+
+**Suite QF-04B (2026-04-10) :** ESLint **type-aware** sur le frontend (`parserOptions.projectService: true`, `tsconfigRootDir`, ignores build/cache/scripts) ; `@typescript-eslint/no-floating-promises` en **error** ; mesure initiale **64** violations corrigées par **`void`** explicite (invalidations React Query, `import()` dynamiques, handlers async) — pas de changement UX volontaire.
+
+**Hors périmètre inchangé :** `import/no-cycle` ; pas d’activation opportuniste d’autres règles typées hors le minimum nécessaire à cette règle.
+
+**Suite QF-04C (2026-04-11) :** `react-hooks/set-state-in-effect` et `react-hooks/preserve-manual-memoization` passent en **error** ; mesure sur l’arbre avant durcissement : **0** message ESLint (règles en `warn`) car **2** occurrences de `set-state-in-effect` étaient déjà **neutralisées** par `eslint-disable-next-line` justifié ; **`preserve-manual-memoization`** : **0** occurrence. Correction **ROI** : `useContentListOrderPreference` — lecture `localStorage` via initialiseur paresseux de `useState` (clé stable par montage). **Résidu documenté :** une suppression locale conservée dans `useGuestChatAccess` (sync invité post-hydratation).
+
 ---
 
 _Rapport généré le 2026-04-09. Toutes les assertions sont basées sur des lectures directes de fichiers effectuées pendant l'audit. Pour les dimensions où la mesure complète n'est pas possible sans outillage (complexité cyclomatique, dépendances circulaires), les scores sont conservateurs et marqués explicitement._

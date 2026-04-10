@@ -7,7 +7,7 @@
  * SECURITE: Le token est valide cote backend (signature + expiration) avant d'etre
  * pose en cookie, pour eviter le session hijacking via token forge.
  */
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 import { validateAccessTokenWithBackend } from "@/lib/auth/server/validateTokenRuntime";
 

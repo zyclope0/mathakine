@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { getBackendUrl } from "@/lib/api/backendUrl";
 import { getChatProxyCopy, resolveChatProxyLocale } from "@/lib/api/chatProxyLocale";

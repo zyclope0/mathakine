@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 
 export interface AdminConfigItem {
   key: string;
@@ -37,7 +37,7 @@ export function useAdminConfig() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "config"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "config"] });
     },
   });
 

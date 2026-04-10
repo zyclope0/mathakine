@@ -3,7 +3,7 @@
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 
 interface PageTransitionProps {
   children: ReactNode;

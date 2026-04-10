@@ -85,7 +85,7 @@ export default function InterleavedPage() {
       }
     }
 
-    run();
+    void run();
     return () => {
       cancelled = true;
     };

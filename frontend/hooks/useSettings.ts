@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import { useTranslations } from "next-intl";
 import type { User } from "@/types/api";
 
@@ -152,7 +152,7 @@ export function useSettings() {
         description: t("sessionRevokedDescription"),
       });
       // Rafraîchir les sessions
-      queryClient.invalidateQueries({ queryKey: ["settings", "sessions"] });
+      void queryClient.invalidateQueries({ queryKey: ["settings", "sessions"] });
     },
     onError: () => {
       toast.error("Erreur", {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trackFirstAttempt } from "@/lib/analytics/edtech";
@@ -48,19 +48,19 @@ export function useSubmitAnswer() {
       trackFirstAttempt(variables.analytics_type ?? "exercise", variables.exercise_id);
 
       // Invalider le cache de l'exercice pour recharger les stats
-      queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });
+      void queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });
       // Ne PAS invalider ["exercises"] : évite le reshuffle aléatoire au rafraîchissement.
       // Le badge "Résolu" vient de completed-exercises, pas de la liste.
-      queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
       // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations + défis quotidiens
       if (data.is_correct) {
-        queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
-        queryClient.refetchQueries({ queryKey: ["completed-exercises"] });
-        queryClient.invalidateQueries({ queryKey: ["badges"] });
-        queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
-        queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-        queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
+        void queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
+        void queryClient.refetchQueries({ queryKey: ["completed-exercises"] });
+        void queryClient.invalidateQueries({ queryKey: ["badges"] });
+        void queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
+        void queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+        void queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
       }
 
       // Afficher les badges gagnés si présents

@@ -97,8 +97,8 @@ export function useAIChallengeGenerator({
             setStreamedText,
             setGeneratedChallenge,
             onInvalidateLists: () => {
-              queryClient.invalidateQueries({ queryKey: ["challenges"] });
-              queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
+              void queryClient.invalidateQueries({ queryKey: ["challenges"] });
+              void queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
             },
             ...(onChallengeGenerated !== undefined ? { onChallengeGenerated } : {}),
           });

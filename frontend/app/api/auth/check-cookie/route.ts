@@ -3,7 +3,7 @@
  * Utilisé pour débugger les erreurs "Cookie manquant" en production.
  * Retourne 200 si le cookie existe, 401 sinon.
  */
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const hasCookie = !!request.cookies.get("access_token")?.value;

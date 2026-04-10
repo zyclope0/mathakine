@@ -126,6 +126,25 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 
 - i18n route-level : copy des pages admin racines + `offline` externalisée dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listée ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks métier ; tests unitaires ciblés + smoke wiring i18n.
 
+### QF-04 (2026-04-10) - fermé
+
+- ESLint : `no-unused-vars` et `no-require-imports` → **error** (0 signalement sur l’arbre linté ; `scripts/**` ignoré).
+- `consistent-type-imports` → **error** + `eslint --fix` ; `disallowTypeAnnotations: false` pour les mocks Vitest (`typeof import("…")`).
+- `import/no-cycle` : hors périmètre.
+
+### QF-04B (2026-04-10) - fermé
+
+- ESLint **type-aware** (flat config v9) : `projectService: true` + `tsconfigRootDir` sur `**/*.{ts,mts,tsx}` avec ignores `.next`, `out`, `build`, `coverage`, `scripts`, `node_modules` (pas d’activation massive d’autres règles `recommendedTypeChecked`).
+- `@typescript-eslint/no-floating-promises` → **error** ; mesure initiale **64** signalements ; corrections **`void`** sur invalidations React Query, imports dynamiques, appels async dans handlers / effets (comportement produit inchangé).
+- Vérifs : `npx tsc --noEmit`, `npm run lint`, Prettier sur fichiers touchés → verts.
+
+### QF-04C (2026-04-10) - fermé
+
+- `react-hooks/set-state-in-effect` et `react-hooks/preserve-manual-memoization` → **error** (signal déjà propre : **0** signalement actif avant durcissement ; `preserve-manual-memoization` jamais vu sur l’arbre).
+- `useContentListOrderPreference` : hydration préférence tri via **initialiseur paresseux** `useState(() => …)` + `readStoredOrder` (clé stable par instance de hook) — suppression du `useEffect` + du `eslint-disable`.
+- `useGuestChatAccess` : **une** suppression locale **conservée** (sync post-hydratation `sessionStorage` / quota invité, commentaire existant).
+- Vérifs : `npx tsc --noEmit`, `npm run lint`, Prettier, `vitest` `useContentListPageController.test.tsx` → verts.
+
 ### Règle de pilotage
 
 - traiter la suite comme :

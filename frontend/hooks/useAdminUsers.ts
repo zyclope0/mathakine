@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import { normalizeUserRole, type UserRole } from "@/lib/auth/userRoles";
 
 export interface AdminUser {
@@ -80,25 +80,25 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
   });
 
   const sendResetMutation = useMutation({
     mutationFn: (userId: number) =>
       api.post<{ message: string }>(`/api/admin/users/${userId}/send-reset-password`, {}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 
   const resendVerificationMutation = useMutation({
     mutationFn: (userId: number) =>
       api.post<{ message: string }>(`/api/admin/users/${userId}/resend-verification`, {}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => api.delete<{ message: string }>(`/api/admin/users/${userId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 
   return {

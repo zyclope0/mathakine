@@ -226,7 +226,7 @@ function ExerciseModalContent({
                     onChange={(e) => !hasSubmitted && setSelectedAnswer(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && selectedAnswer?.trim() && !hasSubmitted)
-                        handleSubmit();
+                        void handleSubmit();
                     }}
                     disabled={hasSubmitted}
                     autoFocus

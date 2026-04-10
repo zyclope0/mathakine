@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, ApiClientError } from "@/lib/api/client";
+import { api, type ApiClientError } from "@/lib/api/client";
 import type { DailyChallenge, DailyChallengesResponse } from "@/types/api";
 
 export function useDailyChallenges() {
@@ -17,7 +17,7 @@ export function useDailyChallenges() {
   });
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
+    void queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
   };
 
   return {

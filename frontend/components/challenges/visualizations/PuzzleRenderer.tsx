@@ -13,8 +13,8 @@ import {
   pointerWithin,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragStartEvent,
+  type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,

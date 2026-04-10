@@ -110,7 +110,7 @@ export function useAIExerciseGenerator({
             setGeneratedExercise,
             onInvalidateLists: () => {
               setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ["exercises"] });
+                void queryClient.invalidateQueries({ queryKey: ["exercises"] });
               }, 100);
             },
             ...(onExerciseGenerated !== undefined ? { onExerciseGenerated } : {}),
