@@ -656,6 +656,25 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     f"Impossible de trouver un chemin valide dans le labyrinthe de {start} à {end}"
                 )
 
+    # Correction pour SYMMETRY (visual_data.type == "symmetry")
+    # Cas Sentry #110986970 : LLM génère un layout sans cellule marquée question
+    if challenge_type == "VISUAL" and isinstance(visual_data, dict) and visual_data.get("type") == "symmetry":
+        layout = visual_data.get("layout", [])
+        has_question = any(
+            isinstance(item, dict) and (item.get("question") or item.get("shape") == "?")
+            for item in layout
+        )
+        if not has_question and layout:
+            # Marquer le premier item côté droit comme cellule-question
+            for item in layout:
+                if isinstance(item, dict) and item.get("side") == "right":
+                    item["question"] = True
+                    logger.info(
+                        "Correction automatique SYMMETRY: cellule-question marquée sur le côté droit"
+                    )
+                    corrected["visual_data"] = visual_data
+                    break
+
     return corrected
 
 

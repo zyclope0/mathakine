@@ -540,13 +540,14 @@ async def generate_challenge_stream(
             return
 
         challenge_data["challenge_type"] = challenge_type
-        if challenge_type.lower() == "pattern":
+        if challenge_type.lower() in ("pattern", "visual"):
+            # Pre-correct avant validation : PATTERN (grille/multi-?) et VISUAL (symétrie, latin square)
             challenge_data = auto_correct_challenge(challenge_data)
         is_valid, validation_errors = validate_challenge_logic(challenge_data)
 
         if not is_valid:
             logger.warning(
-                f"Challenge gÃ©nÃ©rÃ© avec erreurs de validation: {validation_errors}"
+                "Challenge généré avec erreurs de validation: %s", validation_errors
             )
             logger.info("Tentative de correction automatique...")
             corrected_challenge = auto_correct_challenge(challenge_data)
