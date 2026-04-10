@@ -38,6 +38,20 @@ LOG_LEVELS = {
 LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <dim>{extra[request_id]}</dim> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 
 
+def _is_production_like_env() -> bool:
+    """
+    Aligné sur app.core.config._is_production() sans importer config (import circulaire).
+
+    Utilisé pour désactiver loguru ``diagnose`` sur le sink fichier des exceptions :
+    ``diagnose=True`` inclut les variables locales dans la trace → risque PII / secrets.
+    """
+    return (
+        os.getenv("NODE_ENV") == "production"
+        or os.getenv("ENVIRONMENT") == "production"
+        or os.getenv("MATH_TRAINER_PROFILE") == "prod"
+    )
+
+
 def _add_request_id_to_record(record):
     """Patcher : injecte request_id dans chaque record (corrélation)."""
     record["extra"]["request_id"] = request_id_ctx.get() or "-"
@@ -94,6 +108,9 @@ def configure_logging(remove_existing_handlers=True):
             retention="60 days",
             enqueue=True,
         )
+        # diagnose=False en prod : évite le dump des variables locales (PII, secrets).
+        # Hors prod : diagnose=True garde un contexte utile pour le debug fichier.
+        _uncaught_diagnose = not _is_production_like_env()
         logger.add(
             str(LOGS_DIR / "uncaught_exceptions.log"),
             format=LOG_FORMAT,
@@ -102,7 +119,7 @@ def configure_logging(remove_existing_handlers=True):
             compression="zip",
             retention="60 days",
             backtrace=True,
-            diagnose=True,
+            diagnose=_uncaught_diagnose,
             enqueue=True,
             catch=True,
         )

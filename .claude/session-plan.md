@@ -206,6 +206,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Dev local** : inchangÃ©, `python enhanced_server.py` reste le point d'entrÃ©e pratique ; `enhanced_server:app` devient la vÃ©ritÃ© ASGI explicite pour les process managers.
 - **CI / docs** : smoke `gunicorn --check-config` dans `.github/workflows/tests.yml` ; guides `DEPLOYMENT_ENV`, `PRODUCTION_RUNBOOK`, `SCRIPTS_UTILITIES`, `CICD_DEPLOY`, `README_TECH` rÃ©alignÃ©s ; correction d'une incohÃ©rence active dans `PRODUCTION_RUNBOOK` qui disait encore Ã  tort que le chat Ã©tait public.
 
+### SEC-HARDEN-01 (2026-04-06) - fermé
+
+- **Logs** (`app/core/logging_config.py`) : sink fichier `uncaught_exceptions.log` — **`diagnose=False`** en environnement **production-like** (mêmes signaux que `config._is_production`, via `os.getenv` uniquement — pas d’import `config` pour éviter le cycle) ; **`backtrace=True`** conservé ; hors prod, **`diagnose=True`** pour le debug fichier.
+- **Headers** (`server/middleware.py`, si `SECURE_HEADERS`) : **`Permissions-Policy`** minimal (`camera=(), microphone=(), geolocation=()`) ; **`Strict-Transport-Security: max-age=31536000; includeSubDomains`** **uniquement** si **`_is_production()`** (pas en dev/CI locale).
+- **Tests** : `tests/unit/test_logging_config_uncaught.py`, `tests/unit/test_secure_headers_middleware.py`, `test_permissions_policy_header_present` dans `tests/api/test_base_endpoints.py`.
+- **Vérifs** : `pytest` ciblé, `black` / `isort` / `flake8` (E9,F63,F7,F82) / `mypy` sur fichiers touchés ; `README_TECH.md` + ce fichier.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

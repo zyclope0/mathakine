@@ -77,6 +77,16 @@ async def test_request_id_header(client):
     assert len(rid) >= 8  # UUID court ou header client
 
 
+async def test_permissions_policy_header_present(client):
+    """SEC-HARDEN-01 : Permissions-Policy restrictive quand SECURE_HEADERS actif."""
+    response = await client.get("/live")
+    assert response.status_code == 200
+    policy = response.headers.get("Permissions-Policy", "")
+    assert "camera=()" in policy
+    assert "microphone=()" in policy
+    assert "geolocation=()" in policy
+
+
 async def test_robots_txt(client):
     """GET /robots.txt — évite les 404 des crawlers (stable)."""
     response = await client.get("/robots.txt")

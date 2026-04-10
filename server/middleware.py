@@ -15,7 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
-from app.core.config import settings
+from app.core.config import _is_production, settings
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.utils.error_handler import api_error_response
@@ -31,6 +31,12 @@ SECURE_HEADERS_DICT = {
     "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
 }
+
+# EdTech / API : pas de besoin caméra, micro, géoloc ; policy minimale (SEC-HARDEN-01).
+PERMISSIONS_POLICY_VALUE = "camera=(), microphone=(), geolocation=()"
+
+# HTTPS uniquement en prod réelle — jamais en local/dev (navigateur pourrait mémoriser HSTS HTTP).
+HSTS_VALUE = "max-age=31536000; includeSubDomains"
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
@@ -98,6 +104,9 @@ class SecureHeadersMiddleware(BaseHTTPMiddleware):
         if settings.SECURE_HEADERS:
             for key, value in SECURE_HEADERS_DICT.items():
                 response.headers[key] = value
+            response.headers["Permissions-Policy"] = PERMISSIONS_POLICY_VALUE
+            if _is_production():
+                response.headers["Strict-Transport-Security"] = HSTS_VALUE
         return response
 
 
