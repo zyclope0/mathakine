@@ -68,6 +68,8 @@ export function ChatMessagesView({
           >
             {message.imageUrl ? (
               <div className={message.content.trim().length > 0 ? "mb-3" : undefined}>
+                {/* Intentional: chat images are runtime-generated URLs and may be external/blob-like;
+                    next/image optimization needs a separate trust, sizing, and loader pass. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={message.imageUrl}

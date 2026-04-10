@@ -226,6 +226,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : `tests/unit/test_security.py` — mock de **`app.core.security._is_production`**.
 - **Vérifs** : `pytest tests/unit/test_security.py`, `black` / `isort` / `flake8` (E9,F63,F7,F82), `mypy` sur fichiers touchés ; `README_TECH.md` + ce fichier.
 
+### AUDIT-QUICKWINS-01 (2026-04-10) - fermé
+
+- **Headers** : `server/middleware.py` remplace **`X-XSS-Protection: 1; mode=block`** par **`X-XSS-Protection: 0`** (valeur moderne défendable, cohérente OWASP ; la protection réelle repose sur CSP et les autres headers).
+- **Docker** : `.dockerignore` n’exclut plus `migrations/versions/*` ; les versions Alembic restent dans l’image pour que `alembic upgrade head` fonctionne en build/runtime Docker.
+- **Frontend images** : les 5 suppressions `@next/next/no-img-element` encore présentes portent maintenant une justification **`Intentional:`** adjacente (`UserAvatar`, `BadgesProgressTabsSection`, `BadgeIcon`, `BadgeCard`, `ChatMessagesView`) ; pas de migration forcée vers `next/image` tant que les contraintes runtime (URLs dynamiques, fallback DOM, petits SVG décoratifs) ne sont pas traitées proprement.
+- **Vérifs** : `pytest tests/unit/test_secure_headers_middleware.py tests/api/test_base_endpoints.py::test_permissions_policy_header_present`, `black` sur `server/middleware.py`, `prettier --check` sur les 5 composants frontend touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

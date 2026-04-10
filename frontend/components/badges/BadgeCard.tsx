@@ -46,6 +46,8 @@ function DifficultyMedal({
   const src = resolveMedalSvgPath(difficulty);
   const cls = size === "xs" ? "h-4 w-4" : "h-3.5 w-3.5";
   return (
+    /* Intentional: tiny decorative local SVG medal; next/image would add indirection
+       without a meaningful optimization win for this fixed-size badge adornment. */
     /* eslint-disable-next-line @next/next/no-img-element */
     <img
       src={src}

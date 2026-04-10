@@ -143,9 +143,8 @@ config.local.py
 *.crt
 *.cert
 
-# Fichiers de migration (garder seulement les versions)
-migrations/versions/*
-!migrations/versions/.gitkeep
+# Fichiers de migration
+# Les versions Alembic doivent rester dans l'image pour `alembic upgrade head`.
 
 # Fichiers de vérification
 check_*.py

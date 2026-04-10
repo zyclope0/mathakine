@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 SECURE_HEADERS_DICT = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
-    "X-XSS-Protection": "1; mode=block",
+    "X-XSS-Protection": "0",
     "Referrer-Policy": "strict-origin-when-cross-origin",
 }
 

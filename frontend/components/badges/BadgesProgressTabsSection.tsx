@@ -142,6 +142,8 @@ export function BadgesProgressTabsSection({
                                 isEarned={false}
                               />
                               <span className="shrink-0 flex items-center" aria-hidden="true">
+                                {/* Intentional: tiny decorative local SVG medal in a dense list; next/image adds no
+                                    meaningful gain here and would complicate the simple icon flow. */}
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={difficultyMedalSrc}

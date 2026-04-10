@@ -28,6 +28,8 @@ export function UserAvatar({ username, size = "md", avatarUrl }: UserAvatarProps
 
   if (avatarUrl) {
     return (
+      // Intentional: avatar URLs are dynamic/external and this component does not know
+      // intrinsic dimensions at build time; migrating to next/image needs a dedicated loader pass.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}

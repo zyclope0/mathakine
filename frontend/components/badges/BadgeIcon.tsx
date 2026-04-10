@@ -128,6 +128,8 @@ export function BadgeIcon({
         )}
         aria-hidden="true"
       >
+        {/* Intentional: badge icon URLs come from runtime data and use DOM onError fallback;
+            next/image migration needs a separate remote-image and fallback design pass. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={dbUrl}
