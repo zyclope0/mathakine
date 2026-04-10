@@ -253,6 +253,15 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01**), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/badges/BadgeCard.test.tsx`, `prettier --check` sur les fichiers touchés.
 
+### ARCH-HOME-LEARNER-01 (2026-04-11) - fermé
+
+- **Refactor** : `frontend/app/home-learner/page.tsx` = coque **`ProtectedRoute`** + **`HomeLearnerContent`** ; sections **`HomeLearnerPageMap`**, **`HomeLearnerReviewsSection`**, **`HomeLearnerActionsSection`**, **`HomeLearnerProgressSection`** sous **`frontend/components/learner/`** ; **`homeLearnerConstants.ts`**, **`homeLearnerI18n.ts`** pour découplage typé sans nouveau hook métier.
+- **Inchangé** : hooks existants (`useAuth`, `useProgressStats`, `useUserStats`, `useRecommendations`), ordre conditionnel révisions / actions, ancres `#section-*`, CTA et `recordOpen`, widgets dashboard non refactorés en profondeur.
+- **Hors lot** : `frontend/app/exercises/page.tsx` (**P1-ARCH-05** reste ouvert côté exercises).
+- **Tests** : `frontend/__tests__/unit/app/home-learner/HomeLearnerPage.test.tsx` (smoke sections + ordre ancres / DOM).
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-ARCH-05**), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/home-learner/HomeLearnerPage.test.tsx`, `prettier --check` sur les fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

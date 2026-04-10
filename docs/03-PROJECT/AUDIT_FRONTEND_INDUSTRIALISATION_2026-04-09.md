@@ -589,16 +589,21 @@ Validation : Lecture de chaque fichier confirme l'absence d'interactivité → c
 
 ---
 
-**[P1-ARCH-05] `app/home-learner/page.tsx` (317 lignes) et `app/exercises/page.tsx` (311 lignes)**
+**[P1-ARCH-05] `app/home-learner/page.tsx` et `app/exercises/page.tsx`** _(partiellement traité — **ARCH-HOME-LEARNER-01** ferme le sous-cas `home-learner`)_
 
 ```
-Fichiers : frontend/app/home-learner/page.tsx:1
-           frontend/app/exercises/page.tsx:1
-Constat  : Pages dépassant 300 lignes avec "use client". Pattern coque non respecté.
-Impact   : Logique runtime probable inline. Non testable isolément.
-Action   : Extraire useHomeLearnerPageController.ts (ou useExercisesPageController.ts)
-           + sections ExercisesListSection, ExercisesFiltersSection.
-Validation : wc -l frontend/app/exercises/page.tsx → résultat < 100.
+Fichiers : frontend/app/home-learner/page.tsx (coque route + ProtectedRoute)
+           frontend/components/learner/HomeLearnerContent.tsx (+ sections extraites)
+           frontend/app/exercises/page.tsx:1  ← toujours ouvert / à réévaluer (seam existant useContentListPageController)
+Statut   : **home-learner** : page route allégée ; composition et hooks dans `HomeLearnerContent` ;
+           sections présentationnelles `HomeLearnerPageMap`, `HomeLearnerReviewsSection`,
+           `HomeLearnerActionsSection`, `HomeLearnerProgressSection` ; constantes `homeLearnerConstants.ts`,
+           type narrow `homeLearnerI18n.ts` ; smoke `__tests__/unit/app/home-learner/HomeLearnerPage.test.tsx`.
+           **exercises** : hors lot ARCH-HOME-LEARNER-01 ; pas de nouveau controller dédié dans ce lot.
+Constat  : ~~home-learner~~ adressé comme premier sous-lot sûr de P1-ARCH-05 ; exercises reste volumineux mais déjà partiellement structuré.
+Impact   : ~~Densité home-learner~~ réduite sans changement UX ; exercises inchangé.
+Action   : Suite P1-ARCH-05 : réévaluer `app/exercises/page.tsx` (découpage additionnel vs coût) hors dépendance home-learner.
+Validation : `wc -l frontend/app/home-learner/page.tsx` → coque courte ; `vitest` smoke home-learner vert.
 ```
 
 ---
@@ -899,6 +904,21 @@ Sur ces 5 composants frontend, les exceptions `@next/next/no-img-element` restan
 - `frontend/components/badges/BadgeCard.tsx` : médaille SVG locale migrée vers `next/image`
 - `frontend/components/badges/BadgesProgressTabsSection.tsx` : médaille SVG locale migrée vers `next/image`
 - Résultat : les 2 cas locaux décoratifs sont fermés ; il reste 3 cas dynamiques / distants hors scope (`UserAvatar`, `BadgeIcon`, `ChatMessagesView`)
+
+### Addendum 2026-04-11 - ARCH-HOME-LEARNER-01
+
+**Point d'audit traité / partiellement résolu :** `P1-ARCH-05`
+
+- **Résolu dans ce lot** : sous-cas `frontend/app/home-learner/page.tsx`
+- `frontend/app/home-learner/page.tsx` devient une coque route courte (`ProtectedRoute` + `HomeLearnerContent`)
+- composition extraite dans `frontend/components/learner/` :
+  - `HomeLearnerPageMap`
+  - `HomeLearnerReviewsSection`
+  - `HomeLearnerActionsSection`
+  - `HomeLearnerProgressSection`
+  - `homeLearnerConstants.ts`
+  - `homeLearnerI18n.ts`
+- **Reste à réévaluer séparément** : `frontend/app/exercises/page.tsx`, qui reste volumineux mais possède déjà un seam réel (`useContentListPageController`)
 
 ### Addendum 2026-04-11 — COMP-BADGECARD-01 (décomposition `BadgeCard`)
 
