@@ -186,6 +186,12 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 - **`render.yaml`** : `healthCheckPath: /ready` ; middleware maintenance + auth public : `/live`, `/ready`, `/health` ; Sentry `before_send` étendu aux nouveaux chemins.
 - Tests : `tests/unit/test_readiness_probe.py`, `tests/api/test_base_endpoints.py`, `tests/unit/test_auth_middleware.py` ; CI smoke `GET /ready` ; doc `DEPLOYMENT_ENV`, `PRODUCTION_RUNBOOK`, `CICD_DEPLOY`, `README_TECH`.
 
+### OPS-ASGI-03 (2026-04-10) - fermé
+
+- **Prod Render** : backend démarré via **`gunicorn enhanced_server:app`** + **`uvicorn.workers.UvicornWorker`** ; **`WEB_CONCURRENCY`** explicite dans `render.yaml` (`2` par défaut) ; `Procfile` aligné sur le même modèle.
+- **Dev local** : inchangé, `python enhanced_server.py` reste le point d'entrée pratique ; `enhanced_server:app` devient la vérité ASGI explicite pour les process managers.
+- **CI / docs** : smoke `gunicorn --check-config` dans `.github/workflows/tests.yml` ; guides `DEPLOYMENT_ENV`, `PRODUCTION_RUNBOOK`, `SCRIPTS_UTILITIES`, `CICD_DEPLOY`, `README_TECH` réalignés ; correction d'une incohérence active dans `PRODUCTION_RUNBOOK` qui disait encore à tort que le chat était public.
+
 ### Règle de pilotage
 
 - traiter la suite comme :

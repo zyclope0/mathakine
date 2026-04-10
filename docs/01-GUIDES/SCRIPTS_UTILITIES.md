@@ -1,7 +1,7 @@
 # Guide — Scripts utilitaires (scripts/)
 
 > Scope : Mathakine — répertoire `scripts/`
-> Updated : 2026-03-27
+> Updated : 2026-04-10
 
 ---
 
@@ -244,9 +244,9 @@ SENDGRID_API_KEY=SG.xxx python scripts/test_sendgrid.py --to test@example.com
 
 ## Catégorie 5 — Déploiement
 
-### `start_render.sh` (849 bytes)
+### `start_render.sh`
 
-Script de démarrage utilisé par Render (complément ou alternative au `Procfile`). Initialise les variables d'environnement minimales avant de lancer `enhanced_server.py`.
+Helper de démarrage "Render-like" pour debug manuel. Aligne le runtime production backend actuel : migrations Alembic puis `gunicorn enhanced_server:app` avec `uvicorn.workers.UvicornWorker`. Le manifest Render actif utilise directement `render.yaml`, pas ce script.
 
 ```bash
 # Exécution manuelle (debug déploiement)

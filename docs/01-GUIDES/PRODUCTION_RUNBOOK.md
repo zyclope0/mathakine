@@ -1,7 +1,7 @@
 # PRODUCTION RUNBOOK - MATHAKINE
 
 > Operational runbook for production incidents and risky maintenance
-> Updated: 23/03/2026
+> Updated: 10/04/2026
 
 ## Purpose
 
@@ -33,6 +33,7 @@ Minimum data to collect first:
 - current Alembic revision
 - recent deployment timestamp
 - recent backend logs
+- active prod start command / worker count
 
 ---
 
@@ -50,6 +51,12 @@ Expected:
 - `/live` -> `200` JSON `{"status":"live"}` (liveness)
 - `/ready` -> `200` JSON `{"status":"ready",...}` when DB/Redis (prod) are OK ; `503` if not (`/health` is the same readiness probe)
 - `/metrics` -> Prometheus payload
+
+### Runtime entrypoint to expect
+
+- Render backend: `gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker`
+- worker count controlled by `WEB_CONCURRENCY`
+- local/dev path remains `python enhanced_server.py`
 
 ### What startup validates automatically
 
@@ -180,8 +187,8 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ### Known product boundary
 
-- chat is public by product decision
-- protection relies on rate limiting and runtime observability, not on auth gating
+- chat requires authentication (`/api/chat`, `/api/chat/stream`)
+- protection relies on auth gating, distributed rate limiting and runtime observability
 
 ### If costs or volume spike
 

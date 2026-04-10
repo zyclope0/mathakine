@@ -1,6 +1,6 @@
 ﻿# Deployment Environment Variables - Render
 
-> Updated: 15/03/2026
+> Updated: 10/04/2026
 > Scope: alpha / production deployment on Render
 
 ## Backend (`mathakine-backend`)
@@ -28,6 +28,7 @@ Why `REDIS_URL` is required:
 | `ENVIRONMENT` | runtime environment tag | `production` |
 | `MATH_TRAINER_PROFILE` | alternative prod detection | `prod` |
 | `LOG_LEVEL` | logging level | `INFO` |
+| `WEB_CONCURRENCY` | Gunicorn worker count in production | `2` |
 | `SENTRY_DSN` | Sentry backend reporting | project DSN |
 | `SENTRY_RELEASE` | deployment correlation | `${RENDER_GIT_COMMIT}` |
 | `SENTRY_TRACES_SAMPLE_RATE` | APM sampling | `0.1` |
@@ -79,6 +80,7 @@ Use one of the two families below:
 - [ ] one email provider family is configured
 - [ ] `SENTRY_DSN` is defined if backend Sentry is enabled
 - [ ] `SENTRY_RELEASE` matches the deployed commit if release correlation is desired
+- [ ] production start command uses `gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker`
 - [ ] `GET /live` returns 200 (liveness — process only)
 - [ ] `GET /ready` returns 200 when PostgreSQL (and Redis in production) are reachable (`render.yaml` health check uses `/ready`; `GET /health` is an alias of readiness)
 
@@ -94,4 +96,5 @@ Use one of the two families below:
 
 - local development may omit `REDIS_URL`; dev/test fall back to memory rate limiting
 - production must not omit `REDIS_URL`
+- local development keeps `python enhanced_server.py`; Render production uses Gunicorn + `UvicornWorker` against `enhanced_server:app`
 - active backend runtime truth is documented in [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)

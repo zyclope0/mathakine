@@ -1,12 +1,13 @@
 # CI/CD, DEPLOY ET ROLLBACK
 
-> Mise a jour : 28/03/2026
+> Mise a jour : 10/04/2026
 > Source de verite CI : `.github/workflows/tests.yml`
 
 ## Variables d'environnement (exploitation)
 
 - **Paramètres typés (Pydantic)** : classe `Settings` dans `app/core/config.py` ; modèle d'exemple : `.env.example` à la racine du backend.
 - **Mode production (`_is_production()`)** : activé si `ENVIRONMENT=production`, ou `NODE_ENV=production`, ou `MATH_TRAINER_PROFILE=prod`. Cela active notamment les gardes `SECRET_KEY` obligatoire et `REDIS_URL` obligatoire (hors tests).
+- **Runtime prod backend** : `gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker` ; `WEB_CONCURRENCY` pilote le nombre de workers Render.
 - **Gardes stricts supplémentaires** : les rejets sur `DEFAULT_ADMIN_PASSWORD` faible et `POSTGRES_PASSWORD` faible sont aujourd'hui branchés explicitement sur `ENVIRONMENT=production` dans `config.py` (pas seulement sur `NODE_ENV` ou `MATH_TRAINER_PROFILE`).
 - **Hors `Settings`** : email (SMTP/SendGrid) via `app/services/communication/email_service.py`, Sentry via `app/core/monitoring.py` (`os.getenv`).
 

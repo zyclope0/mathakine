@@ -11,6 +11,7 @@ Visible product train:
 ## Runtime Truth
 
 - **Dev** : `python enhanced_server.py` écoute par défaut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la même URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
+- **Prod Render** : backend démarré via **`gunicorn enhanced_server:app`** + **`uvicorn.workers.UvicornWorker`** ; `WEB_CONCURRENCY` pilote le nombre de workers (par défaut manifest Render : `2`) ; `enhanced_server:app` reste l’entrée ASGI canonique.
 - live backend runtime is the Starlette stack under `server/`
 - **OPS-HEALTH-02** : `GET /live` = liveness (JSON `{"status":"live"}`) ; `GET /ready` = readiness (PostgreSQL + Redis when production + `REDIS_URL`) with **2s** bounded checks → `200` / `503` ; `GET /health` aliases readiness ; `render.yaml` `healthCheckPath` = `/ready` (`app/utils/readiness_probe.py`)
 - active route truth is `server/routes/`

@@ -167,6 +167,16 @@ jobs:
         print('Smoke OK: /ready returned 200')
         "
 
+    - name: Smoke test (Gunicorn production config)
+      run: |
+        gunicorn enhanced_server:app \
+          --worker-class uvicorn.workers.UvicornWorker \
+          --workers 2 \
+          --bind 0.0.0.0:10000 \
+          --graceful-timeout 30 \
+          --timeout 120 \
+          --check-config
+
   lint:
     runs-on: ubuntu-latest
     

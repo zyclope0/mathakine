@@ -5,7 +5,11 @@ Lance l'application Starlette unifiée (server/app.py) avec toutes les routes AP
 le middleware d'auth, SSE streaming IA, etc. FastAPI a été archivé (06/02/2026).
 
 Usage:
+    # Local / dev
     python enhanced_server.py
+
+    # Production ASGI entrypoint
+    gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker
 """
 
 import os
@@ -53,12 +57,12 @@ class LazyStarletteApp:
         return getattr(get_app(), name)
 
 
-# Exposé pour les tests et les usages ASGI externes.
+# Exposé pour Gunicorn/Uvicorn et les usages ASGI externes.
 app = LazyStarletteApp()
 
 
 def main():
-    """Point d'entrée principal pour le serveur"""
+    """Point d'entrée pratique pour le développement/local."""
     from server.app import run_server
 
     print("========================================")

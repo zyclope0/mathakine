@@ -1,1 +1,1 @@
-web: python enhanced_server.py
+web: gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-2} --graceful-timeout 30 --timeout 120 --access-logfile - --error-logfile -
