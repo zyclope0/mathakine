@@ -658,10 +658,15 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Correction pour SYMMETRY (visual_data.type == "symmetry")
     # Cas Sentry #110986970 : LLM génère un layout sans cellule marquée question
-    if challenge_type == "VISUAL" and isinstance(visual_data, dict) and visual_data.get("type") == "symmetry":
+    if (
+        challenge_type == "VISUAL"
+        and isinstance(visual_data, dict)
+        and visual_data.get("type") == "symmetry"
+    ):
         layout = visual_data.get("layout", [])
         has_question = any(
-            isinstance(item, dict) and (item.get("question") or item.get("shape") == "?")
+            isinstance(item, dict)
+            and (item.get("question") or item.get("shape") == "?")
             for item in layout
         )
         if not has_question and layout:
