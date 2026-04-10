@@ -333,6 +333,31 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
         for k in ("symmetryLine", "axis"):
             out.pop(k, None)
 
+        # Detect row-based format: [{"row": N, "left": [...], "right": [...]}]
+        # OpenAI sometimes generates this instead of the canonical flat format.
+        # Convert to canonical: [{"side": "left"|"right", "shape": "..."[, "question": true]}]
+        if (
+            isinstance(layout, list)
+            and layout
+            and isinstance(layout[0], dict)
+            and "row" in layout[0]
+            and ("left" in layout[0] or "right" in layout[0])
+        ):
+            flat_items: List[Any] = []
+            for row_item in layout:
+                if not isinstance(row_item, dict):
+                    continue
+                for shape_str in row_item.get("left") or []:
+                    flat_items.append({"side": "left", "shape": str(shape_str)})
+                for shape_str in row_item.get("right") or []:
+                    s = str(shape_str)
+                    cell: Dict[str, Any] = {"side": "right", "shape": s}
+                    if s == "?":
+                        cell["question"] = True
+                    flat_items.append(cell)
+            layout = flat_items
+            out["layout"] = flat_items
+
         new_layout: List[Any] = []
         if isinstance(layout, list):
             for item in layout:

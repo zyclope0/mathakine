@@ -74,6 +74,27 @@ def test_normalize_symmetry_sets_type_and_symmetry_line() -> None:
     assert vd["layout"][0]["side"] == "left"
 
 
+def test_normalize_symmetry_converts_row_based_layout() -> None:
+    """Sentry #111221704 — OpenAI génère parfois un layout row-based au lieu du format plat canonique."""
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {"row": 1, "left": ["carré rouge", "triangle bleu"], "right": ["triangle vert", "carré vert"]},
+                {"row": 2, "left": ["pentagone vert", "cercle sable"], "right": ["cercle rouge", "?"]},
+            ],
+        }
+    )
+    layout = vd.get("layout", [])
+    sides = {item.get("side") for item in layout if isinstance(item, dict)}
+    assert "left" in sides and "right" in sides, "les deux côtés doivent être présents après conversion"
+    shapes = [item.get("shape") for item in layout if isinstance(item, dict)]
+    assert "?" in shapes, "la cellule question doit être présente après conversion"
+    question_items = [item for item in layout if isinstance(item, dict) and item.get("question")]
+    assert question_items, "au moins un item doit avoir question=True"
+
+
 def test_validate_symmetry_canonical_rejects_bad_side_values() -> None:
     vd = {
         "type": "symmetry",
