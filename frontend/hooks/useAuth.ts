@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api, type ApiClientError } from "@/lib/api/client";
 import {
@@ -19,14 +20,13 @@ import {
   consumePostLoginRedirectOverride,
   setPostLoginRedirectOverride,
 } from "@/lib/auth/postLoginRedirect";
-import { getDefaultPostLoginRoute } from "@/lib/auth/userRoles";
 import type {
   ForgotPasswordData,
   LoginCredentials,
   RegisterData,
   TokenResponse,
 } from "@/lib/auth/types";
-import { useTranslations } from "next-intl";
+import { getDefaultPostLoginRoute } from "@/lib/auth/userRoles";
 import type { User } from "@/types/api";
 
 export type {
@@ -90,13 +90,14 @@ export function useAuth() {
 
       const needsOnboarding = !data.user.onboarding_completed_at;
       const defaultTarget = getDefaultPostLoginRoute(data.user.role);
-      let target: string;
+      const target = needsOnboarding
+        ? "/onboarding"
+        : consumePostLoginRedirectOverride() || defaultTarget;
+
       if (needsOnboarding) {
         clearPostLoginRedirectOverride();
-        target = "/onboarding";
-      } else {
-        target = consumePostLoginRedirectOverride() || defaultTarget;
       }
+
       router.replace(target);
     },
     onError: (error: ApiClientError) => {
@@ -126,8 +127,7 @@ export function useAuth() {
       } catch {
         clearPostLoginRedirectOverride();
         toast.success(t("registerSuccess"), {
-          description:
-            "Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",
+          description: t("registerVerifyEmailDescription"),
         });
         router.push("/login?registered=true&verify=true");
       }
@@ -148,7 +148,7 @@ export function useAuth() {
           await clearFrontendAuthSyncCookie();
         }
       } catch {
-        // Même en cas d'erreur, on déconnecte côté client
+        // Keep client logout behavior even if the backend call fails.
       }
     },
     onSuccess: () => {
@@ -175,13 +175,12 @@ export function useAuth() {
     },
     onSuccess: () => {
       toast.success(t("forgotPasswordSuccess"), {
-        description:
-          "Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation.",
+        description: t("forgotPasswordSuccessDescription"),
       });
     },
     onError: (error: ApiClientError) => {
       toast.error(t("forgotPasswordError"), {
-        description: error.message || "Impossible d'envoyer l'email",
+        description: error.message || t("forgotPasswordErrorDescription"),
       });
     },
   });

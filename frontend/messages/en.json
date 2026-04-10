@@ -1387,10 +1387,13 @@
       "loginServerError": "Server error. Please try again later.",
       "loginError": "Login error",
       "registerSuccess": "Registration successful!",
+      "registerVerifyEmailDescription": "A verification email has been sent. Please check your inbox.",
       "registerError": "Registration error",
       "logoutSuccess": "Logout successful",
       "forgotPasswordSuccess": "Email sent!",
-      "forgotPasswordError": "Error sending email"
+      "forgotPasswordSuccessDescription": "If an account exists for this address, you will receive a reset link.",
+      "forgotPasswordError": "Error sending email",
+      "forgotPasswordErrorDescription": "Unable to send the email"
     },
     "exercises": {
       "generateSuccess": "Exercise generated!",
@@ -2273,6 +2276,20 @@
     }
   },
   "adminPages": {
+    "layout": {
+      "navAriaLabel": "Admin navigation",
+      "links": {
+        "overview": "Overview",
+        "users": "Users",
+        "analytics": "EdTech analytics",
+        "aiMonitoring": "AI monitoring",
+        "content": "Content",
+        "moderation": "AI moderation",
+        "feedback": "Feedback",
+        "auditLog": "Audit log",
+        "config": "Settings"
+      }
+    },
     "overview": {
       "title": "Admin area",
       "description": "Platform overview",

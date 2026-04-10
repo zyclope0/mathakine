@@ -199,7 +199,7 @@ describe("useAuth", () => {
 
     expect(toast.success).toHaveBeenCalledWith(
       "forgotPasswordSuccess",
-      expect.objectContaining({ description: expect.any(String) })
+      expect.objectContaining({ description: "forgotPasswordSuccessDescription" })
     );
   });
 
@@ -269,7 +269,7 @@ describe("useAuth", () => {
 
     expect(toast.success).toHaveBeenCalledWith(
       "registerSuccess",
-      expect.objectContaining({ description: expect.any(String) })
+      expect.objectContaining({ description: "registerVerifyEmailDescription" })
     );
     expect(mockPush).toHaveBeenCalledWith("/login?registered=true&verify=true");
   });

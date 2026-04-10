@@ -126,6 +126,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - i18n route-level : copy des pages admin racines + `offline` externalisÃ©e dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listÃ©e ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks mÃ©tier ; tests unitaires ciblÃ©s + smoke wiring i18n.
 
+### QF-03B (2026-04-10) - fermé
+
+- i18n de la **navigation admin** restante : `frontend/app/admin/layout.tsx` lit `adminPages.layout.*` (`navAriaLabel`, libellés latéraux) via `useTranslations` ; `aria-current="page"` ajouté sur le lien actif.
+- i18n des **descriptions de toasts auth** encore inline dans `frontend/hooks/useAuth.ts` : création des clés `toasts.auth.registerVerifyEmailDescription`, `forgotPasswordSuccessDescription`, `forgotPasswordErrorDescription`.
+- Tests : `frontend/__tests__/unit/app/admin/AdminLayout.test.tsx` + mise à jour de `frontend/__tests__/unit/hooks/useAuth.test.ts`.
+
 ### QF-04 (2026-04-10) - fermÃ©
 
 - ESLint : `no-unused-vars` et `no-require-imports` â†’ **error** (0 signalement sur lâ€™arbre lintÃ© ; `scripts/**` ignorÃ©).

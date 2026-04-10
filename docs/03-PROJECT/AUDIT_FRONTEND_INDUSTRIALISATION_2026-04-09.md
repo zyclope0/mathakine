@@ -761,6 +761,21 @@ Travaux effectuÃ©s :
 
 **RÃ©sidu volontaire :** i18n complÃ¨te des composants admin internes et chaÃ®nes mÃ©tier ailleurs dans le dÃ©pÃ´t.
 
+## Addendum 2026-04-10 - QF-03B (chrome admin + toasts auth)
+
+Constat terrain traitÃ© :
+
+- le **layout admin** gardait encore des libellés inline (`Vue d'ensemble`, `Utilisateurs`, `Paramètres`, etc.) alors que les pages route-level étaient déjà i18nisées
+- `frontend/hooks/useAuth.ts` gardait encore des descriptions de toasts hardcodées pour le fallback post-inscription et le forgot-password
+
+Travaux effectués :
+
+- ajout de `adminPages.layout.navAriaLabel` et `adminPages.layout.links.*` dans `frontend/messages/fr.json` / `en.json`
+- `frontend/app/admin/layout.tsx` utilise maintenant `useTranslations("adminPages.layout")` pour la navigation latérale et expose `aria-current="page"` sur le lien actif
+- ajout de `toasts.auth.registerVerifyEmailDescription`, `forgotPasswordSuccessDescription`, `forgotPasswordErrorDescription`
+- `frontend/hooks/useAuth.ts` ne contient plus ces chaînes inline
+- tests : `frontend/__tests__/unit/app/admin/AdminLayout.test.tsx` + mise à jour `frontend/__tests__/unit/hooks/useAuth.test.ts`
+
 ## Addendum 2026-04-10 - QF-04 (ESLint TypeScript durci)
 
 CohÃ©rent avec **Â§D4 â€” ESLint / Hooks** : `@typescript-eslint/no-unused-vars`, `no-require-imports` et `consistent-type-imports` sont en **error** dans `frontend/eslint.config.mjs` (mesure initiale : **0** sur les deux premiÃ¨res sur lâ€™arbre lintÃ©). Option `disallowTypeAnnotations: false` sur `consistent-type-imports` pour conserver `vi.importActual<typeof import("â€¦")>` (tests).

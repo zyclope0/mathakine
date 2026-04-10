@@ -1387,10 +1387,13 @@
       "loginServerError": "Erreur serveur. Veuillez réessayer plus tard.",
       "loginError": "Erreur de connexion",
       "registerSuccess": "Inscription réussie !",
+      "registerVerifyEmailDescription": "Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",
       "registerError": "Erreur d'inscription",
       "logoutSuccess": "Déconnexion réussie",
       "forgotPasswordSuccess": "Email envoyé !",
-      "forgotPasswordError": "Erreur lors de l'envoi de l'email"
+      "forgotPasswordSuccessDescription": "Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation.",
+      "forgotPasswordError": "Erreur lors de l'envoi de l'email",
+      "forgotPasswordErrorDescription": "Impossible d'envoyer l'email"
     },
     "exercises": {
       "generateSuccess": "Exercice généré !",
@@ -2272,6 +2275,20 @@
     }
   },
   "adminPages": {
+    "layout": {
+      "navAriaLabel": "Navigation admin",
+      "links": {
+        "overview": "Vue d'ensemble",
+        "users": "Utilisateurs",
+        "analytics": "Analytics EdTech",
+        "aiMonitoring": "Monitoring IA",
+        "content": "Contenu",
+        "moderation": "Modération IA",
+        "feedback": "Retours",
+        "auditLog": "Journal d'audit",
+        "config": "Paramètres"
+      }
+    },
     "overview": {
       "title": "Espace Admin",
       "description": "Vue d'ensemble de la plateforme",
