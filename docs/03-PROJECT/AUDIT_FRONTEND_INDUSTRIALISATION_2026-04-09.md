@@ -811,13 +811,13 @@ Le fichier s'appelle `server/middleware.py` (pas `app/middleware.py` comme menti
 
 ### Points confirmés ouverts (lus sur master)
 
-| Point audit                          | Fichier:ligne terrain                                             | Constat                                                                                                                                    |
-| ------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| BUG — `.dockerignore` migrations     | `.dockerignore:147-148`                                           | ✅ CORRIGÉ (AUDIT-QUICKWINS-01) — les versions Alembic ne sont plus exclues de l'image Docker                                              |
-| M5 — PII usernames enfants (HAUTE)   | `auth_service.py` (logs auth)                                     | ✅ **RÉSOLU (SEC-PII-LOGS-01)** — plus de `username` / `email` en clair ; `user_id` + alias HMAC tronqué (`user#…` / `email#…`)             |
-| 165 f-strings logger                 | `app/` (134) + `server/` (31) = **165 exactement**                | ✅ CONFIRMÉ — comptage rg sur les deux répertoires, correspond au chiffre de l'audit                                                       |
-| mypy 10 codes désactivés globalement | `pyproject.toml:41-52`                                            | ✅ CONFIRMÉ — `no-any-return, assignment, arg-type, return-value, union-attr, attr-defined, var-annotated, call-overload, operator, index` |
-| F1 — X-XSS-Protection: 1 déprécié    | `server/middleware.py:31`                                         | ✅ CORRIGÉ (AUDIT-QUICKWINS-01) — valeur OWASP `"0"` appliquée                                                                             |
+| Point audit                          | Fichier:ligne terrain                              | Constat                                                                                                                                    |
+| ------------------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| BUG — `.dockerignore` migrations     | `.dockerignore:147-148`                            | ✅ CORRIGÉ (AUDIT-QUICKWINS-01) — les versions Alembic ne sont plus exclues de l'image Docker                                              |
+| M5 — PII usernames enfants (HAUTE)   | `auth_service.py` (logs auth)                      | ✅ **RÉSOLU (SEC-PII-LOGS-01)** — plus de `username` / `email` en clair ; `user_id` + alias HMAC tronqué (`user#…` / `email#…`)            |
+| 165 f-strings logger                 | `app/` (134) + `server/` (31) = **165 exactement** | ✅ CONFIRMÉ — comptage rg sur les deux répertoires, correspond au chiffre de l'audit                                                       |
+| mypy 10 codes désactivés globalement | `pyproject.toml:41-52`                             | ✅ CONFIRMÉ — `no-any-return, assignment, arg-type, return-value, union-attr, attr-defined, var-annotated, call-overload, operator, index` |
+| F1 — X-XSS-Protection: 1 déprécié    | `server/middleware.py:31`                          | ✅ CORRIGÉ (AUDIT-QUICKWINS-01) — valeur OWASP `"0"` appliquée                                                                             |
 
 ### Correction C1 — Seuils vitest : durée réelle de progression
 
@@ -832,13 +832,13 @@ Le plan initial indiquait « 30 min » pour remonter les seuils vitest à 55%. D
 
 Classement par effort/impact après vérification des fichiers. H1/H2/H3 étant résolus, le classement change :
 
-| Rang | Action                                                  | Fichier(s) terrain                              | Effort | Gain         |
-| ---- | ------------------------------------------------------- | ----------------------------------------------- | ------ | ------------ |
-| 1    | PII usernames / emails dans les logs auth               | `auth_service.py` (SEC-PII-LOGS-01)             | 1h     | **Fermé** (+0.5 sécu)       |
-| 2    | Corriger `.dockerignore` ligne 147 (bug latent Alembic) | `.dockerignore:147`                             | 5 min  | bug éliminé  |
-| 3    | `ruff G004 --fix` (165 f-strings) + revue manuelle      | 36 fichiers app/ + 13 server/                   | 3-4h   | +0.4 qualité |
-| 4    | `X-XSS-Protection: "0"` (remplacer valeur dépréciée)    | `server/middleware.py:31`                       | 5 min  | +0.1 sécu    |
-| 5    | mypy : réactiver progressivement les 10 codes           | `pyproject.toml:41-52`                          | 4-8h   | +0.3 qualité |
+| Rang | Action                                                  | Fichier(s) terrain                  | Effort | Gain                  |
+| ---- | ------------------------------------------------------- | ----------------------------------- | ------ | --------------------- |
+| 1    | PII usernames / emails dans les logs auth               | `auth_service.py` (SEC-PII-LOGS-01) | 1h     | **Fermé** (+0.5 sécu) |
+| 2    | Corriger `.dockerignore` ligne 147 (bug latent Alembic) | `.dockerignore:147`                 | 5 min  | bug éliminé           |
+| 3    | `ruff G004 --fix` (165 f-strings) + revue manuelle      | 36 fichiers app/ + 13 server/       | 3-4h   | +0.4 qualité          |
+| 4    | `X-XSS-Protection: "0"` (remplacer valeur dépréciée)    | `server/middleware.py:31`           | 5 min  | +0.1 sécu             |
+| 5    | mypy : réactiver progressivement les 10 codes           | `pyproject.toml:41-52`              | 4-8h   | +0.3 qualité          |
 
 Ces 5 actions ≈ 1 journée de travail pour corriger des vulnérabilités confirmées terrain.
 
