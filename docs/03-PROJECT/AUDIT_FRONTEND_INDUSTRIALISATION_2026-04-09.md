@@ -309,7 +309,7 @@ Aucune occurrence trouvée pendant l'audit. Hooks appelés uniquement au niveau 
 
 ### Critères en dérogation ✗
 
-**5 suppressions `@next/next/no-img-element` sans justification (-1)**
+**5 suppressions `@next/next/no-img-element` sans justification (-1)** _(photographie d’audit initiale ; voir addenda AUDIT-QUICKWINS-01 + PERF-IMG-LOCAL-01)_
 
 ```
 components/ui/UserAvatar.tsx:31
@@ -320,6 +320,8 @@ components/chat/ChatMessagesView.tsx:71
 ```
 
 Chacun supprime la règle sans commentaire adjacent expliquant pourquoi `next/image` ne peut pas être utilisé (URL externe dynamique, dimensions inconnues, contrainte de rendu SVG…). La règle du projet exige `// Intentional: <raison>`.
+
+> **État actuel (PERF-IMG-LOCAL-01)** : médailles locales `BadgeCard` / `BadgesProgressTabsSection` → **`next/image`** sans `eslint-disable` pour ce sous-cas. Il reste **3** suppressions documentées : **`UserAvatar`**, **`BadgeIcon`**, **`ChatMessagesView`**.
 
 ---
 
@@ -546,23 +548,23 @@ Validation : bundle analyzer — libs absentes du chemin initial du dashboard ju
 
 ---
 
-**[P1-PERF-03] 5 composants avec `<img>` non optimisé** _(partiellement traité — AUDIT-QUICKWINS-01)_
+**[P1-PERF-03] 5 composants avec `<img>` non optimisé** _(partiellement traité — 2/5 cas fermés via AUDIT-QUICKWINS-01 + **PERF-IMG-LOCAL-01**)_
 
 ```
-Fichiers : frontend/components/ui/UserAvatar.tsx:31
-           frontend/components/badges/BadgesProgressTabsSection.tsx:145
-           frontend/components/badges/BadgeIcon.tsx:131
-           frontend/components/badges/BadgeCard.tsx:49
-           frontend/components/chat/ChatMessagesView.tsx:71
-Constat  : `<img>` brut encore présent. Le sous-point lint "disable sans justification" a été traité
-           via `// Intentional: ...`, mais la migration perf vers `next/image` n'est pas faite.
-Impact   : Pas de lazy loading, pas de WebP/AVIF, CLS potentiel sur pages badges (surface haute
-           visibilité élèves). Aucune gestion du Cumulative Layout Shift.
-Action   : Migrer vers `<Image from="next/image">` avec `sizes` défini sur les cas réellement
-           rentables/sûrs. Les justifications `Intentional:` sont déjà en place pour les cas
-           maintenus en `<img>` à ce stade.
-Validation : grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
-             → 0 ligne sans justification adjacente ; migration image suivie séparément.
+Fichiers : frontend/components/ui/UserAvatar.tsx (toujours `<img>` — URLs / dimensions runtime)
+           frontend/components/badges/BadgeIcon.tsx (toujours `<img>` — icon_url dynamique + fallback)
+           frontend/components/chat/ChatMessagesView.tsx (toujours `<img>` — hors scope lot local)
+           ~~frontend/components/badges/BadgeCard.tsx~~ → `next/image` pour médailles SVG `/public/badges/svg/*`
+           ~~frontend/components/badges/BadgesProgressTabsSection.tsx~~ → idem
+Statut   : ~~2 usages locaux décoratifs~~ fermés ; 3 usages dynamiques / distants restent ouverts.
+Constat  : Les médailles décoratives locales (`resolveMedalSvgPath`) sont migrées vers `next/image`
+           avec dimensions + `sizes` explicites ; 3 composants restent en `<img>` avec `eslint-disable`
+           justifié (dynamique / distants / chat).
+Impact   : Hygiène de rendu améliorée sur la surface badges pour les SVG statiques ; pas de changement
+           UX intentionnel. Cas dynamiques = dette perf résiduelle documentée.
+Action   : Lots ultérieurs : `UserAvatar`, `BadgeIcon`, `ChatMessagesView` (remotePatterns, loaders, fallbacks).
+Validation : grep "eslint-disable.*no-img-element" frontend/components → **3** occurrences (les 3 ci-dessus) ;
+             `BadgeCard` / `BadgesProgressTabsSection` sans disable pour la médaille locale.
 ```
 
 ---
@@ -624,14 +626,16 @@ Validation : ls frontend/components/badges/BadgeCard.test.tsx → fichier prése
 
 ---
 
-**[P2-LINT-03] ~~5 eslint-disable `@next/next/no-img-element` sans justification~~ — résolu (AUDIT-QUICKWINS-01)**
+**[P2-LINT-03] ~~5 eslint-disable `@next/next/no-img-element` sans justification~~ — résolu (AUDIT-QUICKWINS-01) ; périmètre `no-img` réduit (PERF-IMG-LOCAL-01)**
 
 ```
 Fichiers : (voir P1-PERF-03)
-Statut   : Les 5 suppressions restantes portent désormais une justification `Intentional:`
-           adjacente (`UserAvatar`, `BadgesProgressTabsSection`, `BadgeIcon`, `BadgeCard`,
-           `ChatMessagesView`).
-Validation : grep -B1 "eslint-disable.*no-img-element" → ligne précédente commence par `Intentional:`.
+Statut   : Justifications `Intentional:` posées (AUDIT-QUICKWINS-01) ; **PERF-IMG-LOCAL-01** retire le besoin
+           de disable sur les médailles locales dans `BadgeCard` et `BadgesProgressTabsSection`.
+           Reste **3** fichiers avec `eslint-disable` + intention documentée : `UserAvatar`, `BadgeIcon`,
+           `ChatMessagesView`.
+Validation : grep "eslint-disable.*no-img-element" frontend/components → 3 occurrences ; grep -B1 sur
+           chacune → `Intentional:` présent.
 ```
 
 ---
@@ -640,15 +644,18 @@ Validation : grep -B1 "eslint-disable.*no-img-element" → ligne précédente co
 
 ---
 
-**[P3-COMP-01] `BadgeCard.tsx` (494 lignes) et `DiagnosticSolver.tsx` (456 lignes)**
+**[P3-COMP-01] ~~`BadgeCard.tsx` (494 lignes)~~ et `DiagnosticSolver.tsx` (456 lignes)** _(partiellement résolu — **COMP-BADGECARD-01** ferme le sous-cas `BadgeCard`)_
 
 ```
-Fichiers : frontend/components/badges/BadgeCard.tsx:1
-           frontend/components/diagnostic/DiagnosticSolver.tsx:1
-Constat  : Composants > 450 lignes. Responsabilités multiples probables.
-Impact   : Tests unitaires difficiles. Complexité cyclomatique potentiellement élevée.
-Action   : Audit interne. Identifier les sections extractibles en sous-composants.
-Validation : Chaque sous-composant extrait < 150 lignes, testé isolément.
+Fichiers : frontend/components/badges/BadgeCard.tsx (+ sous-dossier badgeCard/*)
+           frontend/components/diagnostic/DiagnosticSolver.tsx:1  ← toujours ouvert dans ce lot
+Statut   : ~~BadgeCard~~ résolu ; `DiagnosticSolver.tsx` reste ouvert.
+Constat  : ~~BadgeCard~~ découpé en façade ~150L + 4 modules locaux (`BadgeCardDifficultyMedal`,
+           en-têtes compact/standard, `BadgeCardCardContent`) — comportement et props publiques inchangés.
+           DiagnosticSolver : inchangé (hors scope).
+Impact   : Maintenabilité BadgeCard améliorée ; dette « mega-fichier » résiduelle sur DiagnosticSolver.
+Action   : Suite : audit interne DiagnosticSolver ; pas d’explosion de micro-fichiers côté badges.
+Validation : `BadgeCard.test.tsx` vert ; pas de changement UX / i18n / règles métier.
 ```
 
 ---
@@ -733,6 +740,23 @@ Ordre basé sur rapport impact/effort. Chaque sprint est réalisable en une sess
 
 - Migration vers co-location tests complète (133 fichiers — effort élevé, impact progressif)
 - Décomposition `BadgeCard.tsx` et `DiagnosticSolver.tsx` (nécessite audit interne approfondi)
+
+## Suivi des points traités depuis l'audit
+
+Listing de vérité terrain des points déjà exécutés après publication de ce document :
+
+- `P3-DIAG-02` — **résolu** via `QF-01` : suppression de `frontend/app/test-sentry/page.tsx`
+- `P1-PERF-02` — **résolu** via `QF-02` : exports PDF / Excel chargés paresseusement
+- `P2-LINT-03` — **résolu** via `AUDIT-QUICKWINS-01` : justifications `Intentional:` posées sur les suppressions restantes
+- `P1-PERF-03` — **partiellement traité** via `AUDIT-QUICKWINS-01` puis `PERF-IMG-LOCAL-01`
+  - cas fermés : `BadgeCard.tsx`, `BadgesProgressTabsSection.tsx`
+  - cas restants : `UserAvatar.tsx`, `BadgeIcon.tsx`, `ChatMessagesView.tsx`
+- `P3-COMP-01` — **partiellement traité** via `COMP-BADGECARD-01`
+  - cas fermé : `BadgeCard.tsx`
+  - cas restant : `DiagnosticSolver.tsx`
+- `BUG .dockerignore migrations` — **corrigé** via `AUDIT-QUICKWINS-01`
+- `F1 X-XSS-Protection` — **corrigé** via `AUDIT-QUICKWINS-01`
+- `M5 PII usernames / emails dans les logs auth` — **résolu** via `SEC-PII-LOGS-01`
 
 ## Addendum 2026-04-10 - QF-01 réalisé
 
@@ -844,9 +868,17 @@ Ces 5 actions ≈ 1 journée de travail pour corriger des vulnérabilités confi
 
 ### Addendum 2026-04-10 — SEC-PII-LOGS-01 (logs auth backend)
 
+- **Point d'audit traité** : `M5 — PII usernames / emails dans les logs auth`
 - `app/services/auth/auth_service.py` : fin des `username` / `email` en clair dans les messages loguru ; corrélation via **`user_id`** quand disponible + alias **`user#…` / `email#…`** (HMAC-SHA256 tronqué, clé **`SECRET_KEY`**). Aucun changement de contrat HTTP ni de payload JWT.
 
 ### Addendum 2026-04-10 - AUDIT-QUICKWINS-01 realise
+
+**Points d'audit traités / avancés :**
+
+- `P2-LINT-03` — résolu
+- `P1-PERF-03` — partiellement avancé
+- `BUG .dockerignore migrations` — corrigé
+- `F1 X-XSS-Protection` — corrigé
 
 Quick wins faibles risques verifies puis traites sur `master` :
 
@@ -859,6 +891,22 @@ Quick wins faibles risques verifies puis traites sur `master` :
 - `frontend/components/chat/ChatMessagesView.tsx`
 
 Sur ces 5 composants frontend, les exceptions `@next/next/no-img-element` restantes sont maintenant documentees par un commentaire `Intentional:` explicite. Le finding lint correspondant est clos ; la migration selective vers `next/image` reste un lot separe.
+
+### Addendum 2026-04-10 - PERF-IMG-LOCAL-01
+
+**Point d'audit avancé :** `P1-PERF-03`
+
+- `frontend/components/badges/BadgeCard.tsx` : médaille SVG locale migrée vers `next/image`
+- `frontend/components/badges/BadgesProgressTabsSection.tsx` : médaille SVG locale migrée vers `next/image`
+- Résultat : les 2 cas locaux décoratifs sont fermés ; il reste 3 cas dynamiques / distants hors scope (`UserAvatar`, `BadgeIcon`, `ChatMessagesView`)
+
+### Addendum 2026-04-11 — COMP-BADGECARD-01 (décomposition `BadgeCard`)
+
+**Point d'audit traité / partiellement résolu :** `P3-COMP-01`
+
+- Façade `frontend/components/badges/BadgeCard.tsx` (~150 L) + modules **`frontend/components/badges/badgeCard/`** : médaille, en-tête compact obtenu, en-tête standard, contenu `CardContent` (zone obtenue, verrou, motivation, barre, pied).
+- **Résolu dans ce lot** : sous-cas `BadgeCard.tsx`.
+- **Reste ouvert** : `DiagnosticSolver.tsx` (suite **P3-COMP-01**).
 
 ### Points du débat non vérifiés (hors périmètre lecture de cette session)
 

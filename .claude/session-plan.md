@@ -239,6 +239,20 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Frontend images** : les 5 suppressions `@next/next/no-img-element` encore présentes portent maintenant une justification **`Intentional:`** adjacente (`UserAvatar`, `BadgesProgressTabsSection`, `BadgeIcon`, `BadgeCard`, `ChatMessagesView`) ; pas de migration forcée vers `next/image` tant que les contraintes runtime (URLs dynamiques, fallback DOM, petits SVG décoratifs) ne sont pas traitées proprement.
 - **Vérifs** : `pytest tests/unit/test_secure_headers_middleware.py tests/api/test_base_endpoints.py::test_permissions_policy_header_present`, `black` sur `server/middleware.py`, `prettier --check` sur les 5 composants frontend touchés.
 
+### PERF-IMG-LOCAL-01 (2026-04-10) - fermé
+
+- **Cible** : médailles SVG **locales** (`resolveMedalSvgPath` → `/public/badges/svg/*.svg`) dans **`frontend/components/badges/BadgeCard.tsx`** et **`BadgesProgressTabsSection.tsx`** → **`next/image`** (`width` / `height` / `sizes`, `alt=""`, `aria-hidden` inchangé côté accessibilité décorative).
+- **Hors scope confirmé** : `UserAvatar`, `BadgeIcon`, `ChatMessagesView` ; pas de migration repo-wide ; pas de changement métier badges.
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (bloc **P1-PERF-03** partiellement avancé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les deux tests unitaires badges listés par le lot, `prettier --check` sur les fichiers touchés.
+
+### COMP-BADGECARD-01 (2026-04-11) - fermé
+
+- **Refactor** : `frontend/components/badges/BadgeCard.tsx` reste l’API publique (`BadgeCard`, `BadgeCardProps`) ; sections denses extraites dans **`frontend/components/badges/badgeCard/`** — **`BadgeCardDifficultyMedal`**, **`BadgeCardCompactEarnedHeader`**, **`BadgeCardStandardHeader`**, **`BadgeCardCardContent`** (motivation / progressbar / pied verrouillé inclus).
+- **Inchangé** : props, i18n, règles `badgePresentation`, animations motion, shimmer ; **`DiagnosticSolver.tsx`** hors lot (**P3-COMP-01** reste ouvert sur ce fichier).
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01**), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/badges/BadgeCard.test.tsx`, `prettier --check` sur les fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

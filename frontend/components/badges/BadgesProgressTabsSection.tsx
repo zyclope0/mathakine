@@ -6,6 +6,7 @@
  * FFI-L12.
  */
 
+import Image from "next/image";
 import { TrendingUp, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { PageSection } from "@/components/layout";
 import { BadgeGrid } from "@/components/badges/BadgeGrid";
@@ -142,13 +143,13 @@ export function BadgesProgressTabsSection({
                                 isEarned={false}
                               />
                               <span className="shrink-0 flex items-center" aria-hidden="true">
-                                {/* Intentional: tiny decorative local SVG medal in a dense list; next/image adds no
-                                    meaningful gain here and would complicate the simple icon flow. */}
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <Image
                                   src={difficultyMedalSrc}
                                   alt=""
+                                  width={20}
+                                  height={20}
                                   className="h-5 w-5 object-contain"
+                                  sizes="20px"
                                 />
                               </span>
                               <span className="font-medium flex-1 min-w-0">{badge.name}</span>
