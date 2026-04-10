@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Bot, Coins, CheckCircle, AlertTriangle, Clock, Zap } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,12 +19,6 @@ import {
   useAdminGenerationMetrics,
 } from "@/hooks/useAdminAiStats";
 
-const DAYS_OPTIONS = [
-  { value: "1", label: "Aujourd'hui" },
-  { value: "7", label: "7 derniers jours" },
-  { value: "30", label: "30 derniers jours" },
-];
-
 function formatCost(cost: number): string {
   if (cost === 0) return "$0.00";
   if (cost < 0.001) return `$${cost.toFixed(6)}`;
@@ -39,22 +34,8 @@ function formatDuration(seconds: number): string {
   return `${seconds.toFixed(2)}s`;
 }
 
-function formatWorkloadLabel(workload: string): string {
-  switch (workload) {
-    case "assistant_chat":
-      return "Assistant chat (authentifie, rate-limite)";
-    case "exercises_ai":
-      return "Exercices IA";
-    case "challenges_ai":
-      return "Defis IA";
-    case "unknown":
-      return "Cle runtime non classe (unknown)";
-    default:
-      return workload;
-  }
-}
-
 export default function AdminAiMonitoringPage() {
+  const t = useTranslations("adminPages.aiMonitoring");
   const [days, setDays] = useState<number>(1);
 
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminAiStats(days);
@@ -79,13 +60,39 @@ export default function AdminAiMonitoringPage() {
   const metricsByType = metricsData?.summary.by_type ?? {};
   const errorTypes = metricsData?.summary.error_types ?? {};
 
+  const daysOptions = useMemo(
+    () =>
+      [
+        { value: "1", label: t("days.1") },
+        { value: "7", label: t("days.7") },
+        { value: "30", label: t("days.30") },
+      ] as const,
+    [t]
+  );
+
+  const formatWorkloadLabel = useCallback(
+    (workload: string) => {
+      const key = workload as "assistant_chat" | "exercises_ai" | "challenges_ai" | "unknown";
+      if (
+        key === "assistant_chat" ||
+        key === "exercises_ai" ||
+        key === "challenges_ai" ||
+        key === "unknown"
+      ) {
+        return t(`workloads.${key}`);
+      }
+      return workload;
+    },
+    [t]
+  );
+
   const toolbar = (
     <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
       <SelectTrigger className="w-[180px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {DAYS_OPTIONS.map((opt) => (
+        {daysOptions.map((opt) => (
           <SelectItem key={opt.value} value={opt.value}>
             {opt.label}
           </SelectItem>
@@ -96,59 +103,51 @@ export default function AdminAiMonitoringPage() {
 
   return (
     <AdminReadHeavyPageShell
-      title="Monitoring IA"
-      description="Couts estimes et qualite runtime : chat assistant authentifie rate-limite, exercices IA, defis IA. Donnees process a retention bornee ; harness persisté en bas de page."
+      title={t("title")}
+      description={t("description")}
       toolbar={toolbar}
       hasError={!!error}
-      errorMessage="Erreur de chargement. Verifiez vos droits admin."
+      errorMessage={t("errorLoading")}
       isLoading={isLoading}
-      loadingMessage="Chargement du monitoring IA..."
+      loadingMessage={t("loading")}
     >
       <div className="space-y-8">
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-foreground">
-          <p className="font-medium">Limites a connaitre (IA12)</p>
+          <p className="font-medium">{t("limitsTitle")}</p>
           <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
             <li>
-              Le chat d&apos;assistance est <strong>authentifié</strong> (JWT + cookies sur{" "}
-              <code className="rounded bg-muted px-1">/api/chat</code> et le proxy Next) et{" "}
-              <strong>rate-limité</strong> — son poids apparaît dans les workloads ci-dessous.
+              {t.rich("limitsChat", {
+                s: (chunks) => <strong>{chunks}</strong>,
+                c: (chunks) => <code className="rounded bg-muted px-1">{chunks}</code>,
+              })}
             </li>
-            <li>
-              Coûts USD = <strong>estimations</strong> (grilles indicatives), pas une vérité
-              comptable.
-            </li>
-            <li>
-              {statsData?.stats.retention?.disclaimer_fr ??
-                "Agrégats runtime : mémoire process purgée au-delà de la fenêtre de rétention."}
-            </li>
-            <li>
-              {metricsData?.summary.metrics_disclaimer_fr ??
-                "Pour des runs figés, voir la section harness persisté ci-dessous."}
-            </li>
+            <li>{t.rich("limitsCosts", { s: (chunks) => <strong>{chunks}</strong> })}</li>
+            <li>{statsData?.stats.retention?.disclaimer_fr ?? t("fallbackRetention")}</li>
+            <li>{metricsData?.summary.metrics_disclaimer_fr ?? t("fallbackMetrics")}</li>
           </ul>
         </div>
 
         <section className="space-y-4">
           <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
             <Coins className="h-5 w-5 text-primary" />
-            Tokens OpenAI
+            {t("tokensSection")}
           </h2>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Appels IA</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("calls")}</CardTitle>
                 <Bot className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">{statsData?.stats.count ?? 0}</p>
-                <p className="text-xs text-muted-foreground">sur la periode</p>
+                <p className="text-xs text-muted-foreground">{t("onPeriod")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Tokens totaux</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("totalTokens")}</CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -156,30 +155,32 @@ export default function AdminAiMonitoringPage() {
                   {statsData?.stats.total_tokens.toLocaleString() ?? 0}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  moy. {statsData?.stats.average_tokens.toFixed(0) ?? 0} / appel
+                  {t("avgPerCall", {
+                    avg: (statsData?.stats?.average_tokens ?? 0).toFixed(0),
+                  })}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Cout estime</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("estCost")}</CardTitle>
                 <Coins className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">{formatCost(statsData?.stats.total_cost ?? 0)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">USD - estimation runtime</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("usdNote")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Resume du jour</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("daySummary")}</CardTitle>
                 <Bot className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 {Object.keys(statsData?.daily_summary ?? {}).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucune donnee</p>
+                  <p className="text-sm text-muted-foreground">{t("noData")}</p>
                 ) : (
                   <ul className="space-y-1">
                     {Object.entries(statsData?.daily_summary ?? {}).map(([metricKey, totals]) => (
@@ -199,7 +200,7 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bot className="h-5 w-5" />
-                  Repartition par workload
+                  {t("byWorkload")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -207,10 +208,10 @@ export default function AdminAiMonitoringPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Workload</th>
-                        <th className="px-4 py-3 text-right font-medium">Appels</th>
-                        <th className="px-4 py-3 text-right font-medium">Tokens moy.</th>
-                        <th className="px-4 py-3 text-right font-medium">Cout total</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thWorkload")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thCalls")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAvgTokens")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thTotalCost")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -236,22 +237,19 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5" />
-                  Detail par cle runtime
+                  {t("detailByKey")}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Detail fin par cle interne: type de defi, type d&apos;exercice IA ou segment du
-                  chat.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("detailByKeyDesc")}</p>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Cle</th>
-                        <th className="px-4 py-3 text-right font-medium">Appels</th>
-                        <th className="px-4 py-3 text-right font-medium">Tokens moy.</th>
-                        <th className="px-4 py-3 text-right font-medium">Cout total</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thKey")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thCalls")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAvgTokens")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thTotalCost")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -277,21 +275,19 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bot className="h-5 w-5" />
-                  Repartition par modele IA
+                  {t("byModel")}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Repartition runtime reelle des appels par famille de modele.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("byModelDesc")}</p>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Modele</th>
-                        <th className="px-4 py-3 text-right font-medium">Appels</th>
-                        <th className="px-4 py-3 text-right font-medium">Tokens totaux</th>
-                        <th className="px-4 py-3 text-right font-medium">Cout estime</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thModel")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thCalls")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thTotalTokens")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("estCost")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -316,61 +312,59 @@ export default function AdminAiMonitoringPage() {
         <section className="space-y-4">
           <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
             <CheckCircle className="h-5 w-5 text-primary" />
-            Qualite des generations
+            {t("qualitySection")}
           </h2>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Taux de succes</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("successRate")}</CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
                   {formatRate(metricsData?.summary.success_rate ?? 0)}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">cas enregistres comme reussis</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("successHint")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Echecs validation</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("validationFailures")}</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
                   {formatRate(metricsData?.summary.validation_failure_rate ?? 0)}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">sur les flux valides metier</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("validationHint")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Auto-corrections</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("autoCorrections")}</CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
                   {formatRate(metricsData?.summary.auto_correction_rate ?? 0)}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  retries / corrections automatiques
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("autoCorrHint")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Duree moyenne</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("avgDuration")}</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
                   {formatDuration(metricsData?.summary.average_duration ?? 0)}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">sur les succes</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("onSuccess")}</p>
               </CardContent>
             </Card>
           </div>
@@ -380,7 +374,7 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
-                  Qualite par workload
+                  {t("qualityByWorkload")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -388,12 +382,12 @@ export default function AdminAiMonitoringPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Workload</th>
-                        <th className="px-4 py-3 text-right font-medium">Generations</th>
-                        <th className="px-4 py-3 text-right font-medium">Succes</th>
-                        <th className="px-4 py-3 text-right font-medium">Validation KO</th>
-                        <th className="px-4 py-3 text-right font-medium">Auto-corr.</th>
-                        <th className="px-4 py-3 text-right font-medium">Duree moy.</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thWorkload")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thGenerations")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thSuccess")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thValidationKo")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAutoCorr")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAvgDur")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -427,7 +421,7 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
-                  Detail par cle runtime
+                  {t("detailByKey")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -435,12 +429,12 @@ export default function AdminAiMonitoringPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Cle</th>
-                        <th className="px-4 py-3 text-right font-medium">Generations</th>
-                        <th className="px-4 py-3 text-right font-medium">Succes</th>
-                        <th className="px-4 py-3 text-right font-medium">Validation KO</th>
-                        <th className="px-4 py-3 text-right font-medium">Auto-corr.</th>
-                        <th className="px-4 py-3 text-right font-medium">Duree moy.</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thKey")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thGenerations")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thSuccess")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thValidationKo")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAutoCorr")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thAvgDur")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -472,11 +466,8 @@ export default function AdminAiMonitoringPage() {
               <CardContent className="py-12">
                 <div className="text-center text-muted-foreground">
                   <Bot className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>Aucune generation IA enregistree sur cette periode.</p>
-                  <p className="mt-1 text-sm">
-                    Les donnees s&apos;accumulent au fil des appels chat, des exercices IA et des
-                    defis IA.
-                  </p>
+                  <p>{t("noGenTitle")}</p>
+                  <p className="mt-1 text-sm">{t("noGenHint")}</p>
                 </div>
               </CardContent>
             </Card>
@@ -487,7 +478,7 @@ export default function AdminAiMonitoringPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
-                  Erreurs observees
+                  {t("errorsObserved")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -495,8 +486,8 @@ export default function AdminAiMonitoringPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Type d&apos;erreur</th>
-                        <th className="px-4 py-3 text-right font-medium">Occurrences</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("thErrorType")}</th>
+                        <th className="px-4 py-3 text-right font-medium">{t("thOccurrences")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -519,28 +510,25 @@ export default function AdminAiMonitoringPage() {
         <section className="space-y-4">
           <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
             <Bot className="h-5 w-5 text-primary" />
-            Harness d&apos;evaluation (persiste)
+            {t("harnessSection")}
           </h2>
           <p className="text-sm text-muted-foreground">{harnessData?.disclaimer_fr}</p>
           {harnessData && harnessData.runs.length > 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle>Derniers runs ({harnessData.runs.length})</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Mode offline/live, cible, corpus et compteurs au moment du run. Chemins
-                  d&apos;artefacts si enregistrés côté serveur.
-                </p>
+                <CardTitle>{t("lastRuns", { count: harnessData.runs.length })}</CardTitle>
+                <p className="text-sm text-muted-foreground">{t("harnessCardDesc")}</p>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-3 py-2 text-left font-medium">Termine</th>
-                        <th className="px-3 py-2 text-left font-medium">Mode</th>
-                        <th className="px-3 py-2 text-left font-medium">Cible</th>
-                        <th className="px-3 py-2 text-right font-medium">OK / KO / skip</th>
-                        <th className="px-3 py-2 text-left font-medium">Artifacts</th>
+                        <th className="px-3 py-2 text-left font-medium">{t("thCompleted")}</th>
+                        <th className="px-3 py-2 text-left font-medium">{t("thMode")}</th>
+                        <th className="px-3 py-2 text-left font-medium">{t("thTarget")}</th>
+                        <th className="px-3 py-2 text-right font-medium">{t("thOkKoSkip")}</th>
+                        <th className="px-3 py-2 text-left font-medium">{t("thArtifacts")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -573,7 +561,7 @@ export default function AdminAiMonitoringPage() {
           ) : (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                Aucun run harness persisté en base pour l&apos;instant.
+                {t("harnessEmpty")}
               </CardContent>
             </Card>
           )}

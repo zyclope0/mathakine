@@ -1,9 +1,9 @@
 /**
  * Export PDF data-driven du dashboard (jsPDF + jspdf-autotable).
  * Thème teal cohérent avec l’UI actuelle (pas d’indigo legacy).
+ * Les dépendances lourdes sont chargées uniquement à l’appel (dynamic import).
  */
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import type jsPDF from "jspdf";
 import type { DashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
 import {
   buildDashboardExportFilenameBase,
@@ -86,13 +86,16 @@ function dailyStatusLabel(status: string, labels: DashboardExportFormatLabels): 
 /**
  * Exporte le snapshot dashboard en PDF structuré.
  */
-export function exportDashboardToPDF(
+export async function exportDashboardToPDF(
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels,
   options: { locale?: string } = {}
-): void {
+): Promise<void> {
+  const { default: JsPdfCtor } = await import("jspdf");
+  const { default: runAutoTable } = await import("jspdf-autotable");
+
   const locale = options.locale ?? "fr";
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new JsPdfCtor({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 14;
   let y = 18;
@@ -171,7 +174,7 @@ export function exportDashboardToPDF(
     execBody.push([labels.averageScoreSecondary, formatPercentDisplay(s.average_score, labels)]);
   }
 
-  autoTable(doc, {
+  runAutoTable(doc, {
     startY: y,
     head: [[labels.columnMetric, labels.columnValue]],
     body: execBody,
@@ -196,7 +199,7 @@ export function exportDashboardToPDF(
       v.attempts != null ? String(v.attempts) : labels.notAvailable,
     ]);
 
-    autoTable(doc, {
+    runAutoTable(doc, {
       startY: y,
       head: [[labels.category, labels.completed, labels.accuracy, labels.attempts]],
       body: catRows,
@@ -222,7 +225,7 @@ export function exportDashboardToPDF(
       formatPercentDisplay(v.success_rate, labels),
     ]);
 
-    autoTable(doc, {
+    runAutoTable(doc, {
       startY: y,
       head: [
         [labels.exerciseType, labels.typeCompleted, labels.typeCorrect, labels.typeSuccessRate],
@@ -250,7 +253,7 @@ export function exportDashboardToPDF(
       [labels.logicAverageTime, formatSeconds(cp.average_time, labels)],
     ];
 
-    autoTable(doc, {
+    runAutoTable(doc, {
       startY: y,
       head: [[labels.columnMetric, labels.columnValue]],
       body: summaryRows,
@@ -271,7 +274,7 @@ export function exportDashboardToPDF(
           c.best_time != null ? formatSeconds(c.best_time, labels) : labels.notAvailable,
         ]);
 
-      autoTable(doc, {
+      runAutoTable(doc, {
         startY: y,
         head: [
           [
@@ -311,7 +314,7 @@ export function exportDashboardToPDF(
           : "—",
       ]);
 
-    autoTable(doc, {
+    runAutoTable(doc, {
       startY: y,
       head: [
         [
@@ -346,7 +349,7 @@ export function exportDashboardToPDF(
       JSON.stringify(d.metadata ?? {}),
     ]);
 
-    autoTable(doc, {
+    runAutoTable(doc, {
       startY: y,
       head: [
         [

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { AdminUser } from "@/hooks/useAdminUsers";
 import type { UserRole } from "@/lib/auth/userRoles";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
@@ -44,19 +45,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { USER_ROLE_LABELS, getUserRoleLabel, normalizeUserRole } from "@/lib/auth/userRoles";
+import { normalizeUserRole } from "@/lib/auth/userRoles";
 
-const ROLES = [
-  { value: "all", label: "Tous les rôles" },
-  { value: "apprenant", label: USER_ROLE_LABELS.apprenant },
-  { value: "enseignant", label: USER_ROLE_LABELS.enseignant },
-  { value: "moderateur", label: USER_ROLE_LABELS.moderateur },
-  { value: "admin", label: USER_ROLE_LABELS.admin },
-] as const;
+const ROLE_VALUES = ["all", "apprenant", "enseignant", "moderateur", "admin"] as const;
 
 const PAGE_SIZE = 20;
 
+function localeTag(locale: string): string {
+  return locale === "en" ? "en-US" : "fr-FR";
+}
+
 export default function AdminUsersPage() {
+  const t = useTranslations("adminPages.users");
+  const tToast = useTranslations("adminPages.users.toast");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = localeTag(locale);
+
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<UserRole | "all">("all");
   const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
@@ -90,63 +95,85 @@ export default function AdminUsersPage() {
     limit: PAGE_SIZE,
   });
 
+  const roles = useMemo(
+    () =>
+      ROLE_VALUES.map((value) => ({
+        value,
+        label: t(`roles.${value}`),
+      })),
+    [t]
+  );
+
+  const roleLabel = (roleValue: string) => {
+    const n = normalizeUserRole(roleValue);
+    if (!n) return roleValue;
+    return t(`roles.${n}`);
+  };
+
   const handleToggleActive = async (u: { id: number; username: string; is_active: boolean }) => {
     try {
       await updateUserActive({ userId: u.id, isActive: !u.is_active });
-      toast.success(u.is_active ? "Compte désactivé" : "Compte réactivé", {
-        description: `${u.username} a été ${u.is_active ? "désactivé" : "réactivé"}.`,
+      toast.success(u.is_active ? tToast("deactivated") : tToast("reactivated"), {
+        description: u.is_active
+          ? tToast("deactivatedDesc", { username: u.username })
+          : tToast("reactivatedDesc", { username: u.username }),
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de la mise à jour";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : tToast("updateFailed");
+      toast.error(tToast("errorTitle"), { description: msg });
     }
   };
 
   const handleUpdateRole = async (u: AdminUser, newRole: UserRole) => {
     try {
       await updateUserRole({ userId: u.id, role: newRole });
-      toast.success("Rôle modifié", {
-        description: `${u.username} → ${getUserRoleLabel(newRole)}`,
+      toast.success(tToast("roleChanged"), {
+        description: tToast("roleChangedDesc", {
+          username: u.username,
+          role: roleLabel(newRole),
+        }),
       });
       setRoleEditUser(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de la mise à jour";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : tToast("updateFailed");
+      toast.error(tToast("errorTitle"), { description: msg });
     }
   };
 
   const handleSendResetPassword = async (u: AdminUser) => {
     try {
       await sendResetPassword(u.id);
-      toast.success("Email envoyé", {
-        description: `Lien de réinitialisation envoyé à ${u.email}`,
+      toast.success(tToast("emailSent"), {
+        description: tToast("resetDesc", { email: u.email }),
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Échec de l'envoi";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : tToast("sendFailed");
+      toast.error(tToast("errorTitle"), { description: msg });
     }
   };
 
   const handleResendVerification = async (u: AdminUser) => {
     try {
       await resendVerification(u.id);
-      toast.success("Email envoyé", { description: `Email de vérification envoyé à ${u.email}` });
+      toast.success(tToast("emailSent"), {
+        description: tToast("verifyDesc", { email: u.email }),
+      });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Échec de l'envoi";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : tToast("sendFailed");
+      toast.error(tToast("errorTitle"), { description: msg });
     }
   };
 
   const handleDeleteUser = async (u: AdminUser) => {
     try {
       await deleteUser(u.id);
-      toast.success("Utilisateur supprimé", {
-        description: `${u.username} et toutes ses données ont été supprimés définitivement.`,
+      toast.success(tToast("userDeleted"), {
+        description: tToast("userDeletedDesc", { username: u.username }),
       });
       setDeleteConfirmUser(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de la suppression";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : tToast("deleteFailed");
+      toast.error(tToast("errorTitle"), { description: msg });
     }
   };
 
@@ -156,7 +183,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Utilisateurs" description="Liste des utilisateurs de la plateforme" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <PageSection>
         <Card>
@@ -164,13 +191,13 @@ export default function AdminUsersPage() {
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <Label htmlFor="admin-users-search" className="sr-only">
-                  Rechercher
+                  {t("searchLabel")}
                 </Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="admin-users-search"
-                    placeholder="Rechercher (pseudo, email, nom)"
+                    placeholder={t("searchPlaceholder")}
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
@@ -189,10 +216,10 @@ export default function AdminUsersPage() {
                   }}
                 >
                   <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Rôle" />
+                    <SelectValue placeholder={t("rolePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {ROLES.map((r) => (
+                    {roles.map((r) => (
                       <SelectItem key={r.value} value={r.value}>
                         {r.label}
                       </SelectItem>
@@ -207,42 +234,40 @@ export default function AdminUsersPage() {
                   }}
                 >
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Statut" />
+                    <SelectValue placeholder={t("statusPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="true">Actifs</SelectItem>
-                    <SelectItem value="false">Inactifs</SelectItem>
+                    <SelectItem value="all">{t("statusAll")}</SelectItem>
+                    <SelectItem value="true">{t("statusActive")}</SelectItem>
+                    <SelectItem value="false">{t("statusInactive")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             {error ? (
-              <p className="text-center py-8 text-destructive">
-                Erreur de chargement. Vérifiez vos droits.
-              </p>
+              <p className="text-center py-8 text-destructive">{t("errorLoading")}</p>
             ) : isLoading ? (
-              <LoadingState message="Chargement des utilisateurs..." />
+              <LoadingState message={t("loading")} />
             ) : (
               <>
                 <div className="overflow-x-auto rounded-md border">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Utilisateur</th>
-                        <th className="px-4 py-3 text-left font-medium">Email</th>
-                        <th className="px-4 py-3 text-left font-medium">Rôle</th>
-                        <th className="px-4 py-3 text-left font-medium">Statut</th>
-                        <th className="px-4 py-3 text-left font-medium">Inscription</th>
-                        <th className="px-4 py-3 text-left font-medium">Actions</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colUser")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colEmail")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colRole")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colStatus")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colSignup")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colActions")}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                            Aucun utilisateur trouvé
+                            {t("empty")}
                           </td>
                         </tr>
                       ) : (
@@ -258,16 +283,16 @@ export default function AdminUsersPage() {
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                             <td className="px-4 py-3">
-                              <Badge variant="secondary">{getUserRoleLabel(u.role)}</Badge>
+                              <Badge variant="secondary">{roleLabel(u.role)}</Badge>
                             </td>
                             <td className="px-4 py-3">
                               <Badge variant={u.is_active ? "default" : "outline"}>
-                                {u.is_active ? "Actif" : "Inactif"}
+                                {u.is_active ? t("statusActive") : t("statusInactive")}
                               </Badge>
                             </td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">
                               {u.created_at
-                                ? new Date(u.created_at).toLocaleDateString("fr-FR")
+                                ? new Date(u.created_at).toLocaleDateString(dateLocale)
                                 : "-"}
                             </td>
                             <td className="px-4 py-3">
@@ -280,7 +305,7 @@ export default function AdminUsersPage() {
                                       disabled={isUpdating || isDeleting}
                                     >
                                       <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Actions</span>
+                                      <span className="sr-only">{t("actionsMenu")}</span>
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
@@ -291,14 +316,14 @@ export default function AdminUsersPage() {
                                       }}
                                     >
                                       <Shield className="h-4 w-4" />
-                                      Modifier le rôle
+                                      {t("menuChangeRole")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() => handleSendResetPassword(u)}
                                       disabled={isSendingReset}
                                     >
                                       <Mail className="h-4 w-4" />
-                                      Envoyer reset MDP
+                                      {t("menuSendReset")}
                                     </DropdownMenuItem>
                                     {u.is_email_verified === false && (
                                       <DropdownMenuItem
@@ -306,7 +331,7 @@ export default function AdminUsersPage() {
                                         disabled={isResendingVerification}
                                       >
                                         <MailCheck className="h-4 w-4" />
-                                        Renvoyer vérification
+                                        {t("menuResendVerify")}
                                       </DropdownMenuItem>
                                     )}
                                     <DropdownMenuItem
@@ -315,11 +340,11 @@ export default function AdminUsersPage() {
                                     >
                                       {u.is_active ? (
                                         <>
-                                          <UserX className="h-4 w-4" /> Désactiver
+                                          <UserX className="h-4 w-4" /> {t("menuDeactivate")}
                                         </>
                                       ) : (
                                         <>
-                                          <UserCheck className="h-4 w-4" /> Activer
+                                          <UserCheck className="h-4 w-4" /> {t("menuActivate")}
                                         </>
                                       )}
                                     </DropdownMenuItem>
@@ -328,12 +353,12 @@ export default function AdminUsersPage() {
                                       className="text-destructive focus:text-destructive"
                                       disabled={isDeleting}
                                     >
-                                      <Trash2 className="h-4 w-4" /> Supprimer définitivement
+                                      <Trash2 className="h-4 w-4" /> {t("menuDelete")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               ) : (
-                                <span className="text-xs text-muted-foreground">Vous</span>
+                                <span className="text-xs text-muted-foreground">{t("you")}</span>
                               )}
                             </td>
                           </tr>
@@ -346,7 +371,11 @@ export default function AdminUsersPage() {
                 {totalPages > 1 && (
                   <div className="mt-4 flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      {total} utilisateur{total > 1 ? "s" : ""} — Page {page + 1} / {totalPages}
+                      {t("pagination", {
+                        total,
+                        current: page + 1,
+                        pages: totalPages,
+                      })}
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -356,7 +385,7 @@ export default function AdminUsersPage() {
                         disabled={!hasPrev}
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        Précédent
+                        {tCommon("previous")}
                       </Button>
                       <Button
                         variant="outline"
@@ -364,7 +393,7 @@ export default function AdminUsersPage() {
                         onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                         disabled={!hasNext}
                       >
-                        Suivant
+                        {tCommon("next")}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -383,7 +412,7 @@ export default function AdminUsersPage() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Modifier le rôle</DialogTitle>
+              <DialogTitle>{t("dialogRoleTitle")}</DialogTitle>
               <p className="text-sm text-muted-foreground">
                 {roleEditUser ? `${roleEditUser.username} (${roleEditUser.email})` : ""}
               </p>
@@ -391,10 +420,10 @@ export default function AdminUsersPage() {
             {roleEditUser && (
               <div className="flex flex-col gap-4 py-4">
                 <div>
-                  <Label className="mb-2 block">Nouveau rôle</Label>
+                  <Label className="mb-2 block">{t("newRoleLabel")}</Label>
                   {roleEditUser && (
                     <p className="mb-2 text-xs text-muted-foreground">
-                      Rôle actuel : {getUserRoleLabel(roleEditUser.role)}
+                      {t("currentRole", { role: roleLabel(roleEditUser.role) })}
                     </p>
                   )}
                   <Select
@@ -402,14 +431,16 @@ export default function AdminUsersPage() {
                     onValueChange={(v) => setRoleEditValue(v as UserRole)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir un rôle" />
+                      <SelectValue placeholder={t("chooseRolePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLES.filter((r) => r.value !== "all").map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
+                      {roles
+                        .filter((r) => r.value !== "all")
+                        .map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -417,13 +448,13 @@ export default function AdminUsersPage() {
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setRoleEditUser(null)}>
-                Annuler
+                {t("cancel")}
               </Button>
               <Button
                 onClick={() => roleEditUser && handleUpdateRole(roleEditUser, roleEditValue)}
                 disabled={!roleEditUser || roleEditValue === roleEditUser.role}
               >
-                Enregistrer
+                {t("save")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -437,23 +468,26 @@ export default function AdminUsersPage() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Supprimer définitivement l&apos;utilisateur ?</DialogTitle>
+              <DialogTitle>{t("deleteTitle")}</DialogTitle>
               <p className="text-sm text-muted-foreground">
                 {deleteConfirmUser
-                  ? `${deleteConfirmUser.username} (${deleteConfirmUser.email}) — Cette action est irréversible. Toutes les données liées (tentatives, progression, badges, etc.) seront supprimées en cascade.`
+                  ? t("deleteBody", {
+                      username: deleteConfirmUser.username,
+                      email: deleteConfirmUser.email,
+                    })
                   : ""}
               </p>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDeleteConfirmUser(null)}>
-                Annuler
+                {t("cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => deleteConfirmUser && handleDeleteUser(deleteConfirmUser)}
                 disabled={!deleteConfirmUser || isDeleting}
               >
-                {isDeleting ? "Suppression..." : "Supprimer"}
+                {isDeleting ? t("deleteWorking") : t("deleteConfirm")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -107,7 +107,7 @@ export function ExportButton({ snapshot }: ExportButtonProps) {
   const t = useTranslations("dashboard.export");
   const formatLabels = useDashboardExportFormatLabels();
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!snapshot) {
       toast.error(t("noData"), {
         description: t("noDataDescription"),
@@ -123,7 +123,7 @@ export function ExportButton({ snapshot }: ExportButtonProps) {
     }
 
     try {
-      exportDashboardToPDF(snapshot, formatLabels, { locale: locale ?? "fr" });
+      await exportDashboardToPDF(snapshot, formatLabels, { locale: locale ?? "fr" });
       toast.success(t("pdfSuccess"), {
         description: t("pdfSuccessDescription"),
       });

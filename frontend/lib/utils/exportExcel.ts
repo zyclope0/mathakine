@@ -1,13 +1,14 @@
 /**
  * Export Excel multi-feuilles (ExcelJS), data-driven, métadonnées workbook.
+ * ExcelJS est chargé uniquement à l’appel (dynamic import).
  */
-import ExcelJS from "exceljs";
+import type { Fill, Row, Workbook, Worksheet } from "exceljs";
 import { saveAs } from "file-saver";
 import type { DashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
 import { buildDashboardExportFilenameBase } from "@/lib/dashboard/buildDashboardExportSnapshot";
 import type { DashboardExportFormatLabels } from "@/lib/dashboard/exportFormatLabels";
 
-const HEADER_FILL: ExcelJS.Fill = {
+const HEADER_FILL: Fill = {
   type: "pattern",
   pattern: "solid",
   fgColor: { argb: "FF0F766E" },
@@ -24,13 +25,13 @@ function toExcelPercentFraction(value: number | null): number | null {
   return value / 100;
 }
 
-function styleHeaderRow(row: ExcelJS.Row): void {
+function styleHeaderRow(row: Row): void {
   row.font = { bold: true, color: { argb: "FFFFFFFF" } };
   row.fill = HEADER_FILL;
   row.alignment = { vertical: "middle" };
 }
 
-function freezeAndFilter(sheet: ExcelJS.Worksheet, colCount: number, headerRow = 1): void {
+function freezeAndFilter(sheet: Worksheet, colCount: number, headerRow = 1): void {
   sheet.views = [{ state: "frozen", ySplit: headerRow }];
   sheet.autoFilter = {
     from: { row: headerRow, column: 1 },
@@ -38,14 +39,14 @@ function freezeAndFilter(sheet: ExcelJS.Worksheet, colCount: number, headerRow =
   };
 }
 
-function setColumnWidths(sheet: ExcelJS.Worksheet, widths: number[]): void {
+function setColumnWidths(sheet: Worksheet, widths: number[]): void {
   widths.forEach((w, i) => {
     sheet.getColumn(i + 1).width = w;
   });
 }
 
 function addSummarySheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -122,7 +123,7 @@ function addSummarySheet(
 }
 
 function addCategorySheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -157,7 +158,7 @@ function addCategorySheet(
 }
 
 function addPerformanceByTypeSheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -189,7 +190,7 @@ function addPerformanceByTypeSheet(
 }
 
 function addLogicChallengesSheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -241,7 +242,7 @@ function addLogicChallengesSheet(
 }
 
 function addRecentActivitySheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -275,7 +276,7 @@ function addRecentActivitySheet(
 }
 
 function addDailyChallengesSheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -309,7 +310,7 @@ function addDailyChallengesSheet(
 }
 
 function addTimeSeriesSheet(
-  workbook: ExcelJS.Workbook,
+  workbook: Workbook,
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): void {
@@ -368,6 +369,7 @@ export async function exportDashboardToExcel(
   snapshot: DashboardExportSnapshot,
   labels: DashboardExportFormatLabels
 ): Promise<void> {
+  const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Mathakine";
   workbook.lastModifiedBy = "Mathakine";

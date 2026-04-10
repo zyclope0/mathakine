@@ -143,7 +143,7 @@ Guide runtime réel pour Sentry dans Mathakine (Frontend Next.js + Backend Starl
 
 1. **Backend** : `curl -I https://mathakine-alpha.onrender.com/health` → doit avoir `X-Request-ID`
 2. **Frontend** : `GET https://mathakine.fun/api/sentry-status` → `dsnPresent: true`, `release` renseigné, sample rates visibles
-3. **Frontend** : ouvrir `/test-sentry`, envoyer `captureException`, vérifier l'Issue
+3. **Frontend** : depuis un environnement où le DSN est chargé, déclencher une erreur de test (ex. console navigateur après import Sentry : `Sentry.captureException(new Error("smoke"))`) ou s’appuyer sur `/api/sentry-status` + un flux réel ; vérifier l’Issue dans Sentry (la page produit `/test-sentry` a été retirée — QF-01)
 4. **Sentry** : un event récent doit avoir `request_id` et, si authentifié, un contexte utilisateur
 
 ---

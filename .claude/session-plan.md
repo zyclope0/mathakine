@@ -25,7 +25,8 @@ Après clôture FFI-L19\*, la priorité d'exécution revient à la feuille de ro
 - `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
 - `docs/03-PROJECT/README.md`
 - `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md`
-- `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme contexte historique archivÃ©
+- `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` comme snapshot qualité actif
+- `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme contexte historique archivé
 
 Les changements backend hors périmètre roadmap frontend doivent rester petits, nommés et reviewables.
 
@@ -34,7 +35,8 @@ Les changements backend hors périmètre roadmap frontend doivent rester petits,
 1. `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` pour la priorité produit active
 2. `D:\Mathakine\.claude\session-plan.md` pour l'ordre d'exécution courant
 3. `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` pour la dette frontend encore utile
-4. `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme photographie historique, non comme backlog actif
+4. `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` comme snapshot qualité actif de la file `QF-*`
+5. `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md` comme photographie historique, non comme backlog actif
 
 ### État réel frontend après FFI-L18B
 
@@ -84,15 +86,15 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 
 ### File active fermée
 
-1. ~~**CHAT-AUTH-01**~~ — **Fermé (2026-04-06)** — `POST /api/chat` et `POST /api/chat/stream` : barrière JWT côté Starlette (hors whitelist publique) + garde cookie `access_token` sur les routes Next proxy (`chatProxyRequest.ts`) ; relais `Cookie` / `X-CSRF-Token` ; UI drawer + bloc home : invités voient le CTA existant `guestLimitCta` (pas d'envoi).
-2. ~~**RQ-PROVIDERS-02**~~ — **Fermé** — `QueryClient` via `useState(() => new QueryClient(...))` dans `Providers.tsx` ; instance stable par montage, mêmes `defaultOptions`.
-3. ~~**CHAT-I18N-03**~~ — **Fermé** — chaînes `global-error`, `not-found` (CTA), proxies `app/api/chat/*` externalisées dans `messages/fr|en.json` (`errors.*`, `apiChat.proxy.*`) + `lib/api/chatProxyLocale.ts`.
-4. ~~**CHAT-LOG-04**~~ — **Fermé** — `app/api/chat/stream/route.ts` logue uniquement en développement via `lib/utils/logInDevelopment.ts` ; mêmes payloads SSE d'erreur côté utilisateur ; test dédié de non-log en production.
-5. ~~**LINT-STRICT-05**~~ — **Fermé** — `@typescript-eslint/no-explicit-any` et `react-hooks/exhaustive-deps` passées en `error` dans `eslint.config.mjs` ; `useDiagnostic` en `Record<string, unknown>` ; `npm run lint` vert.
-6. ~~**E2E-CORE-06**~~ — **Fermé (minimal)** — specs Playwright `auth`, `exercises`, `dashboard`, `badges`, `settings`, `admin` ; sans `globalSetup`, sans `storageState` global, sans `request.post` API ; couverture volontairement limitée aux surfaces invitées ; validation locale forgot-password couverte par `ForgotPasswordPage.test.tsx` ; suite exécutée en série (`workers: 1`, `fullyParallel: false`) ; suite admin authentifiée laissée hors périmètre (`describe.skip`).
-7. ~~**SSE-DRY-07**~~ — **Fermé** — factorisation des deux proxies SSE pédagogiques dans `frontend/lib/api/sseProxyRequest.ts` ; headers forward partagés via `frontend/lib/api/proxyForwardHeaders.ts` ; routes réduites à une config minimale (`backendPath`, `debugContext`, message SSE invité, label d'erreur dev) ; `body === null` backend transformé en event SSE d'erreur au lieu d'un flux vide ; bruit `console.error` "missing auth cookie" limité au développement.
-8. ~~**CSP-HARDEN-08**~~ — **Fermé** — CSP globale extraite dans `frontend/lib/security/buildContentSecurityPolicy.ts` ; production sans `'unsafe-eval'` dans `script-src` ; ajouts `object-src 'none'`, `form-action 'self'`, `frame-src 'none'`, `upgrade-insecure-requests` ; `'unsafe-inline'` gardé hors stratégie nonce/hash.
-9. ~~**OG-META-09**~~ — **Fermé** — images sociales **1200x630** via `app/opengraph-image.tsx` et `app/twitter-image.tsx` ; métadonnées globales branchées sur `/opengraph-image` et `/twitter-image` ; rendu commun via `lib/social/renderSocialShareImageResponse.tsx` avec polices explicites `KaTeX Main` (`lib/social/socialShareImageFonts.ts`) et runtime `nodejs` pour fiabiliser `ImageResponse` hors Vercel ; plus d'usage de l'icône `512x512` comme image sociale.
+1. ~~**CHAT-AUTH-01**~~ - **Fermé (2026-04-06)** - `POST /api/chat` et `POST /api/chat/stream` : barrière JWT côté Starlette (hors whitelist publique) + garde cookie `access_token` sur les routes Next proxy (`chatProxyRequest.ts`) ; relais `Cookie` / `X-CSRF-Token` ; UI drawer + bloc home : invités voient le CTA existant `guestLimitCta` (pas d'envoi).
+2. ~~**RQ-PROVIDERS-02**~~ - **Fermé** - `QueryClient` via `useState(() => new QueryClient(...))` dans `Providers.tsx` ; instance stable par montage, mêmes `defaultOptions`.
+3. ~~**CHAT-I18N-03**~~ - **Fermé** - chaînes `global-error`, `not-found` (CTA), proxies `app/api/chat/*` externalisées dans `messages/fr|en.json` (`errors.*`, `apiChat.proxy.*`) + `lib/api/chatProxyLocale.ts`.
+4. ~~**CHAT-LOG-04**~~ - **Fermé** - `app/api/chat/stream/route.ts` logue uniquement en développement via `lib/utils/logInDevelopment.ts` ; mêmes payloads SSE d'erreur côté utilisateur ; test dédié de non-log en production.
+5. ~~**LINT-STRICT-05**~~ - **Fermé** - `@typescript-eslint/no-explicit-any` et `react-hooks/exhaustive-deps` passées en `error` dans `eslint.config.mjs` ; `useDiagnostic` en `Record<string, unknown>` ; `npm run lint` vert.
+6. ~~**E2E-CORE-06**~~ - **Fermé (minimal)** - specs Playwright `auth`, `exercises`, `dashboard`, `badges`, `settings`, `admin` ; sans `globalSetup`, sans `storageState` global, sans `request.post` API ; couverture volontairement limitée aux surfaces invitées ; validation locale forgot-password couverte par `ForgotPasswordPage.test.tsx` ; suite exécutée en série (`workers: 1`, `fullyParallel: false`) ; suite admin authentifiée laissée hors périmètre (`describe.skip`).
+7. ~~**SSE-DRY-07**~~ - **Fermé** - factorisation des deux proxies SSE pédagogiques dans `frontend/lib/api/sseProxyRequest.ts` ; headers forward partagés via `frontend/lib/api/proxyForwardHeaders.ts` ; routes réduites à une config minimale (`backendPath`, `debugContext`, message SSE invité, label d'erreur dev) ; `body === null` backend transformé en event SSE d'erreur au lieu d'un flux vide ; bruit `console.error` "missing auth cookie" limité au développement.
+8. ~~**CSP-HARDEN-08**~~ - **Fermé** - CSP globale extraite dans `frontend/lib/security/buildContentSecurityPolicy.ts` ; production sans `'unsafe-eval'` dans `script-src` ; ajouts `object-src 'none'`, `form-action 'self'`, `frame-src 'none'`, `upgrade-insecure-requests` ; `'unsafe-inline'` gardé hors stratégie nonce/hash.
+9. ~~**OG-META-09**~~ - **Fermé** - images sociales **1200x630** via `app/opengraph-image.tsx` et `app/twitter-image.tsx` ; métadonnées globales branchées sur `/opengraph-image` et `/twitter-image` ; rendu commun via `lib/social/renderSocialShareImageResponse.tsx` avec polices explicites `KaTeX Main` (`lib/social/socialShareImageFonts.ts`) et runtime `nodejs` pour fiabiliser `ImageResponse` hors Vercel ; plus d'usage de l'icône `512x512` comme image sociale.
 
 ### Ordre d'exécution réel
 
@@ -111,6 +113,18 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 - aucun lot frontend nommé restant dans cette série
 - la suite doit repartir d'un nouveau constat terrain
 - ne pas rouvrir une nouvelle série `FFI-L20*` par inertie
+
+### QF-01 (2026-04-09) - fermé
+
+- Suppression de `frontend/app/test-sentry` ; Sentry user = `{ id }` dans `useAuth` ; `SECRET_KEY` documenté dans `frontend/.env.example` ; guide `SENTRY_MONITORING.md` + audit 2026-04-09 réalignés.
+
+### QF-02 (2026-04-09) - fermé
+
+- Exports dashboard PDF/Excel : `import()` dynamique dans `lib/utils/exportPDF.ts` et `exportExcel.ts` au clic ; `ExportButton` en `await` ; pas de changement UX volontaire ; audit 2026-04-09 P1-PERF-02 / D7 alignés.
+
+### QF-03 (2026-04-10) - fermé
+
+- i18n route-level : copy des pages admin racines + `offline` externalisée dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listée ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks métier ; tests unitaires ciblés + smoke wiring i18n.
 
 ### Règle de pilotage
 

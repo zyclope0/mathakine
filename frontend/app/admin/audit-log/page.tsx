@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,33 +12,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAdminAuditLog, getAuditActionLabel } from "@/hooks/useAdminAuditLog";
+import { useAdminAuditLog } from "@/hooks/useAdminAuditLog";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 const PAGE_SIZE = 30;
 
-const RESOURCE_TYPES = [
-  { value: "all", label: "Tous types" },
-  { value: "user", label: "Utilisateur" },
-  { value: "exercise", label: "Exercice" },
-  { value: "challenge", label: "Défi" },
-];
+const ACTION_VALUES = [
+  "all",
+  "user_patch",
+  "exercise_create",
+  "exercise_update",
+  "exercise_archive",
+  "exercise_duplicate",
+  "challenge_create",
+  "challenge_update",
+  "challenge_archive",
+  "challenge_duplicate",
+  "export_csv",
+] as const;
 
-const ACTIONS = [
-  { value: "all", label: "Toutes actions" },
-  { value: "user_patch", label: "Modif. utilisateur" },
-  { value: "exercise_create", label: "Création exercice" },
-  { value: "exercise_update", label: "Modif. exercice" },
-  { value: "exercise_archive", label: "Archivage exercice" },
-  { value: "exercise_duplicate", label: "Duplication exercice" },
-  { value: "challenge_create", label: "Création défi" },
-  { value: "challenge_update", label: "Modif. défi" },
-  { value: "challenge_archive", label: "Archivage défi" },
-  { value: "challenge_duplicate", label: "Duplication défi" },
-  { value: "export_csv", label: "Export CSV" },
-];
+const RESOURCE_VALUES = ["all", "user", "exercise", "challenge"] as const;
+
+function localeTag(locale: string): string {
+  return locale === "en" ? "en-US" : "fr-FR";
+}
 
 export default function AdminAuditLogPage() {
+  const t = useTranslations("adminPages.auditLog");
+  const locale = useLocale();
+  const dateLocale = localeTag(locale);
+
   const [page, setPage] = useState(0);
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [resourceFilter, setResourceFilter] = useState<string>("all");
@@ -51,12 +55,37 @@ export default function AdminAuditLogPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
+  const actions = useMemo(
+    () =>
+      ACTION_VALUES.map((value) => ({
+        value,
+        label: t(`actions.${value}`),
+      })),
+    [t]
+  );
+
+  const resourceTypes = useMemo(
+    () =>
+      RESOURCE_VALUES.map((value) => ({
+        value,
+        label: t(`resourceTypes.${value}`),
+      })),
+    [t]
+  );
+
+  const actionLabelMap = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const v of ACTION_VALUES) {
+      if (v !== "all") out[v] = t(`actions.${v}`);
+    }
+    return out;
+  }, [t]);
+
+  const auditActionLabel = (action: string) => actionLabelMap[action] ?? action;
+
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Journal d'audit"
-        description="Historique des actions effectuées par les administrateurs"
-      />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <PageSection>
         <Card>
@@ -70,10 +99,10 @@ export default function AdminAuditLogPage() {
                 }}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Action" />
+                  <SelectValue placeholder={t("actionPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ACTIONS.map((a) => (
+                  {actions.map((a) => (
                     <SelectItem key={a.value} value={a.value}>
                       {a.label}
                     </SelectItem>
@@ -88,10 +117,10 @@ export default function AdminAuditLogPage() {
                 }}
               >
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Ressource" />
+                  <SelectValue placeholder={t("resourcePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {RESOURCE_TYPES.map((r) => (
+                  {resourceTypes.map((r) => (
                     <SelectItem key={r.value} value={r.value}>
                       {r.label}
                     </SelectItem>
@@ -101,16 +130,14 @@ export default function AdminAuditLogPage() {
             </div>
 
             {error ? (
-              <p className="py-8 text-center text-destructive">
-                Erreur de chargement. Vérifiez vos droits.
-              </p>
+              <p className="py-8 text-center text-destructive">{t("errorLoading")}</p>
             ) : isLoading ? (
-              <LoadingState message="Chargement du journal..." />
+              <LoadingState message={t("loading")} />
             ) : items.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground">
                 <FileText className="mx-auto h-12 w-12 opacity-50 mb-2" />
-                <p>Aucune action enregistrée.</p>
-                <p className="text-sm mt-1">Les nouvelles actions admin seront affichées ici.</p>
+                <p>{t("emptyTitle")}</p>
+                <p className="text-sm mt-1">{t("emptyHint")}</p>
               </div>
             ) : (
               <>
@@ -118,11 +145,11 @@ export default function AdminAuditLogPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Date</th>
-                        <th className="px-4 py-3 text-left font-medium">Admin</th>
-                        <th className="px-4 py-3 text-left font-medium">Action</th>
-                        <th className="px-4 py-3 text-left font-medium">Ressource</th>
-                        <th className="px-4 py-3 text-left font-medium">Détails</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colDate")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colAdmin")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colAction")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colResource")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colDetails")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -133,14 +160,14 @@ export default function AdminAuditLogPage() {
                         >
                           <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                             {log.created_at
-                              ? new Date(log.created_at).toLocaleString("fr-FR")
+                              ? new Date(log.created_at).toLocaleString(dateLocale)
                               : "-"}
                           </td>
                           <td className="px-4 py-3">
                             {log.admin_username ??
                               (log.admin_user_id != null ? `#${log.admin_user_id}` : "-")}
                           </td>
-                          <td className="px-4 py-3">{getAuditActionLabel(log.action)}</td>
+                          <td className="px-4 py-3">{auditActionLabel(log.action)}</td>
                           <td className="px-4 py-3">
                             {log.resource_type}
                             {log.resource_id != null ? ` #${log.resource_id}` : ""}
@@ -157,7 +184,7 @@ export default function AdminAuditLogPage() {
                 {totalPages > 1 && (
                   <div className="mt-4 flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      {total} entrée(s) — Page {page + 1} / {totalPages}
+                      {t("pagination", { total, current: page + 1, pages: totalPages })}
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -167,7 +194,7 @@ export default function AdminAuditLogPage() {
                         disabled={page === 0}
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        Précédent
+                        {t("previous")}
                       </Button>
                       <Button
                         variant="outline"
@@ -175,7 +202,7 @@ export default function AdminAuditLogPage() {
                         onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                         disabled={page >= totalPages - 1}
                       >
-                        Suivant
+                        {t("next")}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>

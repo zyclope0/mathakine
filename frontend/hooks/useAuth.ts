@@ -82,7 +82,6 @@ export function useAuth() {
 
       Sentry.setUser({
         id: String(data.user.id),
-        username: data.user.username,
       });
 
       toast.success(t("loginSuccess"), {

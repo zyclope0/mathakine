@@ -3,15 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { WifiOff, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function OfflinePage() {
   const router = useRouter();
+  const t = useTranslations("offline");
 
   const handleRetry = () => {
     if (navigator.onLine) {
       router.refresh();
     } else {
-      // Attendre que la connexion revienne
       window.addEventListener(
         "online",
         () => {
@@ -32,20 +33,16 @@ export default function OfflinePage() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Hors ligne</h1>
-          <p className="text-muted-foreground">
-            Vous n&apos;êtes pas connecté à Internet. Vérifiez votre connexion et réessayez.
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("body")}</p>
         </div>
 
         <Button onClick={handleRetry} className="flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Réessayer
+          {t("retry")}
         </Button>
 
-        <p className="text-sm text-muted-foreground">
-          Certaines fonctionnalités peuvent être disponibles hors ligne grâce au cache.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("footer")}</p>
       </div>
     </div>
   );

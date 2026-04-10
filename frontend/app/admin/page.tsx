@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { AdminAcademyStatsSection } from "@/components/admin/AdminAcademyStatsSection";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ADMIN_ROUTE_ACCESS } from "@/lib/auth/routeAccess";
@@ -22,20 +23,8 @@ import { Users, BookOpen, Puzzle, Target, Download, BarChart3 } from "lucide-rea
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 
-const EXPORT_TYPES = [
-  { value: "users", label: "Utilisateurs" },
-  { value: "exercises", label: "Exercices" },
-  { value: "attempts", label: "Tentatives" },
-  { value: "overview", label: "Vue d'ensemble" },
-];
-
-const EXPORT_PERIODS = [
-  { value: "all", label: "Tout" },
-  { value: "30d", label: "30 derniers jours" },
-  { value: "7d", label: "7 derniers jours" },
-];
-
 export default function AdminPage() {
+  const t = useTranslations("adminPages.overview");
   const { overview, isLoading: overviewLoading, error } = useAdminOverview();
   const [exportType, setExportType] = useState("users");
   const [exportPeriod, setExportPeriod] = useState("all");
@@ -44,6 +33,27 @@ export default function AdminPage() {
 
   const { reports, isLoading: reportsLoading } = useAdminReports(reportsPeriod);
 
+  const exportTypes = useMemo(
+    () =>
+      [
+        { value: "users", label: t("export.types.users") },
+        { value: "exercises", label: t("export.types.exercises") },
+        { value: "attempts", label: t("export.types.attempts") },
+        { value: "overview", label: t("export.types.overview") },
+      ] as const,
+    [t]
+  );
+
+  const exportPeriods = useMemo(
+    () =>
+      [
+        { value: "all", label: t("export.periods.all") },
+        { value: "30d", label: t("export.periods.30d") },
+        { value: "7d", label: t("export.periods.7d") },
+      ] as const,
+    [t]
+  );
+
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -51,10 +61,10 @@ export default function AdminPage() {
         `/api/admin/export?type=${encodeURIComponent(exportType)}&period=${encodeURIComponent(exportPeriod)}`,
         `mathakine_export_${exportType}_${exportPeriod}.csv`
       );
-      toast.success("Export téléchargé");
+      toast.success(t("toast.exportSuccess"));
     } catch (err) {
-      toast.error("Erreur", {
-        description: err instanceof Error ? err.message : "Échec du téléchargement",
+      toast.error(t("toast.errorTitle"), {
+        description: err instanceof Error ? err.message : t("toast.downloadFailed"),
       });
     } finally {
       setIsExporting(false);
@@ -64,21 +74,21 @@ export default function AdminPage() {
   return (
     <ProtectedRoute allowedRoles={ADMIN_ROUTE_ACCESS.allowedRoles}>
       <PageLayout>
-        <PageHeader title="Espace Admin" description="Vue d'ensemble de la plateforme" />
+        <PageHeader title={t("title")} description={t("description")} />
 
         <PageSection>
           <AdminStatePanel
             hasError={!!error}
-            errorMessage="Erreur de chargement. Droits insuffisants ou API indisponible."
+            errorMessage={t("errorLoading")}
             isLoading={overviewLoading}
-            loadingMessage="Chargement..."
+            loadingMessage={t("loading")}
           >
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Link href="/admin/users">
                   <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("cards.users")}</CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -89,7 +99,7 @@ export default function AdminPage() {
                 <Link href="/admin/content">
                   <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">Exercices</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("cards.exercises")}</CardTitle>
                       <BookOpen className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -100,7 +110,7 @@ export default function AdminPage() {
                 <Link href="/admin/content">
                   <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">Défis</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("cards.challenges")}</CardTitle>
                       <Puzzle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -110,7 +120,7 @@ export default function AdminPage() {
                 </Link>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Tentatives</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t("cards.attempts")}</CardTitle>
                     <Target className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -125,11 +135,9 @@ export default function AdminPage() {
                 <CardHeader>
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
-                    Rapports par période
+                    {t("reports.title")}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Inscriptions, activité et taux de succès sur la période choisie.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t("reports.description")}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-3 items-end mb-4">
@@ -138,34 +146,38 @@ export default function AdminPage() {
                       onValueChange={(v) => setReportsPeriod(v as "7d" | "30d")}
                     >
                       <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Période" />
+                        <SelectValue placeholder={t("reports.periodPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="7d">7 derniers jours</SelectItem>
-                        <SelectItem value="30d">30 derniers jours</SelectItem>
+                        <SelectItem value="7d">{t("reports.period7d")}</SelectItem>
+                        <SelectItem value="30d">{t("reports.period30d")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   {reportsLoading ? (
-                    <p className="text-sm text-muted-foreground">Chargement...</p>
+                    <p className="text-sm text-muted-foreground">{t("reports.loading")}</p>
                   ) : reports ? (
                     <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
                       <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground">Inscriptions</p>
+                        <p className="text-xs text-muted-foreground">{t("reports.metricSignup")}</p>
                         <p className="text-xl font-bold">{reports.new_users}</p>
                       </div>
                       <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground">Utilisateurs actifs</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("reports.metricActiveUsers")}
+                        </p>
                         <p className="text-xl font-bold">{reports.active_users}</p>
                       </div>
                       <div className="rounded-lg border p-3">
                         <p className="text-xs text-muted-foreground">
-                          Tentatives (exercices + défis)
+                          {t("reports.metricAttempts")}
                         </p>
                         <p className="text-xl font-bold">{reports.total_attempts}</p>
                       </div>
                       <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground">Taux de succès</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("reports.metricSuccessRate")}
+                        </p>
                         <p className="text-xl font-bold">{reports.success_rate}%</p>
                       </div>
                     </div>
@@ -177,32 +189,30 @@ export default function AdminPage() {
                 <CardHeader>
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Download className="h-4 w-4" />
-                    Export CSV
+                    {t("export.title")}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Téléchargez les données au format CSV (max 10 000 lignes).
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t("export.description")}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-3 items-end">
                     <Select value={exportType} onValueChange={setExportType}>
                       <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Type" />
+                        <SelectValue placeholder={t("export.typePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXPORT_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
+                        {exportTypes.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <Select value={exportPeriod} onValueChange={setExportPeriod}>
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Période" />
+                        <SelectValue placeholder={t("export.periodPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXPORT_PERIODS.map((p) => (
+                        {exportPeriods.map((p) => (
                           <SelectItem key={p.value} value={p.value}>
                             {p.label}
                           </SelectItem>
@@ -210,7 +220,7 @@ export default function AdminPage() {
                       </SelectContent>
                     </Select>
                     <Button onClick={handleExport} disabled={isExporting}>
-                      {isExporting ? "Téléchargement..." : "Télécharger"}
+                      {isExporting ? t("export.downloading") : t("export.download")}
                     </Button>
                   </div>
                 </CardContent>

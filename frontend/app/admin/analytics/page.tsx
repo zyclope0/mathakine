@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,21 +16,32 @@ import { BarChart3, MousePointer, Clock, Zap, Target, Swords, Users } from "luci
 import Link from "next/link";
 import { AdminReadHeavyPageShell } from "@/components/admin/AdminReadHeavyPageShell";
 
-const EVENT_LABELS: Record<string, string> = {
-  quick_start_click: "Clic Quick Start",
-  first_attempt: "1er attempt",
-};
-
 const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   quick_start_click: MousePointer,
   first_attempt: Target,
 };
 
+function localeTag(locale: string): string {
+  return locale === "en" ? "en-US" : "fr-FR";
+}
+
 export default function AdminAnalyticsPage() {
+  const t = useTranslations("adminPages.analytics");
+  const locale = useLocale();
+  const dateLocale = localeTag(locale);
+
   const [period, setPeriod] = useState<"7d" | "30d">("7d");
   const [eventFilter, setEventFilter] = useState<string>("");
 
   const { data, isLoading, error } = useAdminEdTechAnalytics(period, eventFilter || undefined);
+
+  const eventLabels = useMemo(
+    () => ({
+      quick_start_click: t("eventQuickStart"),
+      first_attempt: t("eventFirstAttempt"),
+    }),
+    [t]
+  );
 
   const toolbar = (
     <>
@@ -38,8 +50,8 @@ export default function AdminAnalyticsPage() {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="7d">7 derniers jours</SelectItem>
-          <SelectItem value="30d">30 derniers jours</SelectItem>
+          <SelectItem value="7d">{t("period7d")}</SelectItem>
+          <SelectItem value="30d">{t("period30d")}</SelectItem>
         </SelectContent>
       </Select>
       <Select
@@ -47,12 +59,12 @@ export default function AdminAnalyticsPage() {
         onValueChange={(v) => setEventFilter(v === "all" ? "" : v)}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Tous les événements" />
+          <SelectValue placeholder={t("eventsPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Tous les événements</SelectItem>
-          <SelectItem value="quick_start_click">Clic Quick Start</SelectItem>
-          <SelectItem value="first_attempt">1er attempt</SelectItem>
+          <SelectItem value="all">{t("eventsAll")}</SelectItem>
+          <SelectItem value="quick_start_click">{t("eventQuickStart")}</SelectItem>
+          <SelectItem value="first_attempt">{t("eventFirstAttempt")}</SelectItem>
         </SelectContent>
       </Select>
     </>
@@ -60,47 +72,51 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminReadHeavyPageShell
-      title="Analytics EdTech"
-      description="CTR Quick Start, temps vers 1er attempt, conversion exercice/défi — données du bloc parcours guidé"
+      title={t("title")}
+      description={t("description")}
       toolbar={toolbar}
       hasError={!!error}
-      errorMessage="Erreur de chargement. Vérifiez vos droits admin."
+      errorMessage={t("errorLoading")}
       isLoading={isLoading}
-      loadingMessage="Chargement des analytics..."
+      loadingMessage={t("loading")}
       isEmpty={!error && !isLoading && !data}
-      emptyMessage="Aucune donnée."
+      emptyMessage={t("empty")}
     >
       {data ? (
         <div className="space-y-6">
-          {/* KPIs */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Utilisateurs uniques</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("kpi.uniqueUsers")}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">{data.unique_users ?? 0}</p>
-                <p className="text-xs text-muted-foreground">sur la période</p>
+                <p className="text-xs text-muted-foreground">{t("kpi.periodHint")}</p>
               </CardContent>
             </Card>
             {data.ctr_summary && data.ctr_summary.total_clicks > 0 && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Clics Quick Start</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("kpi.quickStartClicks")}</CardTitle>
                   <Zap className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{data.ctr_summary.total_clicks}</p>
                   <p className="text-xs text-muted-foreground">
-                    {data.ctr_summary.guided_clicks} guidés ({data.ctr_summary.guided_rate_pct}%)
+                    {t("ctrGuidedDetail", {
+                      guided: data.ctr_summary.guided_clicks,
+                      pct: data.ctr_summary.guided_rate_pct,
+                    })}
                   </p>
                   {data.ctr_summary.by_type &&
                     (data.ctr_summary.by_type.exercise > 0 ||
                       data.ctr_summary.by_type.challenge > 0) && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {data.ctr_summary.by_type.exercise} ex. /{" "}
-                        {data.ctr_summary.by_type.challenge} défis
+                        {t("exChallengesRow", {
+                          ex: data.ctr_summary.by_type.exercise,
+                          ch: data.ctr_summary.by_type.challenge,
+                        })}
                       </p>
                     )}
                 </CardContent>
@@ -109,7 +125,7 @@ export default function AdminAnalyticsPage() {
             {data.aggregates?.first_attempt && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">1ers attempts</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("kpi.firstAttempts")}</CardTitle>
                   <Target className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -117,17 +133,21 @@ export default function AdminAnalyticsPage() {
                   <p className="text-xs text-muted-foreground">
                     {data.aggregates.first_attempt.avg_time_to_first_attempt_ms != null &&
                     data.aggregates.first_attempt.avg_time_to_first_attempt_ms >= 0
-                      ? `~${Math.round(
-                          data.aggregates.first_attempt.avg_time_to_first_attempt_ms / 1000
-                        )}s en moyenne`
-                      : "—"}
+                      ? t("avgTimeApprox", {
+                          seconds: Math.round(
+                            data.aggregates.first_attempt.avg_time_to_first_attempt_ms / 1000
+                          ),
+                        })
+                      : t("dash")}
                   </p>
                   {data.aggregates.first_attempt.by_type &&
                     (data.aggregates.first_attempt.by_type.exercise > 0 ||
                       data.aggregates.first_attempt.by_type.challenge > 0) && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {data.aggregates.first_attempt.by_type.exercise} ex. /{" "}
-                        {data.aggregates.first_attempt.by_type.challenge} défis
+                        {t("exChallengesRow", {
+                          ex: data.aggregates.first_attempt.by_type.exercise,
+                          ch: data.aggregates.first_attempt.by_type.challenge,
+                        })}
                       </p>
                     )}
                 </CardContent>
@@ -136,9 +156,7 @@ export default function AdminAnalyticsPage() {
             {data.aggregates?.first_attempt?.avg_time_to_first_attempt_ms != null && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Temps moyen clic Quick Start → 1er attempt
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("kpi.avgTimeTitle")}</CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -146,45 +164,45 @@ export default function AdminAnalyticsPage() {
                     {Math.round(
                       (data.aggregates.first_attempt.avg_time_to_first_attempt_ms ?? 0) / 1000
                     )}
-                    s
+                    {t("kpi.secondsSuffix")}
                   </p>
-                  <p className="text-xs text-muted-foreground">depuis le clic Quick Start</p>
+                  <p className="text-xs text-muted-foreground">{t("kpi.fromQuickStart")}</p>
                 </CardContent>
               </Card>
             )}
           </div>
 
-          {/* Liste des événements */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Derniers événements
+                {t("eventsListTitle")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Période : {data.period} (depuis{" "}
-                {data.since ? new Date(data.since).toLocaleDateString("fr-FR") : "—"})
+                {t("periodLine", {
+                  period: data.period,
+                  since: data.since
+                    ? new Date(data.since).toLocaleDateString(dateLocale)
+                    : t("dash"),
+                })}
               </p>
             </CardHeader>
             <CardContent>
               {data.events.length === 0 ? (
                 <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
                   <BarChart3 className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>Aucun événement pour cette période.</p>
-                  <p className="mt-1 text-sm">
-                    Les événements sont collectés lorsqu&apos;un utilisateur clique sur Quick Start
-                    ou soumet un premier attempt.
-                  </p>
+                  <p>{t("emptyEventsTitle")}</p>
+                  <p className="mt-1 text-sm">{t("emptyEventsHint")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium">Date</th>
-                        <th className="px-4 py-3 text-left font-medium">Événement</th>
-                        <th className="px-4 py-3 text-left font-medium">User ID</th>
-                        <th className="px-4 py-3 text-left font-medium">Détails</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colDate")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colEvent")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colUserId")}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t("colDetails")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -200,17 +218,19 @@ export default function AdminAnalyticsPage() {
                           <tr key={item.id} className="border-b last:border-0 hover:bg-muted/50">
                             <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                               {item.created_at
-                                ? new Date(item.created_at).toLocaleString("fr-FR")
+                                ? new Date(item.created_at).toLocaleString(dateLocale)
                                 : "-"}
                             </td>
                             <td className="px-4 py-3">
                               <Badge variant="outline" className="flex w-fit items-center gap-1">
                                 <Icon className="h-3 w-3" />
-                                {EVENT_LABELS[item.event] ?? item.event}
+                                {eventLabels[item.event as keyof typeof eventLabels] ?? item.event}
                               </Badge>
                             </td>
                             <td className="px-4 py-3">
-                              {item.user_id ?? <span className="text-muted-foreground">—</span>}
+                              {item.user_id ?? (
+                                <span className="text-muted-foreground">{t("dash")}</span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap gap-2">
@@ -218,7 +238,7 @@ export default function AdminAnalyticsPage() {
                                   <Badge variant="secondary" className="text-xs">
                                     {type === "exercise" ? (
                                       <span className="flex items-center gap-1">
-                                        Exercice
+                                        {t("typeExercise")}
                                         {targetId && (
                                           <Link
                                             href={`/exercises/${targetId}`}
@@ -231,7 +251,7 @@ export default function AdminAnalyticsPage() {
                                     ) : (
                                       <span className="flex items-center gap-1">
                                         <Swords className="h-3 w-3" />
-                                        Défi
+                                        {t("typeChallenge")}
                                         {targetId && (
                                           <Link
                                             href={`/challenge/${targetId}`}
@@ -249,12 +269,12 @@ export default function AdminAnalyticsPage() {
                                     variant={guided ? "default" : "outline"}
                                     className="text-xs"
                                   >
-                                    {guided ? "Guidé" : "Libre"}
+                                    {guided ? t("guided") : t("free")}
                                   </Badge>
                                 )}
                                 {timeMs != null && timeMs >= 0 && (
                                   <span className="text-muted-foreground text-xs">
-                                    ~{Math.round(timeMs / 1000)}s
+                                    {t("timeApprox", { seconds: Math.round(timeMs / 1000) })}
                                   </span>
                                 )}
                               </div>

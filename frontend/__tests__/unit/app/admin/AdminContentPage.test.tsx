@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
 import React from "react";
+import fr from "@/messages/fr.json";
 
 const mockSearchGet = vi.fn();
 
@@ -118,9 +120,11 @@ function renderPage() {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={qc}>
-      <AdminContentPage />
-    </QueryClientProvider>
+    <NextIntlClientProvider locale="fr" messages={fr}>
+      <QueryClientProvider client={qc}>
+        <AdminContentPage />
+      </QueryClientProvider>
+    </NextIntlClientProvider>
   );
 }
 

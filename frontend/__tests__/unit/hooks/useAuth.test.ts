@@ -114,7 +114,6 @@ describe("useAuth", () => {
     expect(syncCsrfTokenToFrontend).toHaveBeenCalledWith("csrf");
     expect(Sentry.setUser).toHaveBeenCalledWith({
       id: "1",
-      username: "learner",
     });
     expect(toast.success).toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith("/home-learner");

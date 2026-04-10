@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+import fr from "@/messages/fr.json";
 
 import AdminAiMonitoringPage from "@/app/admin/ai-monitoring/page";
 
@@ -8,17 +10,6 @@ import {
   useAdminAiStats,
   useAdminGenerationMetrics,
 } from "@/hooks/useAdminAiStats";
-
-vi.mock("@/components/layout", () => ({
-  PageHeader: ({ title, description }: { title: string; description: string }) => (
-    <div>
-      <h1>{title}</h1>
-      <p>{description}</p>
-    </div>
-  ),
-  PageSection: ({ children }: { children: React.ReactNode }) => <section>{children}</section>,
-  LoadingState: ({ message }: { message: string }) => <div>{message}</div>,
-}));
 
 vi.mock("@/components/ui/card", () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -40,6 +31,14 @@ vi.mock("@/hooks/useAdminAiStats", () => ({
   useAdminGenerationMetrics: vi.fn(),
   useAdminAiEvalHarnessRuns: vi.fn(),
 }));
+
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <NextIntlClientProvider locale="fr" messages={fr}>
+      {children}
+    </NextIntlClientProvider>
+  );
+}
 
 describe("AdminAiMonitoringPage", () => {
   const emptyStats = {
@@ -99,7 +98,7 @@ describe("AdminAiMonitoringPage", () => {
     vi.mocked(useAdminGenerationMetrics).mockReturnValue(emptyMetrics);
     vi.mocked(useAdminAiEvalHarnessRuns).mockReturnValue(emptyHarness);
 
-    render(<AdminAiMonitoringPage />);
+    render(<AdminAiMonitoringPage />, { wrapper: TestWrapper });
     expect(
       screen.getByText("Erreur de chargement. Verifiez vos droits admin.")
     ).toBeInTheDocument();
@@ -113,7 +112,7 @@ describe("AdminAiMonitoringPage", () => {
     vi.mocked(useAdminGenerationMetrics).mockReturnValue(emptyMetrics);
     vi.mocked(useAdminAiEvalHarnessRuns).mockReturnValue(emptyHarness);
 
-    render(<AdminAiMonitoringPage />);
+    render(<AdminAiMonitoringPage />, { wrapper: TestWrapper });
     expect(screen.getByText("Chargement du monitoring IA...")).toBeInTheDocument();
   });
 
@@ -198,7 +197,7 @@ describe("AdminAiMonitoringPage", () => {
       refetch: vi.fn(),
     } as ReturnType<typeof useAdminAiEvalHarnessRuns>);
 
-    render(<AdminAiMonitoringPage />);
+    render(<AdminAiMonitoringPage />, { wrapper: TestWrapper });
 
     expect(screen.getAllByText(/Assistant chat/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Erreurs observees")).toBeInTheDocument();

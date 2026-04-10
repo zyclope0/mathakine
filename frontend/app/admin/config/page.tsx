@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ function ConfigEditor({
   onSave: (local: Record<string, boolean | number | string>) => Promise<void>;
   isUpdating: boolean;
 }) {
+  const t = useTranslations("adminPages.config");
   const [local, setLocal] = useState<Record<string, boolean | number | string>>(() =>
     buildInitFromSettings(settings)
   );
@@ -62,9 +64,9 @@ function ConfigEditor({
     try {
       await onSave(local);
       setDirty(false);
-      toast.success("Paramètres enregistrés");
+      toast.success(t("toastSuccess"));
     } catch {
-      toast.error("Erreur lors de l'enregistrement");
+      toast.error(t("toastError"));
     }
   };
 
@@ -73,13 +75,13 @@ function ConfigEditor({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Paramètres globaux"
-        description="Configuration du Temple — limites, features flags, maintenance."
+        title={t("title")}
+        description={t("description")}
         icon={Settings}
         actions={
           dirty ? (
             <Button onClick={handleSave} disabled={isUpdating}>
-              {isUpdating ? "Enregistrement…" : "Enregistrer"}
+              {isUpdating ? t("saving") : t("save")}
             </Button>
           ) : null
         }
@@ -136,6 +138,7 @@ function ConfigEditor({
 }
 
 export default function AdminConfigPage() {
+  const t = useTranslations("adminPages.config");
   const { settings, isLoading, error, updateSettings, isUpdating } = useAdminConfig();
 
   const handleSave = async (local: Record<string, boolean | number | string>) => {
@@ -146,7 +149,7 @@ export default function AdminConfigPage() {
   if (error)
     return (
       <PageSection>
-        <p className="text-destructive">Impossible de charger les paramètres.</p>
+        <p className="text-destructive">{t("errorLoad")}</p>
       </PageSection>
     );
 

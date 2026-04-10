@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project governance and traceability index
-> Updated: 09/04/2026
+> Updated: 10/04/2026
 
 ## Purpose
 
@@ -30,11 +30,12 @@ It is no longer the place for the single active tracker of ongoing work.
 | [../../.claude/session-plan.md](../../.claude/session-plan.md)                                                                                                       | active execution order for frontend and cross-cutting lots          |
 | [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)                                                                               | active product prioritization                                       |
 | [AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md](./AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md)                                                                       | active frontend architecture/debt reference                         |
+| [AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md)                                                                   | active frontend quality snapshot and targeted follow-up tracker     |
 | [archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./archives/AUDITS_AND_REVIEWS_2026-03/AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md) | historical audit only; rationale and original findings, not backlog |
 
 Latest active frontend audit checkpoint:
 
-- `2026-04-09` : structural sequence `FFI-L1` à `FFI-L18B` considered closed; `FFI-L20A`–`FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02**, **CHAT-I18N-03**, **CHAT-LOG-04**, **LINT-STRICT-05**, **E2E-CORE-06** (minimal), **SSE-DRY-07**, **CSP-HARDEN-08** and **OG-META-09** are closed; there is no next named lot in `session-plan.md`.
+- `2026-04-10` : active frontend quality snapshot is [AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md) ; structural sequence `FFI-L1` to `FFI-L18B` considered closed; `FFI-L20A` to `FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02**, **CHAT-I18N-03**, **CHAT-LOG-04**, **LINT-STRICT-05**, **E2E-CORE-06** (minimal), **SSE-DRY-07**, **CSP-HARDEN-08**, **OG-META-09**, **QF-01** and **QF-02** are closed; there is no next named lot in `session-plan.md`.
 
 ## Active Root Documents
 
@@ -46,7 +47,7 @@ Latest active frontend audit checkpoint:
 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)                 | implementation note for interleaved sessions                                   |
 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)                   | implementation note for DB log redaction                                       |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                            |
-| [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | 429 `validate-token` : diagnostic + correctif FFI-L19A (quota dédié 90/min IP) |
+| [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | 429 `validate-token` : diagnostic + correctif FFI-L19A (quota dedie 90/min IP) |
 
 ## Archive Buckets
 

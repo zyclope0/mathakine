@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAdminContentPageController } from "@/hooks/useAdminContentPageController";
 import { PageHeader, PageSection } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,12 +11,13 @@ import { AdminChallengesSection } from "@/components/admin/content/AdminChalleng
 import { AdminBadgesSection } from "@/components/admin/content/AdminBadgesSection";
 
 export default function AdminContentPage() {
+  const t = useTranslations("adminPages.content");
   const searchParams = useSearchParams();
   const { defaultTab, editId } = useAdminContentPageController(searchParams);
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Contenu" description="Exercices, défis logiques et badges — archivage" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <PageSection>
         <Card>
