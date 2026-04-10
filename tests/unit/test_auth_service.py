@@ -18,6 +18,7 @@ from app.core.user_roles import serialize_user_role
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth.auth_service import (
+    ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS,
     authenticate_user,
     authenticate_user_with_session,
     create_registered_user_with_verification,
@@ -35,14 +36,12 @@ from app.services.auth.auth_service import (
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 from tests.utils.test_helpers import (
     adapted_dict_to_user,
-    dict_to_user,
     unique_email,
     unique_username,
 )
 
 
-# Fonction utilitaire pour convertir un dictionnaire en User
-def dict_to_user(user_data):
+def _unused_legacy_dict_to_user(user_data):
     """Convertit les données de dictionnaire en objet User."""
     # S'assurer que le rôle est adapté pour PostgreSQL
     from sqlalchemy import create_engine
@@ -725,7 +724,61 @@ def test_recover_refresh_token_from_access_token_valid_user(db_session, mock_use
     assert len(refresh_token) > 20
 
 
+def test_recover_refresh_token_from_access_token_expired_within_grace(
+    db_session, mock_user
+):
+    """Access expiré depuis < ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS → refresh émis."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    expired_at = datetime.now(timezone.utc) - timedelta(minutes=30)
+    exp_ts = int(expired_at.timestamp())
+    access_token = jwt.encode(
+        {
+            "sub": user.username,
+            "type": "access",
+            "iat": exp_ts - 900,
+            "exp": exp_ts,
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    refresh_token = recover_refresh_token_from_access_token(db_session, access_token)
+
+    assert isinstance(refresh_token, str)
+    assert len(refresh_token) > 20
+
+
+def test_recover_refresh_token_from_access_token_expired_beyond_grace(
+    db_session, mock_user
+):
+    """Access expiré depuis > fenêtre de grâce → refus (AUTH-FALLBACK-02)."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    expired_at = datetime.now(timezone.utc) - timedelta(hours=2)
+    exp_ts = int(expired_at.timestamp())
+    access_token = jwt.encode(
+        {
+            "sub": user.username,
+            "type": "access",
+            "iat": exp_ts - 3600,
+            "exp": exp_ts,
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, access_token) is None
+
+
 def test_recover_refresh_token_from_access_token_too_old(db_session):
+    """Très vieux token (>> 1h après exp) → refus même sans utilisateur en base."""
     stale_token = jwt.encode(
         {
             "sub": "stale_user",
@@ -739,6 +792,100 @@ def test_recover_refresh_token_from_access_token_too_old(db_session):
     refresh_token = recover_refresh_token_from_access_token(db_session, stale_token)
 
     assert refresh_token is None
+
+
+def test_recover_refresh_token_from_access_token_missing_exp(db_session, mock_user):
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    token_no_exp = jwt.encode(
+        {"sub": user.username, "type": "access"},
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, token_no_exp) is None
+
+
+def test_recover_refresh_token_from_access_token_missing_sub(db_session):
+    exp_ts = int(datetime.now(timezone.utc).timestamp())
+    token_no_sub = jwt.encode(
+        {"type": "access", "exp": exp_ts},
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, token_no_sub) is None
+
+
+def test_recover_refresh_token_from_access_token_user_not_found(db_session):
+    exp_ts = int((datetime.now(timezone.utc) - timedelta(minutes=5)).timestamp())
+    token = jwt.encode(
+        {
+            "sub": "user_absent_for_fallback_xyz",
+            "type": "access",
+            "iat": exp_ts - 600,
+            "exp": exp_ts,
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, token) is None
+
+
+def test_recover_refresh_token_from_access_token_inactive_user(db_session, mock_user):
+    user_data = mock_user(is_active=False)
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    exp_ts = int((datetime.now(timezone.utc) - timedelta(minutes=5)).timestamp())
+    access_token = jwt.encode(
+        {
+            "sub": user.username,
+            "type": "access",
+            "iat": exp_ts - 600,
+            "exp": exp_ts,
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, access_token) is None
+
+
+def test_recover_refresh_token_from_access_token_wider_max_age_override(
+    db_session, mock_user
+):
+    """Défaut = ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS ; surcharge élargie encore acceptée."""
+    assert ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS == 3600
+
+    user_data = mock_user(username="wider_window_user")
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    expired_at = datetime.now(timezone.utc) - timedelta(hours=2)
+    exp_ts = int(expired_at.timestamp())
+    access_token = jwt.encode(
+        {
+            "sub": user.username,
+            "type": "access",
+            "iat": exp_ts - 3600,
+            "exp": exp_ts,
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    assert recover_refresh_token_from_access_token(db_session, access_token) is None
+    refresh = recover_refresh_token_from_access_token(
+        db_session, access_token, max_age_seconds=3 * 3600
+    )
+    assert isinstance(refresh, str)
 
 
 def test_create_user_with_full_profile_data(db_session):

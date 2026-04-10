@@ -40,6 +40,10 @@ from app.utils.email_verification import (
 
 logger = get_logger(__name__)
 
+# AUTH-FALLBACK-02: grace window for refresh recovery from an expired access JWT only.
+# Previously 7d — excessively long reuse surface; 1h balances legacy clients vs risk.
+ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS = 3600
+
 
 def _is_token_revoked_by_password_reset(payload: dict, user: User) -> bool:
     """
@@ -614,13 +618,14 @@ def recover_refresh_token_from_access_token(
     db: Session,
     access_token: str,
     *,
-    max_age_seconds: int = 7 * 24 * 3600,
+    max_age_seconds: int = ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS,
 ) -> Optional[str]:
     """
     Récupère un refresh token pour un utilisateur existant à partir d'un access token.
 
     Utilisé comme chemin de compatibilité quand seul l'access_token historique est
-    encore présent côté client.
+    encore présent côté client. Le token peut être expiré, mais seulement depuis
+    au plus ``max_age_seconds`` (défaut : ``ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS``).
     """
     try:
         payload = jwt.decode(
@@ -630,7 +635,7 @@ def recover_refresh_token_from_access_token(
             options={"verify_exp": False},
         )
     except JWTError:
-        logger.debug("Fallback refresh refusé: access_token invalide", exc_info=True)
+        logger.debug("Fallback refresh refusé: access_token invalide")
         return None
 
     exp = payload.get("exp")

@@ -204,6 +204,11 @@ def setup_test_environment():
     AiEvalHarnessCaseResult.__table__.create(bind=imported_engine, checkfirst=True)
     # SR F04 : recréer pour suivre le modèle ORM (ex. exercise_id NOT NULL + CASCADE)
     SpacedRepetitionItem.__table__.drop(bind=imported_engine, checkfirst=True)
+    if imported_engine.dialect.name == "postgresql":
+        with imported_engine.begin() as connection:
+            connection.execute(
+                text("DROP TYPE IF EXISTS spaced_repetition_items CASCADE")
+            )
     SpacedRepetitionItem.__table__.create(bind=imported_engine, checkfirst=True)
 
     engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)

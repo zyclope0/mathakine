@@ -1,12 +1,20 @@
 """
-Tests d'authentification pour vérifier l'absence de fallback refresh token.
-Phase 4 - Sécurité : Vérifier que le fallback avec verify_exp=False a bien été supprimé.
+Tests d'authentification autour du flux POST /api/auth/refresh.
 
-Ces tests garantissent que :
-1. Un refresh token manquant retourne 401 (pas de fallback avec access_token expiré)
-2. Un refresh token expiré retourne 401 (pas de création de nouveau refresh)
-3. Un refresh token invalide retourne 401
-4. Un access token expiré ne peut pas créer un nouveau refresh token
+Le handler refuse les refresh absents / expirés / invalides. Quand aucun refresh n'est
+fourni (body ni cookie), un chemin de compatibilité peut dériver un refresh depuis le
+cookie ``access_token`` (``recover_refresh_token_fallback``) — fenêtre réduite
+(AUTH-FALLBACK-02 : ``ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS``).
+
+Les scénarios ci-dessous qui envoient ``refresh_token`` dans le JSON passent par
+``refresh_access_token`` (décodage ``verify_exp=True``, type ``refresh`` requis), pas par
+ce fallback.
+
+Ces tests garantissent notamment :
+1. Refresh manquant → 401
+2. Refresh expiré → 401
+3. Refresh invalide → 401
+4. Corps ``refresh_token`` = access JWT expiré → 401 (rejet côté ``refresh_access_token``)
 """
 
 import uuid
@@ -216,9 +224,9 @@ async def test_refresh_token_invalid_returns_401(client):
 
 async def test_no_fallback_with_expired_access_token(client, test_user_with_tokens):
     """
-    Test SEC-1.2 : Access token expiré ne crée pas de nouveau refresh
-    Vérifie qu'un access token expiré ne peut pas être utilisé comme fallback
-    pour créer un nouveau refresh_token (vulnérabilité corrigée).
+    Corps JSON ``refresh_token`` = access JWT expiré → ``refresh_access_token`` rejette
+    (signature expirée / type != refresh). Ne couvre pas le chemin cookie-only +
+    ``recover_refresh_token_fallback`` (voir tests unitaires AUTH-FALLBACK-02).
     """
     # Créer un access token expiré manuellement
     payload = {

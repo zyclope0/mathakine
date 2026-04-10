@@ -112,6 +112,8 @@ def recover_refresh_token_fallback(access_token: str) -> Optional[str]:
     """
     Recupere un refresh token a partir d'un access token (compatibilite historique).
     Utilise quand le client n'a plus que l'access_token en cookie.
+    Fenetre de grace sur access expire : voir ``ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS``
+    dans ``auth_service`` (AUTH-FALLBACK-02).
     Sync - execute via run_db_bound() depuis les handlers async.
     """
     if not access_token or not access_token.strip():

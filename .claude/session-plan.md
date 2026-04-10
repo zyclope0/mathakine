@@ -213,6 +213,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : `tests/unit/test_logging_config_uncaught.py`, `tests/unit/test_secure_headers_middleware.py`, `test_permissions_policy_header_present` dans `tests/api/test_base_endpoints.py`.
 - **Vérifs** : `pytest` ciblé, `black` / `isort` / `flake8` (E9,F63,F7,F82) / `mypy` sur fichiers touchés ; `README_TECH.md` + ce fichier.
 
+### AUTH-FALLBACK-02 (2026-04-10) - fermé
+
+- **Fallback refresh** (`recover_refresh_token_from_access_token` dans `app/services/auth/auth_service.py`) : fenêtre de grâce sur **access JWT expiré** réduite de **7 jours** à **3600 s** (constante **`ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS`**) ; même signature publique, paramètre **`max_age_seconds`** toujours surchargeable ; pas de changement d’endpoints ; `recover_refresh_token_fallback` documenté dans `auth_session_service.py`.
+- **Logging** : refus pour JWT invalide en **`debug`** sans **`exc_info`** (pas de stack brute).
+- **Tests** : `tests/unit/test_auth_service.py` — accepté si expiré &lt; 1h, refus si &gt; 1h, sans `exp` / sans `sub`, user absent ou inactif, override `max_age_seconds` ; ancien scénario « très vieux token » conservé. Docstring `tests/integration/test_auth_no_fallback.py` réalignée (flux body `refresh_token` vs fallback cookie).
+- **Vérifs** : `pytest -k recover_refresh_token_from_access_token`, `black` / `isort` / `flake8` (E9,F63,F7,F82), `mypy` sur `app/services/auth/auth_service.py` + `auth_session_service.py` ; `README_TECH.md` + ce fichier.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
