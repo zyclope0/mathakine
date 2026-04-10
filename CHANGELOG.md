@@ -31,16 +31,22 @@ Visible product versioning policy:
 
 Active references:
 
-- [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
-- [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [`runtime + contracts recap`](docs/03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [`production hardening recap`](docs/03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
 - [`security / boundaries archive`](docs/03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
 - [`iteration E archive`](docs/03-PROJECT/archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md)
 - [`iteration F archive`](docs/03-PROJECT/archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md)
-- [`active remaining follow-ups`](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+- [`remaining follow-ups tracker (archived)`](docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md)
 
 ## [Unreleased]
 
 ### Changed
+
+- Documentation truth was realigned across the active root/frontend/project guides:
+  - active docs no longer point to removed root files such as `POINTS_RESTANTS_2026-03-15.md`, `BILAN_*`, `RECOMMENDATION_R7_*`, or `PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md`; references now target the correct archive buckets
+  - root/project/frontend guides now reflect the closure of frontend quality lots through `QF-07B`
+  - active i18n guides now distinguish the hard gate (`i18n:validate` + `i18n:check`) from the broader repository-wide `i18n:extract` audit
+  - active test/readme docs now reflect authenticated Chromium E2E coverage, realistic coverage thresholds, and CSP nonce hardening
 
 - Project hygiene and documentation governance were tightened without changing runtime behavior:
   - the historical frontend industrialization audit was moved out of `docs/03-PROJECT/` root into `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/`
@@ -360,7 +366,7 @@ Active references:
   - `app/services/enhanced_server_adapter.py` isolated as explicit compatibility legacy
 - The runtime/data boundary is now formalized through `app/core/db_boundary.py`.
 - Targeted test proof was strengthened on the badge requirement validation and `db_utils` seams.
-- Active technical docs now reflect the post-F baseline and keep `POINTS_RESTANTS_2026-03-15.md` as the synthesis tracker.
+- Active technical docs now reflect the post-F baseline and point to the archived `POINTS_RESTANTS_2026-03-15.md` tracker instead of a removed root file.
 - Lots G (Residual Contracts and Cleanup) are now closed: G1 `AuthenticateWithSessionResult`, G2 success_rate cluster in volume, G3 admin exercise create flow, G4 sync_db_session via db_boundary (19 services).
 
 ### Fixed

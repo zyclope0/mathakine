@@ -25,13 +25,13 @@ Ce guide décrit les procédures de maintenance régulières pour assurer la sta
 
 ### Fréquence recommandée
 
-| Tâche | Fréquence | Criticité |
-|-------|-----------|-----------|
-| Tests de charge | Hebdomadaire | 🔴 Critique |
-| Vérifications sécurité | Mensuelle | 🔴 Critique |
-| **Revue documentation (vérité terrain)** | **Trimestrielle** | 🟡 Important |
-| Review logs | Quotidienne | 🟡 Important |
-| Optimisation DB | Trimestrielle | 🟢 Informatif |
+| Tâche                                    | Fréquence         | Criticité     |
+| ---------------------------------------- | ----------------- | ------------- |
+| Tests de charge                          | Hebdomadaire      | 🔴 Critique   |
+| Vérifications sécurité                   | Mensuelle         | 🔴 Critique   |
+| **Revue documentation (vérité terrain)** | **Trimestrielle** | 🟡 Important  |
+| Review logs                              | Quotidienne       | 🟡 Important  |
+| Optimisation DB                          | Trimestrielle     | 🟢 Informatif |
 
 > **Revue vérité terrain** : aligner README, README_TECH et docs de référence avec le code (routes API, versions, modèles). Voir [CONVENTION_DOCUMENTATION.md](../CONVENTION_DOCUMENTATION.md) §7.
 
@@ -70,11 +70,13 @@ python scripts/load/run_load_tests.py --level standard
 #### 3. Analyser les résultats
 
 **Métriques à surveiller** :
+
 - `http_req_duration` : Temps de réponse (p95 < 400ms pour auth, < 250ms pour refresh)
 - `http_req_failed` : Taux d'échec (< 1%)
 - `success_rate` : Taux de succès (> 99%)
 
 **Actions si échec** :
+
 1. Identifier le scénario en échec
 2. Vérifier les logs du backend
 3. Analyser les métriques système (CPU, mémoire)
@@ -139,9 +141,10 @@ done
 ```
 
 **Actions si échec** :
+
 1. Consulter l'audit sécurité : [AUDIT_SECURITE_APPLICATIVE_2026-02](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md)
 2. Corriger les vulnérabilités identifiées
-4. Réexécuter les vérifications
+3. Réexécuter les vérifications
 
 ---
 
@@ -177,6 +180,7 @@ python scripts/verify_migration_counters.py
 ### Alertes recommandées
 
 Configurer des alertes pour :
+
 - CPU > 80% pendant > 5 minutes
 - Mémoire > 85% pendant > 5 minutes
 - Taux d'erreur HTTP > 1%
@@ -222,14 +226,17 @@ python scripts/pre_deploy_check.py
 ```
 
 **Résultat attendu** :
+
 ```
 ✅ Toutes les vérifications sont passées
 ```
 
 Si échec :
+
 ```
 ❌ Déploiement bloqué (erreurs critiques)
 ```
+
 → Corriger les erreurs avant de déployer
 
 ---
@@ -239,10 +246,12 @@ Si échec :
 ### Problème : Tests de charge échouent
 
 **Symptômes** :
+
 - `http_req_failed > 1%`
 - `http_req_duration` p95 > seuils
 
 **Diagnostic** :
+
 ```bash
 # 1. Vérifier que le backend est démarré
 curl http://localhost:10000/health
@@ -255,6 +264,7 @@ tail -f logs/app.log
 ```
 
 **Solutions** :
+
 - Augmenter les ressources (CPU/RAM)
 - Optimiser les requêtes DB lentes
 - Vérifier la configuration du pool de connexions
@@ -263,9 +273,11 @@ tail -f logs/app.log
 ### Problème : Scripts de sécurité échouent
 
 **Symptômes** :
+
 - Un script de sécurité retourne une erreur
 
 **Diagnostic** :
+
 ```bash
 # Exécuter le script avec verbose
 python scripts/security/check_sensitive_logs.py -v
@@ -275,6 +287,7 @@ grep -r "logger.debug" app/
 ```
 
 **Solutions** :
+
 - Consulter `docs/03-PROJECT/SUIVI_IMPLEMENTATION_SECURITE.md`
 - Appliquer les corrections recommandées
 - Réexécuter les scripts
@@ -282,10 +295,12 @@ grep -r "logger.debug" app/
 ### Problème : Performance dégradée
 
 **Symptômes** :
+
 - Temps de réponse augmentent
 - CPU/mémoire élevés
 
 **Diagnostic** :
+
 ```bash
 # Benchmark des endpoints critiques
 python scripts/performance/benchmark_challenges_list.py
@@ -295,6 +310,7 @@ python scripts/performance/benchmark_challenges_list.py
 ```
 
 **Solutions** :
+
 - Ajouter des index manquants
 - Optimiser les requêtes N+1
 - Mettre en cache les données fréquentes
@@ -306,7 +322,7 @@ python scripts/performance/benchmark_challenges_list.py
 
 ### Documentation
 
-- [Guide de déploiement](DEPLOYMENT.md)
+- [Guide de déploiement](DEPLOYMENT_ENV.md)
 - [Architecture](../00-REFERENCE/ARCHITECTURE.md)
 - [Audit sécurité applicative](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md)
 
@@ -351,4 +367,3 @@ python scripts/performance/benchmark_challenges_list.py
 
 **Dernière mise à jour** : 6 Décembre 2025  
 **Prochaine review** : 6 Janvier 2026
-

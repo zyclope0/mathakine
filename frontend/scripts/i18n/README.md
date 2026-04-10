@@ -1,225 +1,111 @@
-# 🌐 Scripts i18n - Vérification Automatique
+# Scripts i18n - Verification automatique
 
-Scripts pour industrialiser la gestion des traductions dans Mathakine.
+Updated : 2026-04-10
+
+Scripts de verification pour les messages FR/EN du frontend.
 
 ---
 
-## 📋 **Scripts Disponibles**
+## Scripts disponibles
 
-### **1. `check-translations.js`**
+### `npm run i18n:validate`
 
-Vérifie la cohérence entre les fichiers de traduction FR et EN.
+Valide :
 
-**Utilisation** :
+- syntaxe JSON
+- profondeur des cles
+- valeurs vides
+- structure generale des fichiers
+
+### `npm run i18n:check`
+
+Verifie :
+
+- memes cles en FR et EN
+- structure identique
+- absence de cles orphelines
+
+### `npm run i18n:extract`
+
+Audit global :
+
+- scanne le code pour detecter des hardcodes probables
+- genere `hardcoded-texts-report.json`
+- peut remonter des points hors du lot courant
+
+### `npm run i18n:all`
+
+Enchaine :
+
+1. `i18n:validate`
+2. `i18n:check`
+3. `i18n:extract`
+
+---
+
+## Usage recommande
+
+### Verification minimale avant commit pour un lot i18n cible
 
 ```bash
+cd frontend
+npm run i18n:validate
 npm run i18n:check
 ```
 
-**Vérifications** :
-
-- ✅ Toutes les clés FR existent en EN
-- ✅ Toutes les clés EN existent en FR
-- ✅ Structure identique entre les deux fichiers
-- ✅ Détection des clés orphelines
-
-**Exemple de sortie** :
-
-```
-🔍 Vérification des traductions...
-
-📊 Statistiques:
-   - Clés FR: 281
-   - Clés EN: 281
-
-✅ Toutes les traductions sont cohérentes !
-   - 281 clés vérifiées
-   - Structure identique entre FR et EN
-```
-
----
-
-### **2. `extract-hardcoded.js`**
-
-Détecte les textes français hardcodés dans le code.
-
-**Utilisation** :
+### Audit global ponctuel
 
 ```bash
+cd frontend
+npm run i18n:all
+```
+
+ou
+
+```bash
+cd frontend
 npm run i18n:extract
 ```
 
-**Fonctionnalités** :
+Important :
 
-- 🔍 Scan des fichiers `.tsx`, `.ts`, `.jsx`, `.js`
-- 📝 Détection des textes français (accents, mots courants)
-- 💡 Suggestion de namespace approprié
-- 📄 Génération d'un rapport JSON
-
-**Exemple de sortie** :
-
-```
-🔍 Extraction des textes hardcodés...
-
-📁 Scan de app/...
-📁 Scan de components/...
-
-📊 Résultats:
-   - 15 textes hardcodés détectés
-
-📝 Textes hardcodés détectés:
-
-📄 app/login/page.tsx
-   Namespace suggéré: auth
-   Ligne 48: "Connexion"
-   Contexte: <CardTitle>Connexion</CardTitle>
-   ...
-```
-
-**Rapport généré** : `hardcoded-texts-report.json`
+- `i18n:all` n'est pas toujours un gate strict de lot, car `extract` peut signaler des hardcodes non traites ailleurs dans le repo
+- pour une cloture de lot scope, `validate` + `check` sont la base fiable
 
 ---
 
-### **3. `validate-structure.js`**
+## Workflow
 
-Valide la structure et la syntaxe des fichiers de traduction.
-
-**Utilisation** :
-
-```bash
-npm run i18n:validate
-```
-
-**Vérifications** :
-
-- ✅ Syntaxe JSON valide
-- ✅ Profondeur maximale
-- ✅ Nombre de clés
-- ✅ Valeurs vides
-- ✅ Comparaison FR/EN
-
-**Exemple de sortie** :
-
-```
-🔍 Validation de la structure des traductions...
-
-📄 Validation de fr.json...
-   ✅ Syntaxe JSON valide
-   📊 Profondeur maximale: 3
-   📊 Nombre de clés: 281
-
-📄 Validation de en.json...
-   ✅ Syntaxe JSON valide
-   📊 Profondeur maximale: 3
-   📊 Nombre de clés: 281
-
-🔍 Comparaison des structures...
-   ✅ Profondeurs identiques: 3
-   ✅ Nombre de clés identique: 281
-
-✅ Structure valide et cohérente !
-```
+1. ajouter ou modifier les cles dans `frontend/messages/fr.json`
+2. mirrorer la structure dans `frontend/messages/en.json`
+3. brancher la cle via `useTranslations(...)`
+4. lancer `i18n:validate`
+5. lancer `i18n:check`
+6. lancer `i18n:extract` si tu veux un audit global plus large
 
 ---
 
-## 🚀 **Utilisation Combinée**
+## Documentation
 
-Exécuter tous les scripts en une seule commande :
-
-```bash
-npm run i18n:all
-```
-
-Cette commande exécute dans l'ordre :
-
-1. `validate-structure.js` - Valide la structure
-2. `check-translations.js` - Vérifie la cohérence
-3. `extract-hardcoded.js` - Détecte les textes hardcodés
+- `../../docs/02-FEATURES/I18N.md`
+- `../../docs/01-GUIDES/I18N_CONTRIBUTION.md`
 
 ---
 
-## 📝 **Workflow Recommandé**
+## Troubleshooting
 
-### **Avant d'ajouter des traductions** :
+### `Cannot find module`
 
-1. Valider la structure actuelle :
-
-   ```bash
-   npm run i18n:validate
-   ```
-
-2. Vérifier la cohérence :
-   ```bash
-   npm run i18n:check
-   ```
-
-### **Après avoir ajouté des traductions** :
-
-1. Valider la nouvelle structure :
-
-   ```bash
-   npm run i18n:validate
-   ```
-
-2. Vérifier la cohérence :
-
-   ```bash
-   npm run i18n:check
-   ```
-
-3. Vérifier qu'il n'y a plus de textes hardcodés :
-   ```bash
-   npm run i18n:extract
-   ```
-
-### **Avant un commit** :
-
-```bash
-npm run i18n:all
-```
-
-Assurez-vous que tous les scripts passent avant de committer.
-
----
-
-## 🔧 **Intégration CI/CD**
-
-Ces scripts peuvent être intégrés dans votre pipeline CI/CD :
-
-```yaml
-# Exemple GitHub Actions
-- name: Check translations
-  run: npm run i18n:all
-```
-
----
-
-## 📚 **Documentation**
-
-- **Guide i18n** : `docs/development/I18N_GUIDE.md`
-- **Workflow i18n** : `docs/development/I18N_WORKFLOW.md`
-
----
-
-## 🐛 **Dépannage**
-
-### **Erreur : "Cannot find module"**
-
-Assurez-vous d'exécuter les scripts depuis le dossier `frontend/` :
+Executer les scripts depuis `frontend/` :
 
 ```bash
 cd frontend
 npm run i18n:check
 ```
 
-### **Erreur : "SyntaxError: Unexpected token"**
-
-Vérifiez que les fichiers JSON sont valides :
+### `SyntaxError` JSON
 
 ```bash
+cd frontend
 npm run i18n:validate
 ```
-
----
-
-**Dernière mise à jour** : Janvier 2025

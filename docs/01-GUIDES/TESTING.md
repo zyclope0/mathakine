@@ -69,6 +69,7 @@ python -m pytest tests/ --ignore=tests/archives/ --ignore=tests/api/test_admin_a
 ## Typing In CI
 
 Current state:
+
 - CI still runs `mypy app/ server/ --ignore-missing-imports`
 - the project complements this with stricter per-module overrides in `pyproject.toml`
 - stricter islands already enabled on:
@@ -89,11 +90,13 @@ This test is not a standard gate. It launches `pytest` from inside `pytest`, so 
 Do not launch multiple coverage-bearing `pytest` commands at the same time on Windows.
 
 Typical symptoms:
+
 - `PermissionError` on `.coverage`
 - a red run with no causal relation to the changed code
 - a failure that disappears when the same test battery is rerun with isolated coverage output
 
 Correct handling:
+
 - treat it as a tooling false positive, not as runtime proof
 - for repeated coverage reruns, use a dedicated `COVERAGE_FILE` per run
 
@@ -153,6 +156,7 @@ pytest -q tests/api/test_admin_ai_stats.py tests/api/test_admin_analytics.py tes
 ## GO Rules
 
 A lot is `GO` only if:
+
 - touched endpoints or flows are listed
 - touched runtime files are listed
 - the target battery passes twice
@@ -165,5 +169,5 @@ A lot is `GO` only if:
 - [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md)
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - [../../README_TECH.md](../../README_TECH.md)
-- [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
-- [../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md)

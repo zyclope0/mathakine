@@ -15,6 +15,8 @@ const release =
   process.env.NEXT_PUBLIC_SENTRY_RELEASE ||
   process.env.RENDER_GIT_COMMIT;
 
+// Optional Sentry widgets that inject inline script/style are not enabled; if added later,
+// read the internal `x-nonce` request header via `headers()` from a nested async layout (see `middlewareCsp.ts`).
 Sentry.init({
   dsn,
   environment: process.env.NODE_ENV,

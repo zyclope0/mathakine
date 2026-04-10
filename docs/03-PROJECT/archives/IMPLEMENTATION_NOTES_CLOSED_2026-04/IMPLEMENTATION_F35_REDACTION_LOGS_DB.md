@@ -2,7 +2,7 @@
 
 ## Statut
 
-- Statut : Implemente le 07/03/2026
+- Statut : Implemente le 07/03/2026, archive le 10/04/2026
 - Portee : redaction URL DB au log de demarrage + tests unitaires de non-regression
 
 ## Objectif

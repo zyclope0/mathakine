@@ -8,7 +8,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 **Mathakine** - plateforme EdTech SaaS d'apprentissage des mathematiques pour enfants.
 
-**Position produit au 2026-03-26 :**
+**Position produit au 2026-04-10 :**
 
 - transition active d'un ancien theme Star Wars/Jedi vers un theme spatial plus neutre ;
 - le codebase est encore **hybride** ;
@@ -26,12 +26,12 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 | Couche        | Techno                                                                  |
 | ------------- | ----------------------------------------------------------------------- |
 | Backend       | Python / Starlette (PAS FastAPI) + SQLAlchemy + PostgreSQL              |
-| Frontend      | Next.js 15 + TypeScript + Tailwind, i18n fr/en                          |
+| Frontend      | Next.js 16 + TypeScript + Tailwind, i18n fr/en                          |
 | IA            | OpenAI GPT via SSE POST (`exercise_ai_service`, `challenge_ai_service`) |
 | Auth          | JWT (access 15min + refresh 7j), cookies HTTP-only                      |
 | Rate limiting | Redis (prod) / memoire (dev/test)                                       |
 | Deploiement   | Render (multi-worker Gunicorn)                                          |
-| Version       | 2.1.0                                                                   |
+| Version       | 3.6.0-alpha.1                                                           |
 
 ---
 
@@ -59,14 +59,14 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ## Risques prioritaires connus
 
-| Priorite | Fichier                                                    | Probleme                                                                                                   |
-| -------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| ~~P0~~   | ~~`app/utils/token_tracker.py`~~                           | ~~Fuite memoire read-path (`get_stats` + `defaultdict` -> buckets vides)~~ - **RESOLU**                    |
-| ~~P0~~   | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU**                                               |
-| P1       | `frontend/lib/security/buildContentSecurityPolicy.ts`      | `script-src` production garde encore `'unsafe-inline'` tant qu'une strategie nonce/hash n'est pas deployee |
-| P1       | `.env.example`                                             | `REDIS_URL` absente -> crash demarrage prod                                                                |
-| ~~P1~~   | ~~`app/services/challenges/challenge_service.py:353`~~     | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU**                                      |
-| ~~P1~~   | ~~`app/services/exercises/exercise_attempt_service.py`~~   | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU**                                         |
+| Priorite | Fichier                                                    | Probleme                                                                                                  |
+| -------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| ~~P0~~   | ~~`app/utils/token_tracker.py`~~                           | ~~Fuite memoire read-path (`get_stats` + `defaultdict` -> buckets vides)~~ - **RESOLU**                   |
+| ~~P0~~   | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU**                                              |
+| P1       | `frontend/app/admin/layout.tsx`                            | Navigation admin encore hardcodee (labels FR inline) alors que les pages route-level admin sont i18nisees |
+| P2       | `frontend/hooks/useAuth.ts`                                | Toast de succes register garde encore une phrase FR inline hors namespace i18n                            |
+| ~~P1~~   | ~~`app/services/challenges/challenge_service.py:353`~~     | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU**                                     |
+| ~~P1~~   | ~~`app/services/exercises/exercise_attempt_service.py`~~   | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU**                                        |
 
 ---
 
@@ -89,9 +89,9 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 1. **F42 completion end-to-end** - generation, progression/evaluation, defis, surfaces publiques
 2. **Neutralisation thematique progressive** - ne plus etendre Star Wars/Jedi, converger vers spatial neutre
-3. **Durcissement CSP front** - sortie de `'unsafe-inline'` en production via nonce/hash
-4. **Fiabilisation deploiement** - `.env.example` / `REDIS_URL`
-5. **Couverture E2E authentifiee** - suite navigateur plus representative des flux connectes
+3. **Qualite frontend residuelle** - finir l'i18n du chrome admin et les quelques chaines inline restantes
+4. **Couverture E2E auth etendue** - admin auth et scenarios connectes plus representatifs si la stabilite infra le permet
+5. **Fiabilisation deploiement** - garder `.env.example` et les docs ops alignes sur le code actif
 
 ---
 

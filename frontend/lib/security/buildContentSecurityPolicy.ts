@@ -1,12 +1,39 @@
 /**
  * Pure builder for the global Content-Security-Policy header string.
- * Used from `next.config.ts` so dev vs prod differences stay explicit and testable.
+ * Emitted from `proxy.ts` (Edge middleware) so production can use a per-request
+ * script nonce; Next.js reads the nonce from the incoming CSP header (see
+ * `getScriptNonceFromHeader` in Next).
  */
 
-export function buildContentSecurityPolicy(isDevelopment: boolean): string {
+export type BuildContentSecurityPolicyOptions = {
+  isDevelopment: boolean;
+  /** Required in production (`isDevelopment === false`). */
+  scriptNonce?: string | undefined;
+};
+
+export function generateCspNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i] ?? 0);
+  }
+  return btoa(binary);
+}
+
+export function buildContentSecurityPolicy(options: BuildContentSecurityPolicyOptions): string {
+  const { isDevelopment, scriptNonce } = options;
+
   const scriptSrc = isDevelopment
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : "script-src 'self' 'unsafe-inline'";
+    : (() => {
+        if (!scriptNonce) {
+          throw new Error(
+            "buildContentSecurityPolicy: scriptNonce is required when isDevelopment is false"
+          );
+        }
+        return `script-src 'self' 'nonce-${scriptNonce}'`;
+      })();
 
   const backendDevConnect = isDevelopment ? "http://localhost:10000 http://127.0.0.1:10000" : "";
 

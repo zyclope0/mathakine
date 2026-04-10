@@ -145,6 +145,35 @@ La suite frontend relève de lots ciblés, petits et reviewables, pilotés par r
 - `useGuestChatAccess` : **une** suppression locale **conservée** (sync post-hydratation `sessionStorage` / quota invité, commentaire existant).
 - Vérifs : `npx tsc --noEmit`, `npm run lint`, Prettier, `vitest` `useContentListPageController.test.tsx` → verts.
 
+### QF-05 (2026-04-10) - fermé
+
+- Playwright : parcours **authentifié réel** (compte seed `ObiWan` / `HelloThere123!` via `lib/constants/demoLogin`) sur **Chromium uniquement** (`test.skip` si `browserName !== "chromium"`) ; **pas** de `globalSetup`, `storageState` global, ni auth partagé.
+- Helper `__tests__/e2e/helpers/demoUserAuth.ts` : `loginAsDemoUser`, `completeOnboardingIfNeeded` (classe minimale + submit → `/diagnostic`), `authenticateDemoUserForProtectedPages` ; navigation explicite vers `/dashboard` / `/badges` / `/settings` après session (diagnostic non automatisé).
+- Specs : `auth.spec.ts` (login réel + tableau de bord), `dashboard.spec.ts`, `badges.spec.ts`, `settings.spec.ts` — assertions sur **titres `h1` / zones stables** ; invités inchangés sur tous projets.
+- **Prérequis E2E** : backend joignable (`NEXT_PUBLIC_API_BASE_URL` / défaut `http://localhost:10000`) ; rate-limit login **5/min/IP** — suite sérielle `workers: 1` OK.
+- Vérif : `npx playwright test __tests__/e2e/auth.spec.ts __tests__/e2e/dashboard.spec.ts __tests__/e2e/badges.spec.ts __tests__/e2e/settings.spec.ts --project=chromium` + `npm run lint` + `npx tsc --noEmit`.
+
+### QF-06 (2026-04-10) - fermé
+
+- Vitest : baseline de **couverture frontend figée** via un `coverage.include` explicite dans `frontend/vitest.config.ts` (`*.{ts,tsx}`, `app`, `components`, `hooks`, `i18n`, `lib`, `messages`) afin de stabiliser le dénominateur couvert par la CI sur les surfaces source du frontend.
+- Seuils globaux posés au **plancher mesuré** du dépôt sur ce périmètre explicite : **statements 43%** (`3590/8291`), **branches 36%** (`3111/8420`), **functions 39%** (`899/2264`), **lines 44%** (`3423/7718`).
+- Objectif : verrouiller la réalité actuelle sans casser la CI par un seuil arbitraire ; prochaine hausse à faire lot par lot après amélioration ciblée des domaines faibles.
+- Vérifs : `npm run test:coverage`, `npm run lint`, `npx tsc --noEmit`, Prettier sur fichiers touchés → verts.
+
+### QF-07A (2026-04-10) - fermé
+
+- **CSP production** : retrait de `'unsafe-inline'` sur **`script-src`** au profit de **`'nonce-*'`** par requête ; émission du header **`Content-Security-Policy`** depuis **`frontend/proxy.ts`** (forward sur la requête + réponse) ; **plus de CSP dans `next.config.ts`** pour éviter deux sources de vérité.
+- **`buildContentSecurityPolicy({ isDevelopment, scriptNonce })`** + **`generateCspNonce()`** dans `frontend/lib/security/buildContentSecurityPolicy.ts` ; **`style-src 'unsafe-inline'`** volontairement inchangé (inline styles applicatifs).
+- **Matcher** proxy élargi aux routes « pages », exclusions explicites (`/api`, `/_next/static`, `/_next/image`, `/monitoring`, favicon / manifest / robots / sitemap, chemins avec extension).
+- Tests : `buildContentSecurityPolicy.test.ts`, `middleware.test.ts` ; vérifs `tsc`, `lint`, `build`, `vitest` ciblé, Prettier sur fichiers touchés.
+
+### QF-07B (2026-04-10) - fermé
+
+- **Nonce consommateurs (serveur)** : header interne **`x-nonce`** (`CSP_NONCE_REQUEST_HEADER`) sur la requête forwardée par **`proxy.ts`**, aligné sur le nonce **`script-src`** en prod ; en **dev**, nonce distinct de la CSP scripts (toujours `unsafe-inline` / `unsafe-eval` côté `script-src`).
+- **`buildMiddlewareCspBundle`** dans `frontend/lib/security/middlewareCsp.ts` ; **pas** de `RootLayout` async (évite de forcer tout l’arbre en **dynamic**). Consommation : **`headers().get(CSP_NONCE_REQUEST_HEADER)`** dans des layouts/pages async **imbriqués** si besoin. Devtools : inchangés, **`style-src 'unsafe-inline'`** suffit.
+- Commentaire dans `instrumentation-client.ts` pour d’éventuels widgets Sentry injectant du inline plus tard.
+- Tests : `middlewareCsp.test.ts` ; vérifs `tsc`, `lint`, `build`, vitest ciblé, Prettier.
+
 ### Règle de pilotage
 
 - traiter la suite comme :

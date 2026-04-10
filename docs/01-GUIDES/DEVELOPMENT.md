@@ -6,6 +6,7 @@
 ## Modele d'architecture a respecter
 
 Backend actif:
+
 - `server/routes/` : routes actives
 - `server/handlers/` : HTTP, validation transport, mapping reponse
 - `app/services/` : orchestration metier et applicative
@@ -14,12 +15,14 @@ Backend actif:
 - `app/schemas/` : validation Pydantic
 
 Regle runtime actuelle:
+
 - handlers HTTP `async`
 - acces DB et orchestration sync
 - DB sync via `sync_db_session()` exposed canonically through `app.core.db_boundary`
 - appels DB depuis les handlers via `await run_db_bound(...)`
 
 A ne pas faire:
+
 - logique metier dans les handlers
 - acces DB direct dans un handler
 - nouvelles entrees HTTP sans schema Pydantic si body JSON
@@ -104,7 +107,7 @@ npm run test
 
 - `tests/api/test_admin_auth_stability.py` n'est pas un gate standard
 - ne pas lancer plusieurs `pytest` avec couverture en parallele sur Windows
-- pour la prochaine sequence backend encore ouverte, lire `POINTS_RESTANTS_2026-03-15.md`
+- pour les sequences backend fermees ou historiques, passer par `docs/03-PROJECT/README.md` puis les archives referencees depuis cet index
 
 ## References
 

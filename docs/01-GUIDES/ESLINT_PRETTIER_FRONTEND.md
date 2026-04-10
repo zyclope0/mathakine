@@ -26,11 +26,11 @@ Le frontend utilise **ESLint** (lint) et **Prettier** (formatage) pour garder un
 
 ## Scripts npm
 
-| Script         | Commande              | Description                                  |
-|----------------|-----------------------|----------------------------------------------|
-| `npm run lint` | `eslint .`            | Analyse le code avec ESLint                  |
-| `npm run format` | `prettier --write .` | Formate tout le code avec Prettier           |
-| `npm run format:check` | `prettier --check .` | Vérifie que le code respecte Prettier (CI)   |
+| Script                 | Commande             | Description                                |
+| ---------------------- | -------------------- | ------------------------------------------ |
+| `npm run lint`         | `eslint .`           | Analyse le code avec ESLint                |
+| `npm run format`       | `prettier --write .` | Formate tout le code avec Prettier         |
+| `npm run format:check` | `prettier --check .` | Vérifie que le code respecte Prettier (CI) |
 
 ## Workflow recommandé
 
@@ -55,11 +55,17 @@ npm run lint
 
 ## Stratégie pour les problèmes ESLint
 
-Le projet peut encore compter des erreurs ou warnings ESLint (réduction significative après corrections 15/02/2026 — typage strict, exclusion scripts/). Stratégies possibles :
+Le front a été durci par les lots `QF-04`, `QF-04B` et `QF-04C` :
 
-1. **Progressive** : corriger au fur et à mesure des modifications
-2. **Tolérance** : définir des règles en `warn` plutôt qu’en `error`
-3. **Désactivation ciblée** : `// eslint-disable-next-line` dans les cas justifiés
+1. `@typescript-eslint/no-unused-vars` → `error`
+2. `@typescript-eslint/no-require-imports` → `error`
+3. `@typescript-eslint/consistent-type-imports` → `error`
+4. `@typescript-eslint/no-floating-promises` → `error` avec lint typé (`projectService`)
+5. `react-hooks/exhaustive-deps` → `error`
+6. `react-hooks/set-state-in-effect` → `error`
+7. `react-hooks/preserve-manual-memoization` → `error`
+
+Les suppressions locales restantes doivent rester rares, ciblées et justifiées dans le fichier concerné.
 
 ## Format on save (IDE)
 

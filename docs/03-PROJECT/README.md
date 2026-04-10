@@ -35,7 +35,7 @@ It is no longer the place for the single active tracker of ongoing work.
 
 Latest active frontend audit checkpoint:
 
-- `2026-04-10` : active frontend quality snapshot is [AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md) ; structural sequence `FFI-L1` to `FFI-L18B` considered closed; `FFI-L20A` to `FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02**, **CHAT-I18N-03**, **CHAT-LOG-04**, **LINT-STRICT-05**, **E2E-CORE-06** (minimal), **SSE-DRY-07**, **CSP-HARDEN-08**, **OG-META-09**, **QF-01** and **QF-02** are closed; there is no next named lot in `session-plan.md`.
+- `2026-04-10` : active frontend quality snapshot is [AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md) ; structural sequence `FFI-L1` to `FFI-L18B` considered closed; `FFI-L20A` to `FFI-L20H` closed; targeted follow-ups **CHAT-AUTH-01**, **RQ-PROVIDERS-02**, **CHAT-I18N-03**, **CHAT-LOG-04**, **LINT-STRICT-05**, **E2E-CORE-06** (minimal), **SSE-DRY-07**, **CSP-HARDEN-08**, **OG-META-09**, **QF-01**, **QF-02**, **QF-03**, **QF-04**, **QF-04B**, **QF-04C**, **QF-05**, **QF-06**, **QF-07A** and **QF-07B** are closed; there is currently no next named frontend quality lot in `session-plan.md`.
 
 ## Active Root Documents
 
@@ -45,7 +45,6 @@ Latest active frontend audit checkpoint:
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first execution protocol                                               |
 | [IMPLEMENTATION_F07_TIMELINE.md](./IMPLEMENTATION_F07_TIMELINE.md)                                     | implementation note for timeline progress                                      |
 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)                 | implementation note for interleaved sessions                                   |
-| [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)                   | implementation note for DB log redaction                                       |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                            |
 | [RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](./RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md)   | 429 `validate-token` : diagnostic + correctif FFI-L19A (quota dedie 90/min IP) |
 
@@ -54,6 +53,7 @@ Latest active frontend audit checkpoint:
 | Bucket                                                                                                               | Role                                                                            |
 | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [archives/AUDITS_AND_REVIEWS_2026-03/README.md](./archives/AUDITS_AND_REVIEWS_2026-03/README.md)                     | closed audits and review snapshots                                              |
+| [archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/README.md](./archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/README.md)   | closed implementation notes kept for traceability only                          |
 | [archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/README.md](./archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/README.md) | closed pilotage streams and superseded trackers                                 |
 | [archives/RECOMMENDATION_ITERATION_R_2026-03/README.md](./archives/RECOMMENDATION_ITERATION_R_2026-03/README.md)     | recommendation iteration R closure corpus                                       |
 | [archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/README.md](./archives/FEATURE_NOTES_SUPERSEDED_2026-03-28/README.md)   | former feature notes removed from `docs/02-FEATURES/` after roadmap integration |

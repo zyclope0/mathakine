@@ -32,6 +32,7 @@ Browser -> frontend/ -> server/routes + server/handlers -> app/services -> (repo
 > Pour la gouvernance des modèles IA et l'observabilité runtime actuelles, utiliser [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md).
 
 The retained backend runtime model is:
+
 - HTTP handlers are `async`
 - services, facades and repositories are `sync`
 - sync DB access uses `sync_db_session()` (app.core.db_boundary)
@@ -43,6 +44,7 @@ Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data b
 ### Data-Layer Doctrine (I1 — 2026-03-19)
 
 **What is true today:**
+
 - Handlers are `async`; services and facades are `sync`
 - Runtime/data boundary: handlers call DB-bound work via `run_db_bound(...)`; sync code uses `sync_db_session()`
 - `sync_db_session` is imported from `app.core.db_boundary` (G4)
@@ -50,11 +52,13 @@ Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data b
 - Many services import `Session` and use ORM directly (25+ modules; per maturity audit: 40 of 64 service modules)
 
 **What is not true globally:**
+
 - DB access is **not** fully isolated behind repositories
 - There is no global repository layer; ORM direct use remains the dominant pattern in services
 - Repository rollout is out of scope for I1; it may be addressed in later bounded lots
 
 Verified local reference on 19/03/2026 (post-iteration I closure):
+
 - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
 - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
 - OpenAI live tests remain opt-in and are not part of the standard gate
@@ -86,22 +90,22 @@ Verified local reference on 19/03/2026 (post-iteration I closure):
 
 Services are grouped by bounded context. No business logic file remains at root (only `__init__.py`).
 
-| Domain | Path | Content |
-|--------|------|---------|
-| **auth** | `app/services/auth/` | auth_service, auth_session_service, auth_recovery_service |
-| **users** | `app/services/users/` | user_service, user_application_service |
-| **badges** | `app/services/badges/` | badge_service, badge_application_service, badge_* (14 files) |
-| **exercises** | `app/services/exercises/` | exercise_service, exercise_attempt_service, exercise_* (9 files) |
-| **challenges** | `app/services/challenges/` | challenge_service, logic_challenge_service, maze_validator, etc. (11 files) |
-| **progress** | `app/services/progress/` | progress_timeline_service, streak_service, daily_challenge_service |
+| Domain                | Path                              | Content                                                                                                      |
+| --------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **auth**              | `app/services/auth/`              | auth_service, auth_session_service, auth_recovery_service                                                    |
+| **users**             | `app/services/users/`             | user_service, user_application_service                                                                       |
+| **badges**            | `app/services/badges/`            | badge*service, badge_application_service, badge*\* (14 files)                                                |
+| **exercises**         | `app/services/exercises/`         | exercise*service, exercise_attempt_service, exercise*\* (9 files)                                            |
+| **challenges**        | `app/services/challenges/`        | challenge_service, logic_challenge_service, maze_validator, etc. (11 files)                                  |
+| **progress**          | `app/services/progress/`          | progress_timeline_service, streak_service, daily_challenge_service                                           |
 | **spaced_repetition** | `app/services/spaced_repetition/` | sm2_engine, spaced_repetition_service, spaced_repetition_read_service, spaced_repetition_next_review_service |
-| **admin** | `app/services/admin/` | admin_service, admin_read_service, admin_content_service, etc. (14 files) |
-| **analytics** | `app/services/analytics/` | analytics_service |
-| **communication** | `app/services/communication/` | email_service, chat_service |
-| **core** | `app/services/core/` | db_init_service, enhanced_server_adapter |
-| **diagnostic** | `app/services/diagnostic/` | diagnostic_service |
-| **feedback** | `app/services/feedback/` | feedback_service |
-| **recommendation** | `app/services/recommendation/` | recommendation_service |
+| **admin**             | `app/services/admin/`             | admin_service, admin_read_service, admin_content_service, etc. (14 files)                                    |
+| **analytics**         | `app/services/analytics/`         | analytics_service                                                                                            |
+| **communication**     | `app/services/communication/`     | email_service, chat_service                                                                                  |
+| **core**              | `app/services/core/`              | db_init_service, enhanced_server_adapter                                                                     |
+| **diagnostic**        | `app/services/diagnostic/`        | diagnostic_service                                                                                           |
+| **feedback**          | `app/services/feedback/`          | feedback_service                                                                                             |
+| **recommendation**    | `app/services/recommendation/`    | recommendation_service                                                                                       |
 
 ## 5. Production Hardening Decisions Now Active
 
@@ -150,9 +154,11 @@ Services are grouped by bounded context. No business logic file remains at root 
 ## 6. Legacy And Compatibility
 
 Legacy still active:
+
 - `app/services/core/enhanced_server_adapter.py` — seul `create_generated_exercise` est utilisé (exercise_ai_service). Les autres méthodes sont inactives ou compatibilité.
 
 Generator compatibility re-exports:
+
 - `server/exercise_generator.py`
 - `server/exercise_generator_helpers.py`
 - `server/exercise_generator_validators.py`
@@ -168,5 +174,5 @@ These files are compatibility shims. Their source of truth remains `app/generato
 - [../02-FEATURES/AUTH_FLOW.md](../02-FEATURES/AUTH_FLOW.md)
 - [../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md](../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md)
 - [../03-PROJECT/README.md](../03-PROJECT/README.md)
-- [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
-- [../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md)

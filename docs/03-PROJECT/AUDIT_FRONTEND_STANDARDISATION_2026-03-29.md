@@ -1,7 +1,7 @@
 ﻿# Audit Frontend — Standardisation & Design System
 
 > Généré le 2026-03-29 via `/octo:extract` (deep mode)
-> Stack : Next.js 15 + TypeScript + Tailwind v4 + Radix UI
+> Stack : Next.js 16 + TypeScript + Tailwind v4 + Radix UI
 > Version frontend : 3.6.0-alpha.1
 
 ---
@@ -308,15 +308,15 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 
 ### 3.2 Surfaces complexes (Top 10 par LOC, pages incluses)
 
-| Surface                                                      | LOC | Responsabilité dominante                        |
-| ------------------------------------------------------------ | --- | ----------------------------------------------- |
-| `components/exercises/ExerciseSolver.tsx`                    | ~366 | Façade solver (FFI-L20B) ; runtime dans `useExerciseSolverController` |
-| `components/challenges/visualizations/VisualRenderer.tsx`    | 625 | Visualisation générique défis                   |
-| `app/admin/ai-monitoring/page.tsx`                           | 587 | Monitoring IA admin                             |
-| `components/challenges/visualizations/CodingRenderer.tsx`    | 586 | Renderer code                                   |
+| Surface                                                      | LOC  | Responsabilité dominante                                                              |
+| ------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------- |
+| `components/exercises/ExerciseSolver.tsx`                    | ~366 | Façade solver (FFI-L20B) ; runtime dans `useExerciseSolverController`                 |
+| `components/challenges/visualizations/VisualRenderer.tsx`    | 625  | Visualisation générique défis                                                         |
+| `app/admin/ai-monitoring/page.tsx`                           | 587  | Monitoring IA admin                                                                   |
+| `components/challenges/visualizations/CodingRenderer.tsx`    | 586  | Renderer code                                                                         |
 | `components/badges/BadgeCard.tsx`                            | ~496 | Carte badge (FFI-L20D : dérivations partagées dans `lib/badges/badgePresentation.ts`) |
-| `components/challenges/visualizations/DeductionRenderer.tsx` | 482 | Renderer déduction                              |
-| `app/leaderboard/page.tsx`                                   | 452 | Podium + classements + états communautaires     |
+| `components/challenges/visualizations/DeductionRenderer.tsx` | 482  | Renderer déduction                                                                    |
+| `app/leaderboard/page.tsx`                                   | 452  | Podium + classements + états communautaires                                           |
 
 _Mise à jour 2026-04-06 : `app/settings/page.tsx` (~`133` LOC, FFI-L13 livré) ne figure plus dans ce top 10._
 

@@ -4,8 +4,6 @@ import withPWA from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
-import { buildContentSecurityPolicy } from "./lib/security/buildContentSecurityPolicy";
-
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
@@ -47,10 +45,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Headers sécurité
+  // Headers sécurité (CSP émise par `proxy.ts` — nonce prod + une seule source de vérité)
   async headers() {
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const csp = buildContentSecurityPolicy(isDevelopment);
     return [
       {
         source: "/:path*",
@@ -70,10 +66,6 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: csp,
           },
         ],
       },

@@ -1,17 +1,13 @@
 # Tests Mathakine
 
-**Dernière mise à jour** : 11 février 2026
+Updated : 2026-04-10
 
-## État actuel
-
-- **368 tests passent**, 18 skippés
-- **~48 % couverture** (app + server)
-- **CI** : pytest + coverage, upload Codecov
+Ce dossier contient la suite backend Python (`pytest`) et les utilitaires associes.
 
 ## Commandes
 
 ```bash
-# Tous les tests
+# Tous les tests backend
 python -m pytest tests/ -v
 
 # Avec couverture
@@ -29,27 +25,29 @@ python -m pytest tests/ -v -m "not slow"
 
 ## Structure
 
-```
+```text
 tests/
-├── api/           # Tests des endpoints REST
-├── unit/          # Tests unitaires (services, modèles, utils)
-├── integration/   # Tests d'intégration (auth cookies, exercise workflow, etc.)
-├── functional/   # Tests fonctionnels (challenges isolés avec DB)
-├── fixtures/     # Fixtures partagées
-├── utils/        # Utilitaires (nettoyage données, helpers)
-└── conftest.py   # Configuration pytest, fixtures globales
+|-- api/
+|-- unit/
+|-- integration/
+|-- functional/
+|-- fixtures/
+|-- utils/
+`-- conftest.py
 ```
 
-## Documentation
+## Source de verite
 
-- **[docs/01-GUIDES/TESTING.md](../docs/01-GUIDES/TESTING.md)** – Guide complet des tests
-- **[PLAN_TESTS_AMELIORATION.md](PLAN_TESTS_AMELIORATION.md)** – Plan et corrections appliquées
-- **[CREATE_TEST_DATABASE.md](../docs/01-GUIDES/CREATE_TEST_DATABASE.md)** – Configuration base de test
+Ne pas figer ici un nombre de tests ou un pourcentage de couverture.
+
+La verite active des commandes, conventions et prerequis de test est :
+
+- `docs/01-GUIDES/TESTING.md`
+- `docs/01-GUIDES/CREATE_TEST_DATABASE.md`
 
 ## Points importants
 
-1. **TEST_DATABASE_URL** : à définir dans le `.env` (voir [CREATE_TEST_DATABASE.md](../docs/01-GUIDES/CREATE_TEST_DATABASE.md)).  
-   Pytest utilise automatiquement cette base : conftest définit `TESTING=true`, la config pointe vers `TEST_DATABASE_URL`. Aucune variable à passer en ligne de commande.
-2. **Données de test** : utiliser `unique_username()` / `unique_email()` pour éviter les conflits
-3. **Nettoyage** : `TestDataManager` nettoie automatiquement les données de test après chaque run
-4. **Tests async** : tous les tests API/integration utilisent `httpx.AsyncClient` + `pytest-asyncio`
+1. `TEST_DATABASE_URL` doit etre defini dans l'environnement de test.
+2. utiliser les helpers de donnees de test pour eviter les collisions.
+3. le nettoyage est gere par les fixtures et utilitaires du repo.
+4. les tests async backend utilisent `httpx.AsyncClient` et `pytest-asyncio`.

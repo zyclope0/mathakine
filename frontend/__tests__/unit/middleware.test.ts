@@ -1,9 +1,10 @@
 /** @vitest-environment node */
 
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { proxy } from "@/proxy";
 import { resolveRouteAccessUser } from "@/lib/auth/server/routeSession";
+import { CSP_NONCE_REQUEST_HEADER } from "@/lib/security/middlewareCsp";
 
 vi.mock("@/lib/auth/server/routeSession", () => ({
   resolveRouteAccessUser: vi.fn(),
@@ -12,6 +13,10 @@ vi.mock("@/lib/auth/server/routeSession", () => ({
 describe("frontend middleware", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("redirige un apprenant non admin depuis /admin vers /home-learner", async () => {
@@ -90,5 +95,40 @@ describe("frontend middleware", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("applique une CSP dynamique en non-development avec nonce et sans unsafe-inline dans script-src", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    const request = new NextRequest("https://mathakine.test/login");
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+    const csp = response.headers.get("content-security-policy");
+    expect(csp).toBeTruthy();
+    const scriptSrc = csp!.match(/script-src[^;]+/)?.[0] ?? "";
+    expect(scriptSrc).toMatch(/script-src 'self' 'nonce-[^']+'/);
+    expect(scriptSrc).not.toContain("unsafe-inline");
+    expect(scriptSrc).not.toContain("unsafe-eval");
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    const forwardedNonce = response.headers.get(`x-middleware-request-${CSP_NONCE_REQUEST_HEADER}`);
+    expect(forwardedNonce).toBeTruthy();
+    expect(scriptSrc).toContain(`'nonce-${forwardedNonce}'`);
+    expect(response.headers.get("x-middleware-override-headers")).toContain(
+      CSP_NONCE_REQUEST_HEADER
+    );
+  });
+
+  it("applique une CSP pragmatique en development (unsafe-inline et unsafe-eval dans script-src)", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+
+    const request = new NextRequest("https://mathakine.test/login");
+    const response = await proxy(request);
+
+    const csp = response.headers.get("content-security-policy");
+    expect(csp).toBeTruthy();
+    const scriptSrc = csp!.match(/script-src[^;]+/)?.[0] ?? "";
+    expect(scriptSrc).toContain("'unsafe-inline'");
+    expect(scriptSrc).toContain("'unsafe-eval'");
   });
 });

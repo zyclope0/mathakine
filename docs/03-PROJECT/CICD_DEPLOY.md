@@ -15,10 +15,12 @@
 Le workflow principal est `CI (Tests + Lint)`.
 
 Declenchement:
+
 - `push` sur `main`, `master`, `develop`
 - `pull_request` vers `main`, `master`, `develop`
 
 Jobs actifs:
+
 - `test` : backend pytest + couverture + smoke `/health`
 - `lint` : flake8 critique, black, isort, mypy
 - `frontend` : TypeScript, ESLint, Prettier, Vitest, build Next.js
@@ -44,6 +46,7 @@ Jobs actifs:
 
 En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stricts sur des ilots cibles.
 Etat reel apres le service slicing:
+
 - auth session / recovery : overrides alignes
 - badge / exercise / challenge : overrides realignes vers les nouveaux chemins de modules
 - analytics / feedback / daily challenge / diagnostic : overrides deja sur les chemins de domaine
@@ -101,6 +104,7 @@ alembic upgrade head
 ### Code
 
 Depuis Render:
+
 1. ouvrir le service
 2. aller sur `Deploys`
 3. choisir un deploy reussi
@@ -109,6 +113,7 @@ Depuis Render:
 ### Base de donnees
 
 Avant tout downgrade:
+
 - faire un backup
 - verifier que le code cible supporte l'etat schema voulu
 
@@ -124,6 +129,6 @@ alembic downgrade <revision>
 - [../01-GUIDES/DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md)
 - [../01-GUIDES/TROUBLESHOOTING.md](../01-GUIDES/TROUBLESHOOTING.md)
 - [../../README_TECH.md](../../README_TECH.md)
-- [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
-- [../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
-- [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [../03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md)

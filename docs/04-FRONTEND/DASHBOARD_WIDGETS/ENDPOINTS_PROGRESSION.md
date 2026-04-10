@@ -12,10 +12,12 @@ Lister les endpoints de progression effectivement exploitables par le frontend d
 ### `GET /api/daily-challenges`
 
 Usage:
+
 - hook `useDailyChallenges`
 - widget daily challenges
 
 Contrat general:
+
 - auth requise
 - renvoie `{challenges: [...]}`
 - cree les defis du jour si necessaire
@@ -23,10 +25,12 @@ Contrat general:
 ### `GET /api/users/stats`
 
 Usage:
+
 - hook `useUserStats`
 - dashboard stats utilisateur
 
 Contrat general:
+
 - auth requise
 - supporte `timeRange=7|30|90|all`
 - renvoie statistiques agregees utilisateur
@@ -34,18 +38,21 @@ Contrat general:
 ### `GET /api/users/me/progress`
 
 Usage possible:
+
 - widgets de progression globale
 - streak / progression par categorie
 
 ### `GET /api/users/me/progress/timeline`
 
 Usage possible:
+
 - timeline de progression
 - vue periodique `7d` / `30d`
 
 ### `GET /api/users/me/challenges/progress`
 
 Usage possible:
+
 - progression defis
 - widgets challenge dashboard
 
@@ -54,11 +61,13 @@ Usage possible:
 ### `GET /api/badges/stats`
 
 Usage possible:
+
 - stats gamification utilisateur
 
 ### `GET /api/challenges/badges/progress`
 
 Usage possible:
+
 - progression badges lies aux defis
 
 ## Regles d'integration frontend
@@ -75,6 +84,6 @@ Usage possible:
 
 ## References
 
-- [../02-FEATURES/API_QUICK_REFERENCE.md](../02-FEATURES/API_QUICK_REFERENCE.md)
-- [../02-FEATURES/F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
-- [../02-FEATURES/AUTH_FLOW.md](../02-FEATURES/AUTH_FLOW.md)
+- [../../02-FEATURES/API_QUICK_REFERENCE.md](../../02-FEATURES/API_QUICK_REFERENCE.md)
+- [../../02-FEATURES/F02_DEFIS_QUOTIDIENS.md](../../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
+- [../../02-FEATURES/AUTH_FLOW.md](../../02-FEATURES/AUTH_FLOW.md)

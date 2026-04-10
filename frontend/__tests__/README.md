@@ -1,133 +1,132 @@
-# 🧪 Tests Frontend Mathakine
+# Tests Frontend Mathakine
 
-## 📋 Structure des Tests
+Updated : 2026-04-10
 
-```
+## Structure
+
+```text
 __tests__/
-├── unit/                    # Tests unitaires
-│   ├── architecture/       # FFI-L17A+B — garde-fous structure (budgets LOC, seams, ancres lib/, ownership)
-│   ├── components/         # Tests des composants React
-│   └── hooks/              # Tests des hooks personnalisés
-├── integration/            # Tests d'intégration (à venir)
-├── e2e/                    # Tests end-to-end (Playwright)
-│   ├── auth.spec.ts       # Tests d'authentification
-│   └── exercises.spec.ts  # Tests des exercices
-└── accessibility/          # Tests d'accessibilité
-    └── accessibility.test.tsx
+|-- unit/          # tests unitaires Vitest
+|-- integration/   # tests d'integration frontend
+|-- e2e/           # tests Playwright
+`-- accessibility/ # checks accessibilite ponctuels
 ```
 
-## 🚀 Commandes Disponibles
+### E2E actuels
 
-### Garde-fous architecture (FFI-L17A + FFI-L17B)
+Sous `frontend/__tests__/e2e/` :
 
-Vérifie l’existence des seams critiques, les budgets LOC des facades/pages livrées FFI-L11–L16, les fichiers `lib/` canoniques listés dans `REQUIRED_CANONICAL_LIB_FILES`, et l’ownership du chatbot global (`components/chat/ChatbotFloatingGlobal.tsx` uniquement — pas de doublon sous `components/home/` ni `components/layout/`). Source de vérité unique : `lib/architecture/frontendGuardrails.ts` (y compris `OWNERSHIP_RULE_GROUPS` pour les conventions documentées).
+- `auth.spec.ts`
+- `dashboard.spec.ts`
+- `badges.spec.ts`
+- `settings.spec.ts`
+- `exercises.spec.ts`
+- `admin.spec.ts`
+- helper : `helpers/demoUserAuth.ts`
 
-```bash
-cd frontend && npm run architecture:check
-```
+Etat terrain :
 
-### Tests Unitaires (Vitest)
+- les parcours authentifies reels couverts aujourd'hui portent sur `login`, `dashboard`, `badges`, `settings`
+- ces scenarios sont limites a Chromium
+- il n'y a pas de `globalSetup` ni de `storageState` partage par defaut
 
-```bash
-# Lancer tous les tests unitaires
-npm run test
+---
 
-# Mode watch (re-exécution automatique)
-npm run test -- --watch
-
-# Interface UI interactive
-npm run test:ui
-
-# Avec couverture de code
-npm run test:coverage
-```
-
-### Tests E2E (Playwright)
-
-```bash
-# Lancer tous les tests E2E
-npm run test:e2e
-
-# Interface UI interactive
-npm run test:e2e:ui
-
-# Tests sur navigateur spécifique
-npx playwright test --project=chromium
-```
-
-### Tous les Tests
-
-```bash
-# Lancer unitaires + E2E
-npm run test:all
-```
-
-## 📝 Écrire des Tests
-
-### Test Unitaire de Composant
-
-```typescript
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { MyComponent } from '@/components/MyComponent';
-
-describe('MyComponent', () => {
-  it('affiche le contenu correctement', () => {
-    render(<MyComponent />);
-    expect(screen.getByText('Hello')).toBeInTheDocument();
-  });
-});
-```
-
-### Test E2E
-
-```typescript
-import { test, expect } from "@playwright/test";
-
-test("parcours utilisateur complet", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading")).toBeVisible();
-});
-```
-
-## ✅ Bonnes Pratiques
-
-1. **Tests unitaires** : Tester la logique isolée des composants
-2. **Tests E2E** : Tester les parcours utilisateur complets
-3. **Tests accessibilité** : Vérifier ARIA, navigation clavier, contraste
-4. **Couverture** : ~71 % actuellement sur les fichiers testés
-5. **Nommage** : Utiliser des noms descriptifs (`it('affiche...')`, `it('should...')`)
-
-## 🔧 Configuration
-
-- **Vitest** : `vitest.config.ts`
-- **Playwright** : `playwright.config.ts`
-- **Setup** : `vitest.setup.ts` (mocks globaux : next/navigation, next/image, matchMedia)
-
-## 📊 Couverture de Code
-
-`npm run test:coverage` génère les rapports dans `coverage/` (text, json, html, lcov). Le lcov est envoyé à Codecov en CI.
-
-## 🔌 Providers pour composants avec contexte
-
-Composants utilisant `useTranslations`, `useCompletedExercises`, etc. : fournir un wrapper avec `NextIntlClientProvider` + `QueryClientProvider`. Voir `ExerciseCard.test.tsx` en exemple. Mocker les hooks API avec `vi.mock('@/hooks/useCompletedItems')` pour éviter les appels réseau.
-
-## 📂 Menu / Popover fermé par défaut
-
-Pour tester le contenu d’un menu (ex. AccessibilityToolbar) : ouvrir le menu avec `userEvent.click()` avant les assertions. Les options sont en `role="switch"` avec `aria-label`.
-
-## 🐛 Debugging
+## Commandes
 
 ### Vitest
 
 ```bash
-# Mode debug avec breakpoints
+npm run test
+npm run test:ui
+npm run test:coverage
+```
+
+### Playwright
+
+```bash
+npm run test:e2e
+npm run test:e2e:ui
+npx playwright test --project=chromium
+```
+
+### Garde-fous architecture
+
+```bash
+npm run architecture:check
+```
+
+---
+
+## Bonnes pratiques
+
+1. tester la logique isolee dans `unit/`
+2. garder les E2E sur des contrats visibles et robustes
+3. ouvrir explicitement menus et popovers avant assertion
+4. fournir les providers requis (`NextIntlClientProvider`, `QueryClientProvider`, etc.)
+5. preferer des mocks de hooks/API plutot que du reseau en tests unitaires
+
+---
+
+## Couverture
+
+La source de verite couverture frontend est :
+
+- `frontend/vitest.config.ts`
+
+Le repo a maintenant des seuils minimaux explicites :
+
+- `statements: 43`
+- `branches: 36`
+- `functions: 39`
+- `lines: 44`
+
+Donc :
+
+- ne pas maintenir un pourcentage ecrit en dur dans ce README
+- utiliser `npm run test:coverage` et `vitest.config.ts` comme reference
+
+---
+
+## Providers et patterns utiles
+
+### Composants avec i18n ou React Query
+
+Fournir un wrapper de test avec les providers adequats.
+
+Exemples :
+
+- `NextIntlClientProvider`
+- `QueryClientProvider`
+
+### Menus / popovers
+
+Pour tester le contenu d'un menu, l'ouvrir d'abord avec `userEvent.click(...)`.
+
+### Hooks et mutations
+
+Mocker les hooks reseau ou API avec `vi.mock(...)` pour garder les tests unitaires deterministes.
+
+---
+
+## Debug
+
+### Vitest
+
+```bash
 npm run test -- --inspect-brk
 ```
 
 ### Playwright
 
 ```bash
-# Mode debug interactif
 npm run test:e2e:ui
 ```
+
+---
+
+## References
+
+- `frontend/vitest.config.ts`
+- `frontend/playwright.config.ts`
+- `docs/01-GUIDES/TESTING.md`

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { authenticateDemoUserForProtectedPages } from "./helpers/demoUserAuth";
 
 test.describe("Authentification (invite)", () => {
   test("page de connexion affiche le formulaire", async ({ page }) => {
@@ -39,5 +40,27 @@ test.describe("Authentification (invite)", () => {
         name: /envoyer le lien|send reset|envoi en cours|sending/i,
       })
     ).toBeVisible();
+  });
+});
+
+test.describe("Authentification (Chromium — compte démo seed)", () => {
+  test.skip(
+    ({ browserName }) => browserName !== "chromium",
+    "QF-05: parcours auth réel stabilisé sur Chromium"
+  );
+  test.describe.configure({ timeout: 120_000 });
+
+  test("connexion seed réussie puis tableau de bord authentifié visible", async ({ page }) => {
+    await authenticateDemoUserForProtectedPages(page);
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /Tableau de bord|Dashboard|Bienvenue|Welcome/i,
+      })
+    ).toBeVisible({ timeout: 40_000 });
+    await expect(page.locator("#username")).toHaveCount(0);
   });
 });

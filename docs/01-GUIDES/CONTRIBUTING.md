@@ -48,6 +48,7 @@ git switch -c feat/nom-court
 ```
 
 Notes:
+
 - les branches automation/agent peuvent utiliser le prefixe `codex/`
 - pour une contribution humaine classique, preferer `feat/`, `fix/`, `docs/`, etc.
 
@@ -69,9 +70,10 @@ Depuis le désamorçage (Architecture Clean A4–A5), les schémas utilisent des
 1. Creer `app/schemas/<nom>.py` avec les schemas Pydantic
 2. Ajouter les imports et le `__all__` dans `app/schemas/__init__.py` si reexport requis
 
-Reference : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](../03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
+Reference : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](../03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
 
 #### Regles backend
+
 - handler `async`
 - service / facade / repository `sync`
 - body JSON valide par schema Pydantic
@@ -98,6 +100,7 @@ npm run test
 ```
 
 Important:
+
 - ne pas lancer plusieurs `pytest` avec couverture en parallele sur Windows
 - `tests/api/test_admin_auth_stability.py` n'est pas un gate standard
 
@@ -110,6 +113,7 @@ type(scope): sujet court
 ```
 
 Types frequents:
+
 - `feat`
 - `fix`
 - `docs`
@@ -128,6 +132,7 @@ git commit -m "docs(runtime): align docs with active Starlette wiring"
 ### 5. Pull request
 
 Une PR propre doit expliciter:
+
 - fichiers runtime modifies
 - fichiers de test modifies
 - endpoints reellement touches
@@ -138,6 +143,7 @@ Une PR propre doit expliciter:
 ## Documentation
 
 Si tu modifies un point de runtime, verifie aussi:
+
 - `README_TECH.md`
 - `docs/00-REFERENCE/ARCHITECTURE.md`
 - `docs/02-FEATURES/API_QUICK_REFERENCE.md` si une route active ou son contrat change

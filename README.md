@@ -29,9 +29,9 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 - [docs/INDEX.md](docs/INDEX.md): documentation entry point
 - [docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md): setup guide
 - [docs/00-REFERENCE/ARCHITECTURE.md](docs/00-REFERENCE/ARCHITECTURE.md): active architecture
-- [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md): active project governance and backend quality state
-- [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md): active remaining backend follow-ups
-- [docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md): closed recommendation iteration `R` (governance, reserves, baselines)
+- [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md): active project governance, frontend quality snapshot, and archive map
+- [docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md): archived backend remaining-follow-ups tracker
+- [docs/03-PROJECT/archives/RECOMMENDATION_ITERATION_R_2026-03/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/archives/RECOMMENDATION_ITERATION_R_2026-03/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md): archived recommendation iteration `R` closure
 - [CHANGELOG.md](CHANGELOG.md): product history and release status
 
 ## Current verified state (closed iterations + cited baselines)
@@ -49,7 +49,7 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 - lots `G` (`Residual Contracts and Cleanup`): closed
 - `Architecture Clean` (service slicing cible A + B): closed
 - `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: closed (`I1`-`I8`)
-- **Recommendation remediation** (`R1`–`R7`): **closed** (2026-03-21) — bounded heuristic rules, structured reasons, and test-backed behaviour on exercised paths; **not** a learned / ML personalization engine. Closure doc: [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md).
+- **Recommendation remediation** (`R1`�`R7`): **closed** (2026-03-21) � bounded heuristic rules, structured reasons, and test-backed behaviour on exercised paths; **not** a learned / ML personalization engine. Closure doc: [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/archives/RECOMMENDATION_ITERATION_R_2026-03/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md).
 
 **Historical reference baseline — post–iteration `I` (2026-03-19)**
 
@@ -148,5 +148,5 @@ Important:
 ## Project References
 
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md)
-- [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
-- [docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
+- [docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/POINTS_RESTANTS_2026-03-15.md)
+- [docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](docs/03-PROJECT/archives/PILOTAGE_AND_TRACKERS_CLOSED_2026-03/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)

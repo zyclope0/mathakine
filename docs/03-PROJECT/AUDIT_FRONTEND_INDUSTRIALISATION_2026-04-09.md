@@ -1,7 +1,7 @@
 # Audit Frontend — Industrialisation & Qualité Technique
 
 > Généré le 2026-04-09 via `/octo:review` (prompt d'audit structuré 8 dimensions)
-> Stack : Next.js 15 App Router + TypeScript strict + Tailwind CSS + shadcn/ui + React Query v5
+> Stack : Next.js 16 App Router + TypeScript strict + Tailwind CSS + shadcn/ui + React Query v5
 > Outil d'exploration : Agent Explore (lecture seule, 14 tâches parallèles)
 > Méthode : scoring factuel — chaque constat cite fichier:ligne lu pendant l'audit
 
@@ -42,7 +42,7 @@
 
 **Verdict :** codebase industriellement mature sur TypeScript, cache React Query et guardrails d'architecture. Les risques ouverts sont concentrés sur la performance bundle (exports PDF/Excel sans lazy loading) et l'adoption incomplète des Server Components.
 
-> **Hors-scope de cet audit :** la dimension sécurité frontend (CSP `script-src 'unsafe-inline'`, headers HTTP, surface XSS) n'est pas couverte par les 8 dimensions ci-dessus. Ce risque P1 est documenté séparément dans `CLAUDE.md` §Risques prioritaires et dans `RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md`. Il doit faire l'objet d'un audit `/octo:security` dédié.
+> **Hors-scope de cet audit :** la dimension sécurité frontend (headers HTTP au-delà de la CSP, surface XSS détaillée) n'est pas couverte par les 8 dimensions ci-dessus. **Mise à jour lots QF-07A / QF-07B (2026-04-10)** : en production, **`script-src`** n’utilise plus `'unsafe-inline'` ; CSP dynamique via `frontend/proxy.ts`. **QF-07B** : header interne **`x-nonce`** pour usage serveur optionnel (`headers()`), sans forcer le root layout en dynamic. **`style-src 'unsafe-inline'`** inchangé. Poursuivre la veille sécurité via `CLAUDE.md` / audits dédiés si besoin.
 
 ---
 
@@ -618,7 +618,7 @@ Validation : ls frontend/components/badges/BadgeCard.test.tsx → fichier prése
 ---
 
 > ~~**[P2-MOD-02] Barrel exports absents**~~ — **Invalidé par le débat multi-AI.**
-> Dans le contexte Next.js 15 App Router, les barrel exports `index.ts` dans `lib/` nuisent au tree-shaking granulaire côté Server Components et peuvent introduire des dépendances circulaires involontaires (Matt Pocock, TypeScript Total 2023-2024). Les imports explicites `@/lib/security/buildContentSecurityPolicy` sont **la bonne pratique** pour ce stack. Ne pas créer de barrel exports dans `lib/`.
+> Dans le contexte Next.js 16 App Router, les barrel exports `index.ts` dans `lib/` nuisent au tree-shaking granulaire c�t� Server Components et peuvent introduire des d�pendances circulaires involontaires (Matt Pocock, TypeScript Total 2023-2024). Les imports explicites `@/lib/security/buildContentSecurityPolicy` sont **la bonne pratique** pour ce stack. Ne pas cr�er de barrel exports dans `lib/`.
 
 ---
 
@@ -769,7 +769,11 @@ Cohérent avec **§D4 — ESLint / Hooks** : `@typescript-eslint/no-unused-vars`
 
 **Hors périmètre inchangé :** `import/no-cycle` ; pas d’activation opportuniste d’autres règles typées hors le minimum nécessaire à cette règle.
 
-**Suite QF-04C (2026-04-11) :** `react-hooks/set-state-in-effect` et `react-hooks/preserve-manual-memoization` passent en **error** ; mesure sur l’arbre avant durcissement : **0** message ESLint (règles en `warn`) car **2** occurrences de `set-state-in-effect` étaient déjà **neutralisées** par `eslint-disable-next-line` justifié ; **`preserve-manual-memoization`** : **0** occurrence. Correction **ROI** : `useContentListOrderPreference` — lecture `localStorage` via initialiseur paresseux de `useState` (clé stable par montage). **Résidu documenté :** une suppression locale conservée dans `useGuestChatAccess` (sync invité post-hydratation).
+**Suite QF-04C (2026-04-10) :** `react-hooks/set-state-in-effect` et `react-hooks/preserve-manual-memoization` passent en **error** ; mesure sur l’arbre avant durcissement : **0** message ESLint (règles en `warn`) car **2** occurrences de `set-state-in-effect` étaient déjà **neutralisées** par `eslint-disable-next-line` justifié ; **`preserve-manual-memoization`** : **0** occurrence. Correction **ROI** : `useContentListOrderPreference` — lecture `localStorage` via initialiseur paresseux de `useState` (clé stable par montage). **Résidu documenté :** une suppression locale conservée dans `useGuestChatAccess` (sync invité post-hydratation).
+
+**Suite QF-05 (2026-04-10) — E2E auth minimal utile :** parcours **réel** login → (onboarding seed si besoin) → navigation **`/dashboard`**, **`/badges`**, **`/settings`** ; tests **Chromium uniquement** (`test.skip` hors chromium) ; helper **`frontend/__tests__/e2e/helpers/demoUserAuth.ts`** (pas de `globalSetup` / `storageState` global) ; diagnostic post-onboarding **hors automate** ; prérequis **backend** + attention **rate-limit login 5/min/IP**.
+
+**Suite QF-06 (2026-04-10) — Coverage gates réalistes :** `frontend/vitest.config.ts` fixe désormais un **périmètre explicite** de couverture (`*.{ts,tsx}`, `app`, `components`, `hooks`, `i18n`, `lib`, `messages`) et des seuils globaux basés sur la **baseline mesurée** du dépôt, non sur une cible arbitraire : **statements 43%** (`3590/8291`), **branches 36%** (`3111/8420`), **functions 39%** (`899/2264`), **lines 44%** (`3423/7718`). L’objectif est de figer le dénominateur réel de couverture frontend avant de remonter les seuils par lots thématiques.
 
 ---
 
