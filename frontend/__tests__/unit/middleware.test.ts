@@ -97,6 +97,7 @@ describe("frontend middleware", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
+  // QF-07C: forwarded nonce must match script-src; RootLayout reads x-nonce for <html nonce> so Next tags inline framework scripts.
   it("applique une CSP dynamique en non-development avec nonce et sans unsafe-inline dans script-src", async () => {
     vi.stubEnv("NODE_ENV", "production");
 

@@ -4,13 +4,12 @@ import {
 } from "@/lib/security/buildContentSecurityPolicy";
 
 /**
- * Internal request header: per-request nonce for **server** code that calls
- * `headers().get(CSP_NONCE_REQUEST_HEADER)` (e.g. future inline widgets, rare
- * Server Components). Prefer **nested** async layouts so `RootLayout` stays
- * static. Next.js still derives the **script** nonce from the
- * `Content-Security-Policy` header on the forwarded request, not from this
- * header. React Query Devtools in dev rely on `style-src 'unsafe-inline'`
- * (unchanged in QF-07A/B).
+ * Internal request header: nonce forwarded by `proxy.ts` for each matched request.
+ * **QF-07C:** `app/layout.tsx` reads this and sets `nonce` on `<html>` so
+ * production `script-src` nonce CSP matches inline Next.js bootstrap scripts.
+ * Next also derives script nonce from the `Content-Security-Policy` request header
+ * during dynamic renders. React Query Devtools in dev rely on `style-src
+ * 'unsafe-inline'` (unchanged).
  */
 export const CSP_NONCE_REQUEST_HEADER = "x-nonce" as const;
 

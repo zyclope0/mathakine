@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Exo_2 } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
+import { CSP_NONCE_REQUEST_HEADER } from "@/lib/security/middlewareCsp";
 import { AccessibilityToolbar } from "@/components/accessibility/AccessibilityToolbar";
 import { WCAGAudit } from "@/components/accessibility/WCAGAudit";
 import { Header } from "@/components/layout/Header";
@@ -106,6 +108,13 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * CSP nonce (prod): static HTML cannot receive per-request nonces — force dynamic
+ * rendering so Next applies the nonce from middleware (`proxy.ts`) to framework
+ * inline scripts. See QF-07C / README_TECH (SSR cost).
+ */
+export const dynamic = "force-dynamic";
+
 // Next.js 16 : themeColor et viewport doivent être dans generateViewport
 export function generateViewport() {
   return {
@@ -121,13 +130,16 @@ export function generateViewport() {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = await headers();
+  const cspNonce = headerList.get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning nonce={cspNonce}>
       <body className={`${exo2.variable} antialiased`}>
         <Providers>
           <SpatialBackground />
