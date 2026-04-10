@@ -788,8 +788,71 @@ CohÃ©rent avec **Â§D4 â€” ESLint / Hooks** : `@typescript-eslint/no-unu
 
 **Suite QF-05 (2026-04-10) â€” E2E auth minimal utile :** parcours **rÃ©el** login â†’ (onboarding seed si besoin) â†’ navigation **`/dashboard`**, **`/badges`**, **`/settings`** ; tests **Chromium uniquement** (`test.skip` hors chromium) ; helper **`frontend/__tests__/e2e/helpers/demoUserAuth.ts`** (pas de `globalSetup` / `storageState` global) ; diagnostic post-onboarding **hors automate** ; prÃ©requis **backend** + attention **rate-limit login 5/min/IP**.
 
-**Suite QF-06 (2026-04-10) â€” Coverage gates rÃ©alistes :** `frontend/vitest.config.ts` fixe dÃ©sormais un **pÃ©rimÃ¨tre explicite** de couverture (`*.{ts,tsx}`, `app`, `components`, `hooks`, `i18n`, `lib`, `messages`) et des seuils globaux basÃ©s sur la **baseline mesurÃ©e** du dÃ©pÃ´t, non sur une cible arbitraire : **statements 43%** (`3590/8291`), **branches 36%** (`3111/8420`), **functions 39%** (`899/2264`), **lines 44%** (`3423/7718`). Lâ€™objectif est de figer le dÃ©nominateur rÃ©el de couverture frontend avant de remonter les seuils par lots thÃ©matiques.
+**Suite QF-06 (2026-04-10) — Coverage gates réalistes :** `frontend/vitest.config.ts` fixe désormais un **périmètre explicite** de couverture (`*.{ts,tsx}`, `app`, `components`, `hooks`, `i18n`, `lib`, `messages`) et des seuils globaux basés sur la **baseline réelle mesurée en CI** (commit `ae11043`). Baseline CI mesurée : statements 39.75%, branches 34.04%, functions 37.85%, lines 40.66%. Seuils fixés **1 point en dessous** pour absorber la variance inter-runs : **statements 39%, branches 33%, functions 37%, lines 40%**. Les seuils précédents (43/36/39/44) étaient supérieurs à la baseline réelle et causaient un échec CI systématique — corrigé. L'objectif est de remonter progressivement à chaque lot de tests ajoutés (budget réel : 3-4 semaines par incrément de 5 points, pas 30 min — voir Addendum débat).
 
 ---
 
-_Rapport gÃ©nÃ©rÃ© le 2026-04-09. Toutes les assertions sont basÃ©es sur des lectures directes de fichiers effectuÃ©es pendant l'audit. Pour les dimensions oÃ¹ la mesure complÃ¨te n'est pas possible sans outillage (complexitÃ© cyclomatique, dÃ©pendances circulaires), les scores sont conservateurs et marquÃ©s explicitement._
+## Addendum 2026-04-10 — Débat audit complet multi-stack (vérifié terrain)
+
+Suite au `/octo:debate` sur l'audit complet Mathakine, chaque point du débat a été **vérifié par lecture directe des fichiers sources sur `master`** avant intégration. Les points non lus sont explicitement marqués.
+
+### Points déjà résolus — retirer de la liste d'actions
+
+Trois points identifiés comme "HAUTE" dans l'audit complet sont déjà corrigés dans le code actuel :
+
+| Point audit                    | Fichier:ligne terrain          | Statut                                                                          |
+| ------------------------------ | ------------------------------ | ------------------------------------------------------------------------------- |
+| H1 — `diagnose=True` en prod   | `logging_config.py:113,122`    | ✅ **RÉSOLU** — `diagnose=_uncaught_diagnose` = `not _is_production_like_env()` |
+| H2 — HSTS absent               | `server/middleware.py:108-109` | ✅ **RÉSOLU** — HSTS conditionnel `if _is_production()` présent                 |
+| H3 — Permissions-Policy absent | `server/middleware.py:107`     | ✅ **RÉSOLU** — `camera=(), microphone=(), geolocation=()` présent              |
+
+Le fichier s'appelle `server/middleware.py` (pas `app/middleware.py` comme mentionné dans l'audit).
+
+### Points confirmés ouverts (lus sur master)
+
+| Point audit                          | Fichier:ligne terrain                                             | Constat                                                                                                                                    |
+| ------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| BUG — `.dockerignore` migrations     | `.dockerignore:147-148`                                           | ✅ CONFIRMÉ — `migrations/versions/*` exclu ; seul `.gitkeep` conservé → `alembic upgrade head` échouerait dans une image Docker           |
+| M5 — PII usernames enfants (HAUTE)   | `auth_service.py:109,113,117,120,127,130,195,245,390,423,454,563` | ✅ CONFIRMÉ — `username` logué en clair dans 12 appels f-string (RGPD Art. 8 mineurs)                                                      |
+| 165 f-strings logger                 | `app/` (134) + `server/` (31) = **165 exactement**                | ✅ CONFIRMÉ — comptage rg sur les deux répertoires, correspond au chiffre de l'audit                                                       |
+| mypy 10 codes désactivés globalement | `pyproject.toml:41-52`                                            | ✅ CONFIRMÉ — `no-any-return, assignment, arg-type, return-value, union-attr, attr-defined, var-annotated, call-overload, operator, index` |
+| F1 — X-XSS-Protection: 1 déprécié    | `server/middleware.py:31`                                         | ✅ CONFIRMÉ — valeur `"1; mode=block"` à remplacer par `"0"` (OWASP)                                                                       |
+
+### Correction C1 — Seuils vitest : durée réelle de progression
+
+Le plan initial indiquait « 30 min » pour remonter les seuils vitest à 55%. Décomposition réelle :
+
+- **30 min** : modifier `vitest.config.ts` (config seule)
+- **3-4 semaines** : écrire les tests nécessaires pour atteindre 55%
+
+**Pourquoi :** 37 hooks sur 52 sans test (71%), dont `useSubmitAnswer`, `useIrtScores` (210L), `useAIExerciseGenerator`, `useDiagnostic` (232L). Chaque incrément de 5 points = 3-4 jours de travail effectif.
+
+### Top 5 ROI solo-founder — corrigé et vérifié terrain
+
+Classement par effort/impact après vérification des fichiers. H1/H2/H3 étant résolus, le classement change :
+
+| Rang | Action                                                  | Fichier(s) terrain                              | Effort | Gain         |
+| ---- | ------------------------------------------------------- | ----------------------------------------------- | ------ | ------------ |
+| 1    | PII usernames enfants : hasher/tronquer dans les logs   | `auth_service.py:109,113,117,120,127,130` et +6 | 1h     | +0.5 sécu    |
+| 2    | Corriger `.dockerignore` ligne 147 (bug latent Alembic) | `.dockerignore:147`                             | 5 min  | bug éliminé  |
+| 3    | `ruff G004 --fix` (165 f-strings) + revue manuelle      | 36 fichiers app/ + 13 server/                   | 3-4h   | +0.4 qualité |
+| 4    | `X-XSS-Protection: "0"` (remplacer valeur dépréciée)    | `server/middleware.py:31`                       | 5 min  | +0.1 sécu    |
+| 5    | mypy : réactiver progressivement les 10 codes           | `pyproject.toml:41-52`                          | 4-8h   | +0.3 qualité |
+
+Ces 5 actions ≈ 1 journée de travail pour corriger des vulnérabilités confirmées terrain.
+
+### Points du débat non vérifiés (hors périmètre lecture de cette session)
+
+Non lus — à vérifier avant de lancer le travail :
+
+| Point                          | Fichier                            | Doute                                                                     |
+| ------------------------------ | ---------------------------------- | ------------------------------------------------------------------------- |
+| H4 — Fallback refresh token 7j | `auth_service.py:613-617`          | Non lu — effort corrigé 2h → 6-8h par le débat (sessions actives à gérer) |
+| M3 — img-src trop permissive   | `buildContentSecurityPolicy.ts:57` | Non relu — effort corrigé 15 min → 2h (inventaire domaines réseau requis) |
+| Rate limit `/api/users/me`     | handlers/                          | Non lu — P2 backend signalé par le débat, à confirmer                     |
+| Score DevOps 5.9→6.2           | render.yaml, tests.yml             | Non relu — débat note que logs JSON + .gitattributes sont < 1h            |
+| user_service décomposition     | `user_service.py` (1506L)          | Non relu — effort corrigé 4-5h → 3-5j + tests préalables obligatoires     |
+
+---
+
+_Rapport généré le 2026-04-09. Toutes les assertions sont basées sur des lectures directes de fichiers effectuées pendant l'audit. Pour les dimensions où la mesure complète n'est pas possible sans outillage (complexité cyclomatique, dépendances circulaires), les scores sont conservateurs et marqués explicitement._
