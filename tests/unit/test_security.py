@@ -3,13 +3,14 @@ Tests pour app.core.security (decode_token, create_access_token, etc.).
 """
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
 from jose import jwt
 
 from app.core.config import settings
 from app.core.constants import SecurityConfig
-from app.core.security import create_access_token, decode_token
+from app.core.security import create_access_token, decode_token, get_cookie_config
 
 
 def test_decode_token_accepts_access_token():
@@ -38,6 +39,18 @@ def test_decode_token_rejects_refresh_token():
     with pytest.raises(HTTPException) as exc_info:
         decode_token(refresh_token)
     assert exc_info.value.status_code == 401
+
+
+def test_get_cookie_config_uses_production_flag_true():
+    """AUTH-HARDEN-02 : alignement sur _is_production() — prod => none + Secure."""
+    with patch("app.core.security._is_production", return_value=True):
+        assert get_cookie_config() == ("none", True)
+
+
+def test_get_cookie_config_uses_production_flag_false():
+    """AUTH-HARDEN-02 : hors prod => lax, pas Secure."""
+    with patch("app.core.security._is_production", return_value=False):
+        assert get_cookie_config() == ("lax", False)
 
 
 def test_decode_token_rejects_token_without_type():

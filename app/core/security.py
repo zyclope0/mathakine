@@ -2,7 +2,6 @@
 Utilitaires de sécurité pour l'authentification
 """
 
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 
@@ -10,7 +9,7 @@ import bcrypt
 from jose import JWTError, jwt
 from starlette.exceptions import HTTPException
 
-from app.core.config import settings
+from app.core.config import _is_production, settings
 from app.core.constants import SecurityConfig
 from app.core.logging_config import get_logger
 
@@ -162,15 +161,13 @@ def get_password_hash(password: str) -> str:
 def get_cookie_config() -> Tuple[str, bool]:
     """Source unique pour la politique SameSite/Secure des cookies auth.
 
+    ``_is_production()`` est la vérité runtime partagée avec ``config.py`` (AUTH-HARDEN-02).
+
     Returns:
         (samesite, secure) — "none"/True en prod, "lax"/False en dev.
     """
-    is_production = (
-        os.getenv("NODE_ENV") == "production"
-        or os.getenv("ENVIRONMENT") == "production"
-        or os.getenv("MATH_TRAINER_PROFILE") == "prod"
-    )
-    return ("none" if is_production else "lax", is_production)
+    prod = _is_production()
+    return ("none" if prod else "lax", prod)
 
 
 # --------------------------------------------------------------------------- #

@@ -220,6 +220,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : `tests/unit/test_auth_service.py` — accepté si expiré &lt; 1h, refus si &gt; 1h, sans `exp` / sans `sub`, user absent ou inactif, override `max_age_seconds` ; ancien scénario « très vieux token » conservé. Docstring `tests/integration/test_auth_no_fallback.py` réalignée (flux body `refresh_token` vs fallback cookie).
 - **Vérifs** : `pytest -k recover_refresh_token_from_access_token`, `black` / `isort` / `flake8` (E9,F63,F7,F82), `mypy` sur `app/services/auth/auth_service.py` + `auth_session_service.py` ; `README_TECH.md` + ce fichier.
 
+### AUTH-HARDEN-02 (2026-04-10) - fermé
+
+- **Cookies auth** : `get_cookie_config()` dans `app/core/security.py` s’appuie sur **`_is_production()`** (`app/core/config.py`) au lieu de relire `os.getenv` en local — même tuple **`("none", True)`** / **`("lax", False)`**, même signature ; pas de cycle d’import (`config` n’importe pas `security`).
+- **Tests** : `tests/unit/test_security.py` — mock de **`app.core.security._is_production`**.
+- **Vérifs** : `pytest tests/unit/test_security.py`, `black` / `isort` / `flake8` (E9,F63,F7,F82), `mypy` sur fichiers touchés ; `README_TECH.md` + ce fichier.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
