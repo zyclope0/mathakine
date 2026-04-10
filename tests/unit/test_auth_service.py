@@ -17,8 +17,11 @@ from app.core.security import create_access_token, get_password_hash, verify_pas
 from app.core.user_roles import serialize_user_role
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate
+from app.services.auth import auth_service as auth_service_mod
 from app.services.auth.auth_service import (
     ACCESS_TOKEN_FALLBACK_MAX_AGE_SECONDS,
+    _mask_email_for_logs,
+    _mask_username_for_logs,
     authenticate_user,
     authenticate_user_with_session,
     create_registered_user_with_verification,
@@ -84,6 +87,102 @@ def _unused_legacy_dict_to_user(user_data):
             preferred_theme=user_data.get("preferred_theme"),
             accessibility_settings=accessibility_settings,
         )
+
+
+# --- SEC-PII-LOGS-01 : pseudonymisation des logs auth ---
+
+
+def test_mask_username_for_logs_stable() -> None:
+    """Même entrée → même alias (corrélation support / agrégation)."""
+    u = "learner_alpha_01"
+    assert _mask_username_for_logs(u) == _mask_username_for_logs(u)
+
+
+def test_mask_username_for_logs_distinct_inputs() -> None:
+    a = _mask_username_for_logs("user_a")
+    b = _mask_username_for_logs("user_b")
+    assert a != b
+    assert a.startswith("user#")
+    assert len(a) == 5 + 12
+
+
+def test_mask_email_for_logs_normalizes_case() -> None:
+    assert _mask_email_for_logs("Child@Example.com") == _mask_email_for_logs(
+        "CHILD@example.com"
+    )
+
+
+def test_mask_username_for_logs_empty() -> None:
+    assert _mask_username_for_logs("") == "user#(empty)"
+
+
+def test_mask_email_for_logs_empty() -> None:
+    assert _mask_email_for_logs("") == "email#(empty)"
+    assert _mask_email_for_logs("   ") == "email#(empty)"
+
+
+def _joined_loguru_mock_messages(mock_logger: MagicMock) -> str:
+    """Reconstitue le texte des appels loguru (placeholders `{}` remplis)."""
+    chunks: list[str] = []
+    for meth_name in ("trace", "debug", "info", "success", "warning", "error"):
+        meth = getattr(mock_logger, meth_name, None)
+        if meth is None:
+            continue
+        for call in meth.call_args_list:
+            args, _kwargs = call
+            if not args:
+                continue
+            template, *rest = args
+            if rest:
+                try:
+                    chunks.append(template.format(*rest))
+                except (IndexError, KeyError, ValueError):
+                    chunks.append(template)
+            else:
+                chunks.append(template)
+    return " | ".join(chunks)
+
+
+def test_authenticate_user_logs_exclude_plain_username_and_email(
+    db_session, mock_user
+) -> None:
+    """Les messages auth ne contiennent pas username/email en clair ; alias présent."""
+    user_data = mock_user()
+    adapted_role = adapt_enum_for_db(
+        "UserRole", user_data.get("role", "padawan"), db_session
+    )
+    user = User(
+        username=user_data["username"],
+        email=user_data["email"],
+        hashed_password=get_password_hash(user_data["password"]),
+        full_name=user_data.get("full_name"),
+        role=adapted_role,
+        is_active=user_data.get("is_active", True),
+        grade_level=user_data.get("grade_level"),
+        learning_style=user_data.get("learning_style"),
+        preferred_difficulty=user_data.get("preferred_difficulty"),
+        preferred_theme=user_data.get("preferred_theme"),
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    with patch.object(auth_service_mod, "logger") as mock_logger:
+        authenticate_user(db_session, user.username, user_data["password"])
+
+    blob = _joined_loguru_mock_messages(mock_logger)
+    assert user.username not in blob
+    assert user.email not in blob
+    assert "user#" in blob
+
+
+def test_authenticate_user_nonexistent_logs_exclude_plain_username(db_session) -> None:
+    secret_username = "ghost_user_not_in_db_42"
+    with patch.object(auth_service_mod, "logger") as mock_logger:
+        authenticate_user(db_session, secret_username, "AnyPassword123")
+
+    blob = _joined_loguru_mock_messages(mock_logger)
+    assert secret_username not in blob
+    assert "user#" in blob
 
 
 # Tests pour get_user_by_username
