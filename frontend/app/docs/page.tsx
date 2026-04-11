@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   BookOpen,
@@ -22,20 +20,18 @@ import {
   MessageCircleQuestion,
   Heart,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { PageLayout, PageSection } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { useTranslations } from "next-intl";
-import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { cn } from "@/lib/utils";
 
 /**
  * Page Documentation — Guide utilisateur intégré
  * Ton rassurant, valorisation des progrès, pas de pression.
  * Refonte UI : Semantic Design & Anti-Cheap (Glassmorphism, Bento grids, typography accentuée)
+ * Server Component : i18n via getTranslations ; entrées animées conditionnées par prefers-reduced-motion (motion-safe:).
  */
-export default function DocsPage() {
-  const t = useTranslations("docs");
-  const { shouldReduceMotion } = useAccessibleAnimation();
+export default async function DocsPage() {
+  const t = await getTranslations("docs");
 
   const faqItems = [
     { id: "q1", q: "q1", a: "a1" },
@@ -72,12 +68,7 @@ export default function DocsPage() {
   return (
     <PageLayout maxWidth="2xl">
       {/* 1. En-tête (Hero Section) */}
-      <header
-        className={cn(
-          "text-center py-12 md:py-16 space-y-4",
-          !shouldReduceMotion && "animate-in fade-in duration-500"
-        )}
-      >
+      <header className="text-center py-12 md:py-16 space-y-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="flex justify-center mb-6">
           <div className="relative">
             {/* Effet lumineux Anti-cheap derrière l'icône */}

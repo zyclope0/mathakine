@@ -329,6 +329,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier (chemins **`vitest`** des lots **COMP-BADGECARD-01**, **COMP-DIAGNOSTIC-01**, **TEST-DIAGNOSTIC-HOOK-01**, **TEST-SUBMIT-ANSWER-01** alignés).
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run components/badges/BadgeCard.test.tsx components/diagnostic/DiagnosticSolver.test.tsx hooks/useDiagnostic.test.ts hooks/useSubmitAnswer.test.ts`, `prettier --check` sur les quatre fichiers co-localisés.
 
+### ACTIF-01-TRUTH-01 (2026-04-11) - fermé
+
+- **Objectif** : clôturer l’audit **[ACTIF-01]** sur les quatre pages signalées (docs, changelog, offline, contact) avec décision explicite par fichier et preuve code — pas de conversion forcée.
+- **Implémentation** : **`frontend/app/docs/page.tsx`** → Server Component (`getTranslations`, suppression de `use client` ; animation hero via **`motion-safe:*`** à la place de `useAccessibleAnimation` sur ce bloc uniquement). **`changelog`**, **`offline`**, **`contact`** restent **`"use client"`** (framer-motion / router+navigator+window / formulaire contrôlé + mailto).
+- **Doc** : `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (section ACTIF-01 + sprint A + tableau résolus), `README_TECH.md`, ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx prettier --check` sur les fichiers touchés (pas de test page-level dédié à `docs`).
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

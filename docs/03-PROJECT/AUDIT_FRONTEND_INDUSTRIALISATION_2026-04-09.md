@@ -42,14 +42,14 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 | Score global pondéré (audit initial 2026-04-09) | **7.05 / 10**                  |
 | Score estimé après lots exécutés (2026-04-11)   | **~7.8 / 10**                  |
 | Findings P0 ouverts                             | **0**                          |
-| Findings P1 ouverts                             | **1** (P2-PERF-04 converti P2) |
-| Findings P2 ouverts                             | **2**                          |
-| Findings P3 ouverts                             | **0**                          |
+| Findings P1 ouverts                             | **0**                          |
+| Findings P2 ouverts                             | **3**                          |
+| Findings P3 ouverts                             | **1** (`ACTIF-05` backlog)     |
 | Queries React Query avec staleTime              | **41/41** (100 %)              |
 | Occurrences `: any` ou `as any`                 | **0**                          |
 | TODO/FIXME/HACK non ticketés                    | **0**                          |
 
-**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la conversion de pages statiques en Server Components (D7), la co-location des tests (D5), et l'adoption systématique de `next/image` pour 3 cas dynamiques restants.
+**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la co-location progressive des tests (D5), la remontée mesurée de la couverture et des seuils Vitest (D8), et l'adoption raisonnée de `next/image` pour 3 cas dynamiques restants (D7).
 
 > **Hors périmètre de cet audit :** sécurité HTTP au-delà de la CSP, surface XSS détaillée, backend Python, DevOps. Ces points sont traités dans la section §7 et dans l'audit complet multi-stack séparé.
 
@@ -155,11 +155,11 @@ export function useChallengeSolverController({
 ## 4. Findings actifs — à traiter
 
 > **ORDRE D'EXÉCUTION IMPOSÉ — ne pas déroger.**
-> Les findings sont listés du plus prioritaire au moins prioritaire. ACTIF-05 est intentionnellement en dernier : c'est un backlog optionnel. Si Codex cherche quoi faire, il commence par ACTIF-01.
+> Les findings sont listés du plus prioritaire au moins prioritaire. ACTIF-05 est intentionnellement en dernier : c'est un backlog optionnel. Si Codex cherche quoi faire, il commence par ACTIF-02.
 
 | Finding | Priorité | Effort | Premier geste concret |
 |---------|----------|--------|-----------------------|
-| ACTIF-01 | P2 — À FAIRE | 20–30 min/page | Lire `app/docs/page.tsx` |
+| ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
 | ACTIF-02 | P2 — À FAIRE | 45 min/composant | Migrer `UserAvatar.tsx` |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Co-localiser `useAuth.test.ts` |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
@@ -167,32 +167,18 @@ export function useChallengeSolverController({
 
 ---
 
-### [ACTIF-01] Pages potentiellement convertibles en Server Components
+### ~~[ACTIF-01]~~ Pages Server Components — FERMÉ (vérité terrain)
 
-**Priorité :** P2 | **Dimension :** D7 Performance | **Effort :** 20–30 min par page
+`[RÉSOLU]` Lot **`ACTIF-01-TRUTH-01`** (2026-04-11) — lecture code des quatre routes ; décision explicite page par page :
 
-`[CONSTAT]` 4 pages ont `"use client"` en ligne 1 mais leur contenu n'a pas été lu pendant l'audit :
+| Page | Verdict | Raison factuelle (code) |
+|------|---------|-------------------------|
+| `frontend/app/docs/page.tsx` | **Convertie** (Server Component) | Aucun handler ni API navigateur requise ; `getTranslations` côté serveur ; animation d’en-tête portée par utilitaires Tailwind **`motion-safe:*`** (équivalent à l’ancien `useAccessibleAnimation` sur le hero uniquement ; bloc FAQ inchangé). |
+| `frontend/app/changelog/page.tsx` | **Reste client** | `framer-motion` (`motion.*`) + `useAccessibleAnimation` (variants / transitions). |
+| `frontend/app/offline/page.tsx` | **Reste client** | `useRouter`, `navigator.onLine`, `window.addEventListener("online", …)`, `router.refresh()`. |
+| `frontend/app/contact/page.tsx` | **Reste client** | `useState` sur les champs + `onSubmit` / `onChange` + `window.location.href` (mailto). |
 
-| Page                              | "use client" présent | Interactivité supposée | Statut vérification |
-| --------------------------------- | -------------------- | ---------------------- | ------------------- |
-| `frontend/app/docs/page.tsx`      | oui                  | Documentation statique | Non vérifié         |
-| `frontend/app/changelog/page.tsx` | oui                  | Liste de changements   | Non vérifié         |
-| `frontend/app/offline/page.tsx`   | oui                  | Page d'erreur statique | Non vérifié         |
-| `frontend/app/contact/page.tsx`   | oui                  | Formulaire ?           | Non vérifié         |
-
-`[RECOMMANDATION]` Pour chaque fichier :
-
-1. Lire le fichier
-2. Si absence de hooks React (`useState`, `useEffect`, etc.) et de gestionnaires d'événements client : supprimer `"use client"`, convertir en Server Component, remplacer `useTranslations()` par `await getTranslations()`
-3. Si interactivité présente : documenter pourquoi `"use client"` est nécessaire
-
-`[VALIDATION]`
-
-```bash
-grep -n '"use client"' frontend/app/docs/page.tsx  # doit être vide si converti
-```
-
-> Note : `app/about/page.tsx` et `app/privacy/page.tsx` sont déjà Server Components (lot FFI-L20G) — ne pas toucher.
+`[DÉCISION]` Ne pas rouvrir sans nouveau constat. Trois pages conservent `"use client"` pour des dépendances runtime client réelles ; une page a été alignée sur le même modèle que `about` / `privacy` (SC + layout client enfant).
 
 ---
 
@@ -204,9 +190,9 @@ grep -n '"use client"' frontend/app/docs/page.tsx  # doit être vide si converti
 
 | Fichier                                            | Raison actuelle du `<img>`               | Action                                                |
 | -------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------- |
-| `frontend/components/ui/UserAvatar.tsx:31`         | URL avatar runtime, dimensions inconnues | Migrer avec loader Next.js ou `sizes` explicite       |
-| `frontend/components/badges/BadgeIcon.tsx:131`     | icon_url dynamique + fallback SVG        | Migrer avec `next/image` + `unoptimized` si externe   |
-| `frontend/components/chat/ChatMessagesView.tsx:71` | Image de chat distante                   | Évaluer si `remotePatterns` + `next/image` applicable |
+| `frontend/components/ui/UserAvatar.tsx:34`         | URL avatar runtime, dimensions inconnues | Migrer avec loader Next.js ou `sizes` explicite       |
+| `frontend/components/badges/BadgeIcon.tsx:134`     | icon_url dynamique + fallback SVG (guard `isHttp`) | Migrer avec `next/image` + `remotePatterns`   |
+| `frontend/components/chat/ChatMessagesView.tsx:74` | Image de chat distante (blob ou URL externe) | Évaluer `remotePatterns` + `next/image` applicable |
 
 `[RECOMMANDATION]` Migrer chaque cas vers `<Image from="next/image">` avec `width`, `height` et `sizes` explicites, ou ajouter un loader. Si migration impossible, conserver `<img>` et supprimer le besoin de `eslint-disable` en documentant la contrainte dans le commentaire.
 
@@ -319,6 +305,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | P1-PERF-01     | `app/leaderboard/page.tsx` (481 L) → décomposé en composants nommés                                 | ARCH-LEADERBOARD-01   | 2026-04-11         |
 | P3-COMP-01a    | `BadgeCard.tsx` (494 L) → façade + sous-dossier `badgeCard/`                                        | COMP-BADGECARD-01     | 2026-04-11         |
 | P3-COMP-01b    | `DiagnosticSolver.tsx` (456 L) → façade + états + primitives                                        | COMP-DIAGNOSTIC-01    | 2026-04-11         |
+| ACTIF-01       | Pages SC candidates — `docs` convertie SC ; changelog / offline / contact restent client (preuve code) | ACTIF-01-TRUTH-01     | 2026-04-11         |
 
 ---
 
@@ -414,9 +401,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint A — Server Components (1–2h)
 
 ```
-1. Lire app/docs/page.tsx, app/changelog/page.tsx, app/offline/page.tsx
-   → Si absence de hooks client : supprimer "use client", convertir en SC
-   → Concerne ACTIF-01
+1. ~~ACTIF-01 clos (2026-04-11)~~ — `docs` en SC ; `changelog` / `offline` / `contact` documentées client.
 ```
 
 ### Sprint B — Images restantes (2–3h)
@@ -498,4 +483,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-11. Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-11. Dernière vérification terrain : 2026-04-11 (ACTIF-02 lignes 34/134/74 corrigées ; ACTIF-03 pilote confirmé ; ACTIF-04 seuils confirmés). Toutes les assertions citent fichier:ligne lu directement._
