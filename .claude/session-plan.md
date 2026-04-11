@@ -249,7 +249,7 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 ### COMP-BADGECARD-01 (2026-04-11) - fermé
 
 - **Refactor** : `frontend/components/badges/BadgeCard.tsx` reste l’API publique (`BadgeCard`, `BadgeCardProps`) ; sections denses extraites dans **`frontend/components/badges/badgeCard/`** — **`BadgeCardDifficultyMedal`**, **`BadgeCardCompactEarnedHeader`**, **`BadgeCardStandardHeader`**, **`BadgeCardCardContent`** (motivation / progressbar / pied verrouillé inclus).
-- **Inchangé** : props, i18n, règles `badgePresentation`, animations motion, shimmer ; **`DiagnosticSolver.tsx`** hors lot (**P3-COMP-01** reste ouvert sur ce fichier).
+- **Inchangé** : props, i18n, règles `badgePresentation`, animations motion, shimmer ; périmètre limité à `BadgeCard` et ses sous-composants locaux.
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01**), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/badges/BadgeCard.test.tsx`, `prettier --check` sur les fichiers touchés.
 
@@ -280,6 +280,22 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Garde-fous** : budget LOC `app/exercises/page.tsx` réduit dans **`frontendGuardrails.ts`** (coque courte).
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-ARCH-05** résolu), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/exercises/ExercisesPage.test.tsx __tests__/unit/lib/exercises/buildExercisePageFilters.test.ts __tests__/unit/architecture/frontendGuardrails.test.ts`, `prettier --check` sur fichiers touchés.
+
+### COMP-DIAGNOSTIC-01 (2026-04-11) - fermé
+
+- **Refactor** : `frontend/components/diagnostic/DiagnosticSolver.tsx` = façade par phase ; **`DiagnosticIdleState`**, **`DiagnosticLoadingState`**, **`DiagnosticErrorState`**, **`DiagnosticResultsState`**, **`DiagnosticQuestionState`** ; **`DiagnosticSolverPrimitives.tsx`** (`DiagnosticFocusBoard`, `DiagnosticProgressBar`, **`DiagnosticScoreCard`**).
+- **Inchangé** : **`useDiagnostic.ts`** (dont **`setTimeout(..., 1800)`**), props publiques **`DiagnosticSolverProps`**, i18n, CTA, **`MathText`** / **`GrowthMindsetHint`**, endpoints `/api/diagnostic/*`, `app/diagnostic/page.tsx`.
+- **Tests** : `frontend/__tests__/unit/components/diagnostic/DiagnosticSolver.test.tsx` (idle, error, results, question, feedback, `onComplete`).
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01** résolu), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/diagnostic/DiagnosticSolver.test.tsx`, `prettier --check` sur fichiers touchés.
+
+### TEST-DIAGNOSTIC-HOOK-01 (2026-04-11) - fermé
+
+- **Objectif** : couverture unitaire du hook critique **`frontend/hooks/useDiagnostic.ts`** (flux idle / loading / question / feedback / results / error, appels **`/api/diagnostic/start|question|answer|complete`**, délai **`1800`** ms avant finalisation quand **`session_complete`**).
+- **Inchangé** : comportement métier du hook, signatures publiques, **`setTimeout(..., 1800)`**, UI diagnostic, seuils **`vitest.config.ts`**.
+- **Tests** : **`frontend/__tests__/unit/hooks/useDiagnostic.test.ts`** — mock **`@/lib/api/client`**, **`vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })`** sur la branche finale (éviter **`waitFor`** bloqué par timers entièrement fake) ; assertion **`setTimeout(..., 1800)`** via spy.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé, pas clôture globale coverage), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useDiagnostic.test.ts`, `prettier --check` sur les fichiers touchés.
 
 ### RÃ¨gle de pilotage
 
