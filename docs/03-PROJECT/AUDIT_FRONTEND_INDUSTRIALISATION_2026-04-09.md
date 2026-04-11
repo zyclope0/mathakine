@@ -526,14 +526,21 @@ Flux critiques couverts : authentification (invité), exercices, dashboard, badg
 
 ---
 
-**[P1-PERF-01] `app/leaderboard/page.tsx` — page non décomposée**
+**[P1-PERF-01] `app/leaderboard/page.tsx`** _(résolu côté découpage — **ARCH-LEADERBOARD-01** ; pas de `useLeaderboardPageController` dédié, jugé non nécessaire pour le gain)_
 
 ```
-Fichier  : frontend/app/leaderboard/page.tsx:1
-Constat  : 481 lignes avec "use client". Aucun useLeaderboardPageController.ts trouvé.
-Impact   : Runtime non testable isolément. Pattern coque violé. Complexité cyclomatique élevée.
-Action   : Extraire useLeaderboardPageController.ts + LeaderboardRankingSection + LeaderboardFilterSection.
-Validation : wc -l frontend/app/leaderboard/page.tsx → résultat < 80.
+Fichiers : frontend/app/leaderboard/page.tsx (coque route + ProtectedRoute)
+           frontend/components/leaderboard/LeaderboardPageContent.tsx (+ liste, footer, états carte)
+           frontend/components/leaderboard/LeaderboardList.tsx, LeaderboardCurrentUserFooter.tsx,
+           LeaderboardCardState.tsx, LeaderboardRow.tsx, LeaderboardRankBadge.tsx,
+           LeaderboardAnimatedPoints.tsx, LeaderboardSectionSeparator.tsx,
+           leaderboardPageMotion.ts (variants spring / stagger inchangés)
+Statut   : Page route allégée ; runtime hooks + composition dans `LeaderboardPageContent` ; sous-composants
+           historiques extraits en modules nommés ; animations et règles `progressionRankLabel` / `useCountUp`
+           déplacées sans changement de comportement.
+Constat  : ~~481 lignes monolithiques~~ adressé ; extraction contrôleur dédié laissée en réserve si un lot futur
+           justifie le coût (pas requis pour fermer la dette « page non décomposée »).
+Validation : `wc -l frontend/app/leaderboard/page.tsx` → coque courte ; `vitest` `LeaderboardPage.test.tsx` vert.
 ```
 
 ---
@@ -727,8 +734,8 @@ Ordre basé sur rapport impact/effort. Chaque sprint est réalisable en une sess
 ### Sprint 3 — Décomposition pages (3-5h)
 
 ```
-9. Extraire useLeaderboardPageController.ts + sections       (2h)
-   → Priorité haute : 481 lignes, flux visible par élèves
+9. ~~Extraire useLeaderboardPageController.ts + sections~~   (résolu côté découpage via ARCH-LEADERBOARD-01)
+   → Page route allégée ; controller dédié laissé optionnel, non requis pour fermer la dette
 
 10. Réduire exercises/page.tsx < 100 lignes                  (1-2h)
 11. Réduire home-learner/page.tsx < 100 lignes               (1h)

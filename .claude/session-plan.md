@@ -262,6 +262,15 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-ARCH-05**), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/home-learner/HomeLearnerPage.test.tsx`, `prettier --check` sur les fichiers touchés.
 
+### ARCH-LEADERBOARD-01 (2026-04-11) - fermé
+
+- **Refactor** : `frontend/app/leaderboard/page.tsx` = coque **`ProtectedRoute`** + **`LeaderboardPageContent`** ; **`frontend/components/leaderboard/`** — **`LeaderboardPageContent`** (hooks, période, flags `inTop` / `showMyRankFooter`), **`LeaderboardCardState`** (error / loading / empty / success), **`LeaderboardList`** + **`LeaderboardCurrentUserFooter`**, **`LeaderboardRow`** + **`LeaderboardRankBadge`** + **`LeaderboardAnimatedPoints`** + **`LeaderboardSectionSeparator`**, **`leaderboardPageMotion.ts`** (variants inchangés).
+- **Inchangé** : **`useLeaderboard`**, **`useMyLeaderboardRank`**, **`useAuth`**, i18n, **`UserAvatar`**, règles `progressionRankLabel` / `canonicalProgressionRankBucket`, **`useCountUp`**, structure podium / top10 / rest / footer « votre rang ».
+- **Hors lot** : pas de **`useLeaderboardPageController`** (gain non requis pour fermer la dette découpage) ; redesign / refonte animation stratégique.
+- **Tests** : `frontend/__tests__/unit/app/leaderboard/LeaderboardPage.test.tsx` (inchangé, toujours vert).
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-PERF-01**), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/leaderboard/LeaderboardPage.test.tsx`, `prettier --check` sur fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
