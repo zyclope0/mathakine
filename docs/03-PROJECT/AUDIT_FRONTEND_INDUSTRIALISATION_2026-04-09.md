@@ -160,7 +160,7 @@ export function useChallengeSolverController({
 | Finding | Priorité | Effort | Premier geste concret |
 |---------|----------|--------|-----------------------|
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
-| ACTIF-02 | P2 — À FAIRE | 45 min/composant | Migrer `UserAvatar.tsx` |
+| ACTIF-02 | P2 — EN COURS | 45 min/composant | `UserAvatar` migré (lot **ACTIF-02-USERAVATAR-01**) ; suite : `BadgeIcon.tsx`, `ChatMessagesView.tsx` |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Co-localiser `useAuth.test.ts` |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
 | ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
@@ -182,19 +182,19 @@ export function useChallengeSolverController({
 
 ---
 
-### [ACTIF-02] 3 composants avec `<img>` brut non optimisé
+### [ACTIF-02] Composants `<img>` brut — 2 restants après UserAvatar
 
 **Priorité :** P2 | **Dimension :** D7 Performance | **Effort :** 45 min chacun
 
-`[CONSTAT]` 3 composants utilisent `<img>` brut avec `eslint-disable` documenté. Les 2 cas décorés locaux ont déjà été migrés (lot PERF-IMG-LOCAL-01).
+`[CONSTAT]` Les médailles locales ont été migrées (lot PERF-IMG-LOCAL-01). **`UserAvatar`** : lot **`ACTIF-02-USERAVATAR-01`** (2026-04-11) — **verdict : migré en hybride** : `next/image` avec `width` / `height` / `sizes` pour les URL alignées sur `images.remotePatterns` (`next.config.ts`, incl. **`**.onrender.com`** ajouté pour coller aux hôtes Render réels) via `resolveUserAvatarImageDelivery` ; **`<img>` conservé** pour les URL absolues hors périmètre (valeur DB arbitraire, `eslint-disable` ciblé). Deux fichiers utilisent encore `<img>` documenté :
 
 | Fichier                                            | Raison actuelle du `<img>`               | Action                                                |
 | -------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------- |
-| `frontend/components/ui/UserAvatar.tsx:34`         | URL avatar runtime, dimensions inconnues | Migrer avec loader Next.js ou `sizes` explicite       |
+| `frontend/components/ui/UserAvatar.tsx`          | — | **Fait** : `next/image` si URL ∈ remotePatterns ; sinon `<img>` (voir `lib/utils/userAvatarImageSource.ts`) |
 | `frontend/components/badges/BadgeIcon.tsx:134`     | icon_url dynamique + fallback SVG (guard `isHttp`) | Migrer avec `next/image` + `remotePatterns`   |
 | `frontend/components/chat/ChatMessagesView.tsx:74` | Image de chat distante (blob ou URL externe) | Évaluer `remotePatterns` + `next/image` applicable |
 
-`[RECOMMANDATION]` Migrer chaque cas vers `<Image from="next/image">` avec `width`, `height` et `sizes` explicites, ou ajouter un loader. Si migration impossible, conserver `<img>` et supprimer le besoin de `eslint-disable` en documentant la contrainte dans le commentaire.
+`[RECOMMANDATION]` Migrer chaque cas restant vers `<Image from="next/image">` avec `width`, `height` et `sizes` explicites, ou ajouter un loader. Si migration impossible, conserver `<img>` et supprimer le besoin de `eslint-disable` en documentant la contrainte dans le commentaire.
 
 `[VALIDATION]`
 
@@ -306,6 +306,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | P3-COMP-01a    | `BadgeCard.tsx` (494 L) → façade + sous-dossier `badgeCard/`                                        | COMP-BADGECARD-01     | 2026-04-11         |
 | P3-COMP-01b    | `DiagnosticSolver.tsx` (456 L) → façade + états + primitives                                        | COMP-DIAGNOSTIC-01    | 2026-04-11         |
 | ACTIF-01       | Pages SC candidates — `docs` convertie SC ; changelog / offline / contact restent client (preuve code) | ACTIF-01-TRUTH-01     | 2026-04-11         |
+| ACTIF-02-UserAvatar | `UserAvatar` : `next/image` si URL ∈ remotePatterns ; sinon `<img>` (`userAvatarImageSource.ts` + tests) | ACTIF-02-USERAVATAR-01 | 2026-04-11         |
 
 ---
 
@@ -336,11 +337,13 @@ import { buildContentSecurityPolicy } from "@/lib/security";
 import { buildContentSecurityPolicy } from "@/lib/security/buildContentSecurityPolicy";
 ```
 
-### D-02 — `<img>` conservé pour les URLs dynamiques distantes
+### D-02 — `<img>` pour URLs dynamiques hors périmètre `remotePatterns` (révisé 2026-04-11)
 
-`[DÉCISION]` `UserAvatar.tsx`, `BadgeIcon.tsx`, `ChatMessagesView.tsx` utilisent `<img>` avec `eslint-disable` **justifié** pour les URLs dynamiques où `next/image` requiert `remotePatterns` avec une liste de domaines impossible à énumérer statiquement.
+`[DÉCISION]` **`UserAvatar.tsx`** (lot **ACTIF-02-USERAVATAR-01**) : `next/image` dès que l’URL est couverte par la logique alignée sur `images.remotePatterns` dans `next.config.ts` (chemins `/…`, `http://localhost`, `https://*.render.com`, `https://*.onrender.com`) ; **`<img>` conservé** pour toute autre URL absolue (champ DB `avatar_url` non borné), avec `eslint-disable` ciblé et helper **`resolveUserAvatarImageDelivery`**.
 
-**Ce qu'il ne faut pas faire :** supprimer ces `eslint-disable` ou les remplacer par `next/image` sans avoir d'abord configuré `remotePatterns` dans `next.config.ts`.
+`[DÉCISION]` **`BadgeIcon.tsx`** et **`ChatMessagesView.tsx`** : `<img>` avec `eslint-disable` **justifié** tant que les URLs (icônes dynamiques, chat distant / blob) ne sont pas traitées par un lot dédié avec `remotePatterns` ou stratégie équivalente.
+
+**Ce qu'il ne faut pas faire :** remplacer par `next/image` sans aligner `remotePatterns` ou sans branche de repli documentée pour les hôtes arbitraires.
 
 ### D-03 — `useLeaderboardPageController` non extrait
 
@@ -407,10 +410,10 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint B — Images restantes (2–3h)
 
 ```
-2. UserAvatar.tsx → next/image avec remotePatterns ou loader
+2. ~~UserAvatar.tsx~~ — fait (ACTIF-02-USERAVATAR-01 : next/image + repli `<img>` hors remotePatterns)
 3. BadgeIcon.tsx  → next/image avec unoptimized si externe
 4. ChatMessagesView.tsx → évaluer remotePatterns
-   → Concerne ACTIF-02
+   → Concerne ACTIF-02 (restant)
 ```
 
 ### Sprint C — Tests hooks critiques (3–4 semaines, par lots)
@@ -483,4 +486,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-11. Dernière vérification terrain : 2026-04-11 (ACTIF-02 lignes 34/134/74 corrigées ; ACTIF-03 pilote confirmé ; ACTIF-04 seuils confirmés). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-11. Dernière vérification terrain : 2026-04-11 (**ACTIF-02-USERAVATAR-01** : `UserAvatar` hybride `next/image` + `<img>` + tests `lib/utils/userAvatarImageSource.test.ts` ; ACTIF-03 pilote confirmé ; ACTIF-04 seuils confirmés). Toutes les assertions citent fichier:ligne lu directement._
