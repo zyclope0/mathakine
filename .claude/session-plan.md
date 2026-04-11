@@ -313,6 +313,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useIrtScores.test.ts`, `prettier --check` sur les fichiers touchés.
 
+### TEST-AI-GENERATOR-01 (2026-04-11) - fermé
+
+- **Objectif** : couverture unitaire de **`frontend/hooks/useAIExerciseGenerator.ts`** (auth, validations, **`postAiGenerationSse`** + **`consumeSseJsonEvents`**, dispatch exercice réel, toasts erreurs, **`invalidateQueries(["exercises"])`** après **100 ms**, cancel / unmount / garde **`isGenerating`**).
+- **Inchangé** : hook, chemins SSE, délai **100 ms**, **`vitest.config.ts`**, UI générateur.
+- **Tests** : **`frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`** — **`QueryClientProvider`**, mocks ciblés (**`postAiGenerationSse`**, **`consumeSseJsonEvents`**, **`useAuth`**, **`next/navigation`**, **`next-intl`**, **`sonner`**) ; **`beforeEach`** avec **`mockPost.mockReset()`** pour ne pas laisser d’implémentation **`mockImplementation`** résiduelle entre cas.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useAIExerciseGenerator.test.ts`, `prettier --check` sur les fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

@@ -11,13 +11,13 @@
 
 Chaque entrée de ce document est typée explicitement pour que Codex puisse agir sans ambiguïté.
 
-| Type | Signification |
-|------|--------------|
-| `[CONSTAT]` | Fait observé dans le code. Vérité terrain mesurée. |
-| `[RECOMMANDATION]` | Action suggérée pour améliorer le score. Codex peut l'implémenter. |
-| `[DÉCISION]` | Choix d'implémentation délibéré. Ne **pas** contredire sans nouveau constat terrain. |
-| `[RÉSOLU]` | Point fermé. Ne **pas** réimplémenter. |
-| `[NON VÉRIFIÉ]` | Constat non relu sur master — à vérifier avant d'agir. |
+| Type               | Signification                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| `[CONSTAT]`        | Fait observé dans le code. Vérité terrain mesurée.                                   |
+| `[RECOMMANDATION]` | Action suggérée pour améliorer le score. Codex peut l'implémenter.                   |
+| `[DÉCISION]`       | Choix d'implémentation délibéré. Ne **pas** contredire sans nouveau constat terrain. |
+| `[RÉSOLU]`         | Point fermé. Ne **pas** réimplémenter.                                               |
+| `[NON VÉRIFIÉ]`    | Constat non relu sur master — à vérifier avant d'agir.                               |
 
 ---
 
@@ -37,17 +37,17 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 
 ## 1. Résumé exécutif
 
-| Indicateur | Valeur |
-|------------|--------|
-| Score global pondéré (audit initial 2026-04-09) | **7.05 / 10** |
-| Score estimé après lots exécutés (2026-04-11) | **~7.8 / 10** |
-| Findings P0 ouverts | **0** |
-| Findings P1 ouverts | **1** (P2-PERF-04 converti P2) |
-| Findings P2 ouverts | **2** |
-| Findings P3 ouverts | **0** |
-| Queries React Query avec staleTime | **41/41** (100 %) |
-| Occurrences `: any` ou `as any` | **0** |
-| TODO/FIXME/HACK non ticketés | **0** |
+| Indicateur                                      | Valeur                         |
+| ----------------------------------------------- | ------------------------------ |
+| Score global pondéré (audit initial 2026-04-09) | **7.05 / 10**                  |
+| Score estimé après lots exécutés (2026-04-11)   | **~7.8 / 10**                  |
+| Findings P0 ouverts                             | **0**                          |
+| Findings P1 ouverts                             | **1** (P2-PERF-04 converti P2) |
+| Findings P2 ouverts                             | **2**                          |
+| Findings P3 ouverts                             | **0**                          |
+| Queries React Query avec staleTime              | **41/41** (100 %)              |
+| Occurrences `: any` ou `as any`                 | **0**                          |
+| TODO/FIXME/HACK non ticketés                    | **0**                          |
 
 **Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la conversion de pages statiques en Server Components (D7), la co-location des tests (D5), et l'adoption systématique de `next/image` pour 3 cas dynamiques restants.
 
@@ -57,17 +57,17 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 
 ## 2. Scores par dimension
 
-| Dimension | Score | Poids | Score pondéré | P1 ouverts |
-|-----------|-------|-------|---------------|------------|
-| D1 Industrialisation | 8/10 | 15 % | 1.20 | 0 |
-| D2 DRY / Factorisation | 7/10 | 10 % | 0.70 | 0 |
-| D3 TypeScript Strict | 9/10 | 15 % | 1.35 | 0 |
-| D4 ESLint / Hooks | 8/10 | 10 % | 0.80 | 0 |
-| D5 Modularité | 6/10 | 15 % | 0.90 | 0 |
-| D6 Maintenabilité | 7/10 | 15 % | 1.05 | 0 |
-| D7 Performance | 6/10 | 10 % | 0.60 | 0 |
-| D8 Réplicabilité / Tests | 8/10 | 10 % | 0.80 | 0 |
-| **TOTAL** | | **100 %** | **~7.4/10** | **0** |
+| Dimension                | Score | Poids     | Score pondéré | P1 ouverts |
+| ------------------------ | ----- | --------- | ------------- | ---------- |
+| D1 Industrialisation     | 8/10  | 15 %      | 1.20          | 0          |
+| D2 DRY / Factorisation   | 7/10  | 10 %      | 0.70          | 0          |
+| D3 TypeScript Strict     | 9/10  | 15 %      | 1.35          | 0          |
+| D4 ESLint / Hooks        | 8/10  | 10 %      | 0.80          | 0          |
+| D5 Modularité            | 6/10  | 15 %      | 0.90          | 0          |
+| D6 Maintenabilité        | 7/10  | 15 %      | 1.05          | 0          |
+| D7 Performance           | 6/10  | 10 %      | 0.60          | 0          |
+| D8 Réplicabilité / Tests | 8/10  | 10 %      | 0.80          | 0          |
+| **TOTAL**                |       | **100 %** | **~7.4/10**   | **0**      |
 
 > Les scores D1, D4, D7, D8 reflètent les lots exécutés depuis l'audit initial (pages décomposées, ESLint durci, lazy loading PDF/Excel).
 
@@ -78,6 +78,7 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 ### F1 — TypeScript au niveau de rigueur maximal
 
 `[CONSTAT]` Grep exhaustif sur `frontend/` (hors `node_modules/`, `.next/`, `coverage/`) :
+
 - `: any` → **0 résultat**
 - `as any` → **0 résultat**
 
@@ -89,19 +90,20 @@ Conséquence : tout changement d'interface API se propage par erreur de compilat
 
 `[CONSTAT]` `staleTime` présent sur les 41 queries du projet (grep dans `hooks/` → 41 occurrences).
 
-| Domaine | staleTime | Justification |
-|---------|-----------|--------------|
-| Exercices | 10 000 ms | Résultats temps réel |
-| Challenges | 30 000 ms | Moins fréquents |
-| Admin | 60 000 ms | Usage interne |
-| Badges | 60 000–300 000 ms | Quasi-statiques |
-| Auth | 300 000 ms (5 min) | Token validé côté serveur |
+| Domaine    | staleTime          | Justification             |
+| ---------- | ------------------ | ------------------------- |
+| Exercices  | 10 000 ms          | Résultats temps réel      |
+| Challenges | 30 000 ms          | Moins fréquents           |
+| Admin      | 60 000 ms          | Usage interne             |
+| Badges     | 60 000–300 000 ms  | Quasi-statiques           |
+| Auth       | 300 000 ms (5 min) | Token validé côté serveur |
 
 Aucune query à staleTime = 0 : zéro rechargement systématique non intentionnel.
 
 ### F3 — Guardrails d'architecture auto-vérifiés par CI
 
 `[CONSTAT]` `frontendGuardrails.ts` (523 lignes) :
+
 - `ALLOWED_DENSE_EXCEPTIONS = []` — zéro exception tolérée
 - 17 surfaces protégées avec budgets max de lignes
 - 17 seams requis (hooks controllers)
@@ -127,26 +129,26 @@ Zéro `fetch()` direct dans les controllers. Le réseau est délégué aux hooks
 
 ```typescript
 export function useChallengeSolverController({
-  submitAnswer,  // injecté — testable sans mock réseau
+  submitAnswer, // injecté — testable sans mock réseau
   getHint,
   setHints,
-}: UseChallengeSolverControllerArgs)
+}: UseChallengeSolverControllerArgs);
 ```
 
 ### F5 — ESLint : toutes les suppressions justifiées
 
 `[CONSTAT]` 8 suppressions `exhaustive-deps` / `set-state-in-effect` lues pendant l'audit — toutes avec commentaire adjacent :
 
-| Fichier | Règle | Justification lue |
-|---------|-------|-------------------|
-| `hooks/useSettingsPageController.ts:181` | exhaustive-deps | mount-only load; useSettings callbacks are unstable |
-| `hooks/chat/useGuestChatAccess.ts:40` | set-state-in-effect | intentional post-hydration sync from sessionStorage |
-| `hooks/useChallengeSolverController.ts:141` | exhaustive-deps | Reset only on visible challenge identity change |
-| `hooks/useContentListOrderPreference.ts:24` | set-state-in-effect | intentional post-hydration sync |
-| `hooks/useExerciseSolverController.ts:253` | exhaustive-deps | reset seulement si l'exercice courant change |
-| `components/challenges/visualizations/PuzzleRenderer.tsx:162` | exhaustive-deps | onOrderChange via ref ; éviter reset sur identité tableau |
-| `components/challenges/visualizations/PuzzleRenderer.tsx:201` | exhaustive-deps | intentionnel au montage seulement |
-| `components/ui/sonner.tsx:38` | exhaustive-deps | Register once; MutationObserver handles theme changes |
+| Fichier                                                       | Règle               | Justification lue                                         |
+| ------------------------------------------------------------- | ------------------- | --------------------------------------------------------- |
+| `hooks/useSettingsPageController.ts:181`                      | exhaustive-deps     | mount-only load; useSettings callbacks are unstable       |
+| `hooks/chat/useGuestChatAccess.ts:40`                         | set-state-in-effect | intentional post-hydration sync from sessionStorage       |
+| `hooks/useChallengeSolverController.ts:141`                   | exhaustive-deps     | Reset only on visible challenge identity change           |
+| `hooks/useContentListOrderPreference.ts:24`                   | set-state-in-effect | intentional post-hydration sync                           |
+| `hooks/useExerciseSolverController.ts:253`                    | exhaustive-deps     | reset seulement si l'exercice courant change              |
+| `components/challenges/visualizations/PuzzleRenderer.tsx:162` | exhaustive-deps     | onOrderChange via ref ; éviter reset sur identité tableau |
+| `components/challenges/visualizations/PuzzleRenderer.tsx:201` | exhaustive-deps     | intentionnel au montage seulement                         |
+| `components/ui/sonner.tsx:38`                                 | exhaustive-deps     | Register once; MutationObserver handles theme changes     |
 
 ---
 
@@ -162,19 +164,21 @@ Les findings ci-dessous sont **ouverts** sur `master` au 2026-04-11. Codex peut 
 
 `[CONSTAT]` 4 pages ont `"use client"` en ligne 1 mais leur contenu n'a pas été lu pendant l'audit :
 
-| Page | "use client" présent | Interactivité supposée | Statut vérification |
-|------|----------------------|------------------------|---------------------|
-| `frontend/app/docs/page.tsx` | oui | Documentation statique | Non vérifié |
-| `frontend/app/changelog/page.tsx` | oui | Liste de changements | Non vérifié |
-| `frontend/app/offline/page.tsx` | oui | Page d'erreur statique | Non vérifié |
-| `frontend/app/contact/page.tsx` | oui | Formulaire ? | Non vérifié |
+| Page                              | "use client" présent | Interactivité supposée | Statut vérification |
+| --------------------------------- | -------------------- | ---------------------- | ------------------- |
+| `frontend/app/docs/page.tsx`      | oui                  | Documentation statique | Non vérifié         |
+| `frontend/app/changelog/page.tsx` | oui                  | Liste de changements   | Non vérifié         |
+| `frontend/app/offline/page.tsx`   | oui                  | Page d'erreur statique | Non vérifié         |
+| `frontend/app/contact/page.tsx`   | oui                  | Formulaire ?           | Non vérifié         |
 
 `[RECOMMANDATION]` Pour chaque fichier :
+
 1. Lire le fichier
 2. Si absence de hooks React (`useState`, `useEffect`, etc.) et de gestionnaires d'événements client : supprimer `"use client"`, convertir en Server Component, remplacer `useTranslations()` par `await getTranslations()`
 3. Si interactivité présente : documenter pourquoi `"use client"` est nécessaire
 
 `[VALIDATION]`
+
 ```bash
 grep -n '"use client"' frontend/app/docs/page.tsx  # doit être vide si converti
 ```
@@ -189,15 +193,16 @@ grep -n '"use client"' frontend/app/docs/page.tsx  # doit être vide si converti
 
 `[CONSTAT]` 3 composants utilisent `<img>` brut avec `eslint-disable` documenté. Les 2 cas décorés locaux ont déjà été migrés (lot PERF-IMG-LOCAL-01).
 
-| Fichier | Raison actuelle du `<img>` | Action |
-|---------|--------------------------|--------|
-| `frontend/components/ui/UserAvatar.tsx:31` | URL avatar runtime, dimensions inconnues | Migrer avec loader Next.js ou `sizes` explicite |
-| `frontend/components/badges/BadgeIcon.tsx:131` | icon_url dynamique + fallback SVG | Migrer avec `next/image` + `unoptimized` si externe |
-| `frontend/components/chat/ChatMessagesView.tsx:71` | Image de chat distante | Évaluer si `remotePatterns` + `next/image` applicable |
+| Fichier                                            | Raison actuelle du `<img>`               | Action                                                |
+| -------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| `frontend/components/ui/UserAvatar.tsx:31`         | URL avatar runtime, dimensions inconnues | Migrer avec loader Next.js ou `sizes` explicite       |
+| `frontend/components/badges/BadgeIcon.tsx:131`     | icon_url dynamique + fallback SVG        | Migrer avec `next/image` + `unoptimized` si externe   |
+| `frontend/components/chat/ChatMessagesView.tsx:71` | Image de chat distante                   | Évaluer si `remotePatterns` + `next/image` applicable |
 
 `[RECOMMANDATION]` Migrer chaque cas vers `<Image from="next/image">` avec `width`, `height` et `sizes` explicites, ou ajouter un loader. Si migration impossible, conserver `<img>` et supprimer le besoin de `eslint-disable` en documentant la contrainte dans le commentaire.
 
 `[VALIDATION]`
+
 ```bash
 grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
 # objectif : 0 résultat (migration complète) ou chaque ligne précédée de "// Intentional: <raison>"
@@ -210,6 +215,7 @@ grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
 **Priorité :** P2 | **Dimension :** D5 Modularité | **Effort :** 1–2h pour les migrations pilotes
 
 `[CONSTAT]` 133 fichiers de tests dans `frontend/__tests__/unit/` séparés du code source. Exemple :
+
 - `__tests__/unit/components/badges/BadgeCard.test.tsx` au lieu de `components/badges/BadgeCard.test.tsx`
 
 Impact : lors d'un refactoring, le test correspondant est difficile à trouver sans connaître la structure `__tests__/`.
@@ -219,6 +225,7 @@ Impact : lors d'un refactoring, le test correspondant est difficile à trouver s
 `[DÉCISION]` Ne pas migrer les 133 fichiers d'un coup — risque de casser les imports CI. Faire 3–5 fichiers pilotes d'abord, valider CI, puis continuer.
 
 `[VALIDATION]`
+
 ```bash
 ls frontend/components/badges/BadgeCard.test.tsx  # présent si migré
 ```
@@ -230,6 +237,7 @@ ls frontend/components/badges/BadgeCard.test.tsx  # présent si migré
 **Priorité :** P2 | **Dimension :** D8 Réplicabilité | **Effort :** 3–4 semaines par incrément de 5 points
 
 `[CONSTAT]` Baseline CI mesurée (commit `ae11043`) :
+
 - statements : 39.75 %
 - branches : 34.04 %
 - functions : 37.85 %
@@ -237,13 +245,14 @@ ls frontend/components/badges/BadgeCard.test.tsx  # présent si migré
 
 Seuils actuels dans `vitest.config.ts` : statements 39 %, branches 33 %, functions 37 %, lines 40 % (1 point sous la baseline pour absorber la variance).
 
-37 hooks sur 52 sans test (71 %) — les cibles critiques initialement citées incluent encore `useAIExerciseGenerator`. **Avancements ACTIF-04 (tests dédiés, seuils `vitest.config.ts` inchangés)** : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` via `frontend/__tests__/unit/hooks/useDiagnostic.test.ts` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` via `frontend/__tests__/unit/hooks/useSubmitAnswer.test.ts` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` via `frontend/__tests__/unit/hooks/useIrtScores.test.ts`. Le ratio global « hooks sans test » et la remontée progressive des seuils restent ouverts.
+Baseline historique de l’audit initial (2026-04-09) : **37 hooks sur 52 sans test (71 %)**. Le sprint C historique visait notamment les hooks critiques de génération / diagnostic / tentatives. **Avancements ACTIF-04 (tests dédiés, seuils `vitest.config.ts` inchangés)** : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator` via `frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`. Le ratio global courant « hooks sans test » et la remontée progressive des seuils restent ouverts tant qu’un nouveau calcul complet n’a pas été refait.
 
 `[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de 5 points.
 
 `[DÉCISION]` Ne pas monter les seuils avant d'avoir les tests. Un seuil artificiellement haut qui casse CI ne sert à rien.
 
 `[VALIDATION]`
+
 ```bash
 cd frontend && npx vitest run --coverage
 # objectif : statements ≥ seuil défini dans vitest.config.ts
@@ -257,12 +266,12 @@ cd frontend && npx vitest run --coverage
 
 `[CONSTAT]` Taille mesurée sur `master` :
 
-| Fichier | Lignes | Problème |
-|---------|--------|----------|
-| `hooks/useProfilePageController.ts` | 463 | Probablement plusieurs responsabilités |
-| `hooks/useExerciseSolverController.ts` | 391 | Idem |
-| `lib/utils/exportPDF.ts` | 384 | Utilitaire monolithique |
-| `lib/utils/exportExcel.ts` | 391 | Idem |
+| Fichier                                | Lignes | Problème                               |
+| -------------------------------------- | ------ | -------------------------------------- |
+| `hooks/useProfilePageController.ts`    | 463    | Probablement plusieurs responsabilités |
+| `hooks/useExerciseSolverController.ts` | 391    | Idem                                   |
+| `lib/utils/exportPDF.ts`               | 384    | Utilitaire monolithique                |
+| `lib/utils/exportExcel.ts`             | 391    | Idem                                   |
 
 `[RECOMMANDATION]` Lire chaque fichier, identifier les responsabilités distinctes, extraire en sous-modules si le découpage est naturel et ne casse pas les tests existants. Critère : chaque unité extraite < 150 lignes.
 
@@ -274,27 +283,27 @@ cd frontend && npx vitest run --coverage
 
 Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici pour traçabilité.
 
-| ID | Description | Lot | Date |
-|----|-------------|-----|------|
-| P3-DIAG-02 | `fetch()` direct dans `app/test-sentry/page.tsx` — page supprimée | QF-01 | 2026-04-10 |
-| P1-PERF-02 | Exports PDF/Excel sans lazy loading | QF-02 | 2026-04-10 |
-| P2-LINT-03 | `eslint-disable @next/next/no-img-element` sans justification | AUDIT-QUICKWINS-01 | 2026-04-10 |
-| BUG-DOCKER | `.dockerignore:147` excluait `migrations/versions/*` | AUDIT-QUICKWINS-01 | 2026-04-10 |
-| F1-SECU | `X-XSS-Protection: "1"` déprécié → remplacé par `"0"` | AUDIT-QUICKWINS-01 | 2026-04-10 |
-| PERF-IMG-LOCAL | `BadgeCard.tsx`, `BadgesProgressTabsSection.tsx` → `next/image` pour SVG locaux | PERF-IMG-LOCAL-01 | 2026-04-10 |
-| M5-PII | `username`/`email` en clair dans les logs auth — remplacés par `user_id` + alias HMAC | SEC-PII-LOGS-01 | 2026-04-10 |
-| i18n-admin | Copy inline sur routes admin + layout admin + toasts auth | QF-03, QF-03B | 2026-04-10 |
-| ESLint-strict | `no-unused-vars`, `consistent-type-imports`, `no-floating-promises`, `set-state-in-effect` en error | QF-04, QF-04B, QF-04C | 2026-04-10 |
-| E2E-auth | Parcours login → dashboard/badges/settings ajouté | QF-05 | 2026-04-10 |
-| Coverage-gate | Seuils vitest réalistes (39/33/37/40 %) à la place de (43/36/39/44 %) | QF-06 | 2026-04-10 |
-| H1-diagnose | `diagnose=True` en prod → `diagnose=_uncaught_diagnose` | Déjà en place | vérifié 2026-04-10 |
-| H2-HSTS | HSTS absent → `server/middleware.py:108-109` conditionnel prod | Déjà en place | vérifié 2026-04-10 |
-| H3-Perms | Permissions-Policy absent → `server/middleware.py:107` | Déjà en place | vérifié 2026-04-10 |
-| P1-ARCH-05a | `app/home-learner/page.tsx` (317 L) → coque + `HomeLearnerContent` | ARCH-HOME-LEARNER-01 | 2026-04-11 |
-| P1-ARCH-05b | `app/exercises/page.tsx` (311 L) → coque + `ExercisesPageContent` | ARCH-EXERCISES-01 | 2026-04-11 |
-| P1-PERF-01 | `app/leaderboard/page.tsx` (481 L) → décomposé en composants nommés | ARCH-LEADERBOARD-01 | 2026-04-11 |
-| P3-COMP-01a | `BadgeCard.tsx` (494 L) → façade + sous-dossier `badgeCard/` | COMP-BADGECARD-01 | 2026-04-11 |
-| P3-COMP-01b | `DiagnosticSolver.tsx` (456 L) → façade + états + primitives | COMP-DIAGNOSTIC-01 | 2026-04-11 |
+| ID             | Description                                                                                         | Lot                   | Date               |
+| -------------- | --------------------------------------------------------------------------------------------------- | --------------------- | ------------------ |
+| P3-DIAG-02     | `fetch()` direct dans `app/test-sentry/page.tsx` — page supprimée                                   | QF-01                 | 2026-04-10         |
+| P1-PERF-02     | Exports PDF/Excel sans lazy loading                                                                 | QF-02                 | 2026-04-10         |
+| P2-LINT-03     | `eslint-disable @next/next/no-img-element` sans justification                                       | AUDIT-QUICKWINS-01    | 2026-04-10         |
+| BUG-DOCKER     | `.dockerignore:147` excluait `migrations/versions/*`                                                | AUDIT-QUICKWINS-01    | 2026-04-10         |
+| F1-SECU        | `X-XSS-Protection: "1"` déprécié → remplacé par `"0"`                                               | AUDIT-QUICKWINS-01    | 2026-04-10         |
+| PERF-IMG-LOCAL | `BadgeCard.tsx`, `BadgesProgressTabsSection.tsx` → `next/image` pour SVG locaux                     | PERF-IMG-LOCAL-01     | 2026-04-10         |
+| M5-PII         | `username`/`email` en clair dans les logs auth — remplacés par `user_id` + alias HMAC               | SEC-PII-LOGS-01       | 2026-04-10         |
+| i18n-admin     | Copy inline sur routes admin + layout admin + toasts auth                                           | QF-03, QF-03B         | 2026-04-10         |
+| ESLint-strict  | `no-unused-vars`, `consistent-type-imports`, `no-floating-promises`, `set-state-in-effect` en error | QF-04, QF-04B, QF-04C | 2026-04-10         |
+| E2E-auth       | Parcours login → dashboard/badges/settings ajouté                                                   | QF-05                 | 2026-04-10         |
+| Coverage-gate  | Seuils vitest réalistes (39/33/37/40 %) à la place de (43/36/39/44 %)                               | QF-06                 | 2026-04-10         |
+| H1-diagnose    | `diagnose=True` en prod → `diagnose=_uncaught_diagnose`                                             | Déjà en place         | vérifié 2026-04-10 |
+| H2-HSTS        | HSTS absent → `server/middleware.py:108-109` conditionnel prod                                      | Déjà en place         | vérifié 2026-04-10 |
+| H3-Perms       | Permissions-Policy absent → `server/middleware.py:107`                                              | Déjà en place         | vérifié 2026-04-10 |
+| P1-ARCH-05a    | `app/home-learner/page.tsx` (317 L) → coque + `HomeLearnerContent`                                  | ARCH-HOME-LEARNER-01  | 2026-04-11         |
+| P1-ARCH-05b    | `app/exercises/page.tsx` (311 L) → coque + `ExercisesPageContent`                                   | ARCH-EXERCISES-01     | 2026-04-11         |
+| P1-PERF-01     | `app/leaderboard/page.tsx` (481 L) → décomposé en composants nommés                                 | ARCH-LEADERBOARD-01   | 2026-04-11         |
+| P3-COMP-01a    | `BadgeCard.tsx` (494 L) → façade + sous-dossier `badgeCard/`                                        | COMP-BADGECARD-01     | 2026-04-11         |
+| P3-COMP-01b    | `DiagnosticSolver.tsx` (456 L) → façade + états + primitives                                        | COMP-DIAGNOSTIC-01    | 2026-04-11         |
 
 ---
 
@@ -309,6 +318,7 @@ Ces points ont fait l'objet d'une décision explicite. Codex ne doit **pas** les
 **Pourquoi :** les barrel exports `index.ts` dans `lib/` nuisent au tree-shaking granulaire côté Server Components et peuvent introduire des dépendances circulaires (Matt Pocock, TypeScript Total 2023–2024). Invalidé par le débat multi-AI 2026-04-10.
 
 **Ce qu'il ne faut pas faire :**
+
 ```typescript
 // NE PAS créer cela dans lib/security/index.ts
 export { buildContentSecurityPolicy } from "./buildContentSecurityPolicy";
@@ -318,6 +328,7 @@ import { buildContentSecurityPolicy } from "@/lib/security";
 ```
 
 **Ce qu'il faut faire :**
+
 ```typescript
 // Import explicite — correct
 import { buildContentSecurityPolicy } from "@/lib/security/buildContentSecurityPolicy";
@@ -346,6 +357,7 @@ Ces points concernent le backend Python ou la sécurité HTTP et ne changent pas
 ### Backend — 165 f-strings dans les loggers
 
 `[CONSTAT]` Mesuré sur `master` :
+
 - `app/` : 134 occurrences dans 36 fichiers
 - `server/` : 31 occurrences dans 13 fichiers
 - **Total : 165 exactement** — correspond au chiffre de l'audit complet
@@ -355,6 +367,7 @@ Ces points concernent le backend Python ou la sécurité HTTP et ne changent pas
 `[RECOMMANDATION]` Corriger avec `ruff check --select G004 --fix app/ server/` + revue manuelle (3–4h).
 
 `[VALIDATION]`
+
 ```bash
 ruff check --select G004 app/ server/  # objectif : 0 warning
 ```
@@ -405,8 +418,8 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ```
 5. ~~Écrire tests useSubmitAnswer~~ — fait (`TEST-SUBMIT-ANSWER-01`, `__tests__/unit/hooks/useSubmitAnswer.test.ts`).
 6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`, `__tests__/unit/hooks/useIrtScores.test.ts`).
-7. Écrire tests useAIExerciseGenerator
-8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `__tests__/unit/hooks/useDiagnostic.test.ts`) ; poursuivre les autres hooks du sprint C.
+7. ~~Écrire tests useAIExerciseGenerator~~ — fait (`TEST-AI-GENERATOR-01`, `__tests__/unit/hooks/useAIExerciseGenerator.test.ts`).
+8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `__tests__/unit/hooks/useDiagnostic.test.ts`) ; poursuivre le point 9 (seuils) et le reste du backlog hooks.
 9. Remonter seuils vitest.config.ts de 5 points après chaque lot
    → Concerne ACTIF-04
 ```
@@ -439,30 +452,30 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 
 ### Sources lues pendant l'audit initial (2026-04-09)
 
-| Tâche | Méthode | Résultat |
-|-------|---------|----------|
-| Guardrails | Lecture complète `frontendGuardrails.ts` | 523 lignes, 17 surfaces, 17 seams, 20 lib requis |
-| Fichiers volumineux | `wc -l` sur app/, components/, hooks/, lib/ | 19 fichiers > 300 lignes |
-| `"use client"` | grep dans app/ | 38 fichiers sur ~50 |
-| `eslint-disable` | grep + contexte ±1 ligne | 13 occurrences dans 12 fichiers |
-| `: any` / `as any` | grep exhaustif hors node_modules | 0 résultat |
-| `fetch()` direct | grep dans app/ + components/ | 0 résultat métier |
-| TODO/FIXME/HACK | grep dans tout frontend/ | 0 résultat |
-| staleTime | grep dans hooks/ | 41 occurrences, toutes définies |
-| `next/image` | grep dans app/ + components/ | 1 import, 5 contournements |
+| Tâche               | Méthode                                     | Résultat                                         |
+| ------------------- | ------------------------------------------- | ------------------------------------------------ |
+| Guardrails          | Lecture complète `frontendGuardrails.ts`    | 523 lignes, 17 surfaces, 17 seams, 20 lib requis |
+| Fichiers volumineux | `wc -l` sur app/, components/, hooks/, lib/ | 19 fichiers > 300 lignes                         |
+| `"use client"`      | grep dans app/                              | 38 fichiers sur ~50                              |
+| `eslint-disable`    | grep + contexte ±1 ligne                    | 13 occurrences dans 12 fichiers                  |
+| `: any` / `as any`  | grep exhaustif hors node_modules            | 0 résultat                                       |
+| `fetch()` direct    | grep dans app/ + components/                | 0 résultat métier                                |
+| TODO/FIXME/HACK     | grep dans tout frontend/                    | 0 résultat                                       |
+| staleTime           | grep dans hooks/                            | 41 occurrences, toutes définies                  |
+| `next/image`        | grep dans app/ + components/                | 1 import, 5 contournements                       |
 
 ### Vérifications terrain post-audit (2026-04-10/11)
 
-| Point | Fichier lu | Résultat |
-|-------|-----------|---------|
-| H1 diagnose prod | `logging_config.py:113,122` | RÉSOLU — conditionnel `_is_production_like_env()` |
-| H2 HSTS | `server/middleware.py:108-109` | RÉSOLU — conditionnel `_is_production()` |
-| H3 Permissions-Policy | `server/middleware.py:107` | RÉSOLU — présent |
-| BUG .dockerignore | `.dockerignore:147-148` | CORRIGÉ (AUDIT-QUICKWINS-01) |
-| M5 PII usernames | `auth_service.py` (grep username) | RÉSOLU (SEC-PII-LOGS-01) |
-| F1 X-XSS-Protection | `server/middleware.py:31` | CORRIGÉ (AUDIT-QUICKWINS-01) |
-| 165 f-strings logger | `app/` + `server/` (grep) | CONFIRMÉ OUVERT — 134 + 31 = 165 |
-| mypy codes désactivés | `pyproject.toml:41-52` | CONFIRMÉ OUVERT — 10 codes |
+| Point                 | Fichier lu                        | Résultat                                          |
+| --------------------- | --------------------------------- | ------------------------------------------------- |
+| H1 diagnose prod      | `logging_config.py:113,122`       | RÉSOLU — conditionnel `_is_production_like_env()` |
+| H2 HSTS               | `server/middleware.py:108-109`    | RÉSOLU — conditionnel `_is_production()`          |
+| H3 Permissions-Policy | `server/middleware.py:107`        | RÉSOLU — présent                                  |
+| BUG .dockerignore     | `.dockerignore:147-148`           | CORRIGÉ (AUDIT-QUICKWINS-01)                      |
+| M5 PII usernames      | `auth_service.py` (grep username) | RÉSOLU (SEC-PII-LOGS-01)                          |
+| F1 X-XSS-Protection   | `server/middleware.py:31`         | CORRIGÉ (AUDIT-QUICKWINS-01)                      |
+| 165 f-strings logger  | `app/` + `server/` (grep)         | CONFIRMÉ OUVERT — 134 + 31 = 165                  |
+| mypy codes désactivés | `pyproject.toml:41-52`            | CONFIRMÉ OUVERT — 10 codes                        |
 
 ### Note sur le scoring
 
