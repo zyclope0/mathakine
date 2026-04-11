@@ -237,7 +237,7 @@ ls frontend/components/badges/BadgeCard.test.tsx  # présent si migré
 
 Seuils actuels dans `vitest.config.ts` : statements 39 %, branches 33 %, functions 37 %, lines 40 % (1 point sous la baseline pour absorber la variance).
 
-37 hooks sur 52 sans test (71 %) dont `useSubmitAnswer`, `useIrtScores` (210 L), `useAIExerciseGenerator`. **Avancement 2026-04-11 (lot `TEST-DIAGNOSTIC-HOOK-01`)** : `useDiagnostic` (232 L) est désormais couvert par `frontend/__tests__/unit/hooks/useDiagnostic.test.ts` ; seuils `vitest.config.ts` non modifiés dans ce lot. Le ratio global « hooks sans test » reste élevé tant que les autres cibles critiques ne sont pas traitées.
+37 hooks sur 52 sans test (71 %) — les cibles critiques initialement citées incluent encore `useAIExerciseGenerator`. **Avancements ACTIF-04 (tests dédiés, seuils `vitest.config.ts` inchangés)** : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` via `frontend/__tests__/unit/hooks/useDiagnostic.test.ts` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` via `frontend/__tests__/unit/hooks/useSubmitAnswer.test.ts` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` via `frontend/__tests__/unit/hooks/useIrtScores.test.ts`. Le ratio global « hooks sans test » et la remontée progressive des seuils restent ouverts.
 
 `[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de 5 points.
 
@@ -403,8 +403,8 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint C — Tests hooks critiques (3–4 semaines, par lots)
 
 ```
-5. Écrire tests useSubmitAnswer
-6. Écrire tests useIrtScores (210 L)
+5. ~~Écrire tests useSubmitAnswer~~ — fait (`TEST-SUBMIT-ANSWER-01`, `__tests__/unit/hooks/useSubmitAnswer.test.ts`).
+6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`, `__tests__/unit/hooks/useIrtScores.test.ts`).
 7. Écrire tests useAIExerciseGenerator
 8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `__tests__/unit/hooks/useDiagnostic.test.ts`) ; poursuivre les autres hooks du sprint C.
 9. Remonter seuils vitest.config.ts de 5 points après chaque lot

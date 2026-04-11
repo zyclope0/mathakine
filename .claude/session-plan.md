@@ -297,6 +297,22 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé, pas clôture globale coverage), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useDiagnostic.test.ts`, `prettier --check` sur les fichiers touchés.
 
+### TEST-SUBMIT-ANSWER-01 (2026-04-11) - fermé
+
+- **Objectif** : couverture unitaire de **`frontend/hooks/useSubmitAnswer.ts`** (POST **`/api/exercises/{id}/attempt`**, **`trackFirstAttempt`**, invalidations / refetch React Query, toasts badges / progression / erreur).
+- **Inchangé** : hook, clés **`queryKey`**, copy **`next-intl`**, analytics, seuils **`vitest.config.ts`**, **`useExerciseSolverController`**.
+- **Tests** : **`frontend/__tests__/unit/hooks/useSubmitAnswer.test.ts`** — **`QueryClientProvider`**, mock **`api.post`**, **`sonner`**, **`trackFirstAttempt`**, **`useTranslations`** ; assertion **`refetchQueries`** explicite pour **`["completed-exercises"]`** distincte des refetch induits par **`invalidateQueries`** sur l’arbre de test.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useSubmitAnswer.test.ts`, `prettier --check` sur les fichiers touchés.
+
+### TEST-IRT-SCORES-01 (2026-04-11) - fermé
+
+- **Objectif** : couverture unitaire de **`frontend/hooks/useIrtScores.ts`** (GET **`/api/diagnostic/status`**, scores directs, proxies **`mixte`** / **`fractions`**, fallback profil, seuil **`GRAND_MAITRE`**, **`has_completed`**).
+- **Inchangé** : hook, règles IRT, **`useExerciseSolverController`**, seuils **`vitest.config.ts`**.
+- **Tests** : **`frontend/__tests__/unit/hooks/useIrtScores.test.ts`** — **`QueryClientProvider`**, mock **`api.get`**, **`useAuth`** via **`vi.hoisted`** ; pas de snapshot.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useIrtScores.test.ts`, `prettier --check` sur les fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
