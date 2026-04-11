@@ -257,7 +257,7 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - **Refactor** : `frontend/app/home-learner/page.tsx` = coque **`ProtectedRoute`** + **`HomeLearnerContent`** ; sections **`HomeLearnerPageMap`**, **`HomeLearnerReviewsSection`**, **`HomeLearnerActionsSection`**, **`HomeLearnerProgressSection`** sous **`frontend/components/learner/`** ; **`homeLearnerConstants.ts`**, **`homeLearnerI18n.ts`** pour découplage typé sans nouveau hook métier.
 - **Inchangé** : hooks existants (`useAuth`, `useProgressStats`, `useUserStats`, `useRecommendations`), ordre conditionnel révisions / actions, ancres `#section-*`, CTA et `recordOpen`, widgets dashboard non refactorés en profondeur.
-- **Hors lot** : `frontend/app/exercises/page.tsx` (**P1-ARCH-05** reste ouvert côté exercises).
+- **Suite** : **`ARCH-EXERCISES-01`** ferme le sous-cas `app/exercises/page.tsx` (**P1-ARCH-05** complet).
 - **Tests** : `frontend/__tests__/unit/app/home-learner/HomeLearnerPage.test.tsx` (smoke sections + ordre ancres / DOM).
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-ARCH-05**), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/home-learner/HomeLearnerPage.test.tsx`, `prettier --check` sur les fichiers touchés.
@@ -270,6 +270,16 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : `frontend/__tests__/unit/app/leaderboard/LeaderboardPage.test.tsx` (inchangé, toujours vert).
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-PERF-01**), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/leaderboard/LeaderboardPage.test.tsx`, `prettier --check` sur fichiers touchés.
+
+### ARCH-EXERCISES-01 (2026-04-11) - fermé
+
+- **Refactor** : `frontend/app/exercises/page.tsx` = coque **`Suspense`** + fallback (`ProtectedRoute` + `PageLayout` + `ExercisesListLoadingShell`) ; **`frontend/components/exercises/ExercisesPageContent.tsx`** (hooks **`useContentListPageController`**, **`useExercises`**, effet `generated=true`, toolbar, générateur, modal lazy) ; **`ExercisesResultsView`** pour le shell liste/grille ; helpers **`lib/exercises/buildExercisePageFilters.ts`**, **`exercisePageToolbarLabels.ts`**, **`exercisesPageConstants.ts`**.
+- **Inchangé** : clés React Query, invalidations, filtres / ordre / pagination, **`ExerciseCard`**, **`UnifiedExerciseGenerator`**, **`ExerciseModal`** (lazy), i18n.
+- **Hors lot** : `app/exercises/interleaved/page.tsx`, nouveau gros hook métier, refonte cartes / générateur.
+- **Tests** : `__tests__/unit/app/exercises/ExercisesPage.test.tsx`, `__tests__/unit/lib/exercises/buildExercisePageFilters.test.ts`.
+- **Garde-fous** : budget LOC `app/exercises/page.tsx` réduit dans **`frontendGuardrails.ts`** (coque courte).
+- **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P1-ARCH-05** résolu), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/app/exercises/ExercisesPage.test.tsx __tests__/unit/lib/exercises/buildExercisePageFilters.test.ts __tests__/unit/architecture/frontendGuardrails.test.ts`, `prettier --check` sur fichiers touchés.
 
 ### RÃ¨gle de pilotage
 

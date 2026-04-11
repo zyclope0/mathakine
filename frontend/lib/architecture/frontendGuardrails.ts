@@ -82,9 +82,10 @@ export const PROTECTED_FRONTEND_SURFACES: readonly ProtectedFrontendSurface[] = 
   },
   {
     relativePath: "app/exercises/page.tsx",
-    maxLines: 340,
+    maxLines: 55,
     category: "page-container",
-    reason: "FFI-L15: shared list controller + domain-specific chrome",
+    reason:
+      "ARCH-EXERCISES-01: thin Suspense shell; list chrome in components/exercises/ExercisesPageContent.tsx",
   },
   {
     relativePath: "app/challenges/page.tsx",
