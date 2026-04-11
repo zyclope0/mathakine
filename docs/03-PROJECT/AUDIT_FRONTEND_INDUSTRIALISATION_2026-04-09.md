@@ -1,6 +1,6 @@
 # Audit Frontend — Industrialisation & Qualité Technique
 
-> **Version :** 2026-04-11 (audit initial 2026-04-09, mis à jour au fil des lots)
+> **Version :** 2026-04-12 (audit initial 2026-04-09, mis à jour au fil des lots)
 > **Stack :** Next.js 16 App Router · TypeScript strict · Tailwind CSS · shadcn/ui · React Query v5
 > **Méthode :** lectures directes de fichiers — chaque constat cite `fichier:ligne`
 > **Objectif :** atteindre 9.5/10
@@ -43,13 +43,13 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 | Score estimé après lots exécutés (2026-04-11)   | **~7.8 / 10**                  |
 | Findings P0 ouverts                             | **0**                          |
 | Findings P1 ouverts                             | **0**                          |
-| Findings P2 ouverts                             | **3**                          |
-| Findings P3 ouverts                             | **1** (`ACTIF-05` backlog)     |
+| Findings P2 ouverts                             | **4** (ACTIF-02/03/04/06)      |
+| Findings P3 ouverts                             | **2** (ACTIF-05 backlog + ACTIF-07 DRY) |
 | Queries React Query avec staleTime              | **41/41** (100 %)              |
 | Occurrences `: any` ou `as any`                 | **0**                          |
 | TODO/FIXME/HACK non ticketés                    | **0**                          |
 
-**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la co-location progressive des tests (D5), la remontée mesurée de la couverture et des seuils Vitest (D8), et l'adoption raisonnée de `next/image` pour 3 cas dynamiques restants (D7).
+**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la co-location progressive des tests (D5), la remontée mesurée de la couverture et des seuils Vitest (D8), et l'adoption raisonnée de `next/image` pour 1 cas dynamique restant (D7).
 
 > **Hors périmètre de cet audit :** sécurité HTTP au-delà de la CSP, surface XSS détaillée, backend Python, DevOps. Ces points sont traités dans la section §7 et dans l'audit complet multi-stack séparé.
 
@@ -160,9 +160,11 @@ export function useChallengeSolverController({
 | Finding | Priorité | Effort | Premier geste concret |
 |---------|----------|--------|-----------------------|
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
-| ACTIF-02 | P2 — EN COURS | 45 min/composant | `UserAvatar` + `BadgeIcon` traités (lots **ACTIF-02-USERAVATAR-01**, **ACTIF-02-BADGEICON-01**) ; suite : `ChatMessagesView.tsx` |
+| ACTIF-02 | P2 — EN COURS | 45 min | `UserAvatar` + `BadgeIcon` traités ; reste `ChatMessagesView.tsx:74` |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Co-localiser `useAuth.test.ts` |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
+| ACTIF-06 | P2 — NOUVEAU | 2–3h/page | Extraire `useAdminUsersPageController.ts` |
+| ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
 | ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
 
 ---
@@ -245,7 +247,7 @@ npx vitest run components/badges/BadgeCard.test.tsx
 
 Seuils actuels dans `vitest.config.ts` : statements 39 %, branches 33 %, functions 37 %, lines 40 % (1 point sous la baseline pour absorber la variance).
 
-Baseline historique de l’audit initial (2026-04-09) : **37 hooks sur 52 sans test (71 %)**. Le sprint C historique visait notamment les hooks critiques de génération / diagnostic / tentatives. **Avancements ACTIF-04 (tests dédiés, seuils `vitest.config.ts` inchangés)** : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator` via `frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`. Le ratio global courant « hooks sans test » et la remontée progressive des seuils restent ouverts tant qu’un nouveau calcul complet n’a pas été refait.
+**Ratio hooks recalculé terrain (2026-04-11)** : 22 hooks avec test / 56 total = **34 hooks sans test (61 %)**. Historique audit initial : 71 % (52 hooks, avant les lots de tests ci-dessous). Avancements : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator`. Hooks sans test prioritaires : `useAdminUsers`, `useBadges`, `useChallenges`, `useExercises`, `useSettings`, `useAuth` (partiel), `useLeaderboard`.
 
 `[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de 5 points.
 
@@ -260,10 +262,54 @@ cd frontend && npx vitest run --coverage
 
 ---
 
+### [ACTIF-06] Pages admin volumineuses sans controller — violation guardrail
+
+**Priorité :** P2 | **Dimension :** D1 Industrialisation | **Effort :** 2–3h chacune
+
+`[CONSTAT]` Deux pages admin portent l'intégralité de la logique métier inline, sans controller dédié — en violation du pattern guardrail du projet (page = coque, controller = état + handlers) :
+
+| Fichier | Lignes | État inline vérifié terrain |
+|---------|--------|-----------------------------|
+| `app/admin/users/page.tsx` | 498 | 8 `useState`/`useCallback` + 5 handlers async (`handleToggleActive`, `handleUpdateRole`, `handleSendResetPassword`, `handleResendVerification`, `handleDeleteUser`) à lignes 65–178 |
+| `app/admin/ai-monitoring/page.tsx` | 572 | state `days` + `formatWorkloadLabel` + `daysOptions` useMemo + JSX toolbar inline à lignes 39–102 |
+
+Le projet dispose de `useAdminContentPageController.ts` mais ces deux pages ne délèguent pas.
+
+`[RECOMMANDATION]` Extraire un `useAdminUsersPageController.ts` (état + handlers) et un `useAdminAiMonitoringPageController.ts`. Les pages deviennent des coques qui consomment le controller. Même discipline que `useDashboardPageController`, `useBadgesPageController`.
+
+`[VALIDATION]`
+
+```bash
+grep -c "useState\|useCallback" frontend/app/admin/users/page.tsx
+# objectif : 0 (tout l'état est dans le controller)
+```
+
+---
+
+### [ACTIF-07] Duplication `colorMap` entre renderers visuels
+
+**Priorité :** P3 | **Dimension :** D2 DRY | **Effort :** 1h
+
+`[CONSTAT]` Deux maps couleur quasi-identiques (clés FR/EN → hex) co-existent dans des fichiers séparés sans module partagé :
+
+| Fichier | Symbole | Lignes |
+|---------|---------|--------|
+| `components/challenges/visualizations/VisualRenderer.tsx:27` | `colorMap` dans `parseShapeWithColor()` | ~20 entrées |
+| `components/challenges/visualizations/VisualRenderer.tsx:95` | deuxième `colorMap` dans `resolveColor()` | ~15 entrées |
+| `components/challenges/visualizations/ProbabilityRenderer.tsx:15` | `COLOR_MAP` constante | ~20 entrées (+ `marron`) |
+
+Risque : une couleur ajoutée dans un fichier ne se propage pas automatiquement aux autres. La divergence est silencieuse.
+
+`[RECOMMANDATION]` Créer `components/challenges/visualizations/_colorMap.ts` avec la map canonique. Les trois usages importent cette constante. Pas de changement de comportement, juste élimination de la copie.
+
+`[DÉCISION]` Ne pas fusionner tant qu'une feature n'impose pas de toucher plusieurs renderers simultanément — le risque de divergence est faible à court terme.
+
+---
+
 ### [ACTIF-05] Controllers et utilitaires volumineux — BACKLOG OPTIONNEL
 
 > ⛔ **NE PAS COMMENCER CE FINDING EN PREMIER.**
-> ACTIF-01, ACTIF-02, ACTIF-03, ACTIF-04 sont tous prioritaires. Ce finding est listé pour traçabilité, pas comme tâche immédiate. La `[DÉCISION]` ci-dessous l'interdit explicitement.
+> ACTIF-06 et les autres findings actifs sont prioritaires. Ce finding est listé pour traçabilité, pas comme tâche immédiate. La `[DÉCISION]` ci-dessous l'interdit explicitement.
 
 **Priorité :** P3 — BACKLOG | **Dimension :** D6 Maintenabilité | **Effort :** 2–4h chacun
 
@@ -448,8 +494,19 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
     → Concerne §7 mypy
 ```
 
+### Sprint F — Admin controllers (2–3h par page)
+
+```
+13. Extraire useAdminUsersPageController.ts depuis app/admin/users/page.tsx (498L)
+    → Concerne ACTIF-06
+14. Extraire useAdminAiMonitoringPageController.ts depuis app/admin/ai-monitoring/page.tsx (572L)
+    → Concerne ACTIF-06
+```
+
 ### Backlog non planifié
 
+- `_colorMap.ts` partagé entre renderers (ACTIF-07) — 1h, non bloquant
+- `console.error` sans garde dev : `useAcademyStats.ts:88`, `useSettings.ts:140`, `auth-session-sync.ts:111` — remplacer par `debugError()` de `lib/utils/debug.ts` — 15 min
 - Décomposition `useProfilePageController.ts` (463 L) — non bloquant
 - Décomposition `exportPDF.ts` / `exportExcel.ts` — non bloquant
 - Décomposition `user_service.py` backend (1506 L) — nécessite tests préalables
@@ -491,4 +548,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-11. Dernière vérification terrain : 2026-04-11 (**ACTIF-02-BADGEICON-01** : `BadgeIcon` hybride + fallback React ; **`nextImageRemoteSource.ts`** ; ACTIF-03 pilote ; ACTIF-04 seuils). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain exhaustive : 2026-04-11 (50 pages app, 230 composants, 55 hooks lus directement ; ACTIF-06 pages admin sans controller ajouté ; ACTIF-07 colorMap DRY ajouté ; ratio hooks corrigé 61 % ; ACTIF-02 UserAvatar+BadgeIcon confirmés migrés). Toutes les assertions citent fichier:ligne lu directement._
