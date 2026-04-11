@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { getBadgeIconPath } from "@/lib/constants/badge-icons";
+import { resolveNextImageRemoteDelivery } from "@/lib/utils/nextImageRemoteSource";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -49,6 +52,62 @@ const DIFFICULTY_CONTAINER: Record<Difficulty, { gradient: string; ring: string;
   },
 };
 
+const REMOTE_PIXELS = { sm: 24, md: 32, lg: 40 } as const;
+
+type BadgeIconSize = keyof typeof REMOTE_PIXELS;
+
+function BadgeIconRemoteHttp({
+  dbUrl,
+  fallback,
+  size,
+  sizeClasses,
+  containerClassName,
+}: {
+  dbUrl: string;
+  fallback: string;
+  size: BadgeIconSize;
+  sizeClasses: Record<BadgeIconSize, string>;
+  containerClassName: string;
+}) {
+  const [loadFailed, setLoadFailed] = useState(false);
+  const delivery = resolveNextImageRemoteDelivery(dbUrl);
+  const px = REMOTE_PIXELS[size];
+
+  if (loadFailed) {
+    return (
+      <span className={containerClassName} aria-hidden="true">
+        <span className="text-lg">{fallback}</span>
+      </span>
+    );
+  }
+
+  const sharedImgClass = cn("object-contain", sizeClasses[size]);
+  const onError = () => setLoadFailed(true);
+
+  const inner =
+    delivery.mode === "next-image" ? (
+      <Image
+        src={delivery.src}
+        alt=""
+        width={px}
+        height={px}
+        className={sharedImgClass}
+        sizes={`${px}px`}
+        onError={onError}
+      />
+    ) : (
+      // Intentional: host not in next.config `remotePatterns`; same as UserAvatar off-list URLs.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={delivery.src} alt="" className={sharedImgClass} onError={onError} />
+    );
+
+  return (
+    <span className={containerClassName} aria-hidden="true">
+      {inner}
+    </span>
+  );
+}
+
 /**
  * Icône de badge cohérente : SVG local (mask + currentColor) ou fallback.
  * S'adapte au thème sans fond blanc.
@@ -66,7 +125,6 @@ export function BadgeIcon({
   const dbUrl = iconUrl?.trim();
   const isHttp = dbUrl?.startsWith("http") ?? false;
 
-  // Priorité : SVG local → URL DB → emoji
   const fallback = getCategoryFallback(category);
 
   const sizeClasses = {
@@ -86,7 +144,13 @@ export function BadgeIcon({
       ? DIFFICULTY_CONTAINER[difficultyKey as Difficulty]
       : null;
 
-  // SVG local : masque CSS pour hériter de la couleur du thème
+  const remoteContainerClass = cn(
+    "shrink-0 flex items-center justify-center rounded-xl overflow-hidden",
+    "bg-muted/30 ring-1 ring-border/40",
+    containerSize[size],
+    className
+  );
+
   if (localPath) {
     return (
       <span
@@ -116,42 +180,19 @@ export function BadgeIcon({
     );
   }
 
-  // URL externe (DB)
   if (isHttp && dbUrl) {
     return (
-      <span
-        className={cn(
-          "shrink-0 flex items-center justify-center rounded-xl overflow-hidden",
-          "bg-muted/30 ring-1 ring-border/40",
-          containerSize[size],
-          className
-        )}
-        aria-hidden="true"
-      >
-        {/* Intentional: badge icon URLs come from runtime data and use DOM onError fallback;
-            next/image migration needs a separate remote-image and fallback design pass. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={dbUrl}
-          alt=""
-          className={cn("object-contain", sizeClasses[size])}
-          onError={(e) => {
-            const el = e.currentTarget;
-            el.style.display = "none";
-            const parent = el.parentElement;
-            if (parent) {
-              const fallbackEl = document.createElement("span");
-              fallbackEl.className = "text-lg";
-              fallbackEl.textContent = fallback;
-              parent.appendChild(fallbackEl);
-            }
-          }}
-        />
-      </span>
+      <BadgeIconRemoteHttp
+        key={dbUrl}
+        dbUrl={dbUrl}
+        fallback={fallback}
+        size={size}
+        sizeClasses={sizeClasses}
+        containerClassName={remoteContainerClass}
+      />
     );
   }
 
-  // Emoji fallback
   return (
     <span
       className={cn(

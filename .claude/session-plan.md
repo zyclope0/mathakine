@@ -339,10 +339,18 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 ### ACTIF-02-USERAVATAR-01 (2026-04-11) - fermé
 
 - **Objectif** : premier sous-lot **[ACTIF-02]** — industrialiser **`frontend/components/ui/UserAvatar.tsx`** sans changement UX ni props.
-- **Implémentation** : **`next/image`** avec **`width` / `height` / `sizes`** (pixels **28 / 40 / 64** selon **`sm` / `md` / `lg`**) lorsque **`resolveUserAvatarImageDelivery`** (`lib/utils/userAvatarImageSource.ts`) aligne l’URL sur **`images.remotePatterns`** de **`next.config.ts`** (chemins **`/`**, **`http://localhost`**, **`https://*.render.com`**, **`https://*.onrender.com`**) ; sinon **`<img>`** + **`eslint-disable`** ciblé (URL DB arbitraire hors liste). Ajout **`**.onrender.com`** dans **`next.config.ts`** pour coller aux déploiements Render réels.
-- **Tests** : **`frontend/lib/utils/userAvatarImageSource.test.ts`**.
+- **Implémentation** : **`next/image`** avec **`width` / `height` / `sizes`** (pixels **28 / 40 / 64** selon **`sm` / `md` / `lg`**) lorsque **`resolveNextImageRemoteDelivery`** (`lib/utils/nextImageRemoteSource.ts`, délégué par **`userAvatarImageSource.ts`**) aligne l’URL sur **`images.remotePatterns`** de **`next.config.ts`** (chemins **`/`**, **`http://localhost`**, **`https://*.render.com`**, **`https://*.onrender.com`**) ; sinon **`<img>`** + **`eslint-disable`** ciblé (URL DB arbitraire hors liste). Ajout **`**.onrender.com`** dans **`next.config.ts`** pour coller aux déploiements Render réels.
+- **Tests** : **`frontend/lib/utils/nextImageRemoteSource.test.ts`**, **`frontend/lib/utils/userAvatarImageSource.test.ts`** (délégation).
 - **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (ACTIF-02, D-02, sprint B, §5 résolus), **`README_TECH.md`**, ce fichier.
-- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run lib/utils/userAvatarImageSource.test.ts`**, **`npx prettier --check`** sur les fichiers touchés.
+- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run lib/utils/nextImageRemoteSource.test.ts lib/utils/userAvatarImageSource.test.ts`**, **`npx prettier --check`** sur les fichiers touchés.
+
+### ACTIF-02-BADGEICON-01 (2026-04-11) - fermé
+
+- **Objectif** : deuxième sous-lot **[ACTIF-02]** — supprimer le fallback DOM impératif sur **`BadgeIcon`** (`icon_url` HTTP) tout en gardant le rendu visuel.
+- **Implémentation** : sous-composant **`BadgeIconRemoteHttp`** avec **`useState`** pour échec de chargement ; **`next/image`** ou **`<img>`** selon **`resolveNextImageRemoteDelivery`** (`lib/utils/nextImageRemoteSource.ts`) ; **`key={dbUrl}`** pour réinitialiser l’état si l’URL change.
+- **Tests** : **`frontend/__tests__/unit/components/BadgeIcon.test.tsx`** (local mask, remote onrender → mock **`next/image`**, CDN → **`<img>`**, erreur → emoji, sans URL → emoji).
+- **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (ACTIF-02, D-02, sprint B, §5), **`README_TECH.md`**, ce fichier.
+- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run __tests__/unit/components/BadgeIcon.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de changement **`next.config.ts`** dans ce lot.
 
 ### RÃ¨gle de pilotage
 
