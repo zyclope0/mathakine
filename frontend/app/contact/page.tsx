@@ -105,7 +105,7 @@ export default function ContactPage() {
       <PageSection
         title={t("feedback.title")}
         description={t("feedback.intro")}
-        icon={MessageSquare}
+        icon={<MessageSquare className="h-5 w-5 text-primary" aria-hidden />}
       >
         <Card>
           <CardContent className="pt-6">

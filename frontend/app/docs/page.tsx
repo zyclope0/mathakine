@@ -30,6 +30,9 @@ import { Button } from "@/components/ui/button";
  * Refonte UI : Semantic Design & Anti-Cheap (Glassmorphism, Bento grids, typography accentuée)
  * Server Component : i18n via getTranslations ; entrées animées conditionnées par prefers-reduced-motion (motion-safe:).
  */
+/** Lucide header icon styling for PageSection (must be elements, not component refs, from a Server Component). */
+const SECTION_HEADER_ICON_CLASS = "h-5 w-5 text-primary";
+
 export default async function DocsPage() {
   const t = await getTranslations("docs");
 
@@ -84,7 +87,11 @@ export default async function DocsPage() {
 
       <div className="space-y-12 md:space-y-16">
         {/* 2. Pourquoi Mathakine */}
-        <PageSection title={t("why.title")} description={t("why.intro")} icon={Sparkles}>
+        <PageSection
+          title={t("why.title")}
+          description={t("why.intro")}
+          icon={<Sparkles className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {whyItems.map(({ key, icon: Icon }) => (
               <div
@@ -104,7 +111,10 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 3. Démarrer - Parcours simple */}
-        <PageSection title={t("getStarted.title")} icon={UserPlus}>
+        <PageSection
+          title={t("getStarted.title")}
+          icon={<UserPlus className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-8 relative overflow-hidden">
             {/* Design d'accentuation subtil */}
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -128,7 +138,10 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 4. Utiliser Mathakine */}
-        <PageSection title={t("using.title")} icon={ListTodo}>
+        <PageSection
+          title={t("using.title")}
+          icon={<ListTodo className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {usingItems.map(({ key, icon: Icon }) => (
               <div
@@ -150,7 +163,10 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 5. Accessibilité */}
-        <PageSection title={t("accessibility.title")} icon={Accessibility}>
+        <PageSection
+          title={t("accessibility.title")}
+          icon={<Accessibility className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-4 shadow-sm">
             <p className="text-foreground font-medium leading-relaxed">
               {t("accessibility.intro")}
@@ -168,7 +184,10 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 6. Rétention / Motivation */}
-        <PageSection title={t("retention.title")} icon={Heart}>
+        <PageSection
+          title={t("retention.title")}
+          icon={<Heart className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {retentionItems.map(({ key, icon: Icon }) => (
               <div
@@ -188,7 +207,10 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 7. FAQ */}
-        <PageSection title={t("faq.title")} icon={MessageCircleQuestion}>
+        <PageSection
+          title={t("faq.title")}
+          icon={<MessageCircleQuestion className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
           <div className="bg-card/50 border border-border rounded-2xl overflow-hidden divide-y divide-border">
             {faqItems.map((item) => (
               <details key={item.id} className="group [&_summary::-webkit-details-marker]:hidden">
