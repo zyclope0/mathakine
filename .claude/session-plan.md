@@ -251,7 +251,7 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Refactor** : `frontend/components/badges/BadgeCard.tsx` reste l’API publique (`BadgeCard`, `BadgeCardProps`) ; sections denses extraites dans **`frontend/components/badges/badgeCard/`** — **`BadgeCardDifficultyMedal`**, **`BadgeCardCompactEarnedHeader`**, **`BadgeCardStandardHeader`**, **`BadgeCardCardContent`** (motivation / progressbar / pied verrouillé inclus).
 - **Inchangé** : props, i18n, règles `badgePresentation`, animations motion, shimmer ; périmètre limité à `BadgeCard` et ses sous-composants locaux.
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01**), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/badges/BadgeCard.test.tsx`, `prettier --check` sur les fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run components/badges/BadgeCard.test.tsx`, `prettier --check` sur les fichiers touchés.
 
 ### ARCH-HOME-LEARNER-01 (2026-04-11) - fermé
 
@@ -285,25 +285,25 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - **Refactor** : `frontend/components/diagnostic/DiagnosticSolver.tsx` = façade par phase ; **`DiagnosticIdleState`**, **`DiagnosticLoadingState`**, **`DiagnosticErrorState`**, **`DiagnosticResultsState`**, **`DiagnosticQuestionState`** ; **`DiagnosticSolverPrimitives.tsx`** (`DiagnosticFocusBoard`, `DiagnosticProgressBar`, **`DiagnosticScoreCard`**).
 - **Inchangé** : **`useDiagnostic.ts`** (dont **`setTimeout(..., 1800)`**), props publiques **`DiagnosticSolverProps`**, i18n, CTA, **`MathText`** / **`GrowthMindsetHint`**, endpoints `/api/diagnostic/*`, `app/diagnostic/page.tsx`.
-- **Tests** : `frontend/__tests__/unit/components/diagnostic/DiagnosticSolver.test.tsx` (idle, error, results, question, feedback, `onComplete`).
+- **Tests** : `frontend/components/diagnostic/DiagnosticSolver.test.tsx` (idle, error, results, question, feedback, `onComplete`).
 - **Doc** : `README_TECH.md`, `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` (**P3-COMP-01** résolu), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/components/diagnostic/DiagnosticSolver.test.tsx`, `prettier --check` sur fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run components/diagnostic/DiagnosticSolver.test.tsx`, `prettier --check` sur fichiers touchés.
 
 ### TEST-DIAGNOSTIC-HOOK-01 (2026-04-11) - fermé
 
 - **Objectif** : couverture unitaire du hook critique **`frontend/hooks/useDiagnostic.ts`** (flux idle / loading / question / feedback / results / error, appels **`/api/diagnostic/start|question|answer|complete`**, délai **`1800`** ms avant finalisation quand **`session_complete`**).
 - **Inchangé** : comportement métier du hook, signatures publiques, **`setTimeout(..., 1800)`**, UI diagnostic, seuils **`vitest.config.ts`**.
-- **Tests** : **`frontend/__tests__/unit/hooks/useDiagnostic.test.ts`** — mock **`@/lib/api/client`**, **`vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })`** sur la branche finale (éviter **`waitFor`** bloqué par timers entièrement fake) ; assertion **`setTimeout(..., 1800)`** via spy.
+- **Tests** : **`frontend/hooks/useDiagnostic.test.ts`** — mock **`@/lib/api/client`**, **`vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })`** sur la branche finale (éviter **`waitFor`** bloqué par timers entièrement fake) ; assertion **`setTimeout(..., 1800)`** via spy.
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé, pas clôture globale coverage), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useDiagnostic.test.ts`, `prettier --check` sur les fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useDiagnostic.test.ts`, `prettier --check` sur les fichiers touchés.
 
 ### TEST-SUBMIT-ANSWER-01 (2026-04-11) - fermé
 
 - **Objectif** : couverture unitaire de **`frontend/hooks/useSubmitAnswer.ts`** (POST **`/api/exercises/{id}/attempt`**, **`trackFirstAttempt`**, invalidations / refetch React Query, toasts badges / progression / erreur).
 - **Inchangé** : hook, clés **`queryKey`**, copy **`next-intl`**, analytics, seuils **`vitest.config.ts`**, **`useExerciseSolverController`**.
-- **Tests** : **`frontend/__tests__/unit/hooks/useSubmitAnswer.test.ts`** — **`QueryClientProvider`**, mock **`api.post`**, **`sonner`**, **`trackFirstAttempt`**, **`useTranslations`** ; assertion **`refetchQueries`** explicite pour **`["completed-exercises"]`** distincte des refetch induits par **`invalidateQueries`** sur l’arbre de test.
+- **Tests** : **`frontend/hooks/useSubmitAnswer.test.ts`** — **`QueryClientProvider`**, mock **`api.post`**, **`sonner`**, **`trackFirstAttempt`**, **`useTranslations`** ; assertion **`refetchQueries`** explicite pour **`["completed-exercises"]`** distincte des refetch induits par **`invalidateQueries`** sur l’arbre de test.
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useSubmitAnswer.test.ts`, `prettier --check` sur les fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useSubmitAnswer.test.ts`, `prettier --check` sur les fichiers touchés.
 
 ### TEST-IRT-SCORES-01 (2026-04-11) - fermé
 
@@ -320,6 +320,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : **`frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`** — **`QueryClientProvider`**, mocks ciblés (**`postAiGenerationSse`**, **`consumeSseJsonEvents`**, **`useAuth`**, **`next/navigation`**, **`next-intl`**, **`sonner`**) ; **`beforeEach`** avec **`mockPost.mockReset()`** pour ne pas laisser d’implémentation **`mockImplementation`** résiduelle entre cas.
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useAIExerciseGenerator.test.ts`, `prettier --check` sur les fichiers touchés.
+
+### TEST-COLOCATE-PILOT-01 (2026-04-11) - fermé
+
+- **Objectif** : premier pilote **`ACTIF-03`** — co-localiser **4** tests actifs auprès du code source, sans changer leur logique ni **`vitest.config.ts`**.
+- **Fichiers** : **`components/badges/BadgeCard.test.tsx`**, **`components/diagnostic/DiagnosticSolver.test.tsx`**, **`hooks/useDiagnostic.test.ts`**, **`hooks/useSubmitAnswer.test.ts`** (suppression des doublons sous **`__tests__/unit/`**).
+- **Inchangé** : assertions, mocks **`@/`**, comportement produit ; pas de migration de masse.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier (chemins **`vitest`** des lots **COMP-BADGECARD-01**, **COMP-DIAGNOSTIC-01**, **TEST-DIAGNOSTIC-HOOK-01**, **TEST-SUBMIT-ANSWER-01** alignés).
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run components/badges/BadgeCard.test.tsx components/diagnostic/DiagnosticSolver.test.tsx hooks/useDiagnostic.test.ts hooks/useSubmitAnswer.test.ts`, `prettier --check` sur les quatre fichiers co-localisés.
 
 ### RÃ¨gle de pilotage
 

@@ -154,7 +154,16 @@ export function useChallengeSolverController({
 
 ## 4. Findings actifs — à traiter
 
-Les findings ci-dessous sont **ouverts** sur `master` au 2026-04-11. Codex peut les implémenter directement.
+> **ORDRE D'EXÉCUTION IMPOSÉ — ne pas déroger.**
+> Les findings sont listés du plus prioritaire au moins prioritaire. ACTIF-05 est intentionnellement en dernier : c'est un backlog optionnel. Si Codex cherche quoi faire, il commence par ACTIF-01.
+
+| Finding | Priorité | Effort | Premier geste concret |
+|---------|----------|--------|-----------------------|
+| ACTIF-01 | P2 — À FAIRE | 20–30 min/page | Lire `app/docs/page.tsx` |
+| ACTIF-02 | P2 — À FAIRE | 45 min/composant | Migrer `UserAvatar.tsx` |
+| ACTIF-03 | P2 — EN COURS | 1–2h par lot | Co-localiser `useAuth.test.ts` |
+| ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
+| ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
 
 ---
 
@@ -214,20 +223,25 @@ grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
 
 **Priorité :** P2 | **Dimension :** D5 Modularité | **Effort :** 1–2h pour les migrations pilotes
 
-`[CONSTAT]` 133 fichiers de tests dans `frontend/__tests__/unit/` séparés du code source. Exemple :
+`[CONSTAT]` La majorité des tests reste sous `frontend/__tests__/unit/` (structure historique). L’outillage Vitest découvre déjà les `*.test.{ts,tsx}` hors `__tests__/` (préco `lib/auth/server/validateTokenBackendHeaders.test.ts`).
 
-- `__tests__/unit/components/badges/BadgeCard.test.tsx` au lieu de `components/badges/BadgeCard.test.tsx`
+**Avancement 2026-04-11 (lot `TEST-COLOCATE-PILOT-01`, pilote ACTIF-03)** : 4 fichiers co-localisés sans changement de logique ni de `vitest.config.ts` :
+- `frontend/components/badges/BadgeCard.test.tsx`
+- `frontend/components/diagnostic/DiagnosticSolver.test.tsx`
+- `frontend/hooks/useDiagnostic.test.ts`
+- `frontend/hooks/useSubmitAnswer.test.ts`
 
-Impact : lors d'un refactoring, le test correspondant est difficile à trouver sans connaître la structure `__tests__/`.
+La migration globale des ~130 autres fichiers **n’est pas** revendiquée ; **ACTIF-03** reste ouvert.
 
-`[RECOMMANDATION]` Migration progressive : co-localiser les tests des composants les plus actifs en priorité. Mettre à jour `vitest.config.ts` : `testMatch: ["**/*.test.{ts,tsx}"]` (au lieu du chemin `__tests__/` uniquement).
+`[RECOMMANDATION]` Poursuivre par petits lots nommés (même discipline : pas de `vitest.config.ts` ni vague massive sans validation).
 
-`[DÉCISION]` Ne pas migrer les 133 fichiers d'un coup — risque de casser les imports CI. Faire 3–5 fichiers pilotes d'abord, valider CI, puis continuer.
+`[DÉCISION]` Ne pas migrer les fichiers restants « au passage » dans un lot fonctionnel non dédié.
 
 `[VALIDATION]`
 
 ```bash
-ls frontend/components/badges/BadgeCard.test.tsx  # présent si migré
+ls frontend/components/badges/BadgeCard.test.tsx
+npx vitest run components/badges/BadgeCard.test.tsx
 ```
 
 ---
@@ -260,22 +274,23 @@ cd frontend && npx vitest run --coverage
 
 ---
 
-### [ACTIF-05] Controllers et utilitaires volumineux
+### [ACTIF-05] Controllers et utilitaires volumineux — BACKLOG OPTIONNEL
 
-**Priorité :** P3 | **Dimension :** D6 Maintenabilité | **Effort :** 2–4h chacun
+> ⛔ **NE PAS COMMENCER CE FINDING EN PREMIER.**
+> ACTIF-01, ACTIF-02, ACTIF-03, ACTIF-04 sont tous prioritaires. Ce finding est listé pour traçabilité, pas comme tâche immédiate. La `[DÉCISION]` ci-dessous l'interdit explicitement.
 
-`[CONSTAT]` Taille mesurée sur `master` :
+**Priorité :** P3 — BACKLOG | **Dimension :** D6 Maintenabilité | **Effort :** 2–4h chacun
 
-| Fichier                                | Lignes | Problème                               |
-| -------------------------------------- | ------ | -------------------------------------- |
-| `hooks/useProfilePageController.ts`    | 463    | Probablement plusieurs responsabilités |
-| `hooks/useExerciseSolverController.ts` | 391    | Idem                                   |
-| `lib/utils/exportPDF.ts`               | 384    | Utilitaire monolithique                |
-| `lib/utils/exportExcel.ts`             | 391    | Idem                                   |
+`[CONSTAT]` Taille mesurée sur `master` (information seulement, pas d'action requise) :
 
-`[RECOMMANDATION]` Lire chaque fichier, identifier les responsabilités distinctes, extraire en sous-modules si le découpage est naturel et ne casse pas les tests existants. Critère : chaque unité extraite < 150 lignes.
+| Fichier | Lignes | Note |
+|---------|--------|------|
+| `hooks/useProfilePageController.ts` | 463 | Aucun bug connu |
+| `hooks/useExerciseSolverController.ts` | 391 | Aucun bug connu |
+| `lib/utils/exportPDF.ts` | 384 | Lazy loading déjà fait (P1-PERF-02 résolu) |
+| `lib/utils/exportExcel.ts` | 391 | Idem |
 
-`[DÉCISION]` Ce n'est pas bloquant pour CI ni pour les fonctionnalités. Traiter uniquement si un refactoring plus large justifie l'ouverture du fichier.
+`[DÉCISION]` **Ne pas toucher ces fichiers sans raison fonctionnelle.** Ils fonctionnent, sont couverts par des tests, et leur découpage ne génère pas de gain mesurable à court terme. Ouvrir uniquement si un lot fonctionnel impose de modifier l'un d'eux.
 
 ---
 
@@ -416,10 +431,10 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint C — Tests hooks critiques (3–4 semaines, par lots)
 
 ```
-5. ~~Écrire tests useSubmitAnswer~~ — fait (`TEST-SUBMIT-ANSWER-01`, `__tests__/unit/hooks/useSubmitAnswer.test.ts`).
+5. ~~Écrire tests useSubmitAnswer~~ — fait (`TEST-SUBMIT-ANSWER-01`, `hooks/useSubmitAnswer.test.ts` co-localisé).
 6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`, `__tests__/unit/hooks/useIrtScores.test.ts`).
 7. ~~Écrire tests useAIExerciseGenerator~~ — fait (`TEST-AI-GENERATOR-01`, `__tests__/unit/hooks/useAIExerciseGenerator.test.ts`).
-8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `__tests__/unit/hooks/useDiagnostic.test.ts`) ; poursuivre le point 9 (seuils) et le reste du backlog hooks.
+8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `hooks/useDiagnostic.test.ts` co-localisé) ; poursuivre le point 9 (seuils) et le reste du backlog hooks.
 9. Remonter seuils vitest.config.ts de 5 points après chaque lot
    → Concerne ACTIF-04
 ```
@@ -434,7 +449,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint E — Modularité progressive (1–2h par session)
 
 ```
-11. Co-localiser 3–5 tests pilotes (BadgeCard, useAuth, buildContentSecurityPolicy)
+11. ~~Co-localiser 3–5 tests pilotes~~ — pilote `TEST-COLOCATE-PILOT-01` (4 fichiers : BadgeCard, DiagnosticSolver, useDiagnostic, useSubmitAnswer) ; poursuivre par nouveaux lots ciblés (`useAuth`, `buildContentSecurityPolicy`, etc.) — **ACTIF-03** toujours ouvert.
     → Concerne ACTIF-03
 12. mypy : réactiver 1 code désactivé sur auth_service.py, valider, itérer
     → Concerne §7 mypy
