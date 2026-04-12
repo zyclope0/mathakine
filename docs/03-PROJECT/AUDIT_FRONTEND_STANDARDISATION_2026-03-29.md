@@ -169,6 +169,7 @@ Decision d'execution :
 
 - ~~Le domaine badges dupliquait types et mappings de présentation entre `BadgeCard` / `BadgeGrid` / `BadgesProgressTabsSection`~~ — **FFI-L20D (2026-04-06)** : contrats partagés `lib/badges/types.ts`, helpers purs `lib/badges/badgePresentation.ts` ; vues inchangées côté UX.
 - ~~Shell admin read-heavy dupliqué~~ — **FFI-L20F** : `components/admin/AdminReadHeavyPageShell.tsx` + `AdminStatePanel.tsx` ; analytics et monitoring IA partagent la coque ; la vue d'ensemble réutilise `AdminStatePanel` ; hooks métier inchangés.
+- ~~Maps couleur FR/EN dupliquées (`VisualRenderer` / `ProbabilityRenderer`)~~ — **ACTIF-07-COLORMAP-01 (2026-04-12)** : `components/challenges/visualizations/_colorMap.ts` (`VISUALIZATION_COLOR_MAP`, `resolveVisualizationColor`, `findVisualizationColorInText`) ; tests **`_colorMap.test.ts`** ; finding **ACTIF-07** clos dans l’audit industrialisation 2026-04-09.
 
 ##### P3 — Standards / best-practices React-Next
 
@@ -312,7 +313,7 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 | ------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------- |
 | `components/exercises/ExerciseSolver.tsx`                    | ~366 | Façade solver (FFI-L20B) ; runtime dans `useExerciseSolverController`                 |
 | `components/challenges/visualizations/VisualRenderer.tsx`    | 625  | Visualisation générique défis                                                         |
-| `app/admin/ai-monitoring/page.tsx`                           | 587  | Monitoring IA admin                                                                   |
+| `app/admin/ai-monitoring/page.tsx`                           | ~509 | Monitoring IA admin (vue) ; orchestration **`hooks/useAdminAiMonitoringPageController.ts`** (~`83` LOC) — **ACTIF-06-AI-MONITORING-01** (2026-04-06) ; coque **FFI-L20F** (`AdminReadHeavyPageShell`) |
 | `components/challenges/visualizations/CodingRenderer.tsx`    | 586  | Renderer code                                                                         |
 | `components/badges/BadgeCard.tsx`                            | ~496 | Carte badge (FFI-L20D : dérivations partagées dans `lib/badges/badgePresentation.ts`) |
 | `components/challenges/visualizations/DeductionRenderer.tsx` | 482  | Renderer déduction                                                                    |
@@ -321,6 +322,8 @@ Dark override : `--background: #000000`, `--card: #0a0a0f`, borders plus opaques
 _Mise à jour 2026-04-06 : `app/settings/page.tsx` (~`133` LOC, FFI-L13 livré) ne figure plus dans ce top 10._
 
 _Mise à jour 2026-04-06 : `app/admin/content/page.tsx` (~`50` LOC container, FFI-L14 livré) ne figure plus dans ce top 10 ; le domaine vit dans `components/admin/content/*`._
+
+_Mise à jour 2026-04-06 : `app/admin/ai-monitoring/page.tsx` n’est plus un monolithe de logique : état + hooks admin IA dans **`useAdminAiMonitoringPageController`** (lot **ACTIF-06-AI-MONITORING-01**) ; le LOC du tableau ci-dessus est la **vue** uniquement._
 
 ### 3.3 Composants Layout (12 fichiers — `components/layout/`)
 

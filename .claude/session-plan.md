@@ -126,6 +126,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - i18n route-level : copy des pages admin racines + `offline` externalisÃ©e dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listÃ©e ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks mÃ©tier ; tests unitaires ciblÃ©s + smoke wiring i18n.
 
+### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
+
+- **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.
+- **`VisualRenderer.tsx`** / **`ProbabilityRenderer.tsx`** : suppression des maps inline ; import du module partagé ; alignement blanc/noir sur les hex déjà utilisés dans **`VisualRenderer`** ; **`ProbabilityRenderer`** conserve les fallbacks (`colorName.toLowerCase()`, **`#6b7280`**).
+- Tests : **`components/challenges/visualizations/_colorMap.test.ts`**.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` (ciblés), Prettier sur fichiers touchés.
+
 ### ACTIF-06-AI-MONITORING-01 (2026-04-12) - fermé
 
 - **`frontend/hooks/useAdminAiMonitoringPageController.ts`** : état `days` (1 / 7 / 30), agrégation **`useAdminAiStats`** / **`useAdminGenerationMetrics`** / **`useAdminAiEvalHarnessRuns`** (**`HARNESS_RUNS_LIMIT`** 25), dérivés tableaux, **`formatWorkloadLabel`**, **`daysOptions`**, **`handleDaysChange`**.

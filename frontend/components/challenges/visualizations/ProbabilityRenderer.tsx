@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  VISUALIZATION_COLOR_MAP,
+  resolveVisualizationColor,
+} from "@/components/challenges/visualizations/_colorMap";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useMemo } from "react";
 import { Dices, Percent, TrendingUp, Circle, Package } from "lucide-react";
@@ -10,31 +14,6 @@ interface ProbabilityRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
 }
-
-// Couleurs prédéfinies pour les items colorés
-const COLOR_MAP: Record<string, string> = {
-  red: "#ef4444",
-  rouge: "#ef4444",
-  blue: "#3b82f6",
-  bleu: "#3b82f6",
-  green: "#22c55e",
-  vert: "#22c55e",
-  yellow: "#eab308",
-  jaune: "#eab308",
-  purple: "#a855f7",
-  violet: "#a855f7",
-  orange: "#f97316",
-  pink: "#ec4899",
-  rose: "#ec4899",
-  white: "#f8fafc",
-  blanc: "#f8fafc",
-  black: "#1e293b",
-  noir: "#1e293b",
-  brown: "#92400e",
-  marron: "#92400e",
-  gray: "#6b7280",
-  gris: "#6b7280",
-};
 
 /**
  * Renderer pour les défis de probabilités.
@@ -66,7 +45,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
       // Cas : "red_bonbons": 10, "blue_billes": 5, etc.
       if (typeof value === "number" && !keyLower.includes("total")) {
         // Extraire la couleur du nom de la clé
-        const colorMatch = Object.keys(COLOR_MAP).find((c) => keyLower.includes(c));
+        const colorMatch = Object.keys(VISUALIZATION_COLOR_MAP).find((c) => keyLower.includes(c));
         if (
           colorMatch ||
           keyLower.match(
@@ -77,7 +56,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
           items.push({
             name: colorName.charAt(0).toUpperCase() + colorName.slice(1),
             count: value as number,
-            color: COLOR_MAP[colorName.toLowerCase()] ?? colorName.toLowerCase(),
+            color: resolveVisualizationColor(colorName) ?? colorName.toLowerCase(),
           });
         }
       }
@@ -90,7 +69,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
             items.push({
               name: subKey.charAt(0).toUpperCase() + subKey.slice(1),
               count: subValue,
-              color: COLOR_MAP[colorName] || "#6b7280",
+              color: resolveVisualizationColor(colorName) ?? "#6b7280",
             });
           }
         }

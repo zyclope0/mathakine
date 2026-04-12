@@ -5,6 +5,11 @@ import { Eye, FlipHorizontal, RotateCw, ZoomIn, ZoomOut, ScanSearch } from "luci
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+import {
+  findVisualizationColorInText,
+  resolveVisualizationColor,
+} from "@/components/challenges/visualizations/_colorMap";
+
 interface VisualRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string | undefined;
@@ -23,37 +28,7 @@ function parseShapeWithColor(shapeText: string): {
   // Détecter si c'est une question
   const isQuestion = text.includes("?");
 
-  // Map des couleurs français/anglais vers CSS (utilisé aussi pour layout.color)
-  const colorMap: Record<string, string> = {
-    rouge: "#ef4444",
-    red: "#ef4444",
-    bleu: "#3b82f6",
-    blue: "#3b82f6",
-    vert: "#22c55e",
-    green: "#22c55e",
-    jaune: "#eab308",
-    yellow: "#eab308",
-    orange: "#f97316",
-    violet: "#a855f7",
-    purple: "#a855f7",
-    rose: "#ec4899",
-    pink: "#ec4899",
-    noir: "#1f2937",
-    black: "#1f2937",
-    blanc: "#f9fafb",
-    white: "#f9fafb",
-    gris: "#6b7280",
-    gray: "#6b7280",
-  };
-
-  // Trouver la couleur dans le texte
-  let detectedColor: string | null = null;
-  for (const [colorName, colorValue] of Object.entries(colorMap)) {
-    if (text.includes(colorName)) {
-      detectedColor = colorValue;
-      break;
-    }
-  }
+  const detectedColor = findVisualizationColorInText(text);
 
   // Map des formes
   const shapeMap: Record<string, string> = {
@@ -85,36 +60,6 @@ function parseShapeWithColor(shapeText: string): {
   }
 
   return { shape: detectedShape, color: detectedColor, isQuestion };
-}
-
-/**
- * Résout un nom de couleur (ex: "bleu", "rouge") vers une valeur CSS
- */
-function resolveColor(colorName: string | undefined | null): string | null {
-  if (!colorName || typeof colorName !== "string" || colorName === "?") return null;
-  const colorMap: Record<string, string> = {
-    rouge: "#ef4444",
-    red: "#ef4444",
-    bleu: "#3b82f6",
-    blue: "#3b82f6",
-    vert: "#22c55e",
-    green: "#22c55e",
-    jaune: "#eab308",
-    yellow: "#eab308",
-    orange: "#f97316",
-    violet: "#a855f7",
-    purple: "#a855f7",
-    rose: "#ec4899",
-    pink: "#ec4899",
-    noir: "#1f2937",
-    black: "#1f2937",
-    blanc: "#f9fafb",
-    white: "#f9fafb",
-    gris: "#6b7280",
-    gray: "#6b7280",
-  };
-  const key = colorName.toLowerCase().trim();
-  return colorMap[key] ?? null;
 }
 
 /**
@@ -211,7 +156,7 @@ function SymmetryMirrorCell({
   side: "left" | "right";
   idx: number;
 }) {
-  const color = resolveColor(typeof item.color === "string" ? item.color : undefined);
+  const color = resolveVisualizationColor(typeof item.color === "string" ? item.color : undefined);
   const isQuestion = Boolean(item.question) || String(item.shape ?? "").includes("?");
   const fromLeft = side === "left";
   return (

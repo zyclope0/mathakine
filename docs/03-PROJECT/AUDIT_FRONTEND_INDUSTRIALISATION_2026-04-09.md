@@ -44,7 +44,7 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 | Findings P0 ouverts                             | **0**                          |
 | Findings P1 ouverts                             | **0**                          |
 | Findings P2 ouverts                             | **3** (ACTIF-03/04/06)         |
-| Findings P3 ouverts                             | **2** (ACTIF-05 backlog + ACTIF-07 DRY) |
+| Findings P3 ouverts                             | **1** (ACTIF-05 backlog) |
 | Queries React Query avec staleTime              | **41/41** (100 %)              |
 | Occurrences `: any` ou `as any`                 | **0**                          |
 | TODO/FIXME/HACK non ticketés                    | **0**                          |
@@ -164,7 +164,7 @@ export function useChallengeSolverController({
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + sécurité **`lib/security/*.test.ts`** + hooks **`useIrtScores`** / **`useAIExerciseGenerator`** / **`useSettingsPageController`** / **`useBadgesPageController`** / **`useDashboardPageController`** / **`useContentListPageController`** / **`useChallengeSolverController`** / **`useExerciseSolverController`** + lot groupé micro-hooks **`useAdminContentPageController`** / **`useChallengesStats`** / **`useChallengeTranslations`** / **`useRecommendationsReason`** / test **`useAccessibleAnimation`** (impl **`lib/hooks`**) + lot progress/list **`useCompletedItems`** / **`usePaginatedContent`** / **`useProgressTimeline`** + **`hooks/chat/useChat`** / **`hooks/chat/useGuestChatAccess`** / **`useProfilePageController`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** / **`ACTIF-03-USEIRT-COLOCATE-01`** / **`ACTIF-03-USEAI-COLOCATE-01`** / **`ACTIF-03-USESETTINGS-COLOCATE-01`** / **`ACTIF-03-USEBADGES-COLOCATE-01`** / **`ACTIF-03-DASHBOARD-COLOCATE-01`** / **`ACTIF-03-CONTENTLIST-COLOCATE-01`** / **`ACTIF-03-CHALLENGESOLVER-COLOCATE-01`** / **`ACTIF-03-EXERCISESOLVER-COLOCATE-01`** / **`ACTIF-03-MICROHOOKS-COLOCATE-01`** / **`ACTIF-03-PROGRESS-COLOCATE-01`** / **`ACTIF-03-USECHAT-COLOCATE-01`** / **`ACTIF-03-GUESTCHATACCESS-COLOCATE-01`** / **`ACTIF-03-USEPROFILE-COLOCATE-01`**, 2026-04-12) |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Seuils remontés **`ACTIF-04-COVERAGE-01`** (2026-04-12) ; poursuivre par nouveaux tests puis **nouvelle mesure** avant tout bump suivant |
 | ~~ACTIF-06~~ | ~~P2~~ — **FERMÉ** | — | Lots **`ACTIF-06-ADMIN-USERS-01`** (2026-04-12) + **`ACTIF-06-AI-MONITORING-01`** (2026-04-12) : pages **users** + **ai-monitoring** en coques + controllers dédiés |
-| ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
+| ~~ACTIF-07~~ | ~~P3~~ — **FERMÉ** | — | **`ACTIF-07-COLORMAP-01`** (2026-04-12) : `components/challenges/visualizations/_colorMap.ts` + consommation par **`VisualRenderer`** / **`ProbabilityRenderer`** ; tests **`_colorMap.test.ts`** |
 | ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
 
 ---
@@ -325,23 +325,27 @@ npx vitest run hooks/useAdminUsersPageController.test.tsx hooks/useAdminAiMonito
 
 ---
 
-### [ACTIF-07] Duplication `colorMap` entre renderers visuels
+### ~~[ACTIF-07]~~ Duplication `colorMap` entre renderers visuels — **FERMÉ**
 
-**Priorité :** P3 | **Dimension :** D2 DRY | **Effort :** 1h
+**Priorité :** ~~P3~~ | **Dimension :** D2 DRY | **`[RÉSOLU]`** **`ACTIF-07-COLORMAP-01`** (2026-04-12)
 
-`[CONSTAT]` Deux maps couleur quasi-identiques (clés FR/EN → hex) co-existent dans des fichiers séparés sans module partagé :
+`[CONSTAT]` ~~Deux~~ Trois copies locales (deux dans **`VisualRenderer`**, une dans **`ProbabilityRenderer`**) ont été remplacées par une **source de vérité** :
 
-| Fichier | Symbole | Lignes |
-|---------|---------|--------|
-| `components/challenges/visualizations/VisualRenderer.tsx:27` | `colorMap` dans `parseShapeWithColor()` | ~20 entrées |
-| `components/challenges/visualizations/VisualRenderer.tsx:95` | deuxième `colorMap` dans `resolveColor()` | ~15 entrées |
-| `components/challenges/visualizations/ProbabilityRenderer.tsx:15` | `COLOR_MAP` constante | ~20 entrées (+ `marron`) |
+| Module / fichier | Rôle |
+|--------------------|------|
+| `components/challenges/visualizations/_colorMap.ts` | **`VISUALIZATION_COLOR_MAP`** (FR/EN → hex, + **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`** |
+| `VisualRenderer.tsx` | Import du module partagé ; plus de maps inline |
+| `ProbabilityRenderer.tsx` | Import du module partagé ; suppression de **`COLOR_MAP`** |
 
-Risque : une couleur ajoutée dans un fichier ne se propage pas automatiquement aux autres. La divergence est silencieuse.
+**Alignement** : blanc/noir unifiés sur les hex déjà utilisés dans **`VisualRenderer`** (`#f9fafb`, `#1f2937`) ; **`ProbabilityRenderer`** n’utilise plus les variantes légèrement différentes sur ces deux clés.
 
-`[RECOMMANDATION]` Créer `components/challenges/visualizations/_colorMap.ts` avec la map canonique. Les trois usages importent cette constante. Pas de changement de comportement, juste élimination de la copie.
+`[RECOMMANDATION]` ~~Créer `_colorMap.ts`~~ — **fait**.
 
-`[DÉCISION]` Ne pas fusionner tant qu'une feature n'impose pas de toucher plusieurs renderers simultanément — le risque de divergence est faible à court terme.
+`[VALIDATION]`
+
+```bash
+npx vitest run components/challenges/visualizations/_colorMap.test.ts
+```
 
 ---
 
@@ -547,7 +551,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 
 ### Backlog non planifié
 
-- `_colorMap.ts` partagé entre renderers (ACTIF-07) — 1h, non bloquant
+- ~~`_colorMap.ts` partagé entre renderers~~ — **fait** (**`ACTIF-07-COLORMAP-01`**, 2026-04-12)
 - `console.error` sans garde dev : `useAcademyStats.ts:88`, `useSettings.ts:140`, `auth-session-sync.ts:111` — remplacer par `debugError()` de `lib/utils/debug.ts` — 15 min
 - Décomposition `useProfilePageController.ts` (463 L) — non bloquant
 - Décomposition `exportPDF.ts` / `exportExcel.ts` — non bloquant
