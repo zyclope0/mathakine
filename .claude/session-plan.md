@@ -401,6 +401,22 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAIExerciseGenerator.test.ts`, `npx prettier --check hooks/useAIExerciseGenerator.test.ts`.
 
+### ACTIF-03-USESETTINGS-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useSettingsPageController`** auprès de **`frontend/hooks/useSettingsPageController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useSettingsPageController.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useSettingsPageController.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useSettingsPageController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useSettingsPageController.test.ts`, `npx prettier --check hooks/useSettingsPageController.test.ts`.
+
+### ACTIF-03-USEBADGES-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useBadgesPageController`** auprès de **`frontend/hooks/useBadgesPageController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source (FFI-L12).
+- **Fichiers** : **`frontend/hooks/useBadgesPageController.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useBadgesPageController.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useBadgesPageController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useBadgesPageController.test.ts`, `npx prettier --check hooks/useBadgesPageController.test.ts`.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
