@@ -417,6 +417,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useBadgesPageController.test.ts`, `npx prettier --check hooks/useBadgesPageController.test.ts`.
 
+### ACTIF-03-DASHBOARD-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useDashboardPageController`** auprès de **`frontend/hooks/useDashboardPageController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useDashboardPageController.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useDashboardPageController.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useDashboardPageController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useDashboardPageController.test.ts`, `npx prettier --check hooks/useDashboardPageController.test.ts`.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
