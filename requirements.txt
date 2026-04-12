@@ -43,7 +43,7 @@ pytest-cov==7.1.0  # Compatible pytest 9.x
 httpx==0.28.1  # Client HTTP async pour les tests (remplace TestClient)
 
 # Documentation (pour les développeurs)
-sphinx==7.2.6
+sphinx==9.1.0
 
 # Optimisations de performance
 psutil==7.2.2  # Monitoring système pour optimisations
