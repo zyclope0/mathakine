@@ -465,6 +465,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useCompletedItems.test.tsx hooks/usePaginatedContent.test.tsx hooks/useProgressTimeline.test.tsx`, `npx prettier --check` sur les 3 fichiers.
 
+### ACTIF-03-USECHAT-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useChat`** auprès de **`frontend/hooks/chat/useChat.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source (lot borné, hook plus couplé que les micro-hooks).
+- **Fichiers** : **`frontend/hooks/chat/useChat.test.tsx`** (déplacement depuis **`frontend/__tests__/unit/hooks/useChat.test.tsx`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/lib/api/chat`** (**`streamChat`**), **`useChat.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/chat/useChat.test.tsx`, `npx prettier --check hooks/chat/useChat.test.tsx`.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
