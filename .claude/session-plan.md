@@ -317,9 +317,9 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - **Objectif** : couverture unitaire de **`frontend/hooks/useAIExerciseGenerator.ts`** (auth, validations, **`postAiGenerationSse`** + **`consumeSseJsonEvents`**, dispatch exercice réel, toasts erreurs, **`invalidateQueries(["exercises"])`** après **100 ms**, cancel / unmount / garde **`isGenerating`**).
 - **Inchangé** : hook, chemins SSE, délai **100 ms**, **`vitest.config.ts`**, UI générateur.
-- **Tests** : **`frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`** — **`QueryClientProvider`**, mocks ciblés (**`postAiGenerationSse`**, **`consumeSseJsonEvents`**, **`useAuth`**, **`next/navigation`**, **`next-intl`**, **`sonner`**) ; **`beforeEach`** avec **`mockPost.mockReset()`** pour ne pas laisser d’implémentation **`mockImplementation`** résiduelle entre cas.
+- **Tests** : **`frontend/hooks/useAIExerciseGenerator.test.ts`** — **`QueryClientProvider`**, mocks ciblés (**`postAiGenerationSse`**, **`consumeSseJsonEvents`**, **`useAuth`**, **`next/navigation`**, **`next-intl`**, **`sonner`**) ; **`beforeEach`** avec **`mockPost.mockReset()`** pour ne pas laisser d’implémentation **`mockImplementation`** résiduelle entre cas ; co-localisation structurelle : lot **`ACTIF-03-USEAI-COLOCATE-01`** (2026-04-12).
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useAIExerciseGenerator.test.ts`, `prettier --check` sur les fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAIExerciseGenerator.test.ts`, `prettier --check` sur les fichiers touchés.
 
 ### TEST-COLOCATE-PILOT-01 (2026-04-11) - fermé
 
@@ -392,6 +392,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Inchangé** : assertions, mocks **`@/`**, **`useIrtScores.ts`**.
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useIrtScores.test.ts`, `npx prettier --check hooks/useIrtScores.test.ts`.
+
+### ACTIF-03-USEAI-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useAIExerciseGenerator`** auprès de **`frontend/hooks/useAIExerciseGenerator.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useAIExerciseGenerator.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useAIExerciseGenerator.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useAIExerciseGenerator.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAIExerciseGenerator.test.ts`, `npx prettier --check hooks/useAIExerciseGenerator.test.ts`.
 
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
