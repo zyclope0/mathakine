@@ -161,7 +161,7 @@ export function useChallengeSolverController({
 |---------|----------|--------|-----------------------|
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
 | ~~ACTIF-02~~ | ~~P2~~ — **FERMÉ** | — | D7 images dynamiques : `UserAvatar` + `BadgeIcon` hybrides ; `ChatMessagesView` **exception `<img>`** (`ACTIF-02-CHATMESSAGES-01`, 2026-04-12) |
-| ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth.test.ts` validé **`ACTIF-03-USEAUTH-COLOCATE-01`**, 2026-04-12) |
+| ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + **`buildContentSecurityPolicy`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`**, 2026-04-12) |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
 | ACTIF-06 | P2 — NOUVEAU | 2–3h/page | Extraire `useAdminUsersPageController.ts` |
 | ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
@@ -218,6 +218,8 @@ grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
 - `frontend/hooks/useSubmitAnswer.test.ts`
 
 **Avancement 2026-04-12 (lot `ACTIF-03-USEAUTH-COLOCATE-01`, pilote ACTIF-03)** : **`frontend/hooks/useAuth.test.ts`** co-localisé auprès de **`useAuth.ts`** (même discipline : pas de changement de logique de test ni de `vitest.config.ts`).
+
+**Avancement 2026-04-12 (lot `ACTIF-03-BUILDCSP-COLOCATE-01`, pilote ACTIF-03)** : **`frontend/lib/security/buildContentSecurityPolicy.test.ts`** co-localisé auprès de **`buildContentSecurityPolicy.ts`** (aligné sur le précédent **`lib/auth/server/validateTokenBackendHeaders.test.ts`**). Le déplacement retire le test du chemin historique **`__tests__/unit/lib/...`**, fragile au tracking Git (conflit potentiel avec des règles **`.gitignore`** sur `lib/` imbriqués sous `__tests__/unit/`) au profit d’un chemin **`frontend/lib/security/*.test.ts`** durablement versionné.
 
 La migration globale des ~130 autres fichiers **n’est pas** revendiquée ; **ACTIF-03** reste ouvert.
 
@@ -489,7 +491,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint E — Modularité progressive (1–2h par session)
 
 ```
-11. ~~Co-localiser 3–5 tests pilotes~~ — pilotes `TEST-COLOCATE-PILOT-01` (4 fichiers : BadgeCard, DiagnosticSolver, useDiagnostic, useSubmitAnswer) puis **`ACTIF-03-USEAUTH-COLOCATE-01`** (`hooks/useAuth.test.ts`) ; poursuivre par nouveaux lots ciblés (`buildContentSecurityPolicy`, etc.) — **ACTIF-03** toujours ouvert.
+11. ~~Co-localiser 3–5 tests pilotes~~ — pilotes `TEST-COLOCATE-PILOT-01` (4 fichiers : BadgeCard, DiagnosticSolver, useDiagnostic, useSubmitAnswer) puis **`ACTIF-03-USEAUTH-COLOCATE-01`** (`hooks/useAuth.test.ts`) puis **`ACTIF-03-BUILDCSP-COLOCATE-01`** (`lib/security/buildContentSecurityPolicy.test.ts`) ; poursuivre par nouveaux lots ciblés — **ACTIF-03** toujours ouvert.
     → Concerne ACTIF-03
 12. mypy : réactiver 1 code désactivé sur auth_service.py, valider, itérer
     → Concerne §7 mypy
@@ -549,4 +551,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé et ancien chemin supprimé ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` co-localisé, sortie de `__tests__/unit/lib/security/` ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._

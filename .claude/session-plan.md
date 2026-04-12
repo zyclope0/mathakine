@@ -369,6 +369,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAuth.test.ts`, `npx prettier --check hooks/useAuth.test.ts`.
 
+### ACTIF-03-BUILDCSP-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`buildContentSecurityPolicy`** auprès de **`frontend/lib/security/buildContentSecurityPolicy.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher à l’utilitaire source ; chemin Git durable (évite **`__tests__/unit/lib/...`** fragile vs **`.gitignore`**).
+- **Fichiers** : **`frontend/lib/security/buildContentSecurityPolicy.test.ts`** (déplacement depuis **`frontend/__tests__/unit/lib/security/buildContentSecurityPolicy.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, import **`@/lib/security/buildContentSecurityPolicy`**, **`buildContentSecurityPolicy.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run lib/security/buildContentSecurityPolicy.test.ts`, `npx prettier --check lib/security/buildContentSecurityPolicy.test.ts`.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
