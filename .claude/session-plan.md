@@ -481,6 +481,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/chat/useGuestChatAccess.test.tsx`, `npx prettier --check hooks/chat/useGuestChatAccess.test.tsx`.
 
+### ACTIF-03-USEPROFILE-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useProfilePageController`** auprès de **`frontend/hooks/useProfilePageController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source ; dernier test hook sous **`__tests__/unit/hooks/`** — périmètre hooks historique **quasi soldé** (voir audit).
+- **Fichiers** : **`frontend/hooks/useProfilePageController.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useProfilePageController.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`useProfile`**, **`themeStore`**, **`useAgeGroupDisplay`**, **`useProfilePageController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useProfilePageController.test.ts`, `npx prettier --check hooks/useProfilePageController.test.ts`.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
