@@ -161,7 +161,7 @@ export function useChallengeSolverController({
 |---------|----------|--------|-----------------------|
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
 | ~~ACTIF-02~~ | ~~P2~~ — **FERMÉ** | — | D7 images dynamiques : `UserAvatar` + `BadgeIcon` hybrides ; `ChatMessagesView` **exception `<img>`** (`ACTIF-02-CHATMESSAGES-01`, 2026-04-12) |
-| ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + sécurité **`lib/security/*.test.ts`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`**, 2026-04-12) |
+| ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + sécurité **`lib/security/*.test.ts`** + **`useIrtScores`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** / **`ACTIF-03-USEIRT-COLOCATE-01`**, 2026-04-12) |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
 | ACTIF-06 | P2 — NOUVEAU | 2–3h/page | Extraire `useAdminUsersPageController.ts` |
 | ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
@@ -223,6 +223,8 @@ grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
 
 **Avancement 2026-04-12 (lot `ACTIF-03-MIDDLEWARECSP-COLOCATE-01`, pilote ACTIF-03)** : **`frontend/lib/security/middlewareCsp.test.ts`** co-localisé auprès de **`middlewareCsp.ts`**. La vague tests sécurité sous **`frontend/lib/security/*.test.ts`** est désormais cohérente (**`buildContentSecurityPolicy.test.ts`** + **`middlewareCsp.test.ts`**) sans changer **`vitest.config.ts`**.
 
+**Avancement 2026-04-12 (lot `ACTIF-03-USEIRT-COLOCATE-01`, pilote ACTIF-03)** : **`frontend/hooks/useIrtScores.test.ts`** co-localisé auprès de **`useIrtScores.ts`**. La série hooks co-localisés se poursuit : **`useAuth`**, **`useDiagnostic`**, **`useSubmitAnswer`**, **`useIrtScores`** (même discipline : pas de changement de logique de test ni de **`vitest.config.ts`**).
+
 La migration globale des ~130 autres fichiers **n’est pas** revendiquée ; **ACTIF-03** reste ouvert.
 
 `[RECOMMANDATION]` Poursuivre par petits lots nommés (même discipline : pas de `vitest.config.ts` ni vague massive sans validation).
@@ -251,7 +253,7 @@ npx vitest run components/badges/BadgeCard.test.tsx
 
 Seuils actuels dans `vitest.config.ts` : statements 39 %, branches 33 %, functions 37 %, lines 40 % (1 point sous la baseline pour absorber la variance).
 
-**Ratio hooks recalculé terrain (2026-04-11)** : 22 hooks avec test / 56 total = **34 hooks sans test (61 %)**. Historique audit initial : 71 % (52 hooks, avant les lots de tests ci-dessous). Avancements : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator`. Hooks sans test prioritaires : `useAdminUsers`, `useBadges`, `useChallenges`, `useExercises`, `useSettings`, `useLeaderboard`. (`useAuth` : test unitaire co-localisé **`hooks/useAuth.test.ts`** — lot **`ACTIF-03-USEAUTH-COLOCATE-01`**.)
+**Ratio hooks recalculé terrain (2026-04-11)** : 22 hooks avec test / 56 total = **34 hooks sans test (61 %)**. Historique audit initial : 71 % (52 hooks, avant les lots de tests ci-dessous). Avancements : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator`. Hooks sans test prioritaires : `useAdminUsers`, `useBadges`, `useChallenges`, `useExercises`, `useSettings`, `useLeaderboard`. (`useAuth` : **`hooks/useAuth.test.ts`** — **`ACTIF-03-USEAUTH-COLOCATE-01`** ; `useIrtScores` : **`hooks/useIrtScores.test.ts`** — **`ACTIF-03-USEIRT-COLOCATE-01`**.)
 
 `[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de 5 points.
 
@@ -476,7 +478,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 
 ```
 5. ~~Écrire tests useSubmitAnswer~~ — fait (`TEST-SUBMIT-ANSWER-01`, `hooks/useSubmitAnswer.test.ts` co-localisé).
-6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`, `__tests__/unit/hooks/useIrtScores.test.ts`).
+6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`) ; test désormais co-localisé **`hooks/useIrtScores.test.ts`** (lot **`ACTIF-03-USEIRT-COLOCATE-01`**).
 7. ~~Écrire tests useAIExerciseGenerator~~ — fait (`TEST-AI-GENERATOR-01`, `__tests__/unit/hooks/useAIExerciseGenerator.test.ts`).
 8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `hooks/useDiagnostic.test.ts` co-localisé) ; poursuivre le point 9 (seuils) et le reste du backlog hooks.
 9. Remonter seuils vitest.config.ts de 5 points après chaque lot
@@ -493,7 +495,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ### Sprint E — Modularité progressive (1–2h par session)
 
 ```
-11. ~~Co-localiser 3–5 tests pilotes~~ — pilotes `TEST-COLOCATE-PILOT-01` (4 fichiers : BadgeCard, DiagnosticSolver, useDiagnostic, useSubmitAnswer) puis **`ACTIF-03-USEAUTH-COLOCATE-01`** (`hooks/useAuth.test.ts`) puis **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** (`lib/security/buildContentSecurityPolicy.test.ts`, `lib/security/middlewareCsp.test.ts`) ; poursuivre par nouveaux lots ciblés — **ACTIF-03** toujours ouvert.
+11. ~~Co-localiser 3–5 tests pilotes~~ — pilotes `TEST-COLOCATE-PILOT-01` (4 fichiers : BadgeCard, DiagnosticSolver, useDiagnostic, useSubmitAnswer) puis **`ACTIF-03-USEAUTH-COLOCATE-01`** (`hooks/useAuth.test.ts`) puis **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** (`lib/security/buildContentSecurityPolicy.test.ts`, `lib/security/middlewareCsp.test.ts`) puis **`ACTIF-03-USEIRT-COLOCATE-01`** (`hooks/useIrtScores.test.ts`) ; poursuivre par nouveaux lots ciblés — **ACTIF-03** toujours ouvert.
     → Concerne ACTIF-03
 12. mypy : réactiver 1 code désactivé sur auth_service.py, valider, itérer
     → Concerne §7 mypy
@@ -553,4 +555,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._

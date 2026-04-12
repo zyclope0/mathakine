@@ -309,9 +309,9 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - **Objectif** : couverture unitaire de **`frontend/hooks/useIrtScores.ts`** (GET **`/api/diagnostic/status`**, scores directs, proxies **`mixte`** / **`fractions`**, fallback profil, seuil **`GRAND_MAITRE`**, **`has_completed`**).
 - **Inchangé** : hook, règles IRT, **`useExerciseSolverController`**, seuils **`vitest.config.ts`**.
-- **Tests** : **`frontend/__tests__/unit/hooks/useIrtScores.test.ts`** — **`QueryClientProvider`**, mock **`api.get`**, **`useAuth`** via **`vi.hoisted`** ; pas de snapshot.
+- **Tests** : **`frontend/hooks/useIrtScores.test.ts`** — **`QueryClientProvider`**, mock **`api.get`**, **`useAuth`** via **`vi.hoisted`** ; pas de snapshot ; co-localisation structurelle : lot **`ACTIF-03-USEIRT-COLOCATE-01`** (2026-04-12).
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-04** avancé), ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run __tests__/unit/hooks/useIrtScores.test.ts`, `prettier --check` sur les fichiers touchés.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useIrtScores.test.ts`, `prettier --check` sur les fichiers touchés.
 
 ### TEST-AI-GENERATOR-01 (2026-04-11) - fermé
 
@@ -384,6 +384,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Inchangé** : assertions, imports **`@/lib/security/*`**, **`middlewareCsp.ts`**.
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run lib/security/middlewareCsp.test.ts`, `npx prettier --check lib/security/middlewareCsp.test.ts`.
+
+### ACTIF-03-USEIRT-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useIrtScores`** auprès de **`frontend/hooks/useIrtScores.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source ; alignement avec **`hooks/useAuth.test.ts`**, **`useDiagnostic.test.ts`**, **`useSubmitAnswer.test.ts`**.
+- **Fichiers** : **`frontend/hooks/useIrtScores.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useIrtScores.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useIrtScores.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useIrtScores.test.ts`, `npx prettier --check hooks/useIrtScores.test.ts`.
 
 ### RÃ¨gle de pilotage
 
