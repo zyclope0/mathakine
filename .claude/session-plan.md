@@ -402,6 +402,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**, ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, **`npx vitest run --coverage`** (avant et après mise à jour des seuils), `npx prettier --check vitest.config.ts`.
 
+### ACTIF-06-ADMIN-USERS-01 (2026-04-12) - fermé
+
+- **Objectif** : extraire **`useAdminUsersPageController`** depuis **`frontend/app/admin/users/page.tsx`** — état filtres / pagination / modales, handlers async, orchestration toasts, wiring **`useAdminUsers`** + **`useAuth`** ; page = coque JSX uniquement ; pas de changement UX intentionnel, pas de modification de **`useAdminUsers`** ni i18n.
+- **Fichiers** : **`frontend/hooks/useAdminUsersPageController.ts`**, refactor **`frontend/app/admin/users/page.tsx`**, tests **`frontend/hooks/useAdminUsersPageController.test.tsx`**.
+- **Inchangé** : contrat **`AdminUser`**, **`normalizeUserRole`**, clés toasts / messages, **`PAGE_SIZE`** (= **20**, exporté depuis le controller).
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-06** avancé, **non** clôturé — reste **ai-monitoring**), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAdminUsersPageController.test.tsx __tests__/unit/app/admin/adminRoutePagesI18n.smoke.test.tsx`, `npx prettier --check` sur les fichiers touchés.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

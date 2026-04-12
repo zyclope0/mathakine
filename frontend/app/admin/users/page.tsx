@@ -1,17 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import type { AdminUser } from "@/hooks/useAdminUsers";
+import { useTranslations } from "next-intl";
 import type { UserRole } from "@/lib/auth/userRoles";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { useAdminUsers } from "@/hooks/useAdminUsers";
-import { useAuth } from "@/hooks/useAuth";
+import { useAdminUsersPageController } from "@/hooks/useAdminUsersPageController";
 import {
   Select,
   SelectContent,
@@ -45,141 +41,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { normalizeUserRole } from "@/lib/auth/userRoles";
-
-const ROLE_VALUES = ["all", "apprenant", "enseignant", "moderateur", "admin"] as const;
-
-const PAGE_SIZE = 20;
-
-function localeTag(locale: string): string {
-  return locale === "en" ? "en-US" : "fr-FR";
-}
 
 export default function AdminUsersPage() {
-  const t = useTranslations("adminPages.users");
-  const tToast = useTranslations("adminPages.users.toast");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
-  const dateLocale = localeTag(locale);
-
-  const [search, setSearch] = useState("");
-  const [role, setRole] = useState<UserRole | "all">("all");
-  const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
-  const [page, setPage] = useState(0);
-  const [roleEditUser, setRoleEditUser] = useState<AdminUser | null>(null);
-  const [roleEditValue, setRoleEditValue] = useState<UserRole>("apprenant");
-  const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
-
-  const isActive = isActiveFilter === "all" ? undefined : isActiveFilter === "true";
-
-  const { user: currentUser } = useAuth();
   const {
+    t,
+    dateLocale,
+    roles,
+    roleLabel,
+    search,
+    setSearchQuery,
+    role,
+    setRoleFilter,
+    isActiveFilter,
+    setStatusFilter,
+    page,
+    setPage,
+    roleEditUser,
+    roleEditValue,
+    setRoleEditValue,
+    deleteConfirmUser,
+    setDeleteConfirmUser,
+    openRoleEditor,
+    closeRoleDialog,
+    closeDeleteDialog,
     users,
     total,
     isLoading,
     error,
-    updateUserActive,
-    updateUserRole,
-    sendResetPassword,
-    resendVerification,
-    deleteUser,
+    currentUser,
     isUpdating,
     isSendingReset,
     isResendingVerification,
     isDeleting,
-  } = useAdminUsers({
-    ...(search && { search }),
-    ...(role !== "all" && { role }),
-    ...(isActive !== undefined && { is_active: isActive }),
-    skip: page * PAGE_SIZE,
-    limit: PAGE_SIZE,
-  });
-
-  const roles = useMemo(
-    () =>
-      ROLE_VALUES.map((value) => ({
-        value,
-        label: t(`roles.${value}`),
-      })),
-    [t]
-  );
-
-  const roleLabel = (roleValue: string) => {
-    const n = normalizeUserRole(roleValue);
-    if (!n) return roleValue;
-    return t(`roles.${n}`);
-  };
-
-  const handleToggleActive = async (u: { id: number; username: string; is_active: boolean }) => {
-    try {
-      await updateUserActive({ userId: u.id, isActive: !u.is_active });
-      toast.success(u.is_active ? tToast("deactivated") : tToast("reactivated"), {
-        description: u.is_active
-          ? tToast("deactivatedDesc", { username: u.username })
-          : tToast("reactivatedDesc", { username: u.username }),
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : tToast("updateFailed");
-      toast.error(tToast("errorTitle"), { description: msg });
-    }
-  };
-
-  const handleUpdateRole = async (u: AdminUser, newRole: UserRole) => {
-    try {
-      await updateUserRole({ userId: u.id, role: newRole });
-      toast.success(tToast("roleChanged"), {
-        description: tToast("roleChangedDesc", {
-          username: u.username,
-          role: roleLabel(newRole),
-        }),
-      });
-      setRoleEditUser(null);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : tToast("updateFailed");
-      toast.error(tToast("errorTitle"), { description: msg });
-    }
-  };
-
-  const handleSendResetPassword = async (u: AdminUser) => {
-    try {
-      await sendResetPassword(u.id);
-      toast.success(tToast("emailSent"), {
-        description: tToast("resetDesc", { email: u.email }),
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : tToast("sendFailed");
-      toast.error(tToast("errorTitle"), { description: msg });
-    }
-  };
-
-  const handleResendVerification = async (u: AdminUser) => {
-    try {
-      await resendVerification(u.id);
-      toast.success(tToast("emailSent"), {
-        description: tToast("verifyDesc", { email: u.email }),
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : tToast("sendFailed");
-      toast.error(tToast("errorTitle"), { description: msg });
-    }
-  };
-
-  const handleDeleteUser = async (u: AdminUser) => {
-    try {
-      await deleteUser(u.id);
-      toast.success(tToast("userDeleted"), {
-        description: tToast("userDeletedDesc", { username: u.username }),
-      });
-      setDeleteConfirmUser(null);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : tToast("deleteFailed");
-      toast.error(tToast("errorTitle"), { description: msg });
-    }
-  };
-
-  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
-  const hasNext = page < totalPages - 1;
-  const hasPrev = page > 0;
+    handleToggleActive,
+    handleUpdateRole,
+    handleSendResetPassword,
+    handleResendVerification,
+    handleDeleteUser,
+    totalPages,
+    hasNext,
+    hasPrev,
+  } = useAdminUsersPageController();
 
   return (
     <div className="space-y-8">
@@ -200,8 +103,7 @@ export default function AdminUsersPage() {
                     placeholder={t("searchPlaceholder")}
                     value={search}
                     onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(0);
+                      setSearchQuery(e.target.value);
                     }}
                     className="pl-9"
                   />
@@ -211,8 +113,7 @@ export default function AdminUsersPage() {
                 <Select
                   value={role}
                   onValueChange={(v) => {
-                    setRole(v as UserRole | "all");
-                    setPage(0);
+                    setRoleFilter(v as UserRole | "all");
                   }}
                 >
                   <SelectTrigger className="w-[160px]">
@@ -229,8 +130,7 @@ export default function AdminUsersPage() {
                 <Select
                   value={isActiveFilter}
                   onValueChange={(v) => {
-                    setIsActiveFilter(v);
-                    setPage(0);
+                    setStatusFilter(v);
                   }}
                 >
                   <SelectTrigger className="w-[140px]">
@@ -309,12 +209,7 @@ export default function AdminUsersPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() => {
-                                        setRoleEditUser(u);
-                                        setRoleEditValue(normalizeUserRole(u.role) ?? "apprenant");
-                                      }}
-                                    >
+                                    <DropdownMenuItem onClick={() => openRoleEditor(u)}>
                                       <Shield className="h-4 w-4" />
                                       {t("menuChangeRole")}
                                     </DropdownMenuItem>
@@ -407,7 +302,7 @@ export default function AdminUsersPage() {
         <Dialog
           open={!!roleEditUser}
           onOpenChange={(open) => {
-            if (!open) setRoleEditUser(null);
+            if (!open) closeRoleDialog();
           }}
         >
           <DialogContent>
@@ -447,7 +342,7 @@ export default function AdminUsersPage() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setRoleEditUser(null)}>
+              <Button variant="outline" onClick={closeRoleDialog}>
                 {t("cancel")}
               </Button>
               <Button
@@ -463,7 +358,7 @@ export default function AdminUsersPage() {
         <Dialog
           open={!!deleteConfirmUser}
           onOpenChange={(open) => {
-            if (!open) setDeleteConfirmUser(null);
+            if (!open) closeDeleteDialog();
           }}
         >
           <DialogContent>
@@ -479,7 +374,7 @@ export default function AdminUsersPage() {
               </p>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirmUser(null)}>
+              <Button variant="outline" onClick={closeDeleteDialog}>
                 {t("cancel")}
               </Button>
               <Button
