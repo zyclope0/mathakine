@@ -133,6 +133,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - Tests : **`components/challenges/visualizations/_colorMap.test.ts`**.
 - Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` (ciblés), Prettier sur fichiers touchés.
 
+### QF-06B-VITEST-ALIGN-01 (2026-04-13) - fermé
+
+- **`frontend/package.json`** : alignement de la famille **Vitest** sur la résolution réelle du lockfile après le bump **`@vitest/ui`** : **`vitest`**, **`@vitest/ui`**, **`@vitest/coverage-v8`** en **`^4.1.4`**.
+- **`frontend/vitest.config.ts`** : inchangé volontairement ; aucun usage des features **browser screenshot**, **`experimental.matchesTags`**, **`experimental.vcsProvider`** ni besoin de revoir **`setupFiles`**.
+- Backlog utile uniquement : réévaluer les workarounds défensifs des suites **mock-heavy** quand on les retouche (fix séquentiel **mock/unmock**), et refaire une **mesure CI** avant tout futur bump **ACTIF-04**.
+
 ### ACTIF-06-AI-MONITORING-01 (2026-04-12) - fermé
 
 - **`frontend/hooks/useAdminAiMonitoringPageController.ts`** : état `days` (1 / 7 / 30), agrégation **`useAdminAiStats`** / **`useAdminGenerationMetrics`** / **`useAdminAiEvalHarnessRuns`** (**`HARNESS_RUNS_LIMIT`** 25), dérivés tableaux, **`formatWorkloadLabel`**, **`daysOptions`**, **`handleDaysChange`**.
@@ -353,7 +359,7 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 ### ACTIF-02-USERAVATAR-01 (2026-04-11) - fermé
 
 - **Objectif** : premier sous-lot **[ACTIF-02]** — industrialiser **`frontend/components/ui/UserAvatar.tsx`** sans changement UX ni props.
-- **Implémentation** : **`next/image`** avec **`width` / `height` / `sizes`** (pixels **28 / 40 / 64** selon **`sm` / `md` / `lg`**) lorsque **`resolveNextImageRemoteDelivery`** (`lib/utils/nextImageRemoteSource.ts`, délégué par **`userAvatarImageSource.ts`**) aligne l’URL sur **`images.remotePatterns`** de **`next.config.ts`** (chemins **`/`**, **`http://localhost`**, **`https://*.render.com`**, **`https://*.onrender.com`**) ; sinon **`<img>`** + **`eslint-disable`** ciblé (URL DB arbitraire hors liste). Ajout **`**.onrender.com`** dans **`next.config.ts`** pour coller aux déploiements Render réels.
+- **Implémentation** : **`next/image`** avec **`width` / `height` / `sizes`** (pixels **28 / 40 / 64** selon **`sm` / `md` / `lg`**) lorsque **`resolveNextImageRemoteDelivery`** (`lib/utils/nextImageRemoteSource.ts`, délégué par **`userAvatarImageSource.ts`**) aligne l’URL sur **`images.remotePatterns`** de **`next.config.ts`** (chemins **`/`**, **`http://localhost`**, **`https://*.render.com`**, **`https://*.onrender.com`**) ; sinon **`<img>`** + **`eslint-disable`** ciblé (URL DB arbitraire hors liste). Ajout **`**.onrender.com`** dans **`next.config.ts`\*\* pour coller aux déploiements Render réels.
 - **Tests** : **`frontend/lib/utils/nextImageRemoteSource.test.ts`**, **`frontend/lib/utils/userAvatarImageSource.test.ts`** (délégation).
 - **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (ACTIF-02, D-02, sprint B, §5 résolus), **`README_TECH.md`**, ce fichier.
 - **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run lib/utils/nextImageRemoteSource.test.ts lib/utils/userAvatarImageSource.test.ts`**, **`npx prettier --check`** sur les fichiers touchés.
