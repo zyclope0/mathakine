@@ -68,8 +68,14 @@ export function ChatMessagesView({
           >
             {message.imageUrl ? (
               <div className={message.content.trim().length > 0 ? "mb-3" : undefined}>
-                {/* Intentional: chat images are runtime-generated URLs and may be external/blob-like;
-                    next/image optimization needs a separate trust, sizing, and loader pass. */}
+                {/*
+                  Intentional native <img> (ACTIF-02-CHATMESSAGES-01, décision documentée) :
+                  - `message.imageUrl` vient du flux SSE sans contrat de dimensions ni d’hôte (HTTP(S) arbitraire,
+                    `blob:`, `data:`) — pas d’hypothèse largeur/hauteur compatible `next/image` sans dériver du
+                    rendu actuel (`max-h-64 w-full object-cover` s’appuie sur les dimensions intrinsèques).
+                  - `resolveNextImageRemoteDelivery` ne couvre pas ce périmètre produit ; ne pas forcer `fill` /
+                    ratio inventé. Réouverture seulement si contrat image chat + remotePatterns alignés.
+                */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={message.imageUrl}

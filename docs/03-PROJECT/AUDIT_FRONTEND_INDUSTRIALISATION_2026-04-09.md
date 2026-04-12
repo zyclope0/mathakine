@@ -43,13 +43,13 @@ Chaque entrée de ce document est typée explicitement pour que Codex puisse agi
 | Score estimé après lots exécutés (2026-04-11)   | **~7.8 / 10**                  |
 | Findings P0 ouverts                             | **0**                          |
 | Findings P1 ouverts                             | **0**                          |
-| Findings P2 ouverts                             | **4** (ACTIF-02/03/04/06)      |
+| Findings P2 ouverts                             | **3** (ACTIF-03/04/06)         |
 | Findings P3 ouverts                             | **2** (ACTIF-05 backlog + ACTIF-07 DRY) |
 | Queries React Query avec staleTime              | **41/41** (100 %)              |
 | Occurrences `: any` ou `as any`                 | **0**                          |
 | TODO/FIXME/HACK non ticketés                    | **0**                          |
 
-**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la co-location progressive des tests (D5), la remontée mesurée de la couverture et des seuils Vitest (D8), et l'adoption raisonnée de `next/image` pour 1 cas dynamique restant (D7).
+**Verdict :** le frontend est industriellement mature sur TypeScript, cache React Query et guardrails CI. Les risques résiduels sont la co-location progressive des tests (D5), la remontée mesurée de la couverture et des seuils Vitest (D8). Le finding **ACTIF-02** (images dynamiques D7) est **clos** : hybrides `next/image` / `<img>` pour avatar et badges ; **exception documentée** `<img>` pour le chat (**`ChatMessagesView`**).
 
 > **Hors périmètre de cet audit :** sécurité HTTP au-delà de la CSP, surface XSS détaillée, backend Python, DevOps. Ces points sont traités dans la section §7 et dans l'audit complet multi-stack séparé.
 
@@ -155,12 +155,12 @@ export function useChallengeSolverController({
 ## 4. Findings actifs — à traiter
 
 > **ORDRE D'EXÉCUTION IMPOSÉ — ne pas déroger.**
-> Les findings sont listés du plus prioritaire au moins prioritaire. ACTIF-05 est intentionnellement en dernier : c'est un backlog optionnel. Si Codex cherche quoi faire, il commence par ACTIF-02.
+> Les findings sont listés du plus prioritaire au moins prioritaire. ACTIF-05 est intentionnellement en dernier : c'est un backlog optionnel. Si Codex cherche quoi faire, il commence par **ACTIF-03**.
 
 | Finding | Priorité | Effort | Premier geste concret |
 |---------|----------|--------|-----------------------|
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
-| ACTIF-02 | P2 — EN COURS | 45 min | `UserAvatar` + `BadgeIcon` traités ; reste `ChatMessagesView.tsx:74` |
+| ~~ACTIF-02~~ | ~~P2~~ — **FERMÉ** | — | D7 images dynamiques : `UserAvatar` + `BadgeIcon` hybrides ; `ChatMessagesView` **exception `<img>`** (`ACTIF-02-CHATMESSAGES-01`, 2026-04-12) |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Co-localiser `useAuth.test.ts` |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
 | ACTIF-06 | P2 — NOUVEAU | 2–3h/page | Extraire `useAdminUsersPageController.ts` |
@@ -184,25 +184,23 @@ export function useChallengeSolverController({
 
 ---
 
-### [ACTIF-02] Composants `<img>` brut — 1 restant (`ChatMessagesView`)
+### ~~[ACTIF-02]~~ Composants `<img>` dynamiques (D7) — **FERMÉ**
 
-**Priorité :** P2 | **Dimension :** D7 Performance | **Effort :** 45 min chacun
+**Priorité :** ~~P2~~ | **Dimension :** D7 | **`[RÉSOLU]`** 2026-04-12
 
-`[CONSTAT]` Les médailles locales ont été migrées (lot PERF-IMG-LOCAL-01). **`UserAvatar`** : lot **`ACTIF-02-USERAVATAR-01`** — hybride `next/image` / `<img>` via **`resolveNextImageRemoteDelivery`** (exposé aussi comme **`resolveUserAvatarImageDelivery`** pour l’avatar). **`BadgeIcon`** : lot **`ACTIF-02-BADGEICON-01`** (2026-04-11) — **verdict : hybride** : branche distante `icon_url` avec **`next/image`** si URL ∈ **`remotePatterns`** (même helper **`lib/utils/nextImageRemoteSource.ts`**), **`<img>`** hors liste ; **plus de fallback DOM impératif** (`createElement` / `appendChild`) : erreur de chargement → **`useState`** + rendu emoji en React. Tests : **`__tests__/unit/components/BadgeIcon.test.tsx`**. Il reste :
+Synthèse des trois sous-lots :
 
-| Fichier                                            | Raison actuelle du `<img>`               | Action                                                |
-| -------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------- |
-| `frontend/components/ui/UserAvatar.tsx`          | — | **Fait** : `next/image` / `<img>` (`resolveNextImageRemoteDelivery`) |
-| `frontend/components/badges/BadgeIcon.tsx`       | — | **Fait** : idem + fallback erreur en state React |
-| `frontend/components/chat/ChatMessagesView.tsx:74` | Image de chat distante (blob ou URL externe) | Évaluer `remotePatterns` + `next/image` applicable |
-
-`[RECOMMANDATION]` Traiter **`ChatMessagesView`** dans un lot dédié hors scope chat global. Si migration impossible, conserver `<img>` et documenter la contrainte dans le commentaire.
+| Sous-lot | Fichier / périmètre | Verdict |
+|----------|---------------------|---------|
+| **ACTIF-02-USERAVATAR-01** | `UserAvatar.tsx` | Hybride **`next/image`** / **`<img>`** via **`resolveNextImageRemoteDelivery`** |
+| **ACTIF-02-BADGEICON-01** | `BadgeIcon.tsx` | Idem + fallback erreur en **state React** |
+| **ACTIF-02-CHATMESSAGES-01** | `ChatMessagesView.tsx` | **Exception délibérée** : **`<img>` natif** conservé — `message.imageUrl` vient du SSE sans contrat de dimensions ni d’hôte (**HTTP(S)** arbitraire, **`blob:`**, **`data:`**) ; le layout **`max-h-64 w-full object-cover`** s’appuie sur les dimensions intrinsèques — **`next/image`** sans largeur/hauteur fictives ou **`fill`** re-dimensionnant le conteneur aurait dévié du rendu validé produit. Commentaire **`eslint-disable`** renforcé in-file ; tests **`__tests__/unit/components/chat/ChatMessagesView.test.tsx`** (placeholder + loader, image seule, texte + image, HTTPS hors allowlist, `blob:` / `data:`, KaTeX, `role="alert"`, parité **embedded** / **drawer**).
 
 `[VALIDATION]`
 
 ```bash
 grep -r "eslint-disable.*no-img-element" frontend/components/ --include="*.tsx"
-# objectif : 0 résultat (migration complète) ou chaque ligne précédée de "// Intentional: <raison>"
+# chaque occurrence restante doit être couverte par un commentaire Intentional / exception documentée (avatar, badge hors-liste, chat).
 ```
 
 ---
@@ -354,6 +352,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | ACTIF-01       | Pages SC candidates — `docs` convertie SC ; changelog / offline / contact restent client (preuve code) | ACTIF-01-TRUTH-01     | 2026-04-11         |
 | ACTIF-02-UserAvatar | `UserAvatar` : `next/image` si URL ∈ remotePatterns ; sinon `<img>` (`nextImageRemoteSource.ts` + tests) | ACTIF-02-USERAVATAR-01 | 2026-04-11         |
 | ACTIF-02-BadgeIcon | `BadgeIcon` : hybride `next/image` / `<img>` + fallback emoji via state ; utilitaire partagé `nextImageRemoteSource.ts` ; tests `BadgeIcon.test.tsx` | ACTIF-02-BADGEICON-01 | 2026-04-11         |
+| ACTIF-02-ChatMessages | `ChatMessagesView` : exception native `<img>` (SSE / blob / data / dimensions intrinsèques) ; tests `ChatMessagesView.test.tsx` | ACTIF-02-CHATMESSAGES-01 | 2026-04-12         |
 
 ---
 
@@ -392,9 +391,9 @@ import { buildContentSecurityPolicy } from "@/lib/security/buildContentSecurityP
 
 `[DÉCISION]` **`BadgeIcon.tsx`** (lot **ACTIF-02-BADGEICON-01**) : même hybride pour `icon_url` HTTP ; pas de manipulation DOM impérative sur erreur de chargement.
 
-`[DÉCISION]` **`ChatMessagesView.tsx`** : `<img>` avec `eslint-disable` **justifié** tant que le chat distant / blob n’est pas traité par un lot dédié.
+`[DÉCISION]` **`ChatMessagesView.tsx`** (lot **ACTIF-02-CHATMESSAGES-01**) : **`<img>` natif** par **exception produit délibérée** — pas seulement « en attendant » : toute bascule **`next/image`** exigerait contrat URL/dimensions ou **`fill`** avec conteneur dimensionné, ce qui **n’est pas** acceptable sans changement UX (voir commentaire in-file et tests **`ChatMessagesView.test.tsx`**). **`resolveNextImageRemoteDelivery`** ne s’applique pas à ce flux.
 
-**Ce qu'il ne faut pas faire :** remplacer par `next/image` sans aligner `remotePatterns` ou sans branche de repli documentée pour les hôtes arbitraires.
+**Ce qu'il ne faut pas faire :** forcer **`next/image`** avec dimensions fictives ou ratio inventé sur les illustrations chat ; rouvrir sans contrat backend/SSE et maquette validée.
 
 ### D-03 — `useLeaderboardPageController` non extrait
 
@@ -462,9 +461,9 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 
 ```
 2. ~~UserAvatar.tsx~~ — fait (ACTIF-02-USERAVATAR-01)
-3. ~~BadgeIcon.tsx~~ — fait (ACTIF-02-BADGEICON-01 : next/image + `<img>` + fallback React state)
-4. ChatMessagesView.tsx → évaluer remotePatterns
-   → Concerne ACTIF-02 (restant)
+3. ~~BadgeIcon.tsx~~ — fait (ACTIF-02-BADGEICON-01)
+4. ~~ChatMessagesView.tsx~~ — fait (ACTIF-02-CHATMESSAGES-01 : exception `<img>` documentée + tests)
+   → ~~ACTIF-02~~ **clos**
 ```
 
 ### Sprint C — Tests hooks critiques (3–4 semaines, par lots)
@@ -548,4 +547,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain exhaustive : 2026-04-11 (50 pages app, 230 composants, 55 hooks lus directement ; ACTIF-06 pages admin sans controller ajouté ; ACTIF-07 colorMap DRY ajouté ; ratio hooks corrigé 61 % ; ACTIF-02 UserAvatar+BadgeIcon confirmés migrés). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._

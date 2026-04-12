@@ -352,6 +352,15 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (ACTIF-02, D-02, sprint B, §5), **`README_TECH.md`**, ce fichier.
 - **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run __tests__/unit/components/BadgeIcon.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de changement **`next.config.ts`** dans ce lot.
 
+### ACTIF-02-CHATMESSAGES-01 (2026-04-12) - fermé
+
+- **Objectif** : dernier sous-lot **[ACTIF-02]** — trancher **`ChatMessagesView`** avec vérité terrain (pas de migration **`next/image`** forcée).
+- **Décision** : **exception délibérée** **`<img>`** natif — `message.imageUrl` non contraint (SSE), **`blob:`** / **`data:`** possibles, layout **`max-h-64 w-full object-cover`** dépend des dimensions intrinsèques ; **`next/image`** exigerait tailles fictives ou conteneur **`fill`** non équivalent. Pas de changement **`nextImageRemoteSource.ts`** ni **`next.config.ts`**.
+- **Implémentation** : commentaire **`eslint-disable`** renforcé in **`ChatMessagesView.tsx`**.
+- **Tests** : **`frontend/__tests__/unit/components/chat/ChatMessagesView.test.tsx`** (loader + placeholder masqué, image seule, texte + image + **`mb-3`**, HTTPS hors allowlist, **`blob:`**, **`data:`**, KaTeX, rôle **`alert`** sur erreur, parité **`embedded`** / **`drawer`**).
+- **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (§4 ~~ACTIF-02~~ fermé, §5, D-02, sprint B), **`README_TECH.md`**, ce fichier.
+- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run __tests__/unit/components/chat/ChatMessagesView.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de **`npm run build`** (pas de branche **`next/image`** produit).
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
