@@ -449,6 +449,22 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useExerciseSolverController.test.ts`, `npx prettier --check hooks/useExerciseSolverController.test.ts`.
 
+### ACTIF-03-MICROHOOKS-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser **5** tests hooks légers sous **`frontend/hooks/`** sans réécrire la logique ni modifier **`vitest.config.ts`**, sans toucher aux hooks sources (dont **`useAccessibleAnimation`** implémenté sous **`lib/hooks/`**, test déplacé sous **`hooks/`** selon périmètre lot).
+- **Fichiers** : **`useAdminContentPageController.test.ts`**, **`useChallengesStats.test.tsx`**, **`useChallengeTranslations.test.tsx`**, **`useRecommendationsReason.test.ts`**, **`useAccessibleAnimation.test.ts`** (depuis **`frontend/__tests__/unit/hooks/`** ; suppressions des anciens chemins).
+- **Inchangé** : assertions, mocks **`@/`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAdminContentPageController.test.ts hooks/useChallengesStats.test.tsx hooks/useChallengeTranslations.test.tsx hooks/useRecommendationsReason.test.ts hooks/useAccessibleAnimation.test.ts`, `npx prettier --check` sur les 5 fichiers.
+
+### ACTIF-03-PROGRESS-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser **3** tests hooks progression / liste sous **`frontend/hooks/`** sans réécrire la logique ni modifier **`vitest.config.ts`**, sans toucher aux hooks sources.
+- **Fichiers** : **`useCompletedItems.test.tsx`**, **`usePaginatedContent.test.tsx`**, **`useProgressTimeline.test.tsx`** (depuis **`frontend/__tests__/unit/hooks/`** ; suppressions des anciens chemins).
+- **Inchangé** : assertions, mocks **`@/`** (**`@tanstack/react-query`**, **`api`**, **`localeStore`** selon fichiers).
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useCompletedItems.test.tsx hooks/usePaginatedContent.test.tsx hooks/useProgressTimeline.test.tsx`, `npx prettier --check` sur les 3 fichiers.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
