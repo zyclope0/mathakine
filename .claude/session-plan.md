@@ -377,6 +377,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run lib/security/buildContentSecurityPolicy.test.ts`, `npx prettier --check lib/security/buildContentSecurityPolicy.test.ts`.
 
+### ACTIF-03-MIDDLEWARECSP-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`middlewareCsp`** auprès de **`frontend/lib/security/middlewareCsp.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher à l’utilitaire source ; alignement avec **`lib/security/buildContentSecurityPolicy.test.ts`**.
+- **Fichiers** : **`frontend/lib/security/middlewareCsp.test.ts`** (déplacement depuis **`frontend/__tests__/unit/lib/security/middlewareCsp.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, imports **`@/lib/security/*`**, **`middlewareCsp.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run lib/security/middlewareCsp.test.ts`, `npx prettier --check lib/security/middlewareCsp.test.ts`.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :
