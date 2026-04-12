@@ -44,18 +44,18 @@
 
 ## CatÃ©gorie 3 â€” Profil, Dashboard & Progression
 
-| Hook                            | RÃ´le                                                                   | Test | RQ    | DÃ©pendances clÃ©s                                  |
-| ------------------------------- | ----------------------------------------------------------------------- | ---- | ----- | --------------------------------------------------- |
-| `useProfilePageController.ts`   | Runtime local de la page profil (sections, formulaires, resets)         | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay` |
-| `useDashboardPageController.ts` | Runtime local de la page dashboard (tabs, refresh, export, shell state) | ✅   | Aucun | `useAuth`, stats hooks, React Query invalidation    |
+| Hook                             | RÃ´le                                                                         | Test | RQ    | DÃ©pendances clÃ©s                                                       |
+| -------------------------------- | ----------------------------------------------------------------------------- | ---- | ----- | ------------------------------------------------------------------------ |
+| `useProfilePageController.ts`    | Runtime local de la page profil (sections, formulaires, resets)               | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay`                      |
+| `useDashboardPageController.ts`  | Runtime local de la page dashboard (tabs, refresh, export, shell state)       | ✅   | Aucun | `useAuth`, stats hooks, React Query invalidation                         |
 | `useExerciseSolverController.ts` | Runtime local du solver exercice (F04 review, session entrelacee, navigation) | ✅   | Aucun | `useExercise`, `useSubmitAnswer`, `fetchNextReviewApi`, `sessionStorage` |
-| `useProfile.ts`                 | Profil complet de l'utilisateur connectÃ©                               | âŒ   | Query | `GET /api/users/me`                                 |
-| `useUserStats.ts`               | Stats globales dashboard, incluant le bloc F04 `spaced_repetition`      | âŒ   | Query | `GET /api/users/stats`                              |
-| `useNextReview.ts`              | Lecture one-shot de la prochaine revision F04 et du resume associe      | âŒ   | Aucun | `GET /api/users/me/reviews/next`                    |
-| `useProgressStats.ts`           | Stats de progression par pÃ©riode                                       | âŒ   | Query | `GET /api/progress/stats`                           |
-| `useProgressTimeline.ts`        | Timeline de progression historique                                      | âœ…  | Query | `GET /api/progress/timeline`                        |
-| `usePaginatedContent.ts`        | Pagination gÃ©nÃ©rique rÃ©utilisable                                    | âœ…  | Aucun | abstraction interne                                 |
-| `useIrtScores.ts`               | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                             | âŒ   | Query | `GET /api/progress/irt`                             |
+| `useProfile.ts`                  | Profil complet de l'utilisateur connectÃ©                                     | âŒ   | Query | `GET /api/users/me`                                                      |
+| `useUserStats.ts`                | Stats globales dashboard, incluant le bloc F04 `spaced_repetition`            | âŒ   | Query | `GET /api/users/stats`                                                   |
+| `useNextReview.ts`               | Lecture one-shot de la prochaine revision F04 et du resume associe            | âŒ   | Aucun | `GET /api/users/me/reviews/next`                                         |
+| `useProgressStats.ts`            | Stats de progression par pÃ©riode                                             | âŒ   | Query | `GET /api/progress/stats`                                                |
+| `useProgressTimeline.ts`         | Timeline de progression historique                                            | âœ…  | Query | `GET /api/progress/timeline`                                             |
+| `usePaginatedContent.ts`         | Pagination gÃ©nÃ©rique rÃ©utilisable                                          | âœ…  | Aucun | abstraction interne                                                      |
+| `useIrtScores.ts`                | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                                   | âŒ   | Query | `GET /api/progress/irt`                                                  |
 
 ---
 
@@ -70,22 +70,22 @@
 
 ## CatÃ©gorie 5 â€” Gamification & Badges
 
-| Hook                         | RÃ´le                               | Test | RQ    | DÃ©pendances clÃ©s                       |
-| ---------------------------- | ----------------------------------- | ---- | ----- | ---------------------------------------- |
-| `useBadges.ts`               | Liste des badges obtenus            | âŒ   | Query | `GET /api/badges`                        |
+| Hook                         | RÃ´le                                                                                | Test | RQ    | DÃ©pendances clÃ©s                       |
+| ---------------------------- | ------------------------------------------------------------------------------------ | ---- | ----- | ---------------------------------------- |
+| `useBadges.ts`               | Liste des badges obtenus                                                             | âŒ   | Query | `GET /api/badges`                        |
 | `useBadgesProgress.ts`       | Progression vers badges non obtenus (types partagés `lib/badges/types.ts`, FFI-L20D) | âŒ   | Query | `GET /api/badges/progress`               |
-| `useBadgesPageController.ts` | Runtime local de la page badges     | ✅   | Aucun | helpers badges + localStorage + confetti |
-| `useLeaderboard.ts`          | Classement public paginÃ©           | âŒ   | Query | `GET /api/leaderboard`                   |
-| `useMyLeaderboardRank.ts`    | Rang de l'utilisateur courant       | âŒ   | Query | `GET /api/leaderboard/me`                |
+| `useBadgesPageController.ts` | Runtime local de la page badges                                                      | ✅   | Aucun | helpers badges + localStorage + confetti |
+| `useLeaderboard.ts`          | Classement public paginÃ©                                                            | âŒ   | Query | `GET /api/leaderboard`                   |
+| `useMyLeaderboardRank.ts`    | Rang de l'utilisateur courant                                                        | âŒ   | Query | `GET /api/leaderboard/me`                |
 
 ---
 
 ## CatÃ©gorie 6 â€” Authentification
 
-| Hook                           | RÃ´le                                                                                   | Test | RQ       | DÃ©pendances clÃ©s                                       |
-| ------------------------------ | --------------------------------------------------------------------------------------- | ---- | -------- | -------------------------------------------------------- |
-| `useAuth.ts`                   | Facade auth (FFI-L20C) : session, login, register, logout, forgot-password ; contrats `lib/auth/types` + `authLoginFlow` | ✅   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
-| `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                               | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
+| Hook                           | RÃ´le                                                                                                                                                                    | Test | RQ       | DÃ©pendances clÃ©s                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------- | -------------------------------------------------------- |
+| `useAuth.ts`                   | Facade auth (FFI-L20C) : session, login, register, logout, forgot-password ; contrats `lib/auth/types` + `authLoginFlow`                                                 | ✅   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
+| `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                                                                                                                | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
 | `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) ; UI sÃ©curitÃ© dÃ©coupÃ©e en sous-composants FFI-L20E sans dÃ©placer ce runtime | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
 
 ---
@@ -157,5 +157,9 @@
 Tout nouveau hook doit :
 
 1. Figurer dans ce catalogue avec sa catÃ©gorie, son rÃ´le et ses dÃ©pendances.
-2. Avoir un fichier de test dans `frontend/__tests__/unit/hooks/`.
+2. Avoir un fichier de test co-localise a proximite du hook source
+   (`frontend/hooks/useMonHook.test.ts` ou
+   `frontend/hooks/useMonHook.test.tsx`). Les anciens chemins
+   `frontend/__tests__/unit/hooks/` relevent de la migration progressive
+   `ACTIF-03`.
 3. Preferer React Query (`useQuery` / `useMutation`) pour tout appel reseau partage/cache ; une exception one-shot sans cache est acceptable si elle est documentee (ex: `useNextReview.ts` pour la session F04).

@@ -285,7 +285,7 @@ EN recommande :
 ### Frontend
 
 - `frontend/__tests__/unit/app/exercises/InterleavedPage.test.tsx`
-- `frontend/__tests__/unit/hooks/useExerciseSolverController.test.ts`
+- `frontend/hooks/useExerciseSolverController.test.ts`
 - `frontend/__tests__/unit/lib/exercises/exerciseSolverFlow.test.ts`
 - `frontend/__tests__/unit/exercises/exerciseSolverSession.test.ts`
 

@@ -433,6 +433,22 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useContentListPageController.test.tsx`, `npx prettier --check hooks/useContentListPageController.test.tsx`.
 
+### ACTIF-03-CHALLENGESOLVER-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useChallengeSolverController`** auprès de **`frontend/hooks/useChallengeSolverController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useChallengeSolverController.test.tsx`** (déplacement depuis **`frontend/__tests__/unit/hooks/useChallengeSolverController.test.tsx`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useChallengeSolverController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useChallengeSolverController.test.tsx`, `npx prettier --check hooks/useChallengeSolverController.test.tsx`.
+
+### ACTIF-03-EXERCISESOLVER-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test **`useExerciseSolverController`** auprès de **`frontend/hooks/useExerciseSolverController.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useExerciseSolverController.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useExerciseSolverController.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, **`useExerciseSolverController.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useExerciseSolverController.test.ts`, `npx prettier --check hooks/useExerciseSolverController.test.ts`.
+
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
