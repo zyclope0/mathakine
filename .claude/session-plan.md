@@ -130,7 +130,7 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - i18n de la **navigation admin** restante : `frontend/app/admin/layout.tsx` lit `adminPages.layout.*` (`navAriaLabel`, libellés latéraux) via `useTranslations` ; `aria-current="page"` ajouté sur le lien actif.
 - i18n des **descriptions de toasts auth** encore inline dans `frontend/hooks/useAuth.ts` : création des clés `toasts.auth.registerVerifyEmailDescription`, `forgotPasswordSuccessDescription`, `forgotPasswordErrorDescription`.
-- Tests : `frontend/__tests__/unit/app/admin/AdminLayout.test.tsx` + mise à jour de `frontend/__tests__/unit/hooks/useAuth.test.ts`.
+- Tests : `frontend/__tests__/unit/app/admin/AdminLayout.test.tsx` + mise à jour de `frontend/hooks/useAuth.test.ts`.
 
 ### QF-04 (2026-04-10) - fermÃ©
 
@@ -360,6 +360,14 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Tests** : **`frontend/__tests__/unit/components/chat/ChatMessagesView.test.tsx`** (loader + placeholder masqué, image seule, texte + image + **`mb-3`**, HTTPS hors allowlist, **`blob:`**, **`data:`**, KaTeX, rôle **`alert`** sur erreur, parité **`embedded`** / **`drawer`**).
 - **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (§4 ~~ACTIF-02~~ fermé, §5, D-02, sprint B), **`README_TECH.md`**, ce fichier.
 - **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run __tests__/unit/components/chat/ChatMessagesView.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de **`npm run build`** (pas de branche **`next/image`** produit).
+
+### ACTIF-03-USEAUTH-COLOCATE-01 (2026-04-12) - fermé
+
+- **Objectif** : co-localiser le test critique **`useAuth`** auprès de **`frontend/hooks/useAuth.ts`** sans réécrire la logique du test ni modifier **`vitest.config.ts`**, sans toucher au hook source.
+- **Fichiers** : **`frontend/hooks/useAuth.test.ts`** (déplacement depuis **`frontend/__tests__/unit/hooks/useAuth.test.ts`** ; suppression de l’ancien chemin).
+- **Inchangé** : assertions, mocks **`@/`**, comportement produit, **`useAuth.ts`**.
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useAuth.test.ts`, `npx prettier --check hooks/useAuth.test.ts`.
 
 ### RÃ¨gle de pilotage
 
