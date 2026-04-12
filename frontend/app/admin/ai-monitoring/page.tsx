@@ -1,7 +1,5 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
 import { Bot, Coins, CheckCircle, AlertTriangle, Clock, Zap } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,11 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useAdminAiEvalHarnessRuns,
-  useAdminAiStats,
-  useAdminGenerationMetrics,
-} from "@/hooks/useAdminAiStats";
+import { useAdminAiMonitoringPageController } from "@/hooks/useAdminAiMonitoringPageController";
 
 function formatCost(cost: number): string {
   if (cost === 0) return "$0.00";
@@ -35,59 +29,27 @@ function formatDuration(seconds: number): string {
 }
 
 export default function AdminAiMonitoringPage() {
-  const t = useTranslations("adminPages.aiMonitoring");
-  const [days, setDays] = useState<number>(1);
-
-  const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminAiStats(days);
   const {
-    data: metricsData,
-    isLoading: metricsLoading,
-    error: metricsError,
-  } = useAdminGenerationMetrics(days);
-  const {
-    data: harnessData,
-    isLoading: harnessLoading,
-    error: harnessError,
-  } = useAdminAiEvalHarnessRuns(25);
-
-  const isLoading = statsLoading || metricsLoading || harnessLoading;
-  const error = statsError || metricsError || harnessError;
-
-  const statsByWorkload = statsData?.stats.by_workload ?? {};
-  const statsByType = statsData?.stats.by_type ?? {};
-  const statsByModel = statsData?.stats.by_model ?? {};
-  const metricsByWorkload = metricsData?.summary.by_workload ?? {};
-  const metricsByType = metricsData?.summary.by_type ?? {};
-  const errorTypes = metricsData?.summary.error_types ?? {};
-
-  const daysOptions = useMemo(
-    () =>
-      [
-        { value: "1", label: t("days.1") },
-        { value: "7", label: t("days.7") },
-        { value: "30", label: t("days.30") },
-      ] as const,
-    [t]
-  );
-
-  const formatWorkloadLabel = useCallback(
-    (workload: string) => {
-      const key = workload as "assistant_chat" | "exercises_ai" | "challenges_ai" | "unknown";
-      if (
-        key === "assistant_chat" ||
-        key === "exercises_ai" ||
-        key === "challenges_ai" ||
-        key === "unknown"
-      ) {
-        return t(`workloads.${key}`);
-      }
-      return workload;
-    },
-    [t]
-  );
+    t,
+    days,
+    handleDaysChange,
+    statsData,
+    metricsData,
+    harnessData,
+    isLoading,
+    error,
+    statsByWorkload,
+    statsByType,
+    statsByModel,
+    metricsByWorkload,
+    metricsByType,
+    errorTypes,
+    daysOptions,
+    formatWorkloadLabel,
+  } = useAdminAiMonitoringPageController();
 
   const toolbar = (
-    <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+    <Select value={String(days)} onValueChange={handleDaysChange}>
       <SelectTrigger className="w-[180px]">
         <SelectValue />
       </SelectTrigger>

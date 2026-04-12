@@ -126,6 +126,13 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - i18n route-level : copy des pages admin racines + `offline` externalisÃ©e dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listÃ©e ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks mÃ©tier ; tests unitaires ciblÃ©s + smoke wiring i18n.
 
+### ACTIF-06-AI-MONITORING-01 (2026-04-12) - fermé
+
+- **`frontend/hooks/useAdminAiMonitoringPageController.ts`** : état `days` (1 / 7 / 30), agrégation **`useAdminAiStats`** / **`useAdminGenerationMetrics`** / **`useAdminAiEvalHarnessRuns`** (**`HARNESS_RUNS_LIMIT`** 25), dérivés tableaux, **`formatWorkloadLabel`**, **`daysOptions`**, **`handleDaysChange`**.
+- **`frontend/app/admin/ai-monitoring/page.tsx`** : coque vue + toolbar **`Select`** + formatters **`formatCost`** / **`formatRate`** / **`formatDuration`** inchangés ; pas de changement UX ni de clés i18n.
+- Tests : **`hooks/useAdminAiMonitoringPageController.test.tsx`** ; **`__tests__/unit/app/admin/AdminAiMonitoringPage.test.tsx`** (mocks hooks inchangés).
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` (ciblés), Prettier sur fichiers touchés.
+
 ### QF-03B (2026-04-10) - fermé
 
 - i18n de la **navigation admin** restante : `frontend/app/admin/layout.tsx` lit `adminPages.layout.*` (`navAriaLabel`, libellés latéraux) via `useTranslations` ; `aria-current="page"` ajouté sur le lien actif.

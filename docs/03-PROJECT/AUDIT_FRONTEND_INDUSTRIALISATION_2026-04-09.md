@@ -163,7 +163,7 @@ export function useChallengeSolverController({
 | ~~ACTIF-02~~ | ~~P2~~ — **FERMÉ** | — | D7 images dynamiques : `UserAvatar` + `BadgeIcon` hybrides ; `ChatMessagesView` **exception `<img>`** (`ACTIF-02-CHATMESSAGES-01`, 2026-04-12) |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + sécurité **`lib/security/*.test.ts`** + hooks **`useIrtScores`** / **`useAIExerciseGenerator`** / **`useSettingsPageController`** / **`useBadgesPageController`** / **`useDashboardPageController`** / **`useContentListPageController`** / **`useChallengeSolverController`** / **`useExerciseSolverController`** + lot groupé micro-hooks **`useAdminContentPageController`** / **`useChallengesStats`** / **`useChallengeTranslations`** / **`useRecommendationsReason`** / test **`useAccessibleAnimation`** (impl **`lib/hooks`**) + lot progress/list **`useCompletedItems`** / **`usePaginatedContent`** / **`useProgressTimeline`** + **`hooks/chat/useChat`** / **`hooks/chat/useGuestChatAccess`** / **`useProfilePageController`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** / **`ACTIF-03-USEIRT-COLOCATE-01`** / **`ACTIF-03-USEAI-COLOCATE-01`** / **`ACTIF-03-USESETTINGS-COLOCATE-01`** / **`ACTIF-03-USEBADGES-COLOCATE-01`** / **`ACTIF-03-DASHBOARD-COLOCATE-01`** / **`ACTIF-03-CONTENTLIST-COLOCATE-01`** / **`ACTIF-03-CHALLENGESOLVER-COLOCATE-01`** / **`ACTIF-03-EXERCISESOLVER-COLOCATE-01`** / **`ACTIF-03-MICROHOOKS-COLOCATE-01`** / **`ACTIF-03-PROGRESS-COLOCATE-01`** / **`ACTIF-03-USECHAT-COLOCATE-01`** / **`ACTIF-03-GUESTCHATACCESS-COLOCATE-01`** / **`ACTIF-03-USEPROFILE-COLOCATE-01`**, 2026-04-12) |
 | ACTIF-04 | P2 — EN COURS | 30 min config | Seuils remontés **`ACTIF-04-COVERAGE-01`** (2026-04-12) ; poursuivre par nouveaux tests puis **nouvelle mesure** avant tout bump suivant |
-| ACTIF-06 | P2 — EN COURS | 2–3h/page | Extraire `useAdminAiMonitoringPageController` (**users** : lot **`ACTIF-06-ADMIN-USERS-01`**, 2026-04-12) |
+| ~~ACTIF-06~~ | ~~P2~~ — **FERMÉ** | — | Lots **`ACTIF-06-ADMIN-USERS-01`** (2026-04-12) + **`ACTIF-06-AI-MONITORING-01`** (2026-04-12) : pages **users** + **ai-monitoring** en coques + controllers dédiés |
 | ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
 | ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
 
@@ -296,29 +296,31 @@ cd frontend && npx vitest run --coverage
 
 ---
 
-### [ACTIF-06] Pages admin volumineuses sans controller — violation guardrail
+### ~~[ACTIF-06]~~ Pages admin volumineuses sans controller — **FERMÉ**
 
-**Priorité :** P2 | **Dimension :** D1 Industrialisation | **Effort :** 2–3h chacune
+**Priorité :** ~~P2~~ | **Dimension :** D1 Industrialisation | **`[RÉSOLU]`** 2026-04-12 ( **`ACTIF-06-AI-MONITORING-01`** ) complète **`ACTIF-06-ADMIN-USERS-01`** (2026-04-12)
 
-`[CONSTAT]` ~~Deux~~ **Une** page admin restante avec logique métier inline dense sans controller dédié ; la page **users** a été traitée (lot **`ACTIF-06-ADMIN-USERS-01`**, 2026-04-12).
+`[CONSTAT]` Aucune page admin ciblée par ce finding ne conserve une logique métier dense inline sans controller : **users** et **ai-monitoring** sont des coques consommant des hooks dédiés.
 
 | Fichier | Lignes | État |
 |---------|--------|------|
 | `app/admin/users/page.tsx` | ~385 (vue) | Logique portée par **`hooks/useAdminUsersPageController.ts`** (~212 L) — filtres, pagination, modales rôle/suppression, toasts, wiring **`useAdminUsers`** inchangé côté contrat. |
-| `app/admin/ai-monitoring/page.tsx` | 572 | state `days` + `formatWorkloadLabel` + `daysOptions` useMemo + JSX toolbar inline à lignes 39–102 — **à extraire** (`useAdminAiMonitoringPageController` ou équivalent). |
+| `app/admin/ai-monitoring/page.tsx` | ~509 (vue) | Logique portée par **`hooks/useAdminAiMonitoringPageController.ts`** (~83 L) — `days`, agrégation **`useAdminAiStats`** / **`useAdminGenerationMetrics`** / **`useAdminAiEvalHarnessRuns`** (limite **25**), dérivés tableaux, **`formatWorkloadLabel`**, **`daysOptions`** ; toolbar période reste dans la page (JSX). |
 
-Le projet dispose de `useAdminContentPageController.ts` ; **`useAdminUsersPageController`** suit la même discipline que `useDashboardPageController`, `useBadgesPageController`.
+Le projet dispose de `useAdminContentPageController.ts` ; **`useAdminUsersPageController`** et **`useAdminAiMonitoringPageController`** suivent la même discipline que `useDashboardPageController`, `useBadgesPageController`.
 
 **Avancement 2026-04-12** : tests **`hooks/useAdminUsersPageController.test.tsx`** (params **`useAdminUsers`**, reset page sur recherche, filtres rôle / statut).
 
-`[RECOMMANDATION]` Extraire **`useAdminAiMonitoringPageController.ts`** pour **ai-monitoring**. Les pages restent des coques qui consomment le controller.
+**Avancement 2026-04-12** : tests **`hooks/useAdminAiMonitoringPageController.test.tsx`** (jours initial **1**, wiring **`days`**, limite harness **25**, agrégats loading/error, **`formatWorkloadLabel`**) ; page **`AdminAiMonitoringPage.test.tsx`** inchangée côté intention (mocks **`useAdminAiStats`**).
+
+`[RECOMMANDATION]` ~~Extraire **`useAdminAiMonitoringPageController.ts`**~~ — **fait**.
 
 `[VALIDATION]`
 
 ```bash
 grep -c "useState" frontend/app/admin/users/page.tsx
 # objectif : 0 sur la page (état dans le controller)
-npx vitest run hooks/useAdminUsersPageController.test.tsx
+npx vitest run hooks/useAdminUsersPageController.test.tsx hooks/useAdminAiMonitoringPageController.test.tsx
 ```
 
 ---
@@ -346,7 +348,7 @@ Risque : une couleur ajoutée dans un fichier ne se propage pas automatiquement 
 ### [ACTIF-05] Controllers et utilitaires volumineux — BACKLOG OPTIONNEL
 
 > ⛔ **NE PAS COMMENCER CE FINDING EN PREMIER.**
-> ACTIF-06 et les autres findings actifs sont prioritaires. Ce finding est listé pour traçabilité, pas comme tâche immédiate. La `[DÉCISION]` ci-dessous l'interdit explicitement.
+> Les findings actifs (hors backlog ACTIF-05) sont prioritaires. Ce finding est listé pour traçabilité, pas comme tâche immédiate. La `[DÉCISION]` ci-dessous l'interdit explicitement.
 
 **Priorité :** P3 — BACKLOG | **Dimension :** D6 Maintenabilité | **Effort :** 2–4h chacun
 
@@ -393,6 +395,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | ACTIF-02-BadgeIcon | `BadgeIcon` : hybride `next/image` / `<img>` + fallback emoji via state ; utilitaire partagé `nextImageRemoteSource.ts` ; tests `BadgeIcon.test.tsx` | ACTIF-02-BADGEICON-01 | 2026-04-11         |
 | ACTIF-02-ChatMessages | `ChatMessagesView` : exception native `<img>` (SSE / blob / data / dimensions intrinsèques) ; tests `ChatMessagesView.test.tsx` | ACTIF-02-CHATMESSAGES-01 | 2026-04-12         |
 | ACTIF-06-users | `app/admin/users/page.tsx` → coque ; état + handlers dans **`hooks/useAdminUsersPageController.ts`** ; tests **`useAdminUsersPageController.test.tsx`** | ACTIF-06-ADMIN-USERS-01 | 2026-04-12         |
+| ACTIF-06-ai-monitoring | `app/admin/ai-monitoring/page.tsx` → coque ; état + wiring IA dans **`hooks/useAdminAiMonitoringPageController.ts`** ; tests **`useAdminAiMonitoringPageController.test.tsx`** | ACTIF-06-AI-MONITORING-01 | 2026-04-12         |
 
 ---
 
@@ -538,7 +541,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 ```
 13. ~~Extraire useAdminUsersPageController.ts depuis app/admin/users/page.tsx~~ — fait (**`ACTIF-06-ADMIN-USERS-01`**, 2026-04-12)
     → Concerne ACTIF-06
-14. Extraire useAdminAiMonitoringPageController.ts depuis app/admin/ai-monitoring/page.tsx (572L)
+14. ~~Extraire useAdminAiMonitoringPageController.ts depuis app/admin/ai-monitoring/page.tsx~~ — fait (**`ACTIF-06-AI-MONITORING-01`**, 2026-04-12) ; vue ~509 L
     → Concerne ACTIF-06
 ```
 
@@ -587,4 +590,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **ACTIF-03-USEAI-COLOCATE-01** : `hooks/useAIExerciseGenerator.test.ts` co-localisé ; **ACTIF-03-USESETTINGS-COLOCATE-01** : `hooks/useSettingsPageController.test.ts` co-localisé ; **ACTIF-03-USEBADGES-COLOCATE-01** : `hooks/useBadgesPageController.test.ts` co-localisé ; **ACTIF-03-DASHBOARD-COLOCATE-01** : `hooks/useDashboardPageController.test.ts` co-localisé ; **ACTIF-03-CONTENTLIST-COLOCATE-01** : `hooks/useContentListPageController.test.tsx` co-localisé ; **ACTIF-03-CHALLENGESOLVER-COLOCATE-01** : `hooks/useChallengeSolverController.test.tsx` co-localisé ; **ACTIF-03-EXERCISESOLVER-COLOCATE-01** : `hooks/useExerciseSolverController.test.ts` co-localisé ; **ACTIF-03-MICROHOOKS-COLOCATE-01** : 5 tests hooks co-localisés sous `hooks/` ; **ACTIF-03-PROGRESS-COLOCATE-01** : 3 tests progress/list co-localisés sous `hooks/` ; **ACTIF-03-USECHAT-COLOCATE-01** : `hooks/chat/useChat.test.tsx` co-localisé ; **ACTIF-03-GUESTCHATACCESS-COLOCATE-01** : `hooks/chat/useGuestChatAccess.test.tsx` co-localisé ; **ACTIF-03-USEPROFILE-COLOCATE-01** : `hooks/useProfilePageController.test.ts` co-localisé ; **ACTIF-04-COVERAGE-01** : seuils vitest **43/36/40/44** depuis baseline CI GitHub Actions **44.57/37.22/41.47/45.68 %** ; **ACTIF-06-ADMIN-USERS-01** : `useAdminUsersPageController` + page users allégée ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **ACTIF-03-USEAI-COLOCATE-01** : `hooks/useAIExerciseGenerator.test.ts` co-localisé ; **ACTIF-03-USESETTINGS-COLOCATE-01** : `hooks/useSettingsPageController.test.ts` co-localisé ; **ACTIF-03-USEBADGES-COLOCATE-01** : `hooks/useBadgesPageController.test.ts` co-localisé ; **ACTIF-03-DASHBOARD-COLOCATE-01** : `hooks/useDashboardPageController.test.ts` co-localisé ; **ACTIF-03-CONTENTLIST-COLOCATE-01** : `hooks/useContentListPageController.test.tsx` co-localisé ; **ACTIF-03-CHALLENGESOLVER-COLOCATE-01** : `hooks/useChallengeSolverController.test.tsx` co-localisé ; **ACTIF-03-EXERCISESOLVER-COLOCATE-01** : `hooks/useExerciseSolverController.test.ts` co-localisé ; **ACTIF-03-MICROHOOKS-COLOCATE-01** : 5 tests hooks co-localisés sous `hooks/` ; **ACTIF-03-PROGRESS-COLOCATE-01** : 3 tests progress/list co-localisés sous `hooks/` ; **ACTIF-03-USECHAT-COLOCATE-01** : `hooks/chat/useChat.test.tsx` co-localisé ; **ACTIF-03-GUESTCHATACCESS-COLOCATE-01** : `hooks/chat/useGuestChatAccess.test.tsx` co-localisé ; **ACTIF-03-USEPROFILE-COLOCATE-01** : `hooks/useProfilePageController.test.ts` co-localisé ; **ACTIF-04-COVERAGE-01** : seuils vitest **43/36/40/44** depuis baseline CI GitHub Actions **44.57/37.22/41.47/45.68 %** ; **ACTIF-06-ADMIN-USERS-01** : `useAdminUsersPageController` + page users allégée ; **ACTIF-06-AI-MONITORING-01** : `useAdminAiMonitoringPageController` + page ai-monitoring allégée ; **finding ACTIF-06 fermé** ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
