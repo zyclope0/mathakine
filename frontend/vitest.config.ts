@@ -23,14 +23,15 @@ export default defineConfig({
         "messages/**/*.json",
       ],
       thresholds: {
-        // Baseline réelle mesurée en CI (2026-04-10) :
-        //   statements 39.75% | branches 34.04% | functions 37.85% | lines 40.66%
-        // Seuils posés 1 point sous le réel pour absorber la variance inter-runs.
-        // À remonter progressivement à chaque lot de tests ajoutés.
-        statements: 39,
-        branches: 33,
-        functions: 37,
-        lines: 40,
+        // Baseline réelle mesurée localement (2026-04-12, `npx vitest run --coverage`, v8) :
+        //   statements 47.8% | branches 39.87% | functions 43.19% | lines 49.03%
+        // Seuils : floor(mesure) − 1 pour chaque axe (lot ACTIF-04-COVERAGE-01), uniquement
+        // parce que ces valeurs dépassent les anciens seuils (39/33/37/40).
+        // À remonter de nouveau après nouvelle mesure quand des tests supplémentaires le justifient.
+        statements: 46,
+        branches: 38,
+        functions: 42,
+        lines: 48,
       },
       exclude: [
         "node_modules/",

@@ -393,6 +393,15 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (**ACTIF-03** avancé, **non** clôturé), ce fichier.
 - **Vérifs** : `npm run lint`, `npx tsc --noEmit`, `npx vitest run hooks/useIrtScores.test.ts`, `npx prettier --check hooks/useIrtScores.test.ts`.
 
+### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
+
+- **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
+- **Mesure** : **`npx vitest run --coverage`** (v8) — agrégat **All files** : **47.8 %** stmts, **39.87 %** branches, **43.19 %** funcs, **49.03 %** lines.
+- **Seuils** : **46 / 38 / 42 / 48** (**`floor(mesure %) − 1`** par axe ; anciens **39 / 33 / 37 / 40**).
+- **Inchangé** : code applicatif ; **[ACTIF-04]** (audit) reste **ouvert** pour la suite progressive (nouveaux tests + nouvelle mesure avant tout bump suivant).
+- **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**, ce fichier.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, **`npx vitest run --coverage`** (avant et après mise à jour des seuils), `npx prettier --check vitest.config.ts`.
+
 ### RÃ¨gle de pilotage
 
 - traiter la suite comme :

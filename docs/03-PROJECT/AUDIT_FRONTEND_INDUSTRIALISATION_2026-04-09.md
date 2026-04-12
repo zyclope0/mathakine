@@ -162,7 +162,7 @@ export function useChallengeSolverController({
 | ~~ACTIF-01~~ | ~~P2~~ — FERMÉ | — | Vérifié terrain 2026-04-11 (`ACTIF-01-TRUTH-01`) : 1 page convertie SC, 3 restées client avec preuve code |
 | ~~ACTIF-02~~ | ~~P2~~ — **FERMÉ** | — | D7 images dynamiques : `UserAvatar` + `BadgeIcon` hybrides ; `ChatMessagesView` **exception `<img>`** (`ACTIF-02-CHATMESSAGES-01`, 2026-04-12) |
 | ACTIF-03 | P2 — EN COURS | 1–2h par lot | Poursuivre la co-localisation par lots (`useAuth` + sécurité **`lib/security/*.test.ts`** + **`useIrtScores`** validés **`ACTIF-03-USEAUTH-COLOCATE-01`** / **`ACTIF-03-BUILDCSP-COLOCATE-01`** / **`ACTIF-03-MIDDLEWARECSP-COLOCATE-01`** / **`ACTIF-03-USEIRT-COLOCATE-01`**, 2026-04-12) |
-| ACTIF-04 | P2 — EN COURS | 30 min config | Remonter seuils vitest après tests |
+| ACTIF-04 | P2 — EN COURS | 30 min config | Seuils remontés **`ACTIF-04-COVERAGE-01`** (2026-04-12) ; poursuivre par nouveaux tests puis **nouvelle mesure** avant tout bump suivant |
 | ACTIF-06 | P2 — NOUVEAU | 2–3h/page | Extraire `useAdminUsersPageController.ts` |
 | ACTIF-07 | P3 — NOUVEAU | 1h | Créer `_colorMap.ts` partagé entre renderers |
 | ACTIF-05 | P3 — BACKLOG | 2–4h | **Ne pas toucher sans raison fonctionnelle** |
@@ -244,20 +244,22 @@ npx vitest run components/badges/BadgeCard.test.tsx
 
 **Priorité :** P2 | **Dimension :** D8 Réplicabilité | **Effort :** 3–4 semaines par incrément de 5 points
 
-`[CONSTAT]` Baseline CI mesurée (commit `ae11043`) :
+`[CONSTAT]` Historique — baseline CI (commit `ae11043`) : statements 39.75 %, branches 34.04 %, functions 37.85 %, lines 40.66 % ; seuils conservateurs **39 / 33 / 37 / 40** (1 point sous le réel).
 
-- statements : 39.75 %
-- branches : 34.04 %
-- functions : 37.85 %
-- lines : 40.66 %
+**Avancement 2026-04-12 (lot `ACTIF-04-COVERAGE-01`)** : mesure locale **`npx vitest run --coverage`** (provider **v8**, périmètre inchangé dans `vitest.config.ts`) — agrégat **All files** :
 
-Seuils actuels dans `vitest.config.ts` : statements 39 %, branches 33 %, functions 37 %, lines 40 % (1 point sous la baseline pour absorber la variance).
+- statements : **47.8 %**
+- branches : **39.87 %**
+- functions : **43.19 %**
+- lines : **49.03 %**
+
+Seuils dans `vitest.config.ts` portés à **46 / 38 / 42 / 48** (règle **`floor(mesure %) − 1`** par axe, uniquement parce que chaque valeur dépasse l’ancien seuil). **ACTIF-04** reste ouvert : l’horizon « couverture large » (ex. 55 %) n’est pas atteint ; les prochains bumps exigent une **nouvelle mesure** après lots de tests, pas une hausse « par principe ».
 
 **Ratio hooks recalculé terrain (2026-04-11)** : 22 hooks avec test / 56 total = **34 hooks sans test (61 %)**. Historique audit initial : 71 % (52 hooks, avant les lots de tests ci-dessous). Avancements : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator`. Hooks sans test prioritaires : `useAdminUsers`, `useBadges`, `useChallenges`, `useExercises`, `useSettings`, `useLeaderboard`. (`useAuth` : **`hooks/useAuth.test.ts`** — **`ACTIF-03-USEAUTH-COLOCATE-01`** ; `useIrtScores` : **`hooks/useIrtScores.test.ts`** — **`ACTIF-03-USEIRT-COLOCATE-01`**.)
 
-`[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de 5 points.
+`[RECOMMANDATION]` Écrire les tests des hooks critiques en priorité, puis remonter les seuils **après mesure**. Budget réel : **30 min de config + 3–4 semaines d'écriture de tests** par incrément de couverture significatif.
 
-`[DÉCISION]` Ne pas monter les seuils avant d'avoir les tests. Un seuil artificiellement haut qui casse CI ne sert à rien.
+`[DÉCISION]` Ne pas monter les seuils sans mesure réelle défendable. Un seuil artificiellement haut qui casse CI ne sert à rien.
 
 `[VALIDATION]`
 
@@ -348,7 +350,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | i18n-admin     | Copy inline sur routes admin + layout admin + toasts auth                                           | QF-03, QF-03B         | 2026-04-10         |
 | ESLint-strict  | `no-unused-vars`, `consistent-type-imports`, `no-floating-promises`, `set-state-in-effect` en error | QF-04, QF-04B, QF-04C | 2026-04-10         |
 | E2E-auth       | Parcours login → dashboard/badges/settings ajouté                                                   | QF-05                 | 2026-04-10         |
-| Coverage-gate  | Seuils vitest réalistes (39/33/37/40 %) à la place de (43/36/39/44 %)                               | QF-06                 | 2026-04-10         |
+| Coverage-gate  | Seuils vitest : historique **QF-06** (43/36/39/44 puis 39/33/37/40 %) puis rebaseline **`ACTIF-04-COVERAGE-01`** → **46/38/42/48** (mesure locale 2026-04-12 : **47.8 / 39.87 / 43.19 / 49.03 %**, règle **floor−1**) | QF-06 + ACTIF-04-COVERAGE-01 | 2026-04-12         |
 | H1-diagnose    | `diagnose=True` en prod → `diagnose=_uncaught_diagnose`                                             | Déjà en place         | vérifié 2026-04-10 |
 | H2-HSTS        | HSTS absent → `server/middleware.py:108-109` conditionnel prod                                      | Déjà en place         | vérifié 2026-04-10 |
 | H3-Perms       | Permissions-Policy absent → `server/middleware.py:107`                                              | Déjà en place         | vérifié 2026-04-10 |
@@ -407,9 +409,9 @@ import { buildContentSecurityPolicy } from "@/lib/security/buildContentSecurityP
 
 `[DÉCISION]` Le contrôleur dédié au leaderboard n'a pas été extrait dans le lot ARCH-LEADERBOARD-01. Le découpage en composants nommés a été jugé suffisant pour fermer la dette. Un contrôleur séparé peut être créé si un lot futur justifie l'investissement.
 
-### D-04 — Coverage vitest à 39/33/37/40 % (non à 55 %)
+### D-04 — Coverage vitest : seuils ancrés sur mesure réelle (non à 55 % sans preuve)
 
-`[DÉCISION]` Les seuils sont volontairement 1 point sous la baseline CI pour absorber la variance inter-runs. L'objectif 55 % est un horizon, pas un seuil actuel. Remonter les seuils seulement après avoir écrit les tests correspondants.
+`[DÉCISION]` Les seuils suivent une **mesure `vitest --coverage` réelle** puis une marge conservatrice documentée (**`floor(mesure %) − 1`** par axe depuis le lot **`ACTIF-04-COVERAGE-01`**, 2026-04-12 : gates **46 / 38 / 42 / 48** pour une mesure **47.8 / 39.87 / 43.19 / 49.03 %**). L'objectif 55 % reste un **horizon**, pas un seuil imposé sans nouvelle mesure. Ne pas augmenter les gates « par principe ».
 
 ---
 
@@ -481,7 +483,7 @@ Ordre par ratio impact/effort. Chaque sprint est réalisable en une session.
 6. ~~Écrire tests useIrtScores (210 L)~~ — fait (`TEST-IRT-SCORES-01`) ; test désormais co-localisé **`hooks/useIrtScores.test.ts`** (lot **`ACTIF-03-USEIRT-COLOCATE-01`**).
 7. ~~Écrire tests useAIExerciseGenerator~~ — fait (`TEST-AI-GENERATOR-01`, `__tests__/unit/hooks/useAIExerciseGenerator.test.ts`).
 8. ~~Écrire tests useDiagnostic (232 L)~~ — fait (`TEST-DIAGNOSTIC-HOOK-01`, `hooks/useDiagnostic.test.ts` co-localisé) ; poursuivre le point 9 (seuils) et le reste du backlog hooks.
-9. Remonter seuils vitest.config.ts de 5 points après chaque lot
+9. Remonter seuils `vitest.config.ts` **après mesure** `npx vitest run --coverage` (logique documentée in-config ; lot **`ACTIF-04-COVERAGE-01`** = rebaseline 2026-04-12) ; itérer avec nouveaux tests puis nouvelle mesure
    → Concerne ACTIF-04
 ```
 
@@ -555,4 +557,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **ACTIF-04-COVERAGE-01** : seuils vitest **46/38/42/48** depuis mesure **47.8/39.87/43.19/49.03 %** ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
