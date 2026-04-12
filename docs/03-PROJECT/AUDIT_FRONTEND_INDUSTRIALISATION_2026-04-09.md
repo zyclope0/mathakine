@@ -246,14 +246,16 @@ npx vitest run components/badges/BadgeCard.test.tsx
 
 `[CONSTAT]` Historique — baseline CI (commit `ae11043`) : statements 39.75 %, branches 34.04 %, functions 37.85 %, lines 40.66 % ; seuils conservateurs **39 / 33 / 37 / 40** (1 point sous le réel).
 
-**Avancement 2026-04-12 (lot `ACTIF-04-COVERAGE-01`)** : mesure locale **`npx vitest run --coverage`** (provider **v8**, périmètre inchangé dans `vitest.config.ts`) — agrégat **All files** :
+**Avancement 2026-04-12 (lot `ACTIF-04-COVERAGE-01`, corrigé après échec CI)** : la mesure **autoritative** est désormais celle du job frontend GitHub Actions (**`ubuntu-latest`**, Node **20**, commande **`npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run`**), pas la machine locale Windows. Agrégat **All files** observé en CI :
 
-- statements : **47.8 %**
-- branches : **39.87 %**
-- functions : **43.19 %**
-- lines : **49.03 %**
+- statements : **44.57 %**
+- branches : **37.22 %**
+- functions : **41.47 %**
+- lines : **45.68 %**
 
-Seuils dans `vitest.config.ts` portés à **46 / 38 / 42 / 48** (règle **`floor(mesure %) − 1`** par axe, uniquement parce que chaque valeur dépasse l’ancien seuil). **ACTIF-04** reste ouvert : l’horizon « couverture large » (ex. 55 %) n’est pas atteint ; les prochains bumps exigent une **nouvelle mesure** après lots de tests, pas une hausse « par principe ».
+Des reproductions locales Windows/Node 20 montent plus haut (~**47.9 / 39.93 / 43.3 / 49.14**), mais elles ne servent plus de baseline tant qu’elles divergent de la CI.
+
+Seuils dans `vitest.config.ts` recalibrés à **43 / 36 / 40 / 44** (règle **`floor(mesure CI %) − 1`** par axe, tout en restant au-dessus des anciens **39 / 33 / 37 / 40**). **ACTIF-04** reste ouvert : l’horizon « couverture large » (ex. 55 %) n’est pas atteint ; les prochains bumps exigent une **nouvelle mesure** après lots de tests, idéalement sur l’environnement CI, pas une hausse « par principe ».
 
 **Ratio hooks recalculé terrain (2026-04-11)** : 22 hooks avec test / 56 total = **34 hooks sans test (61 %)**. Historique audit initial : 71 % (52 hooks, avant les lots de tests ci-dessous). Avancements : (1) `TEST-DIAGNOSTIC-HOOK-01` — `useDiagnostic` ; (2) `TEST-SUBMIT-ANSWER-01` — `useSubmitAnswer` ; (3) `TEST-IRT-SCORES-01` — `useIrtScores` ; (4) `TEST-AI-GENERATOR-01` — `useAIExerciseGenerator`. Hooks sans test prioritaires : `useAdminUsers`, `useBadges`, `useChallenges`, `useExercises`, `useSettings`, `useLeaderboard`. (`useAuth` : **`hooks/useAuth.test.ts`** — **`ACTIF-03-USEAUTH-COLOCATE-01`** ; `useIrtScores` : **`hooks/useIrtScores.test.ts`** — **`ACTIF-03-USEIRT-COLOCATE-01`**.)
 
@@ -353,7 +355,7 @@ Ces points sont **fermés**. Ne pas les réimplémenter. Ils sont listés ici po
 | i18n-admin     | Copy inline sur routes admin + layout admin + toasts auth                                           | QF-03, QF-03B         | 2026-04-10         |
 | ESLint-strict  | `no-unused-vars`, `consistent-type-imports`, `no-floating-promises`, `set-state-in-effect` en error | QF-04, QF-04B, QF-04C | 2026-04-10         |
 | E2E-auth       | Parcours login → dashboard/badges/settings ajouté                                                   | QF-05                 | 2026-04-10         |
-| Coverage-gate  | Seuils vitest : historique **QF-06** (43/36/39/44 puis 39/33/37/40 %) puis rebaseline **`ACTIF-04-COVERAGE-01`** → **46/38/42/48** (mesure locale 2026-04-12 : **47.8 / 39.87 / 43.19 / 49.03 %**, règle **floor−1**) | QF-06 + ACTIF-04-COVERAGE-01 | 2026-04-12         |
+| Coverage-gate  | Seuils vitest : historique **QF-06** (43/36/39/44 puis 39/33/37/40 %) puis recalibrage **`ACTIF-04-COVERAGE-01`** → **43/36/40/44** depuis la baseline CI GitHub Actions 2026-04-12 (**44.57 / 37.22 / 41.47 / 45.68 %**, règle **floor−1**) | QF-06 + ACTIF-04-COVERAGE-01 | 2026-04-12         |
 | H1-diagnose    | `diagnose=True` en prod → `diagnose=_uncaught_diagnose`                                             | Déjà en place         | vérifié 2026-04-10 |
 | H2-HSTS        | HSTS absent → `server/middleware.py:108-109` conditionnel prod                                      | Déjà en place         | vérifié 2026-04-10 |
 | H3-Perms       | Permissions-Policy absent → `server/middleware.py:107`                                              | Déjà en place         | vérifié 2026-04-10 |
@@ -415,7 +417,7 @@ import { buildContentSecurityPolicy } from "@/lib/security/buildContentSecurityP
 
 ### D-04 — Coverage vitest : seuils ancrés sur mesure réelle (non à 55 % sans preuve)
 
-`[DÉCISION]` Les seuils suivent une **mesure `vitest --coverage` réelle** puis une marge conservatrice documentée (**`floor(mesure %) − 1`** par axe depuis le lot **`ACTIF-04-COVERAGE-01`**, 2026-04-12 : gates **46 / 38 / 42 / 48** pour une mesure **47.8 / 39.87 / 43.19 / 49.03 %**). L'objectif 55 % reste un **horizon**, pas un seuil imposé sans nouvelle mesure. Ne pas augmenter les gates « par principe ».
+`[DÉCISION]` Les seuils suivent une **mesure `vitest --coverage` réelle sur l’environnement le plus contraignant**, puis une marge conservatrice documentée (**`floor(mesure CI %) − 1`** par axe depuis le lot **`ACTIF-04-COVERAGE-01`**, 2026-04-12 : gates **43 / 36 / 40 / 44** pour une baseline GitHub Actions **44.57 / 37.22 / 41.47 / 45.68 %**). Les runs locaux plus hauts ne suffisent pas à justifier un bump. L'objectif 55 % reste un **horizon**, pas un seuil imposé sans nouvelle mesure CI-compatible. Ne pas augmenter les gates « par principe ».
 
 ---
 
@@ -561,4 +563,4 @@ Les scores par dimension (0–10) sont des jugements calibrés, pas une addition
 
 ---
 
-_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **ACTIF-04-COVERAGE-01** : seuils vitest **46/38/42/48** depuis mesure **47.8/39.87/43.19/49.03 %** ; **ACTIF-06-ADMIN-USERS-01** : `useAdminUsersPageController` + page users allégée ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._
+_Audit initial : 2026-04-09. Dernière mise à jour : 2026-04-12. Dernière vérification terrain : 2026-04-12 (**ACTIF-02-CHATMESSAGES-01** : `ChatMessagesView` exception `<img>` + tests ; **ACTIF-03-USEAUTH-COLOCATE-01** : `hooks/useAuth.test.ts` co-localisé ; **ACTIF-03-BUILDCSP-COLOCATE-01** / **ACTIF-03-MIDDLEWARECSP-COLOCATE-01** : `lib/security/buildContentSecurityPolicy.test.ts` + `lib/security/middlewareCsp.test.ts` co-localisés ; **ACTIF-03-USEIRT-COLOCATE-01** : `hooks/useIrtScores.test.ts` co-localisé ; **ACTIF-04-COVERAGE-01** : seuils vitest **43/36/40/44** depuis baseline CI GitHub Actions **44.57/37.22/41.47/45.68 %** ; **ACTIF-06-ADMIN-USERS-01** : `useAdminUsersPageController` + page users allégée ; **finding ACTIF-02 fermé**). Toutes les assertions citent fichier:ligne lu directement._

@@ -396,11 +396,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 ### ACTIF-04-COVERAGE-01 (2026-04-12) - fermé
 
 - **Objectif** : mesurer la couverture Vitest réelle du frontend puis remonter les **seuils** dans **`frontend/vitest.config.ts`** uniquement si la mesure le justifie, sans changer le code produit ni le périmètre **`coverage.include` / exclude**.
-- **Mesure** : **`npx vitest run --coverage`** (v8) — agrégat **All files** : **47.8 %** stmts, **39.87 %** branches, **43.19 %** funcs, **49.03 %** lines.
-- **Seuils** : **46 / 38 / 42 / 48** (**`floor(mesure %) − 1`** par axe ; anciens **39 / 33 / 37 / 40**).
+- **Mesure autoritative** : baseline **CI GitHub Actions frontend** (`ubuntu-latest`, Node **20**, `npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run`) — agrégat **All files** : **44.57 %** stmts, **37.22 %** branches, **41.47 %** funcs, **45.68 %** lines.
+- **Nuance** : les runs locaux Windows/Node 20 observés sur la machine de dev restent plus hauts (~**47.9 / 39.93 / 43.3 / 49.14**), mais ne servent plus de baseline tant qu’ils divergent de la CI.
+- **Seuils** : **43 / 36 / 40 / 44** (**`floor(mesure CI %) − 1`** par axe ; anciens **39 / 33 / 37 / 40**).
 - **Inchangé** : code applicatif ; **[ACTIF-04]** (audit) reste **ouvert** pour la suite progressive (nouveaux tests + nouvelle mesure avant tout bump suivant).
 - **Doc** : **`README_TECH.md`**, **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**, ce fichier.
-- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, **`npx vitest run --coverage`** (avant et après mise à jour des seuils), `npx prettier --check vitest.config.ts`.
+- **Vérifs** : `npm run lint`, `npx tsc --noEmit`, **`npx vitest run --coverage`** (local) + reproduction exacte sous **Node 20** locale, `npx prettier --check vitest.config.ts`.
 
 ### ACTIF-06-ADMIN-USERS-01 (2026-04-12) - fermé
 

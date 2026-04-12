@@ -23,15 +23,17 @@ export default defineConfig({
         "messages/**/*.json",
       ],
       thresholds: {
-        // Baseline réelle mesurée localement (2026-04-12, `npx vitest run --coverage`, v8) :
-        //   statements 47.8% | branches 39.87% | functions 43.19% | lines 49.03%
-        // Seuils : floor(mesure) − 1 pour chaque axe (lot ACTIF-04-COVERAGE-01), uniquement
-        // parce que ces valeurs dépassent les anciens seuils (39/33/37/40).
-        // À remonter de nouveau après nouvelle mesure quand des tests supplémentaires le justifient.
-        statements: 46,
-        branches: 38,
-        functions: 42,
-        lines: 48,
+        // Baseline autoritative CI (GitHub Actions ubuntu-latest, Node 20, 2026-04-12,
+        // `npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run`) :
+        //   statements 44.57% | branches 37.22% | functions 41.47% | lines 45.68%
+        // Les runs locaux Windows/Node 20 observés sur ce dépôt montent plus haut (~47.9/39.93/43.3/49.14),
+        // donc les gates doivent être ancrés sur la CI, pas sur la machine locale.
+        // Seuils : floor(mesure CI) − 1 pour chaque axe, tout en restant au-dessus des anciens 39/33/37/40.
+        // À remonter de nouveau uniquement après nouvelle mesure défendable en CI.
+        statements: 43,
+        branches: 36,
+        functions: 40,
+        lines: 44,
       },
       exclude: [
         "node_modules/",
