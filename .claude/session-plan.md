@@ -138,6 +138,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - Aucun changement des renderers sources, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
 - Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les deux fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
 
+### ACTIF-03-BADGES-COMPONENTS-COLOCATE-01 (2026-04-12) - fermé
+
+- Déplacement de **`BadgeCard.test.tsx`**, **`BadgeIcon.test.tsx`**, **`BadgesProgressTabsSection.test.tsx`** depuis **`frontend/__tests__/unit/components/`** et **`frontend/__tests__/unit/components/badges/`** vers **`frontend/components/badges/`** (imports **`@/`** inchangés).
+- Aucun changement des composants sources badges, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les trois fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
 ### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
 
 - **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.

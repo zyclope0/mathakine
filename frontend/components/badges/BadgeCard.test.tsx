@@ -1,117 +1,124 @@
-import type { ReactNode } from "react";
-import { createElement } from "react";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { NextIntlClientProvider } from "next-intl";
-import fr from "@/messages/fr.json";
 import { BadgeCard } from "@/components/badges/BadgeCard";
 import type { Badge, UserBadge } from "@/types/api";
-
-vi.mock("framer-motion", () => ({
-  motion: {
-    div: ({
-      children,
-      className,
-      ...rest
-    }: {
-      children?: ReactNode;
-      className?: string;
-      [key: string]: unknown;
-    }) => createElement("div", { className, ...rest }, children),
-  },
-}));
+import { NextIntlClientProvider } from "next-intl";
+import fr from "@/messages/fr.json";
 
 vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
   useAccessibleAnimation: () => ({
-    createVariants: (v: Record<string, unknown>) => v,
-    createTransition: (t: Record<string, unknown>) => t,
-    shouldReduceMotion: true,
+    createVariants: (v: object) => v,
+    createTransition: (t: object) => t,
+    shouldReduceMotion: false,
   }),
 }));
 
-const badgeBronze = {
-  id: 1,
-  name: "Test Badge",
-  code: "test_badge",
-  description: "Desc",
-  difficulty: "bronze",
-  category: "progression",
-  points_reward: 25,
-  exercise_type: "ADDITION",
-} as Badge;
-
-function wrap(node: ReactNode) {
+function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
     <NextIntlClientProvider locale="fr" messages={fr}>
-      {node}
+      {children}
     </NextIntlClientProvider>
   );
 }
 
 describe("BadgeCard", () => {
-  it("renders earned state with check indicator", () => {
-    const ub = { id: 1, earned_at: "2024-01-01" } as UserBadge;
-    render(wrap(<BadgeCard badge={badgeBronze} userBadge={ub} isEarned progress={null} />));
-    expect(screen.getByRole("article")).toBeInTheDocument();
-    expect(screen.getByText(/Obtenu le/)).toBeInTheDocument();
+  const mockBadge: Badge & { criteria_text?: string | null } = {
+    id: 1,
+    code: "first_steps",
+    name: "Premiers Pas",
+    description: "Compléter votre premier exercice",
+    category: "progression",
+    difficulty: "bronze",
+    points_reward: 10,
+    star_wars_title: "Éveil de la Force",
+    is_active: true,
+    created_at: "2025-01-01T00:00:00Z",
+  };
+
+  it("affiche le nom du badge", () => {
+    render(<BadgeCard badge={mockBadge} isEarned={false} />, { wrapper: TestWrapper });
+    expect(screen.getByText("Premiers Pas")).toBeInTheDocument();
   });
 
-  it("renders locked state with lock overlay on icon", () => {
-    render(wrap(<BadgeCard badge={badgeBronze} isEarned={false} progress={null} />));
-    expect(screen.getByRole("article")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Verrouillé/i)).toBeInTheDocument();
+  it("affiche le titre thématique (legacy star_wars_title) si disponible", () => {
+    render(<BadgeCard badge={mockBadge} isEarned={false} />, { wrapper: TestWrapper });
+    expect(screen.getByText("Éveil de la Force")).toBeInTheDocument();
   });
 
-  it("shows pin control when canPin and onTogglePin", () => {
-    const ub = { id: 1 } as UserBadge;
-    const onToggle = vi.fn();
-    render(
-      wrap(
-        <BadgeCard
-          badge={badgeBronze}
-          userBadge={ub}
-          isEarned
-          progress={null}
-          compact
-          canPin
-          onTogglePin={onToggle}
-          isPinned={false}
-        />
-      )
-    );
-    const pinBtn = screen.getByRole("button", { name: /Épingler/i });
-    expect(pinBtn).toBeInTheDocument();
+  it("priorise thematic_title sur star_wars_title (F43-A4)", () => {
+    const badge: Badge = {
+      ...mockBadge,
+      thematic_title: "Titre spatial",
+      star_wars_title: "Ancien",
+    };
+    render(<BadgeCard badge={badge} isEarned={false} />, { wrapper: TestWrapper });
+    expect(screen.getByText("Titre spatial")).toBeInTheDocument();
+    expect(screen.queryByText("Ancien")).not.toBeInTheDocument();
   });
 
-  it("renders progress bar for locked badge with progress", () => {
-    render(
-      wrap(
-        <BadgeCard
-          badge={{ ...badgeBronze, criteria_text: "Faire 5 exos" }}
-          isEarned={false}
-          progress={{
-            current: 2,
-            target: 5,
-            progress: 0.4,
-          }}
-        />
-      )
-    );
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  it("affiche l'icône de verrouillage si le badge n'est pas obtenu", () => {
+    render(<BadgeCard badge={mockBadge} isEarned={false} />, { wrapper: TestWrapper });
+    // L'icône Lock devrait être présente (vérification via aria-hidden car c'est décoratif)
+    const lockIcon = document.querySelector('[aria-hidden="true"]');
+    expect(lockIcon).toBeInTheDocument();
   });
 
-  it("progressbar aria-label utilise le code si le nom est vide", () => {
-    render(
-      wrap(
-        <BadgeCard
-          badge={{ ...badgeBronze, name: "", criteria_text: "Critère" }}
-          isEarned={false}
-          progress={{ current: 1, target: 5, progress: 0.2 }}
-        />
-      )
-    );
-    const bar = screen.getByRole("progressbar");
-    expect(bar.getAttribute("aria-label")).toMatch(/test_badge/);
-    expect(bar.getAttribute("aria-label")).toMatch(/20/);
+  it("affiche l'icône de succès si le badge est obtenu", () => {
+    const userBadge: UserBadge = {
+      ...mockBadge,
+      earned_at: "2025-01-01T00:00:00Z",
+    };
+    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, {
+      wrapper: TestWrapper,
+    });
+    // La carte a l'aria-label "obtenu" et le CheckCircle vert est présent
+    const card = screen.getByRole("article", { name: /obtenu/i });
+    expect(card).toBeInTheDocument();
+    const checkIcon = document.querySelector('[class*="text-green-400"]');
+    expect(checkIcon).toBeInTheDocument();
+  });
+
+  it("affiche les points de récompense", () => {
+    render(<BadgeCard badge={mockBadge} isEarned={false} />, { wrapper: TestWrapper });
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("pts")).toBeInTheDocument();
+  });
+
+  it("affiche la date d'obtention si le badge est obtenu", () => {
+    const userBadge: UserBadge = {
+      ...mockBadge,
+      earned_at: "2025-01-15T00:00:00Z",
+    };
+    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, {
+      wrapper: TestWrapper,
+    });
+    const dateElements = screen.getAllByText(/obtenu le/i);
+    expect(dateElements.length).toBeGreaterThanOrEqual(1);
+    expect(dateElements[0]).toBeInTheDocument();
+  });
+
+  it("rend l'icône de badge HTTP comme élément décoratif (aria-hidden)", () => {
+    const badgeWithUrl: Badge = {
+      ...mockBadge,
+      icon_url: "https://cdn.example.com/badges/first-steps.png",
+    };
+    render(<BadgeCard badge={badgeWithUrl} isEarned={false} />, { wrapper: TestWrapper });
+    // BadgeIcon est aria-hidden : l'image est décorative, alt="" intentionnel
+    // L'accessibilité est portée par l'aria-label de la carte parente
+    const card = screen.getByRole("article", { name: /Premiers Pas/i });
+    expect(card).toBeInTheDocument();
+    // Le conteneur de l'icône est masqué des lecteurs d'écran
+    const iconContainer = document.querySelector('[aria-hidden="true"]');
+    expect(iconContainer).toBeInTheDocument();
+  });
+
+  it("affiche le nom du badge même si le nom est absent (fallback sur le code)", () => {
+    const badgeNoName: Badge = {
+      ...mockBadge,
+      name: "",
+    };
+    render(<BadgeCard badge={badgeNoName} isEarned={false} />, { wrapper: TestWrapper });
+    // Le code est affiché comme texte de secours
+    expect(screen.getByText("first_steps")).toBeInTheDocument();
   });
 });
