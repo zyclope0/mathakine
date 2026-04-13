@@ -162,6 +162,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - Aucun changement des composants sources, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
 - Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les trois fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
 
+### ACTIF-03-LAYOUT-HEADER-COLOCATE-01 (2026-04-13) - fermé
+
+- Déplacement de **`Header.test.tsx`** de **`frontend/__tests__/unit/components/layout/`** vers **`frontend/components/layout/`** (imports **`@/`** inchangés).
+- Aucun changement de **`Header.tsx`**, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur le fichier, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
 ### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
 
 - **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.

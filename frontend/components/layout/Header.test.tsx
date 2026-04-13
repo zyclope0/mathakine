@@ -1,5 +1,3 @@
-"use client";
-
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -143,7 +141,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 1,
-        username: "luke",
+        username: "learner1",
         role: "apprenant",
         is_email_verified: true,
         access_scope: "full",
@@ -165,7 +163,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 2,
-        username: "obiwan",
+        username: "admin1",
         role: "admin",
         is_email_verified: true,
         access_scope: "full",
@@ -187,7 +185,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 1,
-        username: "luke",
+        username: "learner1",
         role: "apprenant",
         is_email_verified: true,
         access_scope: "full",
@@ -211,7 +209,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 1,
-        username: "luke",
+        username: "learner1",
         role: "apprenant",
         is_email_verified: true,
         access_scope: "full",
