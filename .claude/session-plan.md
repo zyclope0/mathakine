@@ -126,6 +126,18 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 
 - i18n route-level : copy des pages admin racines + `offline` externalisÃ©e dans `frontend/messages/fr.json` et `en.json` (`adminPages.*`, `offline`) ; `useTranslations` sur chaque page listÃ©e ; constantes de labels (exports, filtres audit, etc.) construites dans le composant ; pas de refonte shell/hooks mÃ©tier ; tests unitaires ciblÃ©s + smoke wiring i18n.
 
+### ACTIF-03-CHAT-COMPONENTS-COLOCATE-01 (2026-04-12) - fermé
+
+- Déplacement de **`ChatMessagesView.test.tsx`**, **`ChatbotFloating.test.tsx`**, **`ChatbotFloatingGlobal.test.tsx`** de **`frontend/__tests__/unit/components/chat/`** vers **`frontend/components/chat/`** (imports **`@/`** inchangés).
+- Aucun changement des composants sources, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les trois fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
+### ACTIF-03-VISUALIZATION-COLOCATE-01 (2026-04-12) - fermé
+
+- Déplacement de **`VisualizationRenderers.test.tsx`** et **`VisualRenderer.symmetry.test.tsx`** de **`frontend/__tests__/unit/components/`** vers **`frontend/components/challenges/visualizations/`** (imports **`@/`** inchangés).
+- Aucun changement des renderers sources, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les deux fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
 ### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
 
 - **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.
@@ -377,9 +389,9 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - **Objectif** : dernier sous-lot **[ACTIF-02]** — trancher **`ChatMessagesView`** avec vérité terrain (pas de migration **`next/image`** forcée).
 - **Décision** : **exception délibérée** **`<img>`** natif — `message.imageUrl` non contraint (SSE), **`blob:`** / **`data:`** possibles, layout **`max-h-64 w-full object-cover`** dépend des dimensions intrinsèques ; **`next/image`** exigerait tailles fictives ou conteneur **`fill`** non équivalent. Pas de changement **`nextImageRemoteSource.ts`** ni **`next.config.ts`**.
 - **Implémentation** : commentaire **`eslint-disable`** renforcé in **`ChatMessagesView.tsx`**.
-- **Tests** : **`frontend/__tests__/unit/components/chat/ChatMessagesView.test.tsx`** (loader + placeholder masqué, image seule, texte + image + **`mb-3`**, HTTPS hors allowlist, **`blob:`**, **`data:`**, KaTeX, rôle **`alert`** sur erreur, parité **`embedded`** / **`drawer`**).
+- **Tests** : **`frontend/components/chat/ChatMessagesView.test.tsx`** (loader + placeholder masqué, image seule, texte + image + **`mb-3`**, HTTPS hors allowlist, **`blob:`**, **`data:`**, KaTeX, rôle **`alert`** sur erreur, parité **`embedded`** / **`drawer`**).
 - **Doc** : **`docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`** (§4 ~~ACTIF-02~~ fermé, §5, D-02, sprint B), **`README_TECH.md`**, ce fichier.
-- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run __tests__/unit/components/chat/ChatMessagesView.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de **`npm run build`** (pas de branche **`next/image`** produit).
+- **Vérifs** : **`npm run lint`**, **`npx tsc --noEmit`**, **`npx vitest run components/chat/ChatMessagesView.test.tsx`**, **`npx prettier --check`** sur les fichiers touchés ; pas de **`npm run build`** (pas de branche **`next/image`** produit).
 
 ### ACTIF-03-USEAUTH-COLOCATE-01 (2026-04-12) - fermé
 
