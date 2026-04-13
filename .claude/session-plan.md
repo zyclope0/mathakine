@@ -144,6 +144,12 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - Aucun changement des composants sources badges, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
 - Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les trois fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
 
+### ACTIF-03-DASHBOARD-SMALL-COMPONENTS-COLOCATE-01 (2026-04-13) - fermé
+
+- Déplacement de **`LevelIndicator.test.tsx`**, **`Recommendations.test.tsx`**, **`SpacedRepetitionSummaryWidget.test.tsx`**, **`SpacedRepetitionSummaryWidget.reviewCta.test.tsx`** de **`frontend/__tests__/unit/components/dashboard/`** vers **`frontend/components/dashboard/`** (imports **`@/`** inchangés).
+- Aucun changement des composants sources dashboard, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les quatre fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
 ### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
 
 - **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.
