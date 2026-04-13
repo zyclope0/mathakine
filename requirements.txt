@@ -31,7 +31,7 @@ loguru==0.7.3
 
 # Authentification et sécurité
 cryptography>=46.0.5  # CVE-2026-26007 (python-jose en dépend)
-pyasn1>=0.6.2  # CVE-2026-23490 DoS
+pyasn1>=0.6.3  # CVE-2026-23490, CVE-2026-30922 DoS
 python-jose[cryptography]==3.5.0  # JWT
 bcrypt==5.0.0  # Hachage des mots de passe (utilisé directement, sans passlib pour éviter les warnings de compatibilité)
 
