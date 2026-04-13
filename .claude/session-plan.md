@@ -150,6 +150,18 @@ La suite frontend relÃ¨ve de lots ciblÃ©s, petits et reviewables, pilotÃ©s
 - Aucun changement des composants sources dashboard, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
 - Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les quatre fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
 
+### ACTIF-03-DASHBOARD-CHARTS-COLOCATE-01 (2026-04-13) - fermé
+
+- Déplacement de **`CategoryAccuracyChart.test.tsx`**, **`DashboardCategoryRadarChart.test.tsx`** de **`frontend/__tests__/unit/components/dashboard/`** vers **`frontend/components/dashboard/`** (imports **`@/`** inchangés).
+- Aucun changement des composants sources charts dashboard, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les deux fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
+### ACTIF-03-APP-BOOTSTRAP-COLOCATE-01 (2026-04-13) - fermé
+
+- Déplacement de **`Providers.test.tsx`** (**`frontend/__tests__/unit/components/providers/`** → **`frontend/components/providers/`**), **`LocaleInitializer.test.tsx`** (**`.../locale/`** → **`frontend/components/locale/`**), **`ProtectedRoute.test.tsx`** (**`frontend/__tests__/unit/components/`** → **`frontend/components/auth/`**) ; imports **`@/`** inchangés.
+- Aucun changement des composants sources, pas de modification de **`vitest.config.ts`**, pas de réécriture de la logique des tests.
+- Vérifs : `npm run lint`, `npx tsc --noEmit`, `npx vitest run` sur les trois fichiers, Prettier ; audit **[ACTIF-03]** reste ouvert ; lot documenté **`README_TECH.md`** + **`AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md`**.
+
 ### ACTIF-07-COLORMAP-01 (2026-04-12) - fermé
 
 - **`frontend/components/challenges/visualizations/_colorMap.ts`** : **`VISUALIZATION_COLOR_MAP`** canonique FR/EN → hex (incl. **`brown` / `marron`**), **`resolveVisualizationColor`**, **`findVisualizationColorInText`**.
