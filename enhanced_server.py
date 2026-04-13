@@ -13,7 +13,6 @@ Usage:
 """
 
 import os
-from typing import Any
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -42,23 +41,10 @@ def get_app():
     return _app_instance
 
 
-class LazyStarletteApp:
-    """
-    Proxy ASGI paresseux.
-
-    Evite l'initialisation lourde au simple import de `enhanced_server`
-    tout en restant compatible avec httpx/uvicorn qui attendent une app ASGI.
-    """
-
-    async def __call__(self, scope: dict, receive: Any, send: Any) -> None:
-        await get_app()(scope, receive, send)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(get_app(), name)
-
-
-# Exposé pour Gunicorn/Uvicorn et les usages ASGI externes.
-app = LazyStarletteApp()
+# Expose a concrete Starlette instance for ASGI servers.
+# Uvicorn/Gunicorn integration is more robust with a standard app object
+# than with a custom lazy proxy exposing __call__.
+app = get_app()
 
 
 def main():
@@ -69,7 +55,7 @@ def main():
     print(f"ENHANCED_SERVER.PY - Serveur complet démarré sur le port {PORT}")
     print("Serveur avec interface graphique complète")
     print("========================================")
-    run_server(app=get_app(), host=HOST, port=PORT, debug=DEBUG)
+    run_server(app=app, host=HOST, port=PORT, debug=DEBUG)
 
 
 if __name__ == "__main__":
