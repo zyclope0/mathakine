@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_NAME: str = "Mathakine"
-    PROJECT_VERSION: str = "2.1.0"
+    PROJECT_VERSION: str = "3.6.0-alpha.1"
     API_V1_STR: str = "/api"
 
     SECRET_KEY: str = Field(default="", description="Clé secrète JWT")
