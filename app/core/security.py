@@ -219,6 +219,9 @@ def verify_diagnostic_state(token: str) -> Optional[dict]:
 def validate_password_strength(password: str) -> Optional[str]:
     """Valide la force d'un mot de passe. Source unique pour handlers et schemas.
 
+    Vérifie : longueur minimum 8, au moins un chiffre, une majuscule,
+    un caractère non alphanumérique (ponctuation ou symbole).
+
     Returns:
         None si valide, sinon le message d'erreur (str).
     """
@@ -228,4 +231,6 @@ def validate_password_strength(password: str) -> Optional[str]:
         return "Le mot de passe doit contenir au moins un chiffre"
     if not any(c.isupper() for c in password):
         return "Le mot de passe doit contenir au moins une majuscule"
+    if not any(not c.isalnum() for c in password):
+        return "Le mot de passe doit contenir au moins un caractère spécial"
     return None
