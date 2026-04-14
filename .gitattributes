@@ -1,0 +1,49 @@
+# Normalisation globale : LF dans le repo, checkout selon l'OS
+* text=auto eol=lf
+
+# Python
+*.py text eol=lf
+*.pyi text eol=lf
+
+# JavaScript / TypeScript
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+
+# Web
+*.html text eol=lf
+*.css text eol=lf
+
+# Data / Config
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.env text eol=lf
+*.env.example text eol=lf
+
+# Docs
+*.md text eol=lf
+*.txt text eol=lf
+
+# Scripts shell → LF obligatoire (bash incompatible CRLF)
+*.sh text eol=lf
+
+# Binaires → pas de conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.docx binary
+*.zip binary
+*.gz binary
