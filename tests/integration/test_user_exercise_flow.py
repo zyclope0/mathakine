@@ -23,7 +23,7 @@ async def test_user_exercise_flow(client):
     user_data = {
         "username": f"test_flow_user_{unique_id}",
         "email": f"padawan_{unique_id}@jedi.com",
-        "password": "Force123Jedi",
+        "password": "Force123Jedi!",
         "role": "padawan",
     }
 
@@ -127,7 +127,7 @@ async def test_invalid_exercise_attempt(client):
         user_data = {
             "username": f"test_invalid_user_{unique_id}",
             "email": f"padawan2_{unique_id}@jedi.com",
-            "password": "Force123Jedi",
+            "password": "Force123Jedi!",
             "role": "padawan",
         }
         response = await client.post("/api/users/", json=user_data)

@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  CONTENT_LIST_ORDER,
-  isValidStoredContentListOrder,
-} from "../constants/contentListOrder";
+import { CONTENT_LIST_ORDER, isValidStoredContentListOrder } from "../constants/contentListOrder";
 import {
   contentListAdvancedFilterActiveCount,
   contentListTotalPages,

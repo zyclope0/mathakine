@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  challengeToAIGeneratedItem,
-  exerciseToAIGeneratedItem,
-} from "./toAIGeneratedItem";
+import { challengeToAIGeneratedItem, exerciseToAIGeneratedItem } from "./toAIGeneratedItem";
 
 describe("toAIGeneratedItem", () => {
   it("maps exercise with persisted id and subtitle", () => {

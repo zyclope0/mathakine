@@ -447,7 +447,7 @@ def test_create_user_success(db_session):
     email = unique_email()
 
     user_data = UserCreate(
-        username=username, email=email, password="TestPassword123", role="padawan"
+        username=username, email=email, password="TestPassword123!", role="padawan"
     )
 
     # Créer l'utilisateur
@@ -472,7 +472,7 @@ def test_create_user_accepts_canonical_role_and_persists_legacy_enum(db_session)
     user_data = UserCreate(
         username=unique_username(),
         email=unique_email(),
-        password="TestPassword123",
+        password="TestPassword123!",
         role="enseignant",
     )
 
@@ -484,8 +484,8 @@ def test_create_user_accepts_canonical_role_and_persists_legacy_enum(db_session)
     assert created_user.role == UserRole.MAITRE
 
     # Vérifier que le mot de passe a été haché
-    assert created_user.hashed_password != "TestPassword123"
-    assert verify_password("TestPassword123", created_user.hashed_password)
+    assert created_user.hashed_password != "TestPassword123!"
+    assert verify_password("TestPassword123!", created_user.hashed_password)
 
 
 def test_create_user_duplicate_username(db_session, mock_user):
@@ -504,7 +504,7 @@ def test_create_user_duplicate_username(db_session, mock_user):
     new_user_data = UserCreate(
         username=username,  # Même nom d'utilisateur
         email=unique_email(),  # Email différent
-        password="AnotherPassword123",
+        password="AnotherPassword123!",
         role="padawan",
     )
 
@@ -533,7 +533,7 @@ def test_create_user_duplicate_email(db_session, mock_user):
     new_user_data = UserCreate(
         username=unique_username(),  # Nom d'utilisateur différent
         email=email,  # Même email
-        password="AnotherPassword123",
+        password="AnotherPassword123!",
         role="padawan",
     )
 
@@ -1030,7 +1030,7 @@ def test_create_registered_user_with_verification_single_commit(db_session):
     user_data = UserCreate(
         username=unique_username(),
         email=unique_email(),
-        password="TestPassword123",
+        password="TestPassword123!",
         role="padawan",
     )
 

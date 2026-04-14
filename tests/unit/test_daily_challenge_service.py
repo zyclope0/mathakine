@@ -21,7 +21,7 @@ def _create_user(db_session, *, username: str, email: str) -> User:
     user = User(
         username=username,
         email=email,
-        hashed_password=get_password_hash("Force123Jedi"),
+        hashed_password=get_password_hash("Force123Jedi!"),
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
     )
     db_session.add(user)

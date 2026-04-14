@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  parseSpacedRepetitionUserSummary,
-  safeValidateUserStats,
-} from "./dashboard";
+import { parseSpacedRepetitionUserSummary, safeValidateUserStats } from "./dashboard";
 
 describe("parseSpacedRepetitionUserSummary", () => {
   it("retourne des défauts si données absentes ou invalides", () => {

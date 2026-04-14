@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiClientError } from "../api/client";
-import {
-  isAuthMeQueryUnauthenticatedError,
-  resolveLoginErrorDescription,
-} from "./authLoginFlow";
+import { isAuthMeQueryUnauthenticatedError, resolveLoginErrorDescription } from "./authLoginFlow";
 
 const labels = {
   loginForbidden: "forbidden",

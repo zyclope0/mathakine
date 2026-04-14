@@ -415,7 +415,7 @@ async def _create_authenticated_client(role="padawan", db_session_for_role=None)
             user_data = {
                 "username": f"fixture_auth_{role}_{unique_id}",
                 "email": f"fixture_auth_{role}_{unique_id}@example.com",
-                "password": "Force123Jedi",
+                "password": "Force123Jedi!",
             }
 
             # Creer l'utilisateur via l'API (role PADAWAN par defaut)
@@ -517,7 +517,7 @@ async def expired_token_client():
         user_data = {
             "username": f"test_jedi_expired_{unique_id}",
             "email": f"jedi_expired_{unique_id}@test.com",
-            "password": "Force123Jedi",
+            "password": "Force123Jedi!",
         }
 
         try:
@@ -557,7 +557,7 @@ async def refresh_token_client():
         user_data = {
             "username": f"test_jedi_refresh_{unique_id}",
             "email": f"jedi_refresh_{unique_id}@test.com",
-            "password": "Force123Jedi",
+            "password": "Force123Jedi!",
         }
 
         try:
