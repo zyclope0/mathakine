@@ -24,7 +24,7 @@ Le mapping toast utilisateur est centralise dans `getAiGenerationRequestErrorToa
 
 ## Tests
 
-- `frontend/__tests__/unit/ai-generation/postAiGenerationSse.test.ts`
+- `frontend/lib/ai/generation/postAiGenerationSse.test.ts`
   - CSRF absent / vide
   - succes avec en-tete CSRF
   - `401`, `403`, `500`
