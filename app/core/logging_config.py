@@ -83,7 +83,7 @@ def configure_logging(remove_existing_handlers=True):
         sys.stderr,
         format=LOG_FORMAT,
         level=os.environ.get("LOG_LEVEL", "INFO"),
-        colorize=True,
+        colorize=sys.stderr.isatty(),
     )
 
     # Fichiers : uniquement hors Windows et hors mode debug
