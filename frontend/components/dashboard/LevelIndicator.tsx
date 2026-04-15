@@ -57,9 +57,7 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
 
           <div className="flex-1 w-full space-y-3 text-center sm:text-left">
             <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-0.5">
-                {t("title")}
-              </p>
+              <p className="heading-kicker mb-0.5">{t("title")}</p>
               <h3 className="text-2xl font-bold text-foreground" aria-label={numericHeading}>
                 {numericHeading}
               </h3>
@@ -84,7 +82,7 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
             <div className="space-y-1.5">
               <Progress
                 value={progressPercent}
-                className="h-3"
+                className="level-xp-progress-bar h-3"
                 aria-label={`${Math.round(progressPercent)}% XP`}
               />
               <div className="flex justify-between text-sm text-muted-foreground">

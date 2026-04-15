@@ -745,6 +745,12 @@
         "probability": "Probability:",
         "composition": "Composition ({total} {itemType})",
         "total": "Total"
+      },
+      "puzzle": {
+        "title": "Sorting puzzle",
+        "dragHint": "Drag and drop the pieces to put them in order.",
+        "hintsHeading": "Hints",
+        "emptyState": "No puzzle to show for this challenge."
       }
     }
   },
@@ -966,7 +972,7 @@
       }
     },
     "averageTime": {
-      "title": "Avg. tempo",
+      "title": "Average pace",
       "description": "Average time per exercise",
       "noData": "—",
       "emptyHint": "Complete exercises to see your tempo.",
@@ -1702,11 +1708,11 @@
       "description": "Everything you need to progress in mathematics",
       "feature1": {
         "label": "Our approach",
-        "title": "Adaptive Exercises",
+        "title": "Adaptive exercises",
         "description": "Personalized math exercises based on your level and needs"
       },
       "feature2": {
-        "title": "Logic Challenges",
+        "title": "Logic challenges",
         "description": "Develop your reasoning with progressive and stimulating challenges"
       },
       "feature3": {
@@ -1744,7 +1750,7 @@
       "button": "Create Free Account"
     },
     "academy": {
-      "title": "Academy Stats",
+      "title": "Key stats",
       "exercises": {
         "label": "Exercises",
         "tooltip": "Total number of math exercises available (addition, subtraction, multiplication, division)"
@@ -2262,7 +2268,7 @@
       "seeBadges": "See all my badges"
     },
     "reviews": {
-      "heading": "Up for review today"
+      "heading": "Reviews due today"
     },
     "challenges": {
       "heading": "Today’s challenges"

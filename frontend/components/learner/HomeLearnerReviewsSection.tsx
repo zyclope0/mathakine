@@ -19,10 +19,7 @@ export function HomeLearnerReviewsSection({
 }: HomeLearnerReviewsSectionProps) {
   return (
     <section id="section-reviews" aria-labelledby="reviews-heading" className="scroll-mt-20">
-      <h2
-        id="reviews-heading"
-        className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
-      >
+      <h2 id="reviews-heading" className="heading-section mb-4">
         {t("reviews.heading")}
       </h2>
       <SpacedRepetitionSummaryWidget summary={summary} isLoading={isLoading} hasError={hasError} />

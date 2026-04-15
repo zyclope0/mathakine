@@ -148,9 +148,7 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" suppressHydrationWarning nonce={cspNonce}>
-      <body
-        className={`${nunito.variable} ${jetbrainsMono.variable} antialiased font-sans`}
-      >
+      <body className={`${nunito.variable} ${jetbrainsMono.variable} antialiased font-sans`}>
         <Providers>
           <SpatialBackground />
           <LocaleInitializer />

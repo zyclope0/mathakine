@@ -3,7 +3,11 @@
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ContentCardBase } from "@/components/shared/ContentCardBase";
-import { getAgeGroupColor, EXERCISE_TYPE_STYLES } from "@/lib/constants/exercises";
+import {
+  EXERCISE_TYPE_CARD_BORDER_LEFT,
+  EXERCISE_TYPE_STYLES,
+  getAgeGroupColor,
+} from "@/lib/constants/exercises";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import type { Exercise } from "@/types/api";
@@ -29,6 +33,8 @@ export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps)
     "divers") as keyof typeof EXERCISE_TYPE_STYLES;
   const { icon: IconComponent, className: typeClassName } =
     EXERCISE_TYPE_STYLES[exerciseTypeKey] || EXERCISE_TYPE_STYLES.divers;
+  const cardBorderLeft =
+    EXERCISE_TYPE_CARD_BORDER_LEFT[exerciseTypeKey] ?? EXERCISE_TYPE_CARD_BORDER_LEFT.divers;
 
   const { theme } = useThemeStore();
   const ageGroupDisplay = getAgeDisplay(exercise.age_group);
@@ -42,6 +48,7 @@ export function ExerciseCard({ exercise, completed, onOpen }: ExerciseCardProps)
       completedLabel={t("card.completed", { default: "Résolu" })}
       completedAriaLabel={t("card.completed", { default: "Exercice résolu" })}
       onClick={() => onOpen(exercise.id)}
+      cardClassName={cardBorderLeft}
     >
       <CardHeader>
         <div className="flex items-start justify-between">

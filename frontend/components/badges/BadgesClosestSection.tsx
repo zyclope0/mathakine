@@ -39,9 +39,7 @@ export function BadgesClosestSection({
     <PageSection className="space-y-3 animate-fade-in-up">
       <div className="flex items-center gap-2">
         <Flame className="h-4 w-4 text-accent" aria-hidden="true" />
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          {title}
-        </h2>
+        <h2 className="heading-section-compact text-foreground">{title}</h2>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {closestBadges.map((badge) => {

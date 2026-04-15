@@ -49,6 +49,19 @@ export const EXERCISE_TYPE_DISPLAY: Record<ExerciseType, string> = {
   [EXERCISE_TYPES.DIVERS]: "Divers",
 };
 
+/** Accent gauche discret sur les cartes liste (pas la grille de boîtes générique). */
+export const EXERCISE_TYPE_CARD_BORDER_LEFT: Record<ExerciseType, string> = {
+  [EXERCISE_TYPES.ADDITION]: "border-l-4 border-l-emerald-500/65 dark:border-l-emerald-400/50",
+  [EXERCISE_TYPES.SUBTRACTION]: "border-l-4 border-l-rose-400/70 dark:border-l-rose-400/45",
+  [EXERCISE_TYPES.MULTIPLICATION]: "border-l-4 border-l-amber-500/60 dark:border-l-amber-400/50",
+  [EXERCISE_TYPES.DIVISION]: "border-l-4 border-l-sky-500/65 dark:border-l-sky-400/50",
+  [EXERCISE_TYPES.FRACTIONS]: "border-l-4 border-l-violet-500/55 dark:border-l-violet-400/45",
+  [EXERCISE_TYPES.GEOMETRIE]: "border-l-4 border-l-teal-500/60 dark:border-l-teal-400/50",
+  [EXERCISE_TYPES.TEXTE]: "border-l-4 border-l-indigo-500/55 dark:border-l-indigo-400/45",
+  [EXERCISE_TYPES.MIXTE]: "border-l-4 border-l-purple-500/55 dark:border-l-purple-400/45",
+  [EXERCISE_TYPES.DIVERS]: "border-l-4 border-l-slate-400/70 dark:border-l-slate-500/45",
+};
+
 // Associe chaque type d'exercice à une icône et un style de badge
 export const EXERCISE_TYPE_STYLES = {
   [EXERCISE_TYPES.ADDITION]: { icon: Plus, className: "border-slate-400 dark:border-slate-600" },

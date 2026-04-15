@@ -157,7 +157,7 @@ export function QuickStartActions() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-foreground">{t("interleavedCta")}</p>
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide leading-none">
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground leading-none tracking-normal">
                   {t("interleavedBadge")}
                 </span>
               </div>

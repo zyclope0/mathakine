@@ -745,6 +745,12 @@
         "probability": "Probabilité :",
         "composition": "Composition ({total} {itemType})",
         "total": "Total"
+      },
+      "puzzle": {
+        "title": "Puzzle à classer",
+        "dragHint": "Glisse-dépose les éléments pour les remettre dans l’ordre.",
+        "hintsHeading": "Indices pour t’aider",
+        "emptyState": "Aucun puzzle à afficher pour ce défi."
       }
     }
   },
@@ -1494,11 +1500,11 @@
       "description": "Tout ce dont vous avez besoin pour progresser en mathématiques",
       "feature1": {
         "label": "Notre approche",
-        "title": "Exercices Adaptatifs",
+        "title": "Exercices adaptatifs",
         "description": "Des exercices mathématiques personnalisés selon votre niveau et vos besoins"
       },
       "feature2": {
-        "title": "Défis Logiques",
+        "title": "Défis logiques",
         "description": "Développez votre raisonnement avec des défis progressifs et stimulants"
       },
       "feature3": {
@@ -1536,7 +1542,7 @@
       "button": "Créer un compte gratuit"
     },
     "academy": {
-      "title": "L'Académie en chiffres",
+      "title": "Chiffres clés",
       "exercises": {
         "label": "Exercices",
         "tooltip": "Nombre total d'exercices mathématiques disponibles (addition, soustraction, multiplication, division)"
@@ -2261,7 +2267,7 @@
       "seeBadges": "Voir tous mes badges"
     },
     "reviews": {
-      "heading": "À revoir aujourd’hui"
+      "heading": "Révisions du jour"
     },
     "challenges": {
       "heading": "Mes défis du jour"

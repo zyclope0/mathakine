@@ -28,10 +28,7 @@ export function HomeLearnerActionsSection({
   return (
     <section id="section-actions" aria-labelledby="actions-heading">
       <LearnerCard>
-        <h2
-          id="actions-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4"
-        >
+        <h2 id="actions-heading" className="heading-section mb-4">
           {t("actions.heading")}
         </h2>
 

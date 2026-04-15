@@ -130,7 +130,7 @@ export default function HomePage() {
         {/* Feature principale — large */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="md:col-span-2 border border-border/40 rounded-2xl p-8 md:p-10 bg-card/60 min-h-40 md:min-h-56 flex flex-col justify-center">
-            <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">
+            <p className="text-sm font-semibold text-primary mb-3 tracking-normal">
               {t("features.feature1.label")}
             </p>
             <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">

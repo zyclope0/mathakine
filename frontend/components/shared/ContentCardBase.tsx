@@ -15,6 +15,8 @@ interface ContentCardBaseProps {
   completedAriaLabel?: string;
   /** Rend la carte entière cliquable (ex: ouvrir une modal). */
   onClick?: () => void;
+  /** Classes additionnelles sur la Card (ex. bordure gauche sémantique). */
+  cardClassName?: string;
   children: React.ReactNode;
 }
 
@@ -29,6 +31,7 @@ export function ContentCardBase({
   completedLabel,
   completedAriaLabel,
   onClick,
+  cardClassName,
   children,
 }: ContentCardBaseProps) {
   const { createVariants, createTransition } = useAccessibleAnimation();
@@ -70,7 +73,8 @@ export function ContentCardBase({
         className={cn(
           "card-spatial-depth relative group flex flex-col",
           "transition-all duration-300",
-          onClick && "hover:border-primary/50 hover:shadow-sm"
+          onClick && "hover:border-primary/50 hover:shadow-sm",
+          cardClassName
         )}
         /* role et aria déplacés sur le bouton wrapper quand onClick présent */
         role={onClick ? undefined : "article"}

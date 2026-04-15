@@ -73,7 +73,8 @@ export function useAccessibleAnimation({
     return {
       duration: baseTransition.duration ?? 0.3,
       delay: baseTransition.delay ?? 0,
-      ease: baseTransition.ease ?? [0.4, 0, 0.2, 1],
+      /** Aligné sur globals.css --ease-micro (opacity / transform), pas Material. */
+      ease: baseTransition.ease ?? [0.22, 1, 0.36, 1],
     } as Transition;
   };
 

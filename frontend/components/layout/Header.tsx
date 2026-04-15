@@ -66,10 +66,7 @@ export function Header() {
       >
         Aller au contenu principal
       </a>
-      <header
-        className="fixed top-0 left-0 right-0 z-40 w-full border-b border-border bg-background"
-        role="banner"
-      >
+      <header className="header-app-shell fixed top-0 left-0 right-0 z-40 w-full" role="banner">
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}

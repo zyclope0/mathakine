@@ -106,7 +106,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
         <CardContent className="flex-grow space-y-6">
           {/* Exercices */}
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+            <p className="mb-2 text-sm font-semibold tracking-normal text-muted-foreground">
               {t("exercisesSubtitle")}
             </p>
             {exercisesLoading ? (
@@ -125,7 +125,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
           </div>
 
           <div className="border-t border-border pt-4">
-            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+            <p className="mb-2 text-sm font-semibold tracking-normal text-muted-foreground">
               {t("challengesSubtitle")}
             </p>
             {challengesLoading ? (

@@ -75,6 +75,12 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* Easing : micro-interactions (transform / opacity / lift + ombre) vs surfaces couleur (neutre type Material) */
+:root {
+  --ease-micro: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ui-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Animation shimmer pour les badges obtenus (respecte prefers-reduced-motion) */
 @keyframes shimmer {
   0% {
@@ -212,9 +218,9 @@
 button:not(:disabled) {
   position: relative;
   transition:
-    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.2s var(--ease-micro),
+    box-shadow 0.2s var(--ease-micro),
+    background-color 0.2s var(--ease-ui-standard);
 }
 
 button:not(:disabled):hover {
@@ -223,16 +229,16 @@ button:not(:disabled):hover {
     0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent),
     0 2px 4px rgba(0, 0, 0, 0.1);
   transition:
-    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.2s var(--ease-micro),
+    box-shadow 0.2s var(--ease-micro);
 }
 
 button:not(:disabled):active {
   transform: translateY(0) scale(0.97);
   box-shadow: 0 2px 4px color-mix(in srgb, var(--primary) 20%, transparent);
   transition:
-    transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.1s var(--ease-micro),
+    box-shadow 0.1s var(--ease-micro);
 }
 
 /* Contexte apprenant — neutralisation du lift/glow global sur les boutons.
@@ -263,9 +269,9 @@ button:not(:disabled):active {
 /* Cards — hover effect (surfaces hors contexte apprenant) */
 [data-slot="card"] {
   transition:
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.25s var(--ease-micro),
+    box-shadow 0.25s var(--ease-micro),
+    border-color 0.25s var(--ease-ui-standard);
 }
 
 [data-slot="card"]:hover {
@@ -278,7 +284,7 @@ button:not(:disabled):active {
 
 [data-slot="card"]:active {
   transform: translateY(-2px) scale(1);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.1s var(--ease-micro);
 }
 
 /* Contexte apprenant — neutralisation du lift/scale global sur les cards.
@@ -297,9 +303,9 @@ button:not(:disabled):active {
 /* Améliorations liens - feedback visuel amélioré */
 a:not([role="button"]):not(button) {
   transition:
-    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    text-decoration-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color 0.2s var(--ease-ui-standard),
+    text-decoration-color 0.2s var(--ease-ui-standard),
+    opacity 0.2s var(--ease-micro);
 }
 
 a:not([role="button"]):not(button):hover {
@@ -309,7 +315,7 @@ a:not([role="button"]):not(button):hover {
 
 a:not([role="button"]):not(button):active {
   opacity: 0.7;
-  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.1s var(--ease-micro);
 }
 
 /* Améliorations inputs - feedback visuel amélioré */
@@ -317,9 +323,9 @@ input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   transition:
-    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color 0.2s var(--ease-ui-standard),
+    box-shadow 0.2s var(--ease-ui-standard),
+    background-color 0.2s var(--ease-ui-standard);
 }
 
 input:not([type="checkbox"]):not([type="radio"]):hover,
@@ -574,14 +580,14 @@ select:focus {
 /* Thème Spatial (Priorité 1) - Par défaut
  * Refonte 2026-03-30 : S2 — palette diurne "espace vu de jour".
  * Fond clair #f0f4ff (bleu-ciel teinté) accessible aux enfants dyslexiques.
- * Primary : blue-800 #1e40af — ciel profond, non-AI-générique.
+ * Primary : indigo-bleu #1a3fa8 (décalé vs blue-800 Tailwind exact) — WCAG AAA sur #fff / cartes.
  * Accent : amber-600 #d97706 — chaleur solaire, complémentaire du bleu.
  * Secondary : sky-700 #0369a1 — même famille que primary, dégradé chaud.
  * Contrastes WCAG AA/AAA vérifiés sur fond #f0f4ff. */
 :root,
 [data-theme="spatial"] {
   --radius: 1rem;
-  --shadow-card: 0 4px 24px rgba(30, 64, 175, 0.12);
+  --shadow-card: 0 4px 24px rgba(26, 63, 168, 0.12);
   /* Fond : bleu-ciel très doux — atmosphère spatiale sans éblouissement */
   --background: #f0f4ff;
   /* Foreground : slate-900 — contraste 13.1:1 sur #f0f4ff, WCAG AAA */
@@ -591,11 +597,11 @@ select:focus {
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  /* Primary : blue-800 #1e40af — ciel profond, contraste 7.1:1 sur blanc, WCAG AAA */
-  --primary: #1e40af;
+  /* Primary #1a3fa8 — même famille que l’ancre S2, pas la valeur Tailwind par défaut */
+  --primary: #1a3fa8;
   --primary-foreground: #ffffff;
-  /* Primary-light : blue-500 — pour éléments décoratifs, icônes secondaires */
-  --primary-light: #3b82f6;
+  /* Primary-light : légèrement décalé vs blue-500 générique (décor / liens secondaires) */
+  --primary-light: #2f6fd4;
   /* Primary-text-on-dark : blue-300 — sur les rares surfaces sombres */
   --primary-text-on-dark: #93c5fd;
   /* Podium leaderboard — contrastes vérifiés sur blanc (WCAG AA 3:1 UI minimum) */
@@ -614,16 +620,16 @@ select:focus {
   --accent: #d97706;
   --accent-foreground: #431407;
   --destructive: #dc2626;
-  --border: rgba(30, 64, 175, 0.18);
-  --input: rgba(30, 64, 175, 0.1);
-  --ring: #1e40af;
+  --border: rgba(26, 63, 168, 0.18);
+  --input: rgba(26, 63, 168, 0.1);
+  --ring: #1a3fa8;
   /* BG learner : blanc pur dans le solver — zéro distraction cognitive */
   --bg-learner: #ffffff;
 }
 
 /* Thème Spatial - Mode Dark (nuit marine — pas le noir tunnel générique)
  * Fond #0c1836 : bleu nuit profond, cohérent avec la palette diurne.
- * Primary conservé #1e40af mais lisible via primary-text-on-dark #93c5fd.
+ * Primary aligné clair #1a3fa8 ; ring plus clair pour focus visible sur fond sombre.
  * Accent amber réchauffé #f59e0b sur fond sombre. */
 .dark[data-theme="spatial"] {
   --background: #0c1836;
@@ -637,7 +643,7 @@ select:focus {
   --muted-foreground: #bfdbfe;
   --border: rgba(59, 130, 246, 0.25);
   --input: rgba(59, 130, 246, 0.15);
-  --primary: #1e40af;
+  --primary: #1a3fa8;
   --primary-foreground: #ffffff;
   --primary-light: #3b82f6;
   --primary-text-on-dark: #93c5fd;
@@ -647,7 +653,8 @@ select:focus {
   --accent: #f59e0b;
   --accent-foreground: #0c1836;
   --destructive: #f87171;
-  --ring: #3b82f6;
+  /* Anneau focus : bleu plus lisible que le primary sur #0c1836 */
+  --ring: #60a5fa;
   --rank-gold: #fbbf24;
   /* silver : slate-400 — contraste 5.1:1 sur #0c1836, WCAG AA */
   --rank-silver: #94a3b8;
@@ -1203,11 +1210,11 @@ select:focus {
 /* ─── Tokens visuels spatiaux (canvas + planète) ───────────────────────────── */
 [data-theme="spatial"],
 .dark[data-theme="spatial"] {
-  /* S2 — aligné sur palette diurne : blue-800 #1e40af + blue-500 #3b82f6 + amber #d97706 */
-  --spatial-particle-rgb: 30 64 175;
+  /* S2 — palette spatial : primary #1a3fa8 + accents bleu / ambre */
+  --spatial-particle-rgb: 26 63 168;
   --spatial-star-rgb: 224 231 255;
-  --spatial-planet-glow-rgb: 30 64 175;
-  --spatial-planet-color-1-rgb: 30 64 175;
+  --spatial-planet-glow-rgb: 26 63 168;
+  --spatial-planet-color-1-rgb: 26 63 168;
   --spatial-planet-color-2-rgb: 59 130 246;
   --spatial-planet-color-3-rgb: 217 119 6;
   --spatial-dino-symbol-rgb: 132 204 22;
@@ -1435,7 +1442,7 @@ select:focus {
   }
 
   .lb-row-self {
-    animation: lb-pulse-once 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: lb-pulse-once 1.6s var(--ease-ui-standard) forwards;
   }
 
   /* Scroll-driven reveal : lignes entrent par le bas au passage du viewport */
@@ -1822,7 +1829,11 @@ select:focus {
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.3),
     0 0 20px color-mix(in srgb, var(--primary) 10%, transparent);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.3s var(--ease-micro),
+    border-color 0.3s var(--ease-ui-standard),
+    box-shadow 0.3s var(--ease-micro),
+    background 0.3s var(--ease-ui-standard);
   overflow: hidden;
 }
 
@@ -1841,7 +1852,7 @@ select:focus {
     color-mix(in srgb, var(--primary) 15%, transparent),
     transparent
   );
-  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left 0.6s var(--ease-ui-standard);
   pointer-events: none;
   z-index: 1;
 }
@@ -1871,8 +1882,8 @@ select:focus {
 /* Spatial clair (#f0f4ff) — texte foncé, accents blue-800 S2 */
 [data-theme="spatial"] {
   --logo-text: #0f172a;
-  --logo-highlight: #3b82f6;
-  --logo-base: #1e40af;
+  --logo-highlight: #2f6fd4;
+  --logo-base: #1a3fa8;
   --logo-glow: #f59e0b;
   --logo-accents: #64748b;
 }
@@ -1995,6 +2006,33 @@ select:focus {
 }
 
 @layer components {
+  /**
+   * Barre de navigation fixe : séparation par ombre teintée --primary, sans border-b shadcn générique.
+   * Reste plat (pas carte empilée) : une ligne diffuse + ombre très légère ; multi-thème via color-mix.
+   */
+  .header-app-shell {
+    background-color: var(--background);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--primary) 18%, transparent),
+      0 6px 20px color-mix(in srgb, var(--primary) 7%, transparent);
+  }
+
+  /**
+   * Titres de section — cas phrase, lisibles enfants / adultes (pas de style « tout en capitales »).
+   */
+  .heading-section {
+    @apply text-base font-semibold text-foreground tracking-normal;
+  }
+
+  .heading-section-compact {
+    @apply text-sm font-semibold text-foreground tracking-normal;
+  }
+
+  /** Surtitre / libellé au-dessus d’une stat (discret, toujours en cas phrase via i18n) */
+  .heading-kicker {
+    @apply text-sm font-semibold text-muted-foreground tracking-normal;
+  }
+
   /* Glassmorphism : transparence + flou pour profondeur spatiale (override Card bg-card opaque) */
   .dashboard-card-surface {
     @apply rounded-2xl border border-border/50 shadow-sm backdrop-blur-md;
@@ -2040,6 +2078,20 @@ select:focus {
   .dashboard-card-icon-chip--calm {
     @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary;
   }
+
+  /**
+   * Barre de progression XP (LevelIndicator uniquement) : dégradé ambre → primary.
+   * Autres <Progress> gardent bg-primary sur l’indicateur — scope par classe parente.
+   */
+  .level-xp-progress-bar [data-slot="progress-indicator"] {
+    background-color: transparent;
+    background-image: linear-gradient(
+      90deg,
+      var(--accent) 0%,
+      color-mix(in srgb, var(--accent) 40%, var(--primary) 60%) 50%,
+      var(--primary) 100%
+    );
+  }
 }
 
 /* Atténuation décor spatial sur la route dashboard uniquement (contexte page, pas par thème) */
@@ -2077,7 +2129,7 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
     color-mix(in srgb, currentColor 20%, transparent),
     transparent
   );
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left 0.5s var(--ease-ui-standard);
 }
 
 .badge-sweep:hover::before {
@@ -2092,7 +2144,9 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
   box-shadow:
     0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent),
     0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.3s var(--ease-micro),
+    box-shadow 0.3s var(--ease-micro);
 }
 
 .btn-cta-primary::after {
@@ -2113,7 +2167,7 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s var(--ease-micro);
 }
 
 .btn-cta-primary:hover {
@@ -2163,33 +2217,33 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) forwards;
 }
 
 .animate-fade-in-up-delay-1 {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) 0.1s forwards;
   /* Ne pas définir opacity: 0 ici - laisser l'animation gérer l'opacité */
   /* Fallback : si l'animation ne se déclenche pas, le contenu reste visible */
   animation-fill-mode: both;
 }
 
 .animate-fade-in-up-delay-2 {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) 0.2s forwards;
   animation-fill-mode: both;
 }
 
 .animate-fade-in-up-delay-3 {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) 0.3s forwards;
   animation-fill-mode: both;
 }
 
 .animate-fade-in-up-delay-4 {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) 0.4s forwards;
   animation-fill-mode: both;
 }
 
 .animate-fade-in-up-delay-5 {
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+  animation: fadeInUp 0.4s var(--ease-micro) 0.5s forwards;
   animation-fill-mode: both;
 }
 

@@ -141,7 +141,7 @@ export function ChallengesProgressWidget({
 
           {showByType ? (
             <div className="mt-4 pt-4 border-t border-border space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="text-sm font-semibold tracking-normal text-muted-foreground">
                 {t("byTypeTitle")}
               </h3>
               <ul className="space-y-2" role="list">

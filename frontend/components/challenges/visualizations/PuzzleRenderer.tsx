@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Puzzle, GripVertical } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -100,6 +101,8 @@ function SortableItem({ id, value, index }: SortableItemProps) {
  * Interface drag & drop pour réorganiser les pièces avec @dnd-kit.
  */
 export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleRendererProps) {
+  const t = useTranslations("challenges.visualizations.puzzle");
+
   // Parser les données de puzzle
   const pieces = Array.isArray(visualData?.pieces)
     ? visualData.pieces
@@ -211,7 +214,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     return (
       <Card flat className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
-          Aucun puzzle disponible
+          {t("emptyState")}
         </CardContent>
       </Card>
     );
@@ -222,10 +225,10 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Puzzle className="h-5 w-5 text-primary" />
-            <h4 className="text-sm font-semibold text-foreground">Puzzle interactif</h4>
-            <span className="text-xs text-muted-foreground ml-auto">
-              Glissez-déposez pour réorganiser
+            <Puzzle className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h4 className="heading-section-compact min-w-0">{t("title")}</h4>
+            <span className="text-xs text-muted-foreground ml-auto text-right">
+              {t("dragHint")}
             </span>
           </div>
 
@@ -237,8 +240,8 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
           {/* Afficher les indices pour aider à résoudre */}
           {hints && hints.length > 0 && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
-              <h5 className="text-xs font-semibold text-primary uppercase tracking-wide">
-                Indices pour trouver l&apos;ordre
+              <h5 className="text-sm font-semibold text-primary tracking-normal">
+                {t("hintsHeading")}
               </h5>
               <ul className="space-y-1">
                 {hints.map((hint: string, idx: number) => (
