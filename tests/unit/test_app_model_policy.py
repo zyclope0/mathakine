@@ -104,7 +104,7 @@ def test_assistant_legacy_openai_model_o3_ignored(
     monkeypatch.setattr(settings, "OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL", "o3")
     monkeypatch.setattr(
-        app_model_policy.logger, "warning", lambda message: warnings.append(message)
+        app_model_policy.logger, "warning", lambda msg, *args: warnings.append(msg % args if args else msg)
     )
 
     assert resolve_assistant_chat_model() == DEFAULT_ASSISTANT_CHAT_MODEL

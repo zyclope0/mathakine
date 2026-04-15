@@ -38,7 +38,7 @@ def test_classify_unknown_not_challenges_ai() -> None:
 def test_classify_unknown_logs_the_actual_metric_key(monkeypatch) -> None:
     warnings: list[str] = []
     monkeypatch.setattr(
-        ai_workload_keys.logger, "warning", lambda message: warnings.append(message)
+        ai_workload_keys.logger, "warning", lambda msg, *args: warnings.append(msg % args if args else msg)
     )
 
     assert classify_ai_workload_key("future_metric:key") == WORKLOAD_UNKNOWN
