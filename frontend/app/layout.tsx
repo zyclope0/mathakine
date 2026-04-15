@@ -147,7 +147,7 @@ export default async function RootLayout({
   const cspNonce = headerList.get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
 
   return (
-    <html lang="fr" suppressHydrationWarning nonce={cspNonce}>
+    <html lang="fr" suppressHydrationWarning nonce={cspNonce} data-scroll-behavior="smooth">
       <body className={`${nunito.variable} ${jetbrainsMono.variable} antialiased font-sans`}>
         <Providers>
           <SpatialBackground />

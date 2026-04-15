@@ -2038,9 +2038,13 @@ select:focus {
     @apply text-xs font-semibold text-muted-foreground tracking-normal;
   }
 
-  /** Mise en avant douce avec le token --accent (marketing, badges, hiérarchie chaude) */
+  /**
+   * Surtitre marketing (home) : primary sur fond clair — WCAG AA.
+   * Le token --accent (ambre) reste pour chaleur sur surfaces / pictos / barres, pas
+   * comme couleur de texte corps sur bleu très clair (contraste insuffisant vs #d97706).
+   */
   .section-eyebrow-accent {
-    @apply text-sm font-semibold text-accent tracking-normal;
+    @apply text-sm font-semibold text-primary tracking-normal;
   }
 
   /** Libellé d’accentuation sur fond clair (indices solver, liens forts) — token --primary */
