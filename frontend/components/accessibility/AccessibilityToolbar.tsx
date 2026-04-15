@@ -150,20 +150,20 @@ export function AccessibilityToolbar() {
           aria-label={`Options d'accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? "s" : ""})` : ""}`}
           className={cn(
             "relative flex items-center justify-center h-12 w-12 rounded-full",
-            "bg-violet-600 text-white",
+            "bg-primary text-primary-foreground",
             "border-2 border-white/80",
-            "shadow-lg shadow-violet-600/30",
-            "transition-all duration-200",
-            "hover:scale-110 hover:shadow-xl hover:shadow-violet-600/40",
-            "focus:outline-none focus:ring-4 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-background",
-            isOpen && "ring-2 ring-violet-400"
+            "shadow-lg shadow-primary/30",
+            "transition-[transform,box-shadow] duration-200",
+            "hover:scale-110 hover:shadow-xl hover:shadow-primary/40",
+            "focus:outline-none focus:ring-4 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background",
+            isOpen && "ring-2 ring-primary/50"
           )}
         >
           <Settings2 className="h-6 w-6" aria-hidden="true" />
 
           {activeCount > 0 && (
             <span
-              className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-violet-600 ring-2 ring-violet-600"
+              className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-primary ring-2 ring-primary"
               aria-hidden="true"
             >
               {activeCount}

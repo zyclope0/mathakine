@@ -62,7 +62,7 @@ export const CHALLENGE_TYPE_STYLES = {
   },
   [CHALLENGE_TYPES.PATTERN]: {
     icon: Grid3X3,
-    className: "border-purple-400 dark:border-purple-600",
+    className: "border-sky-400 dark:border-sky-600",
   },
   [CHALLENGE_TYPES.VISUAL]: { icon: Eye, className: "border-green-400 dark:border-green-600" },
   [CHALLENGE_TYPES.PUZZLE]: { icon: Puzzle, className: "border-orange-400 dark:border-orange-600" },
@@ -77,7 +77,7 @@ export const CHALLENGE_TYPE_STYLES = {
   },
   [CHALLENGE_TYPES.GRAPH]: {
     icon: GitBranch,
-    className: "border-indigo-400 dark:border-indigo-600",
+    className: "border-sky-500 dark:border-sky-700",
   },
   [CHALLENGE_TYPES.CODING]: { icon: Code, className: "border-emerald-400 dark:border-emerald-600" },
   [CHALLENGE_TYPES.CHESS]: { icon: Crown, className: "border-amber-400 dark:border-amber-600" },

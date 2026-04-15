@@ -68,6 +68,8 @@ Active references:
 - Concrete Starlette app object exposed as a dedicated `gunicorn_app` entrypoint for production multi-worker startup.
 - Challenge visualization `colorMap` extracted into a shared module (`_colorMap.ts`) consumed by both `ProbabilityRenderer` and `VisualRenderer`, eliminating the duplicated literal map.
 
+- **Frontend — peaufinage graphique (distill / Impeccable)** : remplacement des bandeaux d’accent latéraux épais (`border-l-*`) par des bordures complètes, anneaux inset ou fonds teintés (dashboard Quick Start, recommandations, solver, diagnostic, leaderboard, pages About/Docs). Page badges : texte thématique lisible sur fond clair (`text-primary`), rangée « En cours » sans double surface carte, transitions limitées (`transform` / `width` / ombre, plus de `transition-all` générique), barre `Progress` Radix en `transition-transform`, boutons épingle et fermeture toolbar avec cibles ≥ 44×44 px, dépliage earned en `grid-template-rows` + conteneur interne. Thème spatial : `theme_color` PWA/meta et fallback logo sur le primaire, pile typo Nunito explicite sur `html`/`body`, footer avec longueur de ligne bornée. Ajout du contexte design projet : `.impeccable.md`, `.github/copilot-instructions.md` (`03488c7`).
+
 - Documentation truth was realigned across the active root/frontend/project guides:
   - active docs no longer point to removed root files such as `POINTS_RESTANTS_2026-03-15.md`, `BILAN_*`, `RECOMMENDATION_R7_*`, or `PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md`; references now target the correct archive buckets
   - root/project/frontend guides now reflect the closure of frontend quality lots through `QF-07B`

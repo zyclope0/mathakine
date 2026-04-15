@@ -58,7 +58,7 @@ export function ChallengeSolverHeader({
         {difficultyRating && (
           <Badge
             variant="outline"
-            className="bg-purple-500/20 text-purple-400 border-purple-500/30"
+            className="bg-sky-500/20 text-sky-700 border-sky-500/30 dark:text-sky-300"
           >
             ⭐ {difficultyRating.toFixed(1)}/5
           </Badge>

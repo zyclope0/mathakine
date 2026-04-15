@@ -75,13 +75,14 @@
 
 @media (prefers-contrast: high) {
   :root {
-    --background: #000000;
+    /* Quasi-noir teinté (spatial) — contraste élevé inchangé vs blanc */
+    --background: oklch(12% 0.015 264);
     --foreground: #ffffff;
-    --card: #000000;
+    --card: oklch(12% 0.015 264);
     --card-foreground: #ffffff;
     --border: #ffffff;
     --muted-foreground: #cccccc;
     --primary: #ffffff;
-    --primary-foreground: #000000;
+    --primary-foreground: oklch(14% 0.012 264);
   }
 }

@@ -61,10 +61,10 @@ export const EXERCISE_TYPE_STYLES = {
   [EXERCISE_TYPES.FRACTIONS]: { icon: Ratio, className: "border-blue-400 dark:border-blue-600" },
   [EXERCISE_TYPES.GEOMETRIE]: { icon: Shapes, className: "border-blue-400 dark:border-blue-600" },
   [EXERCISE_TYPES.TEXTE]: { icon: BookOpenText, className: "border-blue-400 dark:border-blue-600" },
-  [EXERCISE_TYPES.MIXTE]: { icon: Combine, className: "border-purple-400 dark:border-purple-600" },
+  [EXERCISE_TYPES.MIXTE]: { icon: Combine, className: "border-slate-400 dark:border-slate-600" },
   [EXERCISE_TYPES.DIVERS]: {
     icon: Calculator,
-    className: "border-purple-400 dark:border-purple-600",
+    className: "border-slate-400 dark:border-slate-600",
   },
 };
 
@@ -98,7 +98,7 @@ export const AGE_GROUP_COLORS: Record<string, string> = {
   "12-14": "bg-yellow-500/20 text-yellow-800 border-yellow-500/30 dark:text-yellow-300",
   "15-17": "bg-orange-500/20 text-orange-800 border-orange-500/30 dark:text-orange-300",
   adulte: "bg-red-500/20 text-red-800 border-red-500/30 dark:text-red-300",
-  "tous-ages": "bg-purple-500/20 text-purple-800 border-purple-500/30 dark:text-purple-300",
+  "tous-ages": "bg-sky-500/20 text-sky-800 border-sky-500/30 dark:text-sky-300",
   default: "bg-gray-500/20 text-gray-700 border-gray-500/30 dark:text-gray-300",
 };
 
@@ -110,7 +110,7 @@ const AGE_GROUP_COLORS_DARK_BG: Record<string, string> = {
   "12-14": "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
   "15-17": "bg-orange-500/20 text-orange-300 border-orange-500/30",
   adulte: "bg-red-500/20 text-red-300 border-red-500/30",
-  "tous-ages": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+  "tous-ages": "bg-sky-500/20 text-sky-300 border-sky-500/30",
   default: "bg-gray-500/20 text-gray-300 border-gray-500/30",
 };
 

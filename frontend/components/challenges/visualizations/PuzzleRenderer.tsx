@@ -271,7 +271,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
             <DragOverlay
               dropAnimation={{
                 duration: 150,
-                easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
               {activeId

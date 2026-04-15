@@ -100,7 +100,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[9990] animate-in fade-in bg-black/30 duration-200"
+          className="fixed inset-0 z-[9990] animate-in fade-in bg-zinc-950/30 duration-200"
           onClick={() => handleOpenChange(false)}
           aria-hidden="true"
         />

@@ -104,7 +104,7 @@
   }
 }
 
-/* Badge earned: compact par défaut, se déplie au survol (desktop) — grid 0fr→1fr (pas transition: height/max-height). */
+/* Badge earned: dépliage au survol (desktop) via grille 0fr→1fr (évite anim sur la hauteur directe). */
 @media (hover: hover) {
   .badge-card-earned-compact .badge-card-expandable {
     display: grid;
@@ -676,27 +676,27 @@ select:focus {
   --bg-learner: #111f4d;
 }
 
-/* Thème Minimaliste (Priorité 2) */
+/* Thème Minimaliste (Priorité 2) — encre quasi-noire (oklch) plutôt que #000 pur (cohérence marque / Impeccable). */
 [data-theme="minimalist"] {
   --background: #ffffff;
-  --foreground: #000000;
+  --foreground: oklch(14% 0.012 264);
   --card: #f5f5f5;
-  --card-foreground: #000000;
+  --card-foreground: oklch(14% 0.012 264);
   --popover: #ffffff;
-  --popover-foreground: #000000;
-  --primary: #000000;
+  --popover-foreground: oklch(14% 0.012 264);
+  --primary: oklch(14% 0.012 264);
   --primary-foreground: #ffffff;
   --secondary: #666666;
   --secondary-foreground: #ffffff;
   --muted: #f5f5f5;
   /* Muted-foreground amélioré pour WCAG 2.1 AAA : #4a4a4a (contraste 7.2:1 avec #ffffff) */
   --muted-foreground: #4a4a4a;
-  --accent: #000000;
+  --accent: oklch(14% 0.012 264);
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: #000000;
+  --border: oklch(14% 0.012 264);
   --input: #f5f5f5;
-  --ring: #000000;
+  --ring: oklch(14% 0.012 264);
   --radius: 0;
   --primary-text-on-dark: #171717;
   --rank-gold: #ca8a04;
@@ -707,20 +707,20 @@ select:focus {
 
 /* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
 .dark[data-theme="minimalist"] {
-  --background: #000000;
+  --background: oklch(12% 0.015 264);
   --foreground: #ffffff;
   --card: #1a1a1a;
   --card-foreground: #ffffff;
-  --popover: #000000;
+  --popover: oklch(12% 0.015 264);
   --popover-foreground: #ffffff;
   --primary: #ffffff;
-  --primary-foreground: #000000;
+  --primary-foreground: oklch(14% 0.012 264);
   --secondary: #999999;
-  --secondary-foreground: #000000;
+  --secondary-foreground: oklch(14% 0.012 264);
   --muted: #1a1a1a;
   --muted-foreground: #cccccc;
   --accent: #ffffff;
-  --accent-foreground: #000000;
+  --accent-foreground: oklch(14% 0.012 264);
   --border: #ffffff;
   --input: #1a1a1a;
   --ring: #ffffff;
@@ -1727,27 +1727,27 @@ select:focus {
   opacity: 1 !important;
 }
 
-/* Accessibilité - Contraste élevé (WCAG 2.1 AAA - 7:1 minimum) */
+/* Accessibilité - Contraste élevé (WCAG 2.1 AAA - 7:1 minimum). Fond quasi-noir teinté (pas #000 pur) — contraste préservé. */
 .high-contrast {
-  --background: #000000;
+  --background: oklch(12% 0.015 264);
   --foreground: #ffffff;
-  --card: #000000;
+  --card: oklch(12% 0.015 264);
   --card-foreground: #ffffff;
-  --popover: #000000;
+  --popover: oklch(12% 0.015 264);
   --popover-foreground: #ffffff;
   --border: #ffffff;
   --border-width: 2px;
   --primary: #ffffff;
-  --primary-foreground: #000000;
+  --primary-foreground: oklch(14% 0.012 264);
   --secondary: #ffffff;
-  --secondary-foreground: #000000;
-  --muted: #000000;
+  --secondary-foreground: oklch(14% 0.012 264);
+  --muted: oklch(12% 0.015 264);
   --muted-foreground: #ffffff;
   --accent: #ffffff;
-  --accent-foreground: #000000;
+  --accent-foreground: oklch(14% 0.012 264);
   --destructive: #ff4444;
   --destructive-foreground: #ffffff;
-  --input: #000000;
+  --input: oklch(12% 0.015 264);
   --ring: #ffffff;
   --radius: 0;
 }

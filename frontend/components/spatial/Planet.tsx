@@ -109,7 +109,7 @@ export function Planet() {
             );
           })}
         </div>
-        {/* Symboles mathématiques orbitants en lilas violet */}
+        {/* Symboles mathématiques orbitants (accent spatial) */}
         {symbols.map((symbol, index) => {
           const angle = (360 / symbols.length) * index;
           return (

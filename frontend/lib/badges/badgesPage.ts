@@ -219,7 +219,7 @@ export function getMotivationInfo(
   if (progressPercent >= 75)
     return {
       key: "legendary",
-      color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400",
+      color: "from-sky-500/20 to-blue-500/10 border-sky-500/30 text-sky-400",
     };
   if (progressPercent >= 50)
     return {

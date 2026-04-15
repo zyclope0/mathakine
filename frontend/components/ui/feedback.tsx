@@ -85,7 +85,7 @@ export function Feedback({
             setIsVisible(false);
             onClose();
           }}
-          className="ml-auto shrink-0 rounded-md p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="ml-auto shrink-0 rounded-md p-1 hover:bg-foreground/5 dark:hover:bg-white/5 transition-colors"
           aria-label="Fermer"
         >
           <XCircle className="h-4 w-4" aria-hidden="true" />

@@ -35,7 +35,7 @@ export const PROGRESSION_RANK_TEXT_CLASS: Record<string, string> = {
   explorer: "text-blue-600",
   navigator: "text-sky-700",
   cartographer: "text-emerald-700",
-  commander: "text-violet-600",
+  commander: "text-primary",
   stellar_archivist: "text-amber-600",
   cosmic_legend: "text-amber-500",
 };

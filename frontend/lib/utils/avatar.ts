@@ -3,15 +3,16 @@
  * Source unique pour leaderboard/page.tsx, LeaderboardWidget et tout futur composant.
  */
 
+/** Dégradés déterministes — palette spatial / bleu (évite violet–indigo générique). */
 export const AVATAR_GRADIENTS = [
-  "from-violet-500 to-purple-700",
-  "from-blue-500 to-cyan-600",
+  "from-sky-500 to-blue-700",
+  "from-blue-600 to-sky-800",
   "from-emerald-500 to-teal-600",
   "from-orange-500 to-amber-600",
   "from-rose-500 to-pink-600",
-  "from-indigo-500 to-blue-600",
-  "from-fuchsia-500 to-violet-600",
-  "from-sky-500 to-blue-600",
+  "from-slate-600 to-slate-800",
+  "from-teal-500 to-cyan-700",
+  "from-blue-500 to-sky-600",
 ] as const;
 
 /**
@@ -23,5 +24,5 @@ export function getAvatarGradient(username: string): string {
   for (let i = 0; i < username.length; i++) {
     hash = (hash * 31 + username.charCodeAt(i)) % AVATAR_GRADIENTS.length;
   }
-  return AVATAR_GRADIENTS[Math.abs(hash)] ?? "from-violet-500 to-purple-700";
+  return AVATAR_GRADIENTS[Math.abs(hash)] ?? "from-sky-500 to-blue-700";
 }

@@ -50,9 +50,9 @@ const getTypeColor = (type: string): { bg: string; text: string; border: string 
       border: "border-blue-500/30",
     },
     mixte: {
-      bg: "bg-purple-500/20",
-      text: "text-purple-800 dark:text-purple-300",
-      border: "border-purple-500/30",
+      bg: "bg-slate-500/20",
+      text: "text-slate-800 dark:text-slate-300",
+      border: "border-slate-500/30",
     },
     fractions: {
       bg: "bg-pink-500/20",
@@ -70,14 +70,14 @@ const getTypeColor = (type: string): { bg: string; text: string; border: string 
       border: "border-cyan-500/30",
     },
     texte: {
-      bg: "bg-indigo-500/20",
-      text: "text-indigo-800 dark:text-indigo-300",
-      border: "border-indigo-500/30",
+      bg: "bg-sky-500/20",
+      text: "text-sky-800 dark:text-sky-300",
+      border: "border-sky-500/30",
     },
     text: {
-      bg: "bg-indigo-500/20",
-      text: "text-indigo-800 dark:text-indigo-300",
-      border: "border-indigo-500/30",
+      bg: "bg-sky-500/20",
+      text: "text-sky-800 dark:text-sky-300",
+      border: "border-sky-500/30",
     },
     divers: {
       bg: "bg-orange-500/20",

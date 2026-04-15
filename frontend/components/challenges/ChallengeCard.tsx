@@ -80,7 +80,7 @@ export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
             {challenge.difficulty_rating && (
               <Badge
                 variant="outline"
-                className="badge-sweep bg-purple-500/20 text-purple-400 border-purple-500/30"
+                className="badge-sweep bg-sky-500/20 text-sky-700 border-sky-500/30 dark:text-sky-300"
                 aria-label={`${t("card.difficulty", { default: "Difficulté:" })} ${challenge.difficulty_rating.toFixed(1)}/5`}
               >
                 ⭐ {challenge.difficulty_rating.toFixed(1)}/5
