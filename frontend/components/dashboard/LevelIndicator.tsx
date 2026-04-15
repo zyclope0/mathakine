@@ -57,7 +57,7 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
 
           <div className="flex-1 w-full space-y-3 text-center sm:text-left">
             <div>
-              <p className="heading-kicker mb-0.5">{t("title")}</p>
+              <p className="section-label mb-0.5">{t("title")}</p>
               <h3 className="text-2xl font-bold text-foreground" aria-label={numericHeading}>
                 {numericHeading}
               </h3>

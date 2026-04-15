@@ -36,10 +36,7 @@ export function LeaderboardCurrentUserFooter({
 }: LeaderboardCurrentUserFooterProps) {
   return (
     <div className="border-t border-border/50 bg-muted/20">
-      <div
-        className="px-3 sm:px-4 py-2 text-xs font-semibold text-muted-foreground tracking-normal"
-        role="separator"
-      >
+      <div className="section-label-xs px-3 sm:px-4 py-2" role="separator">
         {tSeparator}
       </div>
       <div

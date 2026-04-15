@@ -226,7 +226,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Puzzle className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h4 className="heading-section-compact min-w-0">{t("title")}</h4>
+            <h4 className="section-title-sm min-w-0">{t("title")}</h4>
             <span className="text-xs text-muted-foreground ml-auto text-right">
               {t("dragHint")}
             </span>
@@ -240,9 +240,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
           {/* Afficher les indices pour aider à résoudre */}
           {hints && hints.length > 0 && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
-              <h5 className="text-sm font-semibold text-primary tracking-normal">
-                {t("hintsHeading")}
-              </h5>
+              <h5 className="section-label-primary">{t("hintsHeading")}</h5>
               <ul className="space-y-1">
                 {hints.map((hint: string, idx: number) => (
                   <li key={idx} className="text-sm text-foreground flex items-start gap-2">

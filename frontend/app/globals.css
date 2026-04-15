@@ -2018,19 +2018,34 @@ select:focus {
   }
 
   /**
-   * Titres de section — cas phrase, lisibles enfants / adultes (pas de style « tout en capitales »).
+   * Sections — alignés sur CardTitle / CardDescription (shadcn), cas phrase, sans all-caps.
+   * section-title* = hiérarchie principale ; section-label* = sous-sections / stats (muted ou accent).
    */
-  .heading-section {
-    @apply text-base font-semibold text-foreground tracking-normal;
+  .section-title {
+    @apply text-base font-semibold text-foreground tracking-tight;
   }
 
-  .heading-section-compact {
-    @apply text-sm font-semibold text-foreground tracking-normal;
+  .section-title-sm {
+    @apply text-sm font-semibold text-foreground tracking-tight;
   }
 
-  /** Surtitre / libellé au-dessus d’une stat (discret, toujours en cas phrase via i18n) */
-  .heading-kicker {
+  /** Sous-titre de bloc (radars, listes) — proche CardDescription + emphase */
+  .section-label {
     @apply text-sm font-semibold text-muted-foreground tracking-normal;
+  }
+
+  .section-label-xs {
+    @apply text-xs font-semibold text-muted-foreground tracking-normal;
+  }
+
+  /** Mise en avant douce avec le token --accent (marketing, badges, hiérarchie chaude) */
+  .section-eyebrow-accent {
+    @apply text-sm font-semibold text-accent tracking-normal;
+  }
+
+  /** Libellé d’accentuation sur fond clair (indices solver, liens forts) — token --primary */
+  .section-label-primary {
+    @apply text-sm font-semibold text-primary tracking-normal;
   }
 
   /* Glassmorphism : transparence + flou pour profondeur spatiale (override Card bg-card opaque) */

@@ -62,7 +62,7 @@ export function AverageTimeWidget({
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="heading-kicker mb-0.5">{t("title", { default: "Tempo moyen" })}</p>
+            <p className="section-label mb-0.5">{t("title", { default: "Tempo moyen" })}</p>
             <div
               className={cn(
                 "text-3xl font-black tabular-nums leading-none",

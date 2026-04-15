@@ -99,7 +99,7 @@ export function AcademyStatsWidget() {
       <CardContent className="py-6 space-y-4">
         {/* Titre */}
         <div className="text-center">
-          <h3 className="heading-section text-center">{t("title")}</h3>
+          <h3 className="section-title text-center">{t("title")}</h3>
         </div>
 
         {/* Stats en grille */}

@@ -106,9 +106,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
         <CardContent className="flex-grow space-y-6">
           {/* Exercices */}
           <div>
-            <p className="mb-2 text-sm font-semibold tracking-normal text-muted-foreground">
-              {t("exercisesSubtitle")}
-            </p>
+            <p className="section-label mb-2">{t("exercisesSubtitle")}</p>
             {exercisesLoading ? (
               <DashboardRadarSubsectionSkeleton />
             ) : exerciseRows.length === 0 ? (
@@ -125,9 +123,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
           </div>
 
           <div className="border-t border-border pt-4">
-            <p className="mb-2 text-sm font-semibold tracking-normal text-muted-foreground">
-              {t("challengesSubtitle")}
-            </p>
+            <p className="section-label mb-2">{t("challengesSubtitle")}</p>
             {challengesLoading ? (
               <DashboardRadarSubsectionSkeleton />
             ) : effectiveChallengeRows.length === 0 ? (

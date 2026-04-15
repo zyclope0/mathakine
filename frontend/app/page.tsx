@@ -130,10 +130,8 @@ export default function HomePage() {
         {/* Feature principale — large */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="md:col-span-2 border border-border/40 rounded-2xl p-8 md:p-10 bg-card/60 min-h-40 md:min-h-56 flex flex-col justify-center">
-            <p className="text-sm font-semibold text-primary mb-3 tracking-normal">
-              {t("features.feature1.label")}
-            </p>
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+            <p className="section-eyebrow-accent mb-3">{t("features.feature1.label")}</p>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-3">
               {t("features.feature1.title")}
             </h3>
             <p className="text-muted-foreground text-sm md:text-base max-w-prose">
@@ -143,17 +141,13 @@ export default function HomePage() {
 
           {/* Feature secondaire — Défis */}
           <div className="border border-border/40 rounded-2xl p-6 md:p-8">
-            <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
-              {t("features.feature2.title")}
-            </h3>
+            <h3 className="section-title-sm md:text-lg mb-2">{t("features.feature2.title")}</h3>
             <p className="text-muted-foreground text-sm">{t("features.feature2.description")}</p>
           </div>
 
           {/* Feature secondaire — Gamification */}
           <div className="border border-border/40 rounded-2xl p-6 md:p-8">
-            <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
-              {t("features.feature3.title")}
-            </h3>
+            <h3 className="section-title-sm md:text-lg mb-2">{t("features.feature3.title")}</h3>
             <p className="text-muted-foreground text-sm">{t("features.feature3.description")}</p>
           </div>
         </div>

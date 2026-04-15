@@ -122,7 +122,7 @@ export function HomeLearnerContent() {
         aria-labelledby="challenges-heading"
         className="scroll-mt-20"
       >
-        <h2 id="challenges-heading" className="heading-section mb-4">
+        <h2 id="challenges-heading" className="section-title mb-4">
           {t("challenges.heading")}
         </h2>
         <StudentChallengesBoard />
