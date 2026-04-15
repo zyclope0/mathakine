@@ -67,7 +67,7 @@ export function LogoMathakine({ className = "", alt = "Mathakine" }: LogoMathaki
       <text
         x="105"
         y="85"
-        fontFamily="system-ui, -apple-system, sans-serif"
+        fontFamily="var(--font-nunito-sans, 'Nunito', system-ui, sans-serif)"
         fontSize="68"
         fontWeight="800"
         fill="var(--logo-text, #e2e8f0)"

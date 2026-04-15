@@ -31,8 +31,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --font-nunito-sans / --font-jetbrains-mono injectés par next/font (layout.tsx) */
+  --font-sans: var(--font-nunito-sans);
+  --font-mono: var(--font-jetbrains-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -1311,12 +1312,8 @@ select:focus {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family:
-      "Exo 2",
-      system-ui,
-      -apple-system,
-      sans-serif;
+    /* Nunito via --font-sans (next/font, layout.tsx) — pas de stack parallèle qui écrase le thème */
+    @apply bg-background text-foreground font-sans;
   }
 
   /* Focus visible global amélioré pour WCAG 2.1 AAA */

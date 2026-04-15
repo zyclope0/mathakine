@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Exo_2 } from "next/font/google";
+import { JetBrains_Mono, Nunito } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
@@ -22,8 +22,16 @@ import {
   getDefaultTwitterImages,
 } from "@/lib/social/socialShareImageMeta";
 
-const exo2 = Exo_2({
-  variable: "--font-exo-2",
+/** UI principale : Nunito (lisible, chaleureuse) — poids 400–800 via variable font. */
+const nunito = Nunito({
+  variable: "--font-nunito-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+/** Code / mono : distinct de la sans (pas de Geist dans le repo). */
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -140,7 +148,9 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" suppressHydrationWarning nonce={cspNonce}>
-      <body className={`${exo2.variable} antialiased`}>
+      <body
+        className={`${nunito.variable} ${jetbrainsMono.variable} antialiased font-sans`}
+      >
         <Providers>
           <SpatialBackground />
           <LocaleInitializer />
