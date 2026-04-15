@@ -71,7 +71,7 @@ export default async function AboutPage() {
           <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-6">
             {t("curb.title")}
           </h2>
-          <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-6">
+          <div className="border border-primary/30 bg-primary/5 p-6 md:p-8 rounded-2xl space-y-6">
             <p className="text-muted-foreground leading-relaxed">{t("curb.p1")}</p>
             <p className="text-muted-foreground leading-relaxed font-medium">{t("curb.p2")}</p>
             <p className="text-muted-foreground leading-relaxed">{t("curb.p3")}</p>

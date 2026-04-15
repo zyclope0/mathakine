@@ -92,7 +92,7 @@ export function BadgeCard({
     >
       <Card
         className={cn(
-          "card-spatial-depth badge-card-glass relative overflow-hidden transition-all duration-300 h-full flex flex-col",
+          "card-spatial-depth badge-card-glass relative overflow-hidden transition-[transform,opacity,box-shadow] duration-300 h-full flex flex-col",
           "motion-reduce:transition-none",
           isEarned ? "cursor-pointer" : "opacity-60",
           isEarned &&

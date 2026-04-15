@@ -20,7 +20,7 @@ export function LogoMathakine({ className = "", alt = "Mathakine" }: LogoMathaki
       <defs>
         <linearGradient id="lm-glass-base" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--logo-highlight, #ffffff)" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="var(--logo-base, #8b5cf6)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--logo-base, #1a3fa8)" stopOpacity="0.2" />
         </linearGradient>
 
         <radialGradient id="lm-glow-grad" cx="0.5" cy="0.5" r="0.5">

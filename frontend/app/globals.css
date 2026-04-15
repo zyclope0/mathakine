@@ -6,8 +6,10 @@
 
 /* Empêcher le scroll horizontal causé par les drawers/modals */
 @layer base {
+  /* Police UI explicite — évite les faux positifs « Roboto / Inter » sur les outils de scan. */
   html,
   body {
+    font-family: var(--font-nunito-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
     scroll-behavior: smooth;
@@ -102,34 +104,46 @@
   }
 }
 
-/* Badge earned: compact par défaut, se déplie au survol (desktop) / toujours étendu (mobile) */
+/* Badge earned: compact par défaut, se déplie au survol (desktop) — grid 0fr→1fr (pas transition: height/max-height). */
 @media (hover: hover) {
   .badge-card-earned-compact .badge-card-expandable {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
     opacity: 0;
     overflow: hidden;
     transition: opacity 0.25s ease;
   }
 
-  /* NI-11 — WCAG 2.1 SC 2.3.3 : max-height transition uniquement si pas de préférence
-     reduced-motion. L'opacité reste animée (pas de mouvement physique). */
+  .badge-card-earned-compact .badge-card-expandable > .badge-card-expandable-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .badge-card-earned-compact .badge-card-expandable {
       transition:
-        max-height 0.3s ease,
+        grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1),
         opacity 0.25s ease;
     }
   }
 
   .badge-card-earned-compact:hover .badge-card-expandable,
   .badge-card-earned-compact:focus-within .badge-card-expandable {
-    max-height: 420px;
+    grid-template-rows: 1fr;
     opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge-card-earned-compact .badge-card-expandable {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      transition: none;
+    }
   }
 }
 @media (hover: none) {
   .badge-card-earned-compact .badge-card-expandable {
-    max-height: none;
+    grid-template-rows: 1fr;
     opacity: 1;
   }
 }

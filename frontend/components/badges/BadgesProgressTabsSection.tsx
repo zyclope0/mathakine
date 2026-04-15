@@ -11,7 +11,6 @@ import { TrendingUp, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { PageSection } from "@/components/layout";
 import { BadgeGrid } from "@/components/badges/BadgeGrid";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -132,8 +131,11 @@ export function BadgesProgressTabsSection({
                   <TooltipProvider key={badge.id}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Card className="card-spatial-depth cursor-help transition-shadow hover:shadow-md">
-                          <CardContent className="pt-4">
+                        <div
+                          role="group"
+                          className="rounded-xl border border-border/50 bg-card text-card-foreground shadow-sm card-spatial-depth cursor-help transition-[box-shadow] duration-200 hover:shadow-md"
+                        >
+                          <div className="px-6 pt-4 pb-4">
                             <div className="flex items-center gap-2 mb-2">
                               <BadgeIcon
                                 code={fullBadge?.code}
@@ -178,15 +180,15 @@ export function BadgesProgressTabsSection({
                                 aria-label={`${badge.name}: ${Math.round((badge.progress ?? 0) * 100)}%`}
                               >
                                 <div
-                                  className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
+                                  className="bg-primary h-3 rounded-full transition-[width] duration-500 min-w-[2px]"
                                   style={{
                                     width: `${Math.max((badge.progress ?? 0) * 100, 2)}%`,
                                   }}
                                 />
                               </div>
                             )}
-                          </CardContent>
-                        </Card>
+                          </div>
+                        </div>
                       </TooltipTrigger>
                       <TooltipContent
                         side="top"

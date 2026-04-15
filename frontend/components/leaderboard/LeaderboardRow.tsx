@@ -68,10 +68,9 @@ export function LeaderboardRow({
         isPodium ? "py-4" : "py-3",
         "transition-colors duration-200",
         !isLast && "border-b border-border/40",
-        "border-l-4",
         entry.is_current_user
-          ? "bg-primary/10 border-l-primary lb-row-self"
-          : cn(leaderboardPodiumSurfaceClass(entry.rank), "border-l-transparent")
+          ? "bg-primary/10 ring-1 ring-inset ring-primary/25 lb-row-self"
+          : leaderboardPodiumSurfaceClass(entry.rank)
       )}
     >
       <LeaderboardRankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />

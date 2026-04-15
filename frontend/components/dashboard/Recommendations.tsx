@@ -152,7 +152,7 @@ export function Recommendations() {
 
                   {/* Aperçu de l'exercice — style citation */}
                   {!isChallenge && recommendation.exercise_question && (
-                    <blockquote className="border-l-4 border-primary/60 bg-primary/5 rounded-r-md px-4 py-3 mb-4">
+                    <blockquote className="border border-primary/30 bg-primary/5 rounded-lg px-4 py-3 mb-4">
                       <p className="text-xs text-muted-foreground line-clamp-2">
                         {recommendation.exercise_question.length > 120
                           ? `${recommendation.exercise_question.substring(0, 120)}…`

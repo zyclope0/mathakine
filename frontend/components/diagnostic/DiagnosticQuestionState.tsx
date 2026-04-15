@@ -115,8 +115,10 @@ export function DiagnosticQuestionState({
       {isFeedback && (
         <div
           className={cn(
-            "rounded-xl p-5 mb-6 border-l-4",
-            isCorrect ? "bg-emerald-500/10 border-emerald-500" : "bg-red-500/10 border-red-500"
+            "rounded-xl p-5 mb-6 border-2",
+            isCorrect
+              ? "bg-emerald-500/10 border-emerald-500/50"
+              : "bg-red-500/10 border-red-500/50"
           )}
         >
           <div className="flex items-center gap-3 mb-3">

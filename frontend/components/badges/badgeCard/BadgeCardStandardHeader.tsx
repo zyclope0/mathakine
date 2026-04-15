@@ -73,7 +73,7 @@ export function BadgeCardStandardHeader({
             <span className="break-words">{badge.name || badge.code || t("noName")}</span>
           </CardTitle>
           {!isEarned && thematicLine && (
-            <CardDescription className="mt-2 text-primary-on-dark italic text-sm">
+            <CardDescription className="mt-2 text-primary italic text-sm">
               {thematicLine}
             </CardDescription>
           )}
@@ -98,7 +98,7 @@ export function BadgeCardStandardHeader({
                     onTogglePin(badge.id);
                   }}
                   className={cn(
-                    "p-1.5 rounded-full transition-all shrink-0",
+                    "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 transition-colors shrink-0",
                     isPinned
                       ? "bg-rose-500/20 text-rose-400 opacity-100"
                       : "text-muted-foreground hover:text-rose-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"

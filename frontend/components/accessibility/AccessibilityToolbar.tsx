@@ -186,8 +186,9 @@ export function AccessibilityToolbar() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <span className="font-semibold text-sm text-popover-foreground">Accessibilité</span>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                 aria-label="Fermer le menu"
               >
                 <X className="h-4 w-4" />

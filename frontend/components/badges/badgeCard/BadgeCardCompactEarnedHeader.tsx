@@ -40,7 +40,7 @@ export function BadgeCardCompactEarnedHeader({
               onTogglePin(badge.id);
             }}
             className={cn(
-              "p-1 rounded-full transition-all",
+              "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 transition-colors",
               isPinned
                 ? "text-rose-400"
                 : "text-muted-foreground/50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:text-rose-400"

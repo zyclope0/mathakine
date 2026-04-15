@@ -46,9 +46,11 @@ export function BadgeCardCardContent({
       )}
     >
       {isEarned ? (
-        <div className="badge-card-expandable space-y-4">
+        <div className="badge-card-expandable">
+          <div className="badge-card-expandable-inner min-h-0 overflow-hidden">
+            <div className="space-y-4">
           {thematicLine && (
-            <CardDescription className="text-primary-on-dark italic text-sm">
+            <CardDescription className="text-primary italic text-sm">
               {thematicLine}
             </CardDescription>
           )}
@@ -61,7 +63,7 @@ export function BadgeCardCardContent({
               ✨ {t("rarity.rare")}
             </BadgeComponent>
           )}
-          <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
+          <div className="rounded-lg bg-muted/40 px-3 py-2.5">
             {badge.description ? (
               <p className="text-sm text-muted-foreground leading-relaxed">{badge.description}</p>
             ) : (
@@ -78,7 +80,7 @@ export function BadgeCardCardContent({
               {t("socialProof", { percent: rarity.unlock_percent })}
             </div>
           )}
-          <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2.5">
             <div className="flex items-center gap-2 text-base font-semibold">
               <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
               <span className="text-foreground">{badge.points_reward}</span>
@@ -92,10 +94,12 @@ export function BadgeCardCardContent({
               </div>
             )}
           </div>
+            </div>
+          </div>
         </div>
       ) : (
         <>
-          <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
+          <div className="rounded-lg bg-muted/40 px-3 py-2.5">
             {badge.description ? (
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
                 {badge.description}
@@ -182,7 +186,7 @@ export function BadgeCardCardContent({
               aria-label={`${badge.name || badge.code || t("noName")}: ${Math.round(progress.progress * 100)}%`}
             >
               <div
-                className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
+                className="bg-primary h-3 rounded-full transition-[width] duration-500 min-w-[2px]"
                 style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
               />
             </div>
@@ -196,7 +200,7 @@ export function BadgeCardCardContent({
       )}
 
       {!isEarned && (
-        <div className="flex items-center justify-between pt-3 mt-auto rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+        <div className="flex items-center justify-between pt-3 mt-auto rounded-lg bg-muted/35 px-3 py-2.5">
           <div className="flex items-center gap-2 text-base font-semibold">
             <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
             <span className="text-foreground">{badge.points_reward}</span>

@@ -89,7 +89,7 @@ export function QuickStartActions() {
         <Link
           href={exerciseHref}
           onClick={handleExerciseClick}
-          className="sm:col-span-2 dashboard-card-surface-interactive--calm group flex items-center gap-4 p-4 sm:p-5 border-l-4 border-primary"
+          className="sm:col-span-2 dashboard-card-surface-interactive--calm group flex items-center gap-4 p-4 sm:p-5 ring-1 ring-inset ring-primary/20"
           data-quick-start="exercise"
           data-quick-start-guided={!!bestExercise?.exercise_id}
         >

@@ -77,7 +77,7 @@ export function ExerciseSolverFeedback({
 
       {/* Explication — Fiche de savoir */}
       {showExplanation && explanationText && (
-        <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mt-6">
+        <div className="bg-primary/5 border border-primary/30 rounded-xl p-5 mt-6">
           <div className="flex items-start gap-3">
             <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1">

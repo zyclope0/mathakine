@@ -33,9 +33,9 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-2 max-w-[55ch]">
             <p className="text-lg font-bold mb-2 text-primary">Mathakine</p>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-4 text-pretty leading-relaxed">
               Plateforme éducative mathématique adaptative. Apprendre les mathématiques de manière
               ludique et immersive.
             </p>

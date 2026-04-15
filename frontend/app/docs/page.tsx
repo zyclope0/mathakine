@@ -167,7 +167,7 @@ export default async function DocsPage() {
           title={t("accessibility.title")}
           icon={<Accessibility className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-4 shadow-sm">
+          <div className="border border-primary/30 bg-primary/5 p-6 md:p-8 rounded-2xl space-y-4">
             <p className="text-foreground font-medium leading-relaxed">
               {t("accessibility.intro")}
             </p>

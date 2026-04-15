@@ -131,9 +131,10 @@ export function generateViewport() {
     maximumScale: 5,
     userScalable: true,
     viewportFit: "cover" as const,
+    /* Aligné sur le thème spatial (--primary) pour éviter accent violet générique (barre d’adresse / PWA). */
     themeColor: [
-      { media: "(prefers-color-scheme: light)", color: "#8b5cf6" },
-      { media: "(prefers-color-scheme: dark)", color: "#8b5cf6" },
+      { media: "(prefers-color-scheme: light)", color: "#1a3fa8" },
+      { media: "(prefers-color-scheme: dark)", color: "#1a3fa8" },
     ],
   };
 }

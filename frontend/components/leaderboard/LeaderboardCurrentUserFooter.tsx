@@ -42,7 +42,7 @@ export function LeaderboardCurrentUserFooter({
       <div
         className={cn(
           "flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3",
-          "bg-primary/10 border-l-4 border-l-primary lb-row-self"
+          "bg-primary/10 border border-primary/25 lb-row-self"
         )}
       >
         <LeaderboardRankBadge rank={myRank.rank} label={`${rankBadgeAriaPrefix} ${myRank.rank}`} />
