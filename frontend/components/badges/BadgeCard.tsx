@@ -93,7 +93,10 @@ export function BadgeCard({
       <Card
         className={cn(
           "card-spatial-depth badge-card-glass relative overflow-hidden transition-all duration-300 h-full flex flex-col",
+          "motion-reduce:transition-none",
           isEarned ? "cursor-pointer" : "opacity-60",
+          isEarned &&
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl",
           isEarned && "badge-card-earned-compact group",
           badge.difficulty === "gold" && "shadow-lg shadow-yellow-500/10",
           badge.difficulty === "legendary" &&

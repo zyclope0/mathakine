@@ -34,9 +34,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
           <div className="col-span-1 md:col-span-2">
-            <p className="text-lg font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Mathakine
-            </p>
+            <p className="text-lg font-bold mb-2 text-primary">Mathakine</p>
             <p className="text-sm text-muted-foreground mb-4">
               Plateforme éducative mathématique adaptative. Apprendre les mathématiques de manière
               ludique et immersive.

@@ -67,7 +67,7 @@ export function BadgesHeaderStats({
         aria-label={`Progression: ${progressPercent.toFixed(0)}%`}
       >
         <div
-          className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-700"
+          className="bg-primary h-2 rounded-full transition-all duration-700"
           style={{ width: `${progressPercent}%` }}
         />
       </div>

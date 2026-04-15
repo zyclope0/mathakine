@@ -46,7 +46,7 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
           <div className="relative flex-shrink-0">
             <div className="h-24 w-24 rounded-full bg-primary/15 ring-2 ring-primary/30 flex items-center justify-center shadow-lg shadow-primary/20">
               <span
-                className="text-5xl font-black tabular-nums bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent leading-none"
+                className="text-5xl font-black tabular-nums text-primary leading-none"
                 aria-label={`${t("level")} ${level.current}`}
               >
                 {level.current}

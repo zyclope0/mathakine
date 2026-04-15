@@ -66,14 +66,13 @@ export function ContentCardBase({
       className={cn(
         "w-full text-left",
         onClick &&
-          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+          "group cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       )}
     >
       <Card
         className={cn(
-          "card-spatial-depth relative group flex flex-col",
-          "transition-all duration-300",
-          onClick && "hover:border-primary/50 hover:shadow-sm",
+          "card-spatial-depth relative flex flex-col",
+          "transition-all duration-300 motion-reduce:transition-none",
           cardClassName
         )}
         /* role et aria déplacés sur le bouton wrapper quand onClick présent */
@@ -85,7 +84,7 @@ export function ContentCardBase({
         {completed && (
           <Badge
             variant="outline"
-            className="absolute top-2 right-2 z-10 bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            className="absolute top-2 right-2 z-10 border-emerald-600/25 bg-emerald-500/10 text-emerald-800 dark:border-emerald-400/25 dark:text-emerald-300"
             aria-label={completedAriaLabel ?? completedLabel}
           >
             <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
