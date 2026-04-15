@@ -73,8 +73,11 @@ async def get_challenges_list(request: Request) -> JSONResponse:
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
         logger.debug(
-            f"API - Parametres: limit={p.limit}, skip={p.skip}, order={p.order}, "
-            f"hide_completed={p.hide_completed}"
+            "API - Parametres: limit=%s, skip=%s, order=%s, hide_completed=%s",
+            p.limit,
+            p.skip,
+            p.order,
+            p.hide_completed,
         )
 
         user_id = current_user.get("id")
@@ -92,11 +95,14 @@ async def get_challenges_list(request: Request) -> JSONResponse:
             user_id=user_id,
         )
         logger.info(
-            f"Recuperation reussie de {len(list_result.items)} defis sur {list_result.total} total (locale: {locale})"
+            "Recuperation reussie de %s defis sur %s total (locale: %s)",
+            len(list_result.items),
+            list_result.total,
+            locale,
         )
         return JSONResponse(list_result.model_dump())
     except ValueError as filter_validation_error:
-        logger.error(f"Erreur de validation des parametres: {filter_validation_error}")
+        logger.error("Erreur de validation des parametres: %s", filter_validation_error)
         return ErrorHandler.create_validation_error(
             errors=[str(filter_validation_error)],
             user_message="Les parametres de filtrage sont invalides.",
@@ -126,13 +132,13 @@ async def get_challenge(request: Request) -> JSONResponse:
         challenge_dict = await run_db_bound(get_challenge_detail_for_api, challenge_id)
 
         logger.info(
-            f"Recuperation reussie du defi logique {challenge_id} (locale: {locale})"
+            "Recuperation reussie du defi logique %s (locale: %s)", challenge_id, locale
         )
         return JSONResponse(challenge_dict)
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
     except ValueError as id_validation_error:
-        logger.error(f"Erreur de validation: {id_validation_error}")
+        logger.error("Erreur de validation: %s", id_validation_error)
         return ErrorHandler.create_validation_error(
             errors=["ID de defi invalide"],
             user_message="L'identifiant du defi est invalide.",
@@ -181,7 +187,7 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
     except ChallengeAttemptRecordError as record_err:
-        logger.error(f"Erreur enregistrement tentative: {record_err}")
+        logger.error("Erreur enregistrement tentative: %s", record_err)
         return api_error_response(500, record_err.message)
     except (ValueError, TypeError):
         return api_error_response(400, "ID de defi invalide")
@@ -257,7 +263,9 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         completed_ids = await run_db_bound(query_completed_challenges_ids, user_id)
 
         logger.debug(
-            f"Recuperation de {len(completed_ids)} challenges completes pour l'utilisateur {user_id}"
+            "Recuperation de %s challenges completes pour l'utilisateur %s",
+            len(completed_ids),
+            user_id,
         )
         return JSONResponse({"completed_ids": completed_ids})
 
@@ -351,7 +359,8 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
 
     except Exception as ai_stream_error:
         logger.error(
-            f"Erreur dans generate_ai_challenge_stream: {ai_stream_error}",
+            "Erreur dans generate_ai_challenge_stream: %s",
+            ai_stream_error,
             exc_info=True,
         )
         return sse_error_response("Erreur lors de la generation")

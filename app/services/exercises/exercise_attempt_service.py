@@ -76,15 +76,17 @@ def submit_answer(
 
     correct_answer = exercise.get("correct_answer")
     if not correct_answer:
-        logger.error(f"ERREUR: L'exercice {exercise_id} n'a pas de correct_answer")
+        logger.error("ERREUR: L'exercice %s n'a pas de correct_answer", exercise_id)
         raise ExerciseSubmitError(
             500, "L'exercice n'a pas de réponse correcte définie."
         )
 
     is_correct = _check_answer_correct(exercise, selected_answer)
     logger.debug(
-        f"Réponse correcte? {is_correct} "
-        f"(selected: '{selected_answer}', correct: '{correct_answer}')"
+        "Réponse correcte? %s (selected: '%s', correct: '%s')",
+        is_correct,
+        selected_answer,
+        correct_answer,
     )
 
     attempt_data = {
@@ -112,8 +114,7 @@ def submit_answer(
     # F43-A1 — structured observability: grep ``f43_exercise_attempt`` ; aggregate by
     # difficulty_tier / tier_absent / outcome (no schema change).
     logger.info(
-        "f43_exercise_attempt: user_id=%s exercise_id=%s exercise_type=%s "
-        "difficulty_tier=%s tier_absent=%s outcome=%s",
+        "f43_exercise_attempt: user_id=%%s exercise_id=%%s exercise_type=%%s difficulty_tier=%%s tier_absent=%%s outcome=%%s",
         user_id,
         exercise_id,
         exercise_type,
@@ -140,12 +141,12 @@ def submit_answer(
     except SQLAlchemyError as stats_err:
         if "progress_savepoint" in locals() and progress_savepoint.is_active:
             progress_savepoint.rollback()
-        logger.error(f"Erreur DB lors de la mise à jour des statistiques: {stats_err}")
+        logger.error("Erreur DB lors de la mise à jour des statistiques: %s", stats_err)
     except (TypeError, ValueError) as stats_err:
         if "progress_savepoint" in locals() and progress_savepoint.is_active:
             progress_savepoint.rollback()
         logger.error(
-            f"Erreur de données lors de la mise à jour des statistiques: {stats_err}"
+            "Erreur de données lors de la mise à jour des statistiques: %s", stats_err
         )
 
     try:
@@ -203,8 +204,9 @@ def submit_answer(
         new_badges = badge_service.check_and_award_badges(user_id, attempt_for_badges)
         if new_badges:
             logger.info(
-                f"🎖️ {len(new_badges)} nouveaux badges attribués "
-                f"à l'utilisateur {user_id}"
+                "🎖️ %s nouveaux badges attribués à l'utilisateur %s",
+                len(new_badges),
+                user_id,
             )
     except SQLAlchemyError as e:
         logger.warning(

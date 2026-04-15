@@ -39,7 +39,8 @@ async def get_recommendations(request: Request) -> JSONResponse:
         return JSONResponse(recommendations_data)
     except Exception as recommendations_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}",
+            "Erreur lors de la récupération des recommandations: %s",
+            recommendations_retrieval_error,
             exc_info=True,
         )
         return api_error_response(
@@ -69,7 +70,8 @@ async def generate_recommendations(request: Request) -> JSONResponse:
         )
     except Exception as recommendations_generation_error:
         logger.error(
-            f"Erreur lors de la génération des recommandations: {recommendations_generation_error}",
+            "Erreur lors de la génération des recommandations: %s",
+            recommendations_generation_error,
             exc_info=True,
         )
         return api_error_response(
@@ -122,7 +124,8 @@ async def handle_recommendation_complete(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.error(
-            f"Erreur lors de la gestion de la recommandation complétée: {e}",
+            "Erreur lors de la gestion de la recommandation complétée: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -173,7 +176,8 @@ async def handle_recommendation_open(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.error(
-            f"Erreur lors de l'enregistrement ouverture recommandation: {e}",
+            "Erreur lors de l'enregistrement ouverture recommandation: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))

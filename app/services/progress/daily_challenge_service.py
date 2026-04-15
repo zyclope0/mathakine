@@ -181,8 +181,13 @@ def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge
 
     db.flush()
     logger.info(
-        f"[DailyChallenge] Genere 3 defis pour user={user_id} date={day}: "
-        f"volume={c1.target_count}, specific={ex_type}={c2.target_count}, logic={c3.target_count}"
+        "[DailyChallenge] Genere 3 defis pour user=%s date=%s: volume=%s, specific=%s=%s, logic=%s",
+        user_id,
+        day,
+        c1.target_count,
+        ex_type,
+        c2.target_count,
+        c3.target_count,
     )
     return challenges
 
@@ -298,5 +303,5 @@ def expire_past_daily_challenges(db: Session) -> int:
         .update({"status": "expired"}, synchronize_session=False)
     )
     if updated:
-        logger.info(f"[DailyChallenge] {updated} defis expires")
+        logger.info("[DailyChallenge] %s defis expires", updated)
     return updated

@@ -212,7 +212,10 @@ class EnhancedServerAdapter:
         }
 
         logger.info(
-            f"Création d'un exercice généré de type {exercise_type}, groupe d'âge {age_group}, difficulté {difficulty}"
+            "Création d'un exercice généré de type %s, groupe d'âge %s, difficulté %s",
+            exercise_type,
+            age_group,
+            difficulty,
         )
         exercise = ExerciseService.create_exercise(db, exercise_data)
         return _serialize_exercise(exercise) if exercise else None

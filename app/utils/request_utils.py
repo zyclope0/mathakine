@@ -44,7 +44,9 @@ async def read_body_with_limit(
             if cl < 0:
                 raise ValueError("negative")
             if cl > max_size:
-                logger.warning(f"Payload too large: Content-Length={cl} > {max_size}")
+                logger.warning(
+                    "Payload too large: Content-Length=%s > %s", cl, max_size
+                )
                 return None, api_error_response(413, PAYLOAD_TOO_LARGE_MESSAGE)
         except (ValueError, TypeError):
             pass  # invalide, fallback lecture stream
@@ -55,7 +57,7 @@ async def read_body_with_limit(
     async for chunk in request.stream():
         total += len(chunk)
         if total > max_size:
-            logger.warning(f"Payload too large: stream exceeded {max_size} bytes")
+            logger.warning("Payload too large: stream exceeded %s bytes", max_size)
             return None, api_error_response(413, PAYLOAD_TOO_LARGE_MESSAGE)
         chunks.append(chunk)
     return b"".join(chunks), None
@@ -74,7 +76,7 @@ async def parse_json_body_any(request: Request) -> ParseResult:
     try:
         body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
     except Exception as e:
-        logger.warning(f"parse_json_body_any: body JSON invalide — {e}")
+        logger.warning("parse_json_body_any: body JSON invalide — %s", e)
         return api_error_response(422, Messages.JSON_BODY_INVALID)
 
     if not isinstance(body, dict):
@@ -119,7 +121,7 @@ async def parse_json_body(
     try:
         body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
     except Exception as e:
-        logger.warning(f"parse_json_body: body JSON invalide — {e}")
+        logger.warning("parse_json_body: body JSON invalide — %s", e)
         return api_error_response(422, Messages.JSON_BODY_INVALID)
 
     if not isinstance(body, dict):

@@ -51,7 +51,9 @@ def get_exercise_for_submit_validation(
 
         return _row_to_submit_dict(exercise_row)
     except SQLAlchemyError as err:
-        logger.error(f"Erreur get_exercise_for_submit_validation {exercise_id}: {err}")
+        logger.error(
+            "Erreur get_exercise_for_submit_validation %s: %s", exercise_id, err
+        )
         return None
 
 
@@ -90,7 +92,7 @@ def create_attempt(db: Session, attempt_data: Dict[str, Any]) -> Optional[Attemp
         db.flush()
         return attempt
     except SQLAlchemyError as err:
-        logger.error(f"Erreur create_attempt: {err}")
+        logger.error("Erreur create_attempt: %s", err)
         return None
 
 

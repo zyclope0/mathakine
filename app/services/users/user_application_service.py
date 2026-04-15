@@ -76,7 +76,7 @@ def register_user(
 
         user = result.user
         try:
-            logger.info(f"Préparation envoi email de vérification à {user.email}")
+            logger.info("Préparation envoi email de vérification à %s", user.email)
             email_sent = EmailService.send_verification_email(
                 to_email=user.email,
                 username=user.username,
@@ -85,24 +85,24 @@ def register_user(
             )
             if email_sent:
                 logger.info(
-                    f"✅ Email de vérification envoyé avec succès à {user.email}"
+                    "✅ Email de vérification envoyé avec succès à %s", user.email
                 )
                 if "localhost" in settings.FRONTEND_URL:
                     verify_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
                     logger.info(
-                        f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}"
+                        "[DEV] Si l'email n'arrive pas, copie ce lien : %s", verify_link
                     )
             else:
                 logger.warning(
-                    f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}"
+                    "⚠️ Échec de l'envoi de l'email de vérification à %s", user.email
                 )
         except Exception as email_error:
             logger.error(
-                f"❌ Erreur lors de l'envoi de l'email de vérification: {email_error}"
+                "❌ Erreur lors de l'envoi de l'email de vérification: %s", email_error
             )
 
         payload = UserService.serialize_registered_user_for_api(user)
-        logger.info(f"Nouvel utilisateur créé: {user.username} ({user.email})")
+        logger.info("Nouvel utilisateur créé: %s (%s)", user.username, user.email)
         return UserRegistrationApiResult(
             payload=payload,
             error_message=None,

@@ -30,7 +30,9 @@ def sanitize_user_prompt(prompt: str, max_length: int = 500) -> str:
     prompt = prompt[:max_length]
 
     if original_length > max_length:
-        logger.warning(f"Prompt tronqué de {original_length} à {max_length} caractères")
+        logger.warning(
+            "Prompt tronqué de %s à %s caractères", original_length, max_length
+        )
 
     # Patterns dangereux à supprimer (tentatives d'injection)
     # Anglais ET français (Mathakine = plateforme FR)
@@ -79,7 +81,7 @@ def sanitize_user_prompt(prompt: str, max_length: int = 500) -> str:
             )
 
     if removed_patterns:
-        logger.warning(f"Patterns dangereux détectés et supprimés: {removed_patterns}")
+        logger.warning("Patterns dangereux détectés et supprimés: %s", removed_patterns)
 
     # Nettoyer les espaces multiples
     sanitized_prompt = re.sub(r"\s+", " ", sanitized_prompt)

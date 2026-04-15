@@ -65,7 +65,7 @@ def prepare_stream_context(
     # Validation et sanitization du prompt
     is_safe, safety_reason = validate_prompt_safety(prompt_raw)
     if not is_safe:
-        logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
+        logger.warning("Prompt utilisateur rejeté pour sécurité: %s", safety_reason)
         return PrepareStreamContextResult(
             query=None, error_message=f"Prompt invalide: {safety_reason}"
         )
@@ -76,7 +76,8 @@ def prepare_stream_context(
     challenge_type = challenge_type_raw.lower()
     if challenge_type not in VALID_CHALLENGE_TYPES:
         logger.warning(
-            f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut"
+            "Type de challenge invalide: %s, utilisation de 'sequence' par défaut",
+            challenge_type_raw,
         )
         challenge_type = "sequence"
 

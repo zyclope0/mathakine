@@ -271,22 +271,34 @@ def _adjust_for_realtime_progress(
         if rate > _BOOST_RATE_THRESHOLD and streak >= _BOOST_STREAK_THRESHOLD:
             adjusted = min(4, base_ordinal + 1)
             logger.debug(
-                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                f"boost {base_ordinal}→{adjusted} (rate={rate:.1f}% streak={streak})"
+                "[AdaptiveDifficulty] user=%s type=%s "
+                "boost %s→%s (rate=%.1f%% streak=%s)",
+                user_id,
+                exercise_type,
+                base_ordinal,
+                adjusted,
+                rate,
+                streak,
             )
             return adjusted
 
         if rate < _DESCENT_RATE_THRESHOLD and streak == 0:
             adjusted = max(0, base_ordinal - 1)
             logger.debug(
-                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                f"descente {base_ordinal}→{adjusted} (rate={rate:.1f}% streak={streak})"
+                "[AdaptiveDifficulty] user=%s type=%s "
+                "descente %s→%s (rate=%.1f%% streak=%s)",
+                user_id,
+                exercise_type,
+                base_ordinal,
+                adjusted,
+                rate,
+                streak,
             )
             return adjusted
 
     except Exception as e:
         logger.warning(
-            f"[AdaptiveDifficulty] Erreur lecture progression user={user_id}: {e}"
+            "[AdaptiveDifficulty] Erreur lecture progression user=%s: %s", user_id, e
         )
 
     return base_ordinal
@@ -319,7 +331,9 @@ def _get_irt_scores_if_valid(db: Session, user_id: int) -> Optional[Dict]:
             return None
         return latest.get("scores") or {}
     except Exception as e:
-        logger.warning(f"[AdaptiveDifficulty] Erreur lecture IRT user={user_id}: {e}")
+        logger.warning(
+            "[AdaptiveDifficulty] Erreur lecture IRT user=%s: %s", user_id, e
+        )
         return None
 
 
@@ -441,13 +455,17 @@ def resolve_adaptive_difficulty(
                 ordinal = _adjust_for_realtime_progress(db, user_id, type_key, ordinal)
                 age_group = _ordinal_to_age_group(ordinal)
                 logger.debug(
-                    f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                    f"→ IRT {difficulty} (ordinal={ordinal}) → {age_group}"
+                    "[AdaptiveDifficulty] user=%s type=%s → IRT %s (ordinal=%s) → %s",
+                    user_id,
+                    exercise_type,
+                    difficulty,
+                    ordinal,
+                    age_group,
                 )
                 return age_group
     except Exception as e:
         logger.warning(
-            f"[AdaptiveDifficulty] Erreur lecture diagnostic IRT user={user_id}: {e}"
+            "[AdaptiveDifficulty] Erreur lecture diagnostic IRT user=%s: %s", user_id, e
         )
 
     # ------------------------------------------------------------------
@@ -471,13 +489,17 @@ def resolve_adaptive_difficulty(
             ordinal = _adjust_for_realtime_progress(db, user_id, type_key, ordinal)
             age_group = _ordinal_to_age_group(ordinal)
             logger.debug(
-                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                f"→ Progress mastery={progress.mastery_level} (ordinal={ordinal}) → {age_group}"
+                "[AdaptiveDifficulty] user=%s type=%s → Progress mastery=%s (ordinal=%s) → %s",
+                user_id,
+                exercise_type,
+                progress.mastery_level,
+                ordinal,
+                age_group,
             )
             return age_group
     except Exception as e:
         logger.warning(
-            f"[AdaptiveDifficulty] Erreur lecture progression user={user_id}: {e}"
+            "[AdaptiveDifficulty] Erreur lecture progression user=%s: %s", user_id, e
         )
 
     # ------------------------------------------------------------------
@@ -487,8 +509,10 @@ def resolve_adaptive_difficulty(
         persisted_ag = normalized_age_group_from_user_profile(user)
         if persisted_ag:
             logger.debug(
-                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                f"→ users.age_group → {persisted_ag}"
+                "[AdaptiveDifficulty] user=%s type=%s → users.age_group → %s",
+                user_id,
+                exercise_type,
+                persisted_ag,
             )
             return persisted_ag
 
@@ -498,8 +522,11 @@ def resolve_adaptive_difficulty(
             if ordinal is not None:
                 age_group = _ordinal_to_age_group(ordinal)
                 logger.debug(
-                    f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                    f"→ preferred_difficulty={preferred} → {age_group}"
+                    "[AdaptiveDifficulty] user=%s type=%s → preferred_difficulty=%s → %s",
+                    user_id,
+                    exercise_type,
+                    preferred,
+                    age_group,
                 )
                 return age_group
 
@@ -508,20 +535,25 @@ def resolve_adaptive_difficulty(
             ordinal = _GRADE_TO_ORDINAL.get(grade, 1)
             age_group = _ordinal_to_age_group(ordinal)
             logger.debug(
-                f"[AdaptiveDifficulty] user={user_id} type={exercise_type} "
-                f"→ grade_level={grade} → {age_group}"
+                "[AdaptiveDifficulty] user=%s type=%s → grade_level=%s → %s",
+                user_id,
+                exercise_type,
+                grade,
+                age_group,
             )
             return age_group
     except Exception as e:
         logger.warning(
-            f"[AdaptiveDifficulty] Erreur lecture profil user={user_id}: {e}"
+            "[AdaptiveDifficulty] Erreur lecture profil user=%s: %s", user_id, e
         )
 
     # ------------------------------------------------------------------
     # 4. Fallback
     # ------------------------------------------------------------------
     logger.debug(
-        f"[AdaptiveDifficulty] user={user_id} type={exercise_type} → fallback PADAWAN"
+        "[AdaptiveDifficulty] user=%s type=%s → fallback PADAWAN",
+        user_id,
+        exercise_type,
     )
     return AgeGroups.GROUP_9_11
 
@@ -698,8 +730,7 @@ def resolve_adaptive_context(
     if user_id is None:
         ctx = replace(_resolve_adaptive_context_impl(db, user, exercise_type))
         logger.info(
-            "f43_adaptive_context: user_id=null exercise_type=%s mastery_source=%s "
-            "pedagogical_band=%s",
+            "f43_adaptive_context: user_id=null exercise_type=%%s mastery_source=%%s pedagogical_band=%%s",
             type_key,
             ctx.mastery_source,
             ctx.pedagogical_band,
@@ -717,8 +748,7 @@ def resolve_adaptive_context(
         ctx = _resolve_adaptive_context_impl(db, user, exercise_type)
         # F43-A1 — log once per cache fill (≈ at most once per TTL per user/type).
         logger.info(
-            "f43_adaptive_context: user_id=%s exercise_type=%s mastery_source=%s "
-            "pedagogical_band=%s",
+            "f43_adaptive_context: user_id=%%s exercise_type=%%s mastery_source=%%s pedagogical_band=%%s",
             int(user_id),
             type_key,
             ctx.mastery_source,

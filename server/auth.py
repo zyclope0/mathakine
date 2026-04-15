@@ -63,7 +63,7 @@ async def get_current_user(request):  # noqa: C901
             except HTTPException:
                 return None
             except Exception as decode_error:
-                logger.debug(f"Erreur lors du decodage du token: {decode_error}")
+                logger.debug("Erreur lors du decodage du token: %s", decode_error)
                 return None
 
         username = payload.get("sub")
@@ -76,7 +76,7 @@ async def get_current_user(request):  # noqa: C901
 
     except Exception as user_fetch_error:
         logger.error(
-            f"Erreur lors de la récupération de l'utilisateur: {user_fetch_error}"
+            "Erreur lors de la récupération de l'utilisateur: %s", user_fetch_error
         )
         return None
 

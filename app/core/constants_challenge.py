@@ -76,7 +76,7 @@ def normalize_challenge_type(challenge_type):
             if challenge_type_str == alias.lower():
                 return type_key
 
-    logger.warning(f"Type de challenge non reconnu: '{challenge_type}'")
+    logger.warning("Type de challenge non reconnu: '%s'", challenge_type)
     return None
 
 

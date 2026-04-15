@@ -85,14 +85,16 @@ class LogicChallengeService:
                     "LogicChallengeType", challenge_type, db
                 )
                 logger.debug(
-                    f"Type de défi adapté: de '{challenge_type}' à '{adapted_type}'"
+                    "Type de défi adapté: de '%s' à '%s'", challenge_type, adapted_type
                 )
                 query = query.filter(LogicChallenge.challenge_type == adapted_type)
 
             if age_group:
                 # Adapter le groupe d'âge pour le moteur de base de données actuel
                 adapted_age = adapt_enum_for_db("AgeGroup", age_group, db)
-                logger.debug(f"Groupe d'âge adapté: de '{age_group}' à '{adapted_age}'")
+                logger.debug(
+                    "Groupe d'âge adapté: de '%s' à '%s'", age_group, adapted_age
+                )
                 query = query.filter(LogicChallenge.age_group == adapted_age)
 
             if offset is not None:
@@ -104,7 +106,7 @@ class LogicChallengeService:
             return query.all()
         except SQLAlchemyError as challenges_fetch_error:
             logger.error(
-                f"Erreur lors de la récupération des défis: {challenges_fetch_error}"
+                "Erreur lors de la récupération des défis: %s", challenges_fetch_error
             )
             return []
 
@@ -129,14 +131,18 @@ class LogicChallengeService:
                 "LogicChallengeType", challenge_type, db
             )
             logger.debug(
-                f"Type de défi adapté: de '{challenge_type}' à '{challenge_data['challenge_type']}'"
+                "Type de défi adapté: de '%s' à '%s'",
+                challenge_type,
+                challenge_data["challenge_type"],
             )
 
         if "age_group" in challenge_data:
             age_group = challenge_data["age_group"]
             challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
             logger.debug(
-                f"Groupe d'âge adapté: de '{age_group}' à '{challenge_data['age_group']}'"
+                "Groupe d'âge adapté: de '%s' à '%s'",
+                age_group,
+                challenge_data["age_group"],
             )
 
         # Définir explicitement created_at si non présent pour éviter les valeurs NULL
@@ -176,7 +182,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error(f"Défi avec ID {challenge_id} non trouvé pour mise à jour")
+            logger.error("Défi avec ID %s non trouvé pour mise à jour", challenge_id)
             return False
 
         # Adapter les valeurs d'enum pour le moteur de base de données actuel
@@ -186,14 +192,18 @@ class LogicChallengeService:
                 "LogicChallengeType", challenge_type, db
             )
             logger.debug(
-                f"Type de défi adapté pour mise à jour: de '{challenge_type}' à '{challenge_data['challenge_type']}'"
+                "Type de défi adapté pour mise à jour: de '%s' à '%s'",
+                challenge_type,
+                challenge_data["challenge_type"],
             )
 
         if "age_group" in challenge_data:
             age_group = challenge_data["age_group"]
             challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
             logger.debug(
-                f"Groupe d'âge adapté pour mise à jour: de '{age_group}' à '{challenge_data['age_group']}'"
+                "Groupe d'âge adapté pour mise à jour: de '%s' à '%s'",
+                age_group,
+                challenge_data["age_group"],
             )
 
         edata = dict(challenge_data)
@@ -223,7 +233,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error(f"Défi avec ID {challenge_id} non trouvé pour archivage")
+            logger.error("Défi avec ID %s non trouvé pour archivage", challenge_id)
             raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
         DatabaseAdapter.archive(db, challenge)
@@ -244,7 +254,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error(f"Défi avec ID {challenge_id} non trouvé pour suppression")
+            logger.error("Défi avec ID %s non trouvé pour suppression", challenge_id)
             raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
         DatabaseAdapter.delete(db, challenge)
@@ -288,7 +298,8 @@ class LogicChallengeService:
 
             if not challenge:
                 logger.error(
-                    f"Tentative d'enregistrement d'une tentative pour un défi inexistant (ID {challenge_id})"
+                    "Tentative d'enregistrement d'une tentative pour un défi inexistant (ID %s)",
+                    challenge_id,
                 )
                 return None
 
@@ -300,7 +311,9 @@ class LogicChallengeService:
             # Log de l'action
             is_correct = attempt_data.get("is_correct", False)
             logger.info(
-                f"Tentative enregistrée pour le défi {challenge_id}: {'Correcte' if is_correct else 'Incorrecte'}"
+                "Tentative enregistrée pour le défi %s: %s",
+                challenge_id,
+                "Correcte" if is_correct else "Incorrecte",
             )
 
             if auto_commit:
@@ -311,14 +324,16 @@ class LogicChallengeService:
             if auto_commit:
                 db.rollback()
             logger.error(
-                f"Erreur lors de l'enregistrement de la tentative: {attempt_save_error}"
+                "Erreur lors de l'enregistrement de la tentative: %s",
+                attempt_save_error,
             )
             return None
         except (TypeError, ValueError) as attempt_save_error:
             if auto_commit:
                 db.rollback()
             logger.error(
-                f"Erreur de données lors de l'enregistrement de la tentative: {attempt_save_error}"
+                "Erreur de données lors de l'enregistrement de la tentative: %s",
+                attempt_save_error,
             )
             return None
 

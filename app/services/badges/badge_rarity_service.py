@@ -47,5 +47,5 @@ def get_badges_rarity_stats(db: Session) -> Dict[str, Any]:
             }
         return {"total_users": total_users, "by_badge": by_badge}
     except Exception as e:
-        logger.error(f"Erreur get_badges_rarity_stats: {e}")
+        logger.error("Erreur get_badges_rarity_stats: %s", e)
         return {"total_users": 0, "by_badge": {}}

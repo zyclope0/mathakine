@@ -82,7 +82,8 @@ def normalize_generated_challenge(
     """
     if age_group not in AGE_GROUP_PARAMS:
         logger.warning(
-            f"Groupe d'age '{age_group}' non trouve dans le mapping, utilisation de '9-11' par defaut"
+            "Groupe d'age '%s' non trouve dans le mapping, utilisation de '9-11' par defaut",
+            age_group,
         )
 
     final_age_group = age_group
@@ -336,7 +337,11 @@ async def generate_challenge_stream(
                 ai_params=ai_params,
             )
             logger.info(
-                f"Appel API: model={ai_params['model']}, o1={use_o1}, o3={use_o3}, reasoning={ai_params.get('reasoning_effort', 'N/A')}"
+                "Appel API: model=%s, o1=%s, o3=%s, reasoning=%s",
+                ai_params["model"],
+                use_o1,
+                use_o3,
+                ai_params.get("reasoning_effort", "N/A"),
             )
             return await client.chat.completions.create(**api_kwargs)
 
@@ -348,7 +353,9 @@ async def generate_challenge_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur API OpenAI aprÃ¨s {AIConfig.MAX_RETRIES} tentatives: {api_error}"
+                "Erreur API OpenAI aprÃ¨s %s tentatives: %s",
+                AIConfig.MAX_RETRIES,
+                api_error,
             )
             yield sse_error_message(
                 get_safe_error_message(
@@ -363,7 +370,7 @@ async def generate_challenge_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur inattendue lors de la gÃ©nÃ©ration: {unexpected_error}"
+                "Erreur inattendue lors de la gÃ©nÃ©ration: %s", unexpected_error
             )
             yield sse_error_message(
                 get_safe_error_message(
@@ -405,7 +412,7 @@ async def generate_challenge_stream(
                     completion_tokens=usage_event["completion_tokens"],
                     model=usage_event["model"],
                 )
-                logger.debug(f"Token usage tracked: {usage_stats}")
+                logger.debug("Token usage tracked: %s", usage_stats)
             usage_events_tracked = True
 
         try:
@@ -427,7 +434,7 @@ async def generate_challenge_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur API OpenAI pendant le stream dÃ©fis: {stream_api_error}"
+                "Erreur API OpenAI pendant le stream dÃ©fis: %s", stream_api_error
             )
             yield sse_error_message(
                 get_safe_error_message(
@@ -441,7 +448,7 @@ async def generate_challenge_stream(
                 openai_workload_circuit_breaker.record_countable_failure()
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
-            logger.error(f"Erreur inattendue pendant le stream dÃ©fis: {stream_other}")
+            logger.error("Erreur inattendue pendant le stream dÃ©fis: %s", stream_other)
             yield sse_error_message(
                 get_safe_error_message(
                     stream_other,
@@ -494,7 +501,9 @@ async def generate_challenge_stream(
                     if fallback_completion_tokens_estimate == 0:
                         fallback_completion_tokens_estimate = len(full_response) // 4
                     logger.info(
-                        f"Fallback {fallback_model}: {len(full_response)} caractÃ¨res reÃ§us"
+                        "Fallback %s: %s caractÃ¨res reÃ§us",
+                        fallback_model,
+                        len(full_response),
                     )
                 _queue_usage(
                     model=fallback_model,
@@ -504,7 +513,7 @@ async def generate_challenge_stream(
             except Exception as fb_err:
                 if is_countable_openai_failure(fb_err):
                     openai_workload_circuit_breaker.record_countable_failure()
-                    logger.error(f"Fallback Ã©chouÃ©: {fb_err}")
+                    logger.error("Fallback Ã©chouÃ©: %s", fb_err)
                     yield sse_error_message(
                         get_safe_error_message(
                             fb_err,
@@ -513,26 +522,28 @@ async def generate_challenge_stream(
                     )
                     return
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
-                logger.error(f"Fallback Ã©chouÃ©: {fb_err}")
+                logger.error("Fallback Ã©chouÃ©: %s", fb_err)
 
         openai_workload_circuit_breaker.record_success()
 
         logger.info(
-            f"RÃ©ponse reÃ§ue: {len(full_response)} caractÃ¨res, ~{len(full_response)//4} tokens estimÃ©s"
+            "RÃ©ponse reÃ§ue: %s caractÃ¨res, ~%s tokens estimÃ©s",
+            len(full_response),
+            len(full_response) // 4,
         )
         _flush_usage_events()
 
         try:
             challenge_data = extract_json_from_text(full_response)
         except json.JSONDecodeError as json_error:
-            logger.error(f"Erreur de parsing JSON: {json_error}")
-            logger.debug(f"RÃ©ponse reÃ§ue: {full_response[:500]}")
+            logger.error("Erreur de parsing JSON: %s", json_error)
+            logger.debug("RÃ©ponse reÃ§ue: %s", full_response[:500])
             _record_generation_failure(error_type="json_decode_error")
             yield sse_error_message("Erreur lors du parsing de la rÃ©ponse JSON")
             return
 
         if not challenge_data.get("title") or not challenge_data.get("description"):
-            logger.error(f"DonnÃ©es de challenge incomplÃ¨tes: {challenge_data}")
+            logger.error("DonnÃ©es de challenge incomplÃ¨tes: %s", challenge_data)
             _record_generation_failure(error_type="incomplete_generated_challenge")
             yield sse_error_message(
                 "Les donnÃ©es gÃ©nÃ©rÃ©es sont incomplÃ¨tes (titre ou description manquant)"
@@ -561,7 +572,8 @@ async def generate_challenge_stream(
                 validation_passed = True
             else:
                 logger.error(
-                    f"Correction automatique impossible. Erreurs restantes: {remaining_errors}"
+                    "Correction automatique impossible. Erreurs restantes: %s",
+                    remaining_errors,
                 )
                 validation_passed = False
                 _record_generation_failure(
@@ -597,7 +609,7 @@ async def generate_challenge_stream(
         if not normalized_challenge.get("title") or not normalized_challenge.get(
             "description"
         ):
-            logger.error(f"Challenge normalisÃ© invalide: {normalized_challenge}")
+            logger.error("Challenge normalisÃ© invalide: %s", normalized_challenge)
             _record_generation_failure(error_type="normalized_challenge_invalid")
             yield sse_error_message("Erreur lors de la normalisation des donnÃ©es")
             return
@@ -636,7 +648,7 @@ async def generate_challenge_stream(
                 )
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardÃ© en base'})}\n\n"
         except Exception as db_error:
-            logger.error(f"Erreur lors de la sauvegarde du challenge: {db_error}")
+            logger.error("Erreur lors de la sauvegarde du challenge: %s", db_error)
             logger.debug(traceback.format_exc())
             _record_generation_failure(
                 error_type="challenge_persistence_error",
@@ -653,7 +665,7 @@ async def generate_challenge_stream(
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
     except Exception as gen_error:
-        logger.error(f"Erreur lors de la gÃ©nÃ©ration: {gen_error}")
+        logger.error("Erreur lors de la gÃ©nÃ©ration: %s", gen_error)
         logger.debug(traceback.format_exc())
         duration = (datetime.now() - start_time).total_seconds()
         generation_metrics.record_generation(

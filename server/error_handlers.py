@@ -24,7 +24,7 @@ async def not_found(request: Request, exc: HTTPException):
     """
     Handle 404 Not Found errors.
     """
-    logger.warning(f"404 Not Found: {request.url.path}")
+    logger.warning("404 Not Found: %s", request.url.path)
     return api_error_response(
         404,
         "The requested resource does not exist.",
@@ -38,7 +38,7 @@ async def server_error(request: Request, exc: Exception):
     """
     trace_id = str(uuid.uuid4())[:8]
     logger.error(
-        f"500 Server Error for {request.url.path} [trace_id={trace_id}]: {exc}"
+        "500 Server Error for %s [trace_id=%s]: %s", request.url.path, trace_id, exc
     )
     logger.error(traceback.format_exc())
     capture_exception_for_sentry(

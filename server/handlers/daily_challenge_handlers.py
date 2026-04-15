@@ -36,7 +36,7 @@ async def get_daily_challenges(request: Request) -> JSONResponse:
         return JSONResponse({"challenges": data})
 
     except Exception as e:
-        logger.error(f"Erreur GET /api/daily-challenges: {e}", exc_info=True)
+        logger.error("Erreur GET /api/daily-challenges: %s", e, exc_info=True)
         return capture_internal_error_response(
             e,
             "Erreur lors de la recuperation des defis",

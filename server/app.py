@@ -92,11 +92,10 @@ def run_server(
     use_reload = debug and sys.platform != "win32"
     if debug and sys.platform == "win32":
         logger.info(
-            "Reload désactivé sur Windows (évite blocage à l'import), "
-            "redémarrer manuellement pour appliquer les changements"
+            "Reload désactivé sur Windows (évite blocage à l'import), redémarrer manuellement pour appliquer les changements"
         )
 
-    logger.info(f"Starting Mathakine server on {host}:{port} (debug={debug})")
+    logger.info("Starting Mathakine server on %s:%s (debug=%s)", host, port, debug)
 
     uvicorn_app = (
         "enhanced_server:app"

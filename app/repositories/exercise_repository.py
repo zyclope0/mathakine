@@ -93,7 +93,10 @@ class ExerciseRepository:
             "view_count": 0,
         }
         logger.info(
-            f"Création exercice généré: type={exercise_type}, age_group={age_group}, difficulty={difficulty}"
+            "Création exercice généré: type=%s, age_group=%s, difficulty=%s",
+            exercise_type,
+            age_group,
+            difficulty,
         )
         exercise = DatabaseAdapter.create(db, Exercise, exercise_data)
         if not exercise:

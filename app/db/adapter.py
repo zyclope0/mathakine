@@ -40,7 +40,10 @@ class DatabaseAdapter:
             return db.query(model_class).filter(model_class.id == id).first()
         except SQLAlchemyError as e:
             logger.error(
-                f"Erreur lors de la récupération de {model_class.__name__} avec id={id}: {e}"
+                "Erreur lors de la récupération de %s avec id=%s: %s",
+                model_class.__name__,
+                id,
+                e,
             )
             return None
 
@@ -68,7 +71,11 @@ class DatabaseAdapter:
             )
         except SQLAlchemyError as e:
             logger.error(
-                f"Erreur lors de la récupération de {model_class.__name__} avec {field_name}={value}: {e}"
+                "Erreur lors de la récupération de %s avec %s=%s: %s",
+                model_class.__name__,
+                field_name,
+                value,
+                e,
             )
             return []
 
@@ -107,7 +114,7 @@ class DatabaseAdapter:
             return query.all()
         except SQLAlchemyError as e:
             logger.error(
-                f"Erreur lors de la liste des {model_class.__name__} actifs: {e}"
+                "Erreur lors de la liste des %s actifs: %s", model_class.__name__, e
             )
             return []
 
@@ -134,7 +141,7 @@ class DatabaseAdapter:
                 return obj
             except SQLAlchemyError as e:
                 logger.error(
-                    f"Erreur lors de la création de {model_class.__name__}: {e}"
+                    "Erreur lors de la création de %s: %s", model_class.__name__, e
                 )
                 return None
 
@@ -165,7 +172,9 @@ class DatabaseAdapter:
                         )
                         if not obj:
                             logger.error(
-                                f"Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la session"
+                                "Objet %s(id=%s) non trouvé dans la session",
+                                obj.__class__.__name__,
+                                obj_id,
                             )
                             return False
                     else:
@@ -180,7 +189,10 @@ class DatabaseAdapter:
                 return True
             except SQLAlchemyError as e:
                 logger.error(
-                    f"Erreur lors de la mise à jour de {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}): {e}"
+                    "Erreur lors de la mise à jour de %s(id=%s): %s",
+                    obj.__class__.__name__,
+                    getattr(obj, "id", "N/A"),
+                    e,
                 )
                 return False
 
@@ -245,6 +257,6 @@ class DatabaseAdapter:
                 return [dict(zip(column_names, row)) for row in result.fetchall()]
             return []
         except SQLAlchemyError as e:
-            logger.error(f"Erreur lors de l'exécution de la requête SQL: {e}")
+            logger.error("Erreur lors de l'exécution de la requête SQL: %s", e)
             db.rollback()
             return []

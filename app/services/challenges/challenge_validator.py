@@ -498,7 +498,8 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
             expected_multi = compute_pattern_answers_multi(grid)
             if expected_multi:
                 logger.info(
-                    f"Correction automatique PATTERN (multi): correct_answer = '{expected_multi}'"
+                    "Correction automatique PATTERN (multi): correct_answer = '%s'",
+                    expected_multi,
                 )
                 corrected["correct_answer"] = expected_multi
                 explanation = corrected.get("solution_explanation", "")
@@ -518,7 +519,8 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     expected_answer = analyze_pattern(grid, row_idx, col_idx)
                     if expected_answer:
                         logger.info(
-                            f"Correction automatique PATTERN: correct_answer = '{expected_answer}'"
+                            "Correction automatique PATTERN: correct_answer = '%s'",
+                            expected_answer,
                         )
                         corrected["correct_answer"] = expected_answer
 
@@ -552,7 +554,9 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
                     if current_answer != expected_lower:
                         logger.info(
-                            f"Correction automatique VISUAL: correct_answer changé de '{corrected.get('correct_answer')}' à '{expected_answer}'"
+                            "Correction automatique VISUAL: correct_answer changé de '%s' à '%s'",
+                            corrected.get("correct_answer"),
+                            expected_answer,
                         )
                         corrected["correct_answer"] = expected_answer
 
@@ -590,7 +594,9 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                                         shape.capitalize(), expected_answer.capitalize()
                                     )
                                     logger.info(
-                                        f"Correction automatique titre: '{title}' → '{new_title}'"
+                                        "Correction automatique titre: '%s' → '%s'",
+                                        title,
+                                        new_title,
                                     )
                                     corrected["title"] = new_title
                                     break
@@ -605,7 +611,9 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                 current_answer = corrected.get("correct_answer", "")
                 if str(current_answer).strip() != str(expected_answer).strip():
                     logger.info(
-                        f"Correction automatique SEQUENCE: correct_answer changé de '{current_answer}' à '{expected_answer}'"
+                        "Correction automatique SEQUENCE: correct_answer changé de '%s' à '%s'",
+                        current_answer,
+                        expected_answer,
                     )
                     corrected["correct_answer"] = expected_answer
 
@@ -643,7 +651,9 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
                 if not is_valid:
                     logger.info(
-                        f"Correction automatique MAZE: chemin invalide '{current_answer}' → '{correct_path}'"
+                        "Correction automatique MAZE: chemin invalide '%s' → '%s'",
+                        current_answer,
+                        correct_path,
                     )
                     corrected["correct_answer"] = correct_path
                     corrected["solution_explanation"] = (
@@ -653,7 +663,9 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     )
             else:
                 logger.warning(
-                    f"Impossible de trouver un chemin valide dans le labyrinthe de {start} à {end}"
+                    "Impossible de trouver un chemin valide dans le labyrinthe de %s à %s",
+                    start,
+                    end,
                 )
 
     # Correction pour SYMMETRY (visual_data.type == "symmetry")

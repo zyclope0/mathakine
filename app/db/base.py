@@ -38,7 +38,8 @@ def redact_database_url_for_log(raw_url: str) -> str:
 
 
 logger.info(
-    f"Initialisation de la base de données: {redact_database_url_for_log(settings.SQLALCHEMY_DATABASE_URL)}"
+    "Initialisation de la base de données: %s",
+    redact_database_url_for_log(settings.SQLALCHEMY_DATABASE_URL),
 )
 
 try:
@@ -56,7 +57,7 @@ try:
     )
     logger.success("Moteur SQLAlchemy (PostgreSQL) créé avec succès")
 except Exception as e:
-    logger.error(f"Erreur lors de l'initialisation du moteur SQLAlchemy: {e}")
+    logger.error("Erreur lors de l'initialisation du moteur SQLAlchemy: %s", e)
     raise
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -75,7 +76,7 @@ def get_db():
         yield db
     except Exception as db_error:
         # Rollback en cas d'erreur
-        logger.warning(f"Erreur dans la session DB, rollback: {db_error}")
+        logger.warning("Erreur dans la session DB, rollback: %s", db_error)
         db.rollback()
         raise
     finally:
@@ -84,4 +85,4 @@ def get_db():
             logger.debug("Fermeture de la session de base de données")
             db.close()
         except Exception as close_error:
-            logger.error(f"Erreur lors de la fermeture de la session: {close_error}")
+            logger.error("Erreur lors de la fermeture de la session: %s", close_error)

@@ -152,10 +152,10 @@ def init_monitoring() -> bool:
                 ],
                 before_send=_sentry_before_send,
             )
-            logger.info(f"Sentry initialisé (DSN, release={release or 'auto'})")
+            logger.info("Sentry initialisé (DSN, release=%s)", release or "auto")
             initialized = True
         except Exception as e:
-            logger.warning(f"Sentry init échoué: {e}")
+            logger.warning("Sentry init échoué: %s", e)
     elif testing:
         logger.debug("Sentry désactivé (mode TESTING)")
     else:

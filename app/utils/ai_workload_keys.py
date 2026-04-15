@@ -72,8 +72,8 @@ def classify_ai_workload_key(metric_key: str | None) -> str:
     if is_challenge_ai_metric_key(normalized):
         return WORKLOAD_CHALLENGES_AI
     logger.warning(
-        f"Clé métrique IA non reconnue pour agrégat workload: {metric_key!r} → bucket « unknown » (IA12). "
-        "Attendu: exercise_ai:*, assistant_chat*, ou un type défi dans CHALLENGE_TYPES_API."
+        "Clé métrique IA non reconnue pour agrégat workload: %r → bucket « unknown » (IA12). Attendu: exercise_ai:*, assistant_chat*, ou un type défi dans CHALLENGE_TYPES_API.",
+        metric_key,
     )
     return WORKLOAD_UNKNOWN
 

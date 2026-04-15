@@ -151,7 +151,7 @@ class UserService:
             return query.all()
         except SQLAlchemyError as users_fetch_error:
             logger.error(
-                f"Erreur lors de la récupération des utilisateurs: {users_fetch_error}"
+                "Erreur lors de la récupération des utilisateurs: %s", users_fetch_error
             )
             return []
 
@@ -173,18 +173,18 @@ class UserService:
 
         with TransactionManager.transaction(db, auto_commit=False) as session:
             if username and UserService.get_user_by_username(session, username):
-                logger.error(f"Un utilisateur avec le nom '{username}' existe déjà")
+                logger.error("Un utilisateur avec le nom '%s' existe déjà", username)
                 return None
 
             if email and UserService.get_user_by_email(session, email):
-                logger.error(f"Un utilisateur avec l'email '{email}' existe déjà")
+                logger.error("Un utilisateur avec l'email '%s' existe déjà", email)
                 return None
 
             # Adapter le rôle utilisateur pour le moteur de base de données actuel
             role = user_data.get("role")
             if role:
                 user_data["role"] = adapt_enum_for_db("UserRole", role, session)
-                logger.debug(f"Rôle adapté: de '{role}' à '{user_data['role']}'")
+                logger.debug("Rôle adapté: de '%s' à '%s'", role, user_data["role"])
 
             return DatabaseAdapter.create(session, User, user_data)
 
@@ -203,7 +203,7 @@ class UserService:
         """
         user = UserService.get_user(db, user_id)
         if not user:
-            logger.error(f"Utilisateur avec ID {user_id} non trouvé pour mise à jour")
+            logger.error("Utilisateur avec ID %s non trouvé pour mise à jour", user_id)
             return False
 
         # Adapter le rôle utilisateur si présent dans les données de mise à jour
@@ -220,7 +220,7 @@ class UserService:
                 )
                 return False
             logger.debug(
-                f"Rôle adapté pour mise à jour: de '{role}' à '{user_data['role']}'"
+                "Rôle adapté pour mise à jour: de '%s' à '%s'", role, user_data["role"]
             )
 
         return DatabaseAdapter.update(db, user, user_data)
@@ -241,7 +241,7 @@ class UserService:
         """
         user = UserService.get_user(db, user_id)
         if not user:
-            logger.error(f"Utilisateur avec ID {user_id} non trouvé pour suppression")
+            logger.error("Utilisateur avec ID %s non trouvé pour suppression", user_id)
             raise UserNotFoundError(f"Utilisateur avec ID {user_id} non trouvé")
 
         TransactionManager.safe_delete(db, user, auto_commit=auto_commit)
@@ -260,7 +260,9 @@ class UserService:
         """
         user = UserService.get_user(db, user_id)
         if not user:
-            logger.error(f"Utilisateur avec ID {user_id} non trouvé pour désactivation")
+            logger.error(
+                "Utilisateur avec ID %s non trouvé pour désactivation", user_id
+            )
             return False
 
         return DatabaseAdapter.update(db, user, {"is_active": False})
@@ -283,7 +285,8 @@ class UserService:
         user = UserService.get_user(db, user_id)
         if not user:
             logger.error(
-                f"Utilisateur avec ID {user_id} non trouvé pour récupération des statistiques"
+                "Utilisateur avec ID %s non trouvé pour récupération des statistiques",
+                user_id,
             )
             return {}
 
@@ -411,7 +414,7 @@ class UserService:
 
         except SQLAlchemyError as stats_fetch_error:
             logger.error(
-                f"Erreur lors de la récupération des statistiques: {stats_fetch_error}"
+                "Erreur lors de la récupération des statistiques: %s", stats_fetch_error
             )
             return {"stats_error": "Erreur lors de la récupération des statistiques"}
 
@@ -543,7 +546,7 @@ class UserService:
             recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
             return recent_activity[:10]
         except SQLAlchemyError as activity_error:
-            logger.error(f"Erreur activité récente: {activity_error}")
+            logger.error("Erreur activité récente: %s", activity_error)
             return []
 
     @staticmethod
@@ -613,7 +616,7 @@ class UserService:
                 ],
             }
         except Exception as progress_err:
-            logger.error(f"Erreur progression: {progress_err}")
+            logger.error("Erreur progression: %s", progress_err)
 
         return progress_over_time, exercises_by_day
 

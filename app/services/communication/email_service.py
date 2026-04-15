@@ -79,20 +79,23 @@ class EmailService:
         """
         if os.getenv("TESTING", "false").lower() == "true":
             logger.debug(
-                f"[Email] Mode test : envoi simulé vers {_mask_email(to_email)}"
+                "[Email] Mode test : envoi simulé vers %s", _mask_email(to_email)
             )
             return True
 
         # Vérifier si SendGrid est configuré
         sendgrid_api_key = os.getenv("SENDGRID_API_KEY")
         if sendgrid_api_key and SENDGRID_AVAILABLE:
-            logger.info(f"[Email] Envoi via SendGrid vers {_mask_email(to_email)}")
+            logger.info("[Email] Envoi via SendGrid vers %s", _mask_email(to_email))
             return EmailService._send_via_sendgrid(
                 to_email, subject, html_content, text_content
             )
         else:
             logger.info(
-                f"[Email] Envoi via SMTP vers {_mask_email(to_email)} (SendGrid: key={'✓' if sendgrid_api_key else '✗'}, pkg={SENDGRID_AVAILABLE})"
+                "[Email] Envoi via SMTP vers %s (SendGrid: key=%s, pkg=%s)",
+                _mask_email(to_email),
+                "✓" if sendgrid_api_key else "✗",
+                SENDGRID_AVAILABLE,
             )
             return EmailService._send_via_smtp(
                 to_email, subject, html_content, text_content
@@ -143,16 +146,16 @@ class EmailService:
             response = sg.send(message)
 
             if response.status_code in [200, 201, 202]:
-                logger.info(f"Email envoyé via SendGrid à {_mask_email(to_email)}")
+                logger.info("Email envoyé via SendGrid à %s", _mask_email(to_email))
                 return True
             else:
                 logger.error(
-                    f"Erreur SendGrid: {response.status_code} - {response.body}"
+                    "Erreur SendGrid: %s - %s", response.status_code, response.body
                 )
                 return False
 
         except Exception as sendgrid_error:
-            logger.error(f"Erreur lors de l'envoi via SendGrid: {sendgrid_error}")
+            logger.error("Erreur lors de l'envoi via SendGrid: %s", sendgrid_error)
             return False
 
     @staticmethod
@@ -176,12 +179,16 @@ class EmailService:
 
             # Si SMTP non configuré, logger et retourner False
             if not smtp_user or not smtp_password:
-                logger.warning(f"SMTP non configuré - Email non envoyé")
+                logger.warning("SMTP non configuré - Email non envoyé")
                 logger.warning(
-                    f"SMTP_USER={'configuré' if smtp_user else 'MANQUANT'}, SMTP_PASSWORD={'configuré' if smtp_password else 'MANQUANT'}"
+                    "SMTP_USER=%s, SMTP_PASSWORD=%s",
+                    "configuré" if smtp_user else "MANQUANT",
+                    "configuré" if smtp_password else "MANQUANT",
                 )
                 logger.info(
-                    f"Email qui aurait été envoyé à {_mask_email(to_email)}: {subject}"
+                    "Email qui aurait été envoyé à %s: %s",
+                    _mask_email(to_email),
+                    subject,
                 )
                 # En développement, on peut simuler l'envoi
                 if os.getenv("ENVIRONMENT", "").lower() != "production":
@@ -190,7 +197,10 @@ class EmailService:
                 return False
 
             logger.info(
-                f"Tentative d'envoi email SMTP à {_mask_email(to_email)} via {smtp_host}:{smtp_port}"
+                "Tentative d'envoi email SMTP à %s via %s:%s",
+                _mask_email(to_email),
+                smtp_host,
+                smtp_port,
             )
 
             # Créer le message
@@ -209,33 +219,37 @@ class EmailService:
             msg.attach(part_html)
 
             # Envoyer l'email
-            logger.debug(f"Connexion SMTP à {smtp_host}:{smtp_port}")
+            logger.debug("Connexion SMTP à %s:%s", smtp_host, smtp_port)
             with smtplib.SMTP(smtp_host, smtp_port) as server:
-                logger.debug(f"Connexion établie, démarrage TLS: {smtp_use_tls}")
+                logger.debug("Connexion établie, démarrage TLS: %s", smtp_use_tls)
                 if smtp_use_tls:
                     server.starttls()
-                logger.debug(f"Authentification avec {_mask_user(smtp_user)}")
+                logger.debug("Authentification avec %s", _mask_user(smtp_user))
                 server.login(smtp_user, smtp_password)
-                logger.debug(f"Envoi du message à {_mask_email(to_email)}")
+                logger.debug("Envoi du message à %s", _mask_email(to_email))
                 server.send_message(msg)
 
             logger.info(
-                f"✅ Email envoyé via SMTP à {_mask_email(to_email)} depuis {_mask_email(smtp_from_email)}"
+                "✅ Email envoyé via SMTP à %s depuis %s",
+                _mask_email(to_email),
+                _mask_email(smtp_from_email),
             )
             return True
 
         except smtplib.SMTPAuthenticationError as smtp_auth_error:
-            logger.error(f"❌ Erreur d'authentification SMTP: {smtp_auth_error}")
+            logger.error("❌ Erreur d'authentification SMTP: %s", smtp_auth_error)
             logger.error(
-                f"Vérifiez SMTP_USER ({_mask_user(smtp_user)}) et SMTP_PASSWORD"
+                "Vérifiez SMTP_USER (%s) et SMTP_PASSWORD", _mask_user(smtp_user)
             )
             return False
         except smtplib.SMTPException as smtp_error:
-            logger.error(f"❌ Erreur SMTP: {smtp_error}")
+            logger.error("❌ Erreur SMTP: %s", smtp_error)
             return False
         except Exception as smtp_general_error:
             logger.error(
-                f"❌ Erreur lors de l'envoi via SMTP: {type(smtp_general_error).__name__}: {smtp_general_error}"
+                "❌ Erreur lors de l'envoi via SMTP: %s: %s",
+                type(smtp_general_error).__name__,
+                smtp_general_error,
             )
             import traceback
 

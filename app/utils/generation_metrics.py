@@ -54,8 +54,13 @@ class GenerationMetrics:
 
         logger.debug(
             "Metrics recorded - "
-            f"Type: {challenge_type}, Success: {success}, Validation: {validation_passed}, "
-            f"Auto-corrected: {auto_corrected}, Duration: {duration_seconds:.2f}s"
+            "Type: %s, Success: %s, Validation: %s, "
+            "Auto-corrected: %s, Duration: %.2fs",
+            challenge_type,
+            success,
+            validation_passed,
+            auto_corrected,
+            duration_seconds,
         )
 
     def _records_in_window(

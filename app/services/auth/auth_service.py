@@ -168,7 +168,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 
     try:
         is_valid = verify_password(password, user.hashed_password)
-        logger.debug(f"Résultat de la vérification du mot de passe: {is_valid}")
+        logger.debug("Résultat de la vérification du mot de passe: %s", is_valid)
 
         if not is_valid:
             logger.warning(
@@ -186,7 +186,8 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return user
     except Exception as password_verification_error:
         logger.error(
-            f"Erreur lors de la vérification du mot de passe: {str(password_verification_error)}"
+            "Erreur lors de la vérification du mot de passe: %s",
+            str(password_verification_error),
         )
         return None
 
@@ -331,7 +332,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
     """
     try:
         logger.debug(
-            f"Tentative de décodage du refresh_token (longueur: {len(refresh_token)})"
+            "Tentative de décodage du refresh_token (longueur: %s)", len(refresh_token)
         )
 
         try:
@@ -349,7 +350,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
                 status_code=401,
             )
         except JWTError as decode_error:
-            logger.error(f"Erreur de décodage JWT: {str(decode_error)}")
+            logger.error("Erreur de décodage JWT: %s", str(decode_error))
             return RefreshTokenResult(
                 token_data=None,
                 error_message="Token JWT invalide ou malformé",
@@ -357,10 +358,11 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
             )
 
         token_type = payload.get("type")
-        logger.debug(f"Type de token décodé: {token_type}")
+        logger.debug("Type de token décodé: %s", token_type)
         if token_type != "refresh":
             logger.warning(
-                f"Tentative de rafraîchissement avec un token non-refresh: {token_type}"
+                "Tentative de rafraîchissement avec un token non-refresh: %s",
+                token_type,
             )
             return RefreshTokenResult(
                 token_data=None,
@@ -427,7 +429,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
         raise
     except Exception as token_refresh_error:
         logger.error(
-            f"Erreur lors du rafraîchissement du token: {str(token_refresh_error)}"
+            "Erreur lors du rafraîchissement du token: %s", str(token_refresh_error)
         )
         return RefreshTokenResult(
             token_data=None,

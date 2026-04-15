@@ -90,7 +90,7 @@ async def get_user_stats(request: Request) -> JSONResponse:
         )
     except Exception as stats_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}"
+            "Erreur lors de la récupération des statistiques: %s", stats_retrieval_error
         )
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
@@ -143,7 +143,7 @@ async def create_user_account(request: Request) -> JSONResponse:
         return JSONResponse(result.payload, status_code=201)
     except Exception as user_creation_error:
         logger.error(
-            f"Erreur lors de la création de l'utilisateur: {user_creation_error}"
+            "Erreur lors de la création de l'utilisateur: %s", user_creation_error
         )
         logger.debug(traceback.format_exc())
         return capture_internal_error_response(
@@ -162,7 +162,8 @@ async def get_all_users(request: Request) -> JSONResponse:
     try:
         current_user = request.state.user
         logger.info(
-            f"Accès à la liste de tous les utilisateurs par {current_user.get('username')}. Fonctionnalité en développement."
+            "Accès à la liste de tous les utilisateurs par %s. Fonctionnalité en développement.",
+            current_user.get("username"),
         )
         return JSONResponse(
             {
@@ -172,7 +173,8 @@ async def get_all_users(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de tous les utilisateurs: {e}",
+            "Erreur lors de la récupération de tous les utilisateurs: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -210,13 +212,15 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
             period=period,
         )
         logger.info(
-            f"Classement récupéré par {current_user.get('username')}: {len(leaderboard)} utilisateurs"
+            "Classement récupéré par %s: %s utilisateurs",
+            current_user.get("username"),
+            len(leaderboard),
         )
         return JSONResponse({"leaderboard": leaderboard}, status_code=200)
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération du classement: {e}", exc_info=True
+            "Erreur lors de la récupération du classement: %s", e, exc_info=True
         )
         return api_error_response(500, get_safe_error_message(e))
 
@@ -273,7 +277,8 @@ async def get_progress_timeline_handler(request: Request) -> JSONResponse:
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la timeline de progression: {e}",
+            "Erreur lors de la récupération de la timeline de progression: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -290,7 +295,7 @@ async def get_all_user_progress(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
         logger.info(
-            f"Récupération de la progression globale pour l'utilisateur {user_id}"
+            "Récupération de la progression globale pour l'utilisateur %s", user_id
         )
 
         response_data = await run_db_bound(get_user_progress_data, user_id)
@@ -298,7 +303,8 @@ async def get_all_user_progress(request: Request) -> JSONResponse:
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}",
+            "Erreur lors de la récupération de la progression globale de l'utilisateur: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -315,7 +321,7 @@ async def get_challenges_progress(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
         logger.info(
-            f"Récupération de la progression des défis pour l'utilisateur {user_id}"
+            "Récupération de la progression des défis pour l'utilisateur %s", user_id
         )
 
         response_data = await run_db_bound(get_challenges_progress_data, user_id)
@@ -323,7 +329,8 @@ async def get_challenges_progress(request: Request) -> JSONResponse:
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la progression des défis: {e}",
+            "Erreur lors de la récupération de la progression des défis: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -392,7 +399,7 @@ async def update_user_me(request: Request) -> JSONResponse:
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-        logger.info(f"Mise à jour profil utilisateur {user_id}")
+        logger.info("Mise à jour profil utilisateur %s", user_id)
 
         user_payload, err = await run_db_bound(update_profile, user_id, data)
         if err == "not_found":
@@ -402,12 +409,12 @@ async def update_user_me(request: Request) -> JSONResponse:
         if err:
             return api_error_response(400, err)
 
-        logger.info(f"Profil utilisateur {user_id} mis à jour")
+        logger.info("Profil utilisateur %s mis à jour", user_id)
         return JSONResponse(user_payload)
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la mise à jour de l'utilisateur: {e}", exc_info=True
+            "Erreur lors de la mise à jour de l'utilisateur: %s", e, exc_info=True
         )
         return api_error_response(500, get_safe_error_message(e))
 
@@ -448,14 +455,14 @@ async def update_user_password_me(request: Request) -> JSONResponse:
                 return api_error_response(404, "Utilisateur introuvable.")
             return api_error_response(401, err_msg or "Erreur lors de la mise à jour.")
 
-        logger.info(f"Mot de passe de l'utilisateur {user_id} mis à jour avec succès")
+        logger.info("Mot de passe de l'utilisateur %s mis à jour avec succès", user_id)
         return JSONResponse(
             {"success": True, "message": "Mot de passe mis à jour avec succès."}
         )
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la mise à jour du mot de passe: {e}", exc_info=True
+            "Erreur lors de la mise à jour du mot de passe: %s", e, exc_info=True
         )
         return api_error_response(500, get_safe_error_message(e))
 
@@ -473,7 +480,7 @@ async def delete_user_me(request: Request) -> JSONResponse:
 
         await run_db_bound(delete_user_account, user_id)
 
-        logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
+        logger.info("Compte utilisateur supprimé : %s (ID: %s)", username, user_id)
 
         response = JSONResponse(
             {"success": True, "message": "Votre compte a été supprimé avec succès."}
@@ -496,7 +503,7 @@ async def delete_user_me(request: Request) -> JSONResponse:
     except UserNotFoundError:
         return api_error_response(404, "Utilisateur introuvable.")
     except Exception as e:
-        logger.error(f"Erreur lors de la suppression du compte: {e}", exc_info=True)
+        logger.error("Erreur lors de la suppression du compte: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
@@ -515,7 +522,8 @@ async def delete_user(request: Request) -> JSONResponse:
             return api_error_response(403, "Non autorisé à supprimer cet utilisateur")
 
         logger.info(
-            f"Tentative de suppression de l'utilisateur {user_to_delete_id} - Redirigé vers DELETE /api/users/me"
+            "Tentative de suppression de l'utilisateur %s - Redirigé vers DELETE /api/users/me",
+            user_to_delete_id,
         )
         return api_error_response(
             400, "Utilisez DELETE /api/users/me pour supprimer votre compte."
@@ -524,7 +532,7 @@ async def delete_user(request: Request) -> JSONResponse:
         return api_error_response(400, "ID utilisateur invalide")
     except Exception as e:
         logger.error(
-            f"Erreur lors de la suppression de l'utilisateur: {e}", exc_info=True
+            "Erreur lors de la suppression de l'utilisateur: %s", e, exc_info=True
         )
         return api_error_response(500, get_safe_error_message(e))
 
@@ -546,15 +554,16 @@ async def export_user_data_handler(request: Request) -> JSONResponse:
 
         stats = export["statistics"]
         logger.info(
-            f"Export de données pour l'utilisateur {user_id} : "
-            f"{stats['total_exercise_attempts']} exercices, "
-            f"{stats['total_challenge_attempts']} défis, "
-            f"{stats['total_badges']} badges"
+            "Export de données pour l'utilisateur %s : %s exercices, %s défis, %s badges",
+            user_id,
+            stats["total_exercise_attempts"],
+            stats["total_challenge_attempts"],
+            stats["total_badges"],
         )
         return JSONResponse(export)
 
     except Exception as e:
-        logger.error(f"Erreur lors de l'export des données: {e}", exc_info=True)
+        logger.error("Erreur lors de l'export des données: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
@@ -572,12 +581,16 @@ async def get_user_sessions(request: Request) -> JSONResponse:
         session_list = await run_db_bound(get_user_sessions_list, user_id)
 
         logger.debug(
-            f"Récupération de {len(session_list)} sessions actives pour user_id={user_id}"
+            "Récupération de %s sessions actives pour user_id=%s",
+            len(session_list),
+            user_id,
         )
         return JSONResponse(session_list, status_code=200)
 
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des sessions: {e}", exc_info=True)
+        logger.error(
+            "Erreur lors de la récupération des sessions: %s", e, exc_info=True
+        )
         return capture_internal_error_response(
             e,
             "Erreur lors de la récupération des sessions",
@@ -601,14 +614,16 @@ async def revoke_user_session(request: Request) -> JSONResponse:
 
         if not ok:
             logger.warning(
-                f"Tentative de révocation d'une session inexistante ou non autorisée: session_id={session_id}, user_id={user_id}"
+                "Tentative de révocation d'une session inexistante ou non autorisée: session_id=%s, user_id=%s",
+                session_id,
+                user_id,
             )
             return api_error_response(
                 404,
                 "Session non trouvée ou vous n'avez pas l'autorisation de la révoquer",
             )
 
-        logger.info(f"Session {session_id} révoquée pour user_id={user_id}")
+        logger.info("Session %s révoquée pour user_id=%s", session_id, user_id)
         return JSONResponse(
             {"success": True, "message": "Session révoquée avec succès"},
             status_code=200,
@@ -617,7 +632,7 @@ async def revoke_user_session(request: Request) -> JSONResponse:
     except ValueError:
         return api_error_response(400, "ID de session invalide")
     except Exception as e:
-        logger.error(f"Erreur lors de la révocation de la session: {e}", exc_info=True)
+        logger.error("Erreur lors de la révocation de la session: %s", e, exc_info=True)
         return capture_internal_error_response(
             e,
             "Erreur lors de la révocation de la session",

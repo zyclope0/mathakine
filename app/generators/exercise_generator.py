@@ -1654,7 +1654,7 @@ def generate_simple_exercise(
         )
         return apply_test_title(exercise_data)
     logger.info(
-        f"⚠️ Type d'exercice non géré dans generate_simple_exercise: {normalized_type}, "
-        "utilisation de ADDITION par défaut"
+        "⚠️ Type d'exercice non géré dans generate_simple_exercise: %s, utilisation de ADDITION par défaut",
+        normalized_type,
     )
     return default_addition_fallback(exercise_data, type_limits, ai_generated=False)

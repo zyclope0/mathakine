@@ -43,7 +43,7 @@ def get_db_connection():
         conn.autocommit = True
         return conn
     except Exception as e:
-        logger.error(f"Erreur de connexion à PostgreSQL: {e}")
+        logger.error("Erreur de connexion à PostgreSQL: %s", e)
         raise e
 
 

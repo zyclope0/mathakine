@@ -308,13 +308,14 @@ class RecommendationService:
             user_exists = db.query(exists().where(User.id == user_id)).scalar()
             if not user_exists:
                 logger.warning(
-                    f"Tentative de génération de recommandations pour un utilisateur inexistant: {user_id}"
+                    "Tentative de génération de recommandations pour un utilisateur inexistant: %s",
+                    user_id,
                 )
                 return []
 
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
-                logger.error(f"Utilisateur {user_id} non trouvé")
+                logger.error("Utilisateur %s non trouvé", user_id)
                 return []
 
             # R2 — Contexte explicite : diagnostic par type + médiane globale
@@ -323,9 +324,12 @@ class RecommendationService:
             learning_goal = ctx.learning_goal
             practice_rhythm = ctx.practice_rhythm
             logger.debug(
-                f"Recommandations user {user_id}: age_group={user_age_group}, "
-                f"global_default_difficulty={ctx.global_default_difficulty}, "
-                f"diagnostic_by_type={ctx.diagnostic_difficulty_by_type}, goal={learning_goal}"
+                "Recommandations user %s: age_group=%s, global_default_difficulty=%s, diagnostic_by_type=%s, goal=%s",
+                user_id,
+                user_age_group,
+                ctx.global_default_difficulty,
+                ctx.diagnostic_difficulty_by_type,
+                learning_goal,
             )
 
             # Récupérer les stats récentes (30 derniers jours) pour mieux cibler
@@ -796,10 +800,10 @@ class RecommendationService:
                 valid_difficulties = [d.value for d in DifficultyLevel]
 
                 logger.debug(
-                    f"Aucune recommandation générée, recherche d'exercices aléatoires..."
+                    "Aucune recommandation générée, recherche d'exercices aléatoires..."
                 )
-                logger.debug(f"Types valides: {valid_types}")
-                logger.debug(f"Difficultés valides: {valid_difficulties}")
+                logger.debug("Types valides: %s", valid_types)
+                logger.debug("Difficultés valides: %s", valid_difficulties)
 
                 fb_tier = compute_user_target_difficulty_tier(
                     user_age_group, ctx.global_default_difficulty
@@ -848,10 +852,12 @@ class RecommendationService:
                 )
 
                 logger.debug(
-                    f"Exercices trouvés (fallback classé): {len(ranked_fallback)}"
+                    "Exercices trouvés (fallback classé): %s", len(ranked_fallback)
                 )
                 for ex in ranked_fallback:
-                    logger.debug(f"  - {ex.title} ({ex.exercise_type}/{ex.difficulty})")
+                    logger.debug(
+                        "  - %s (%s/%s)", ex.title, ex.exercise_type, ex.difficulty
+                    )
 
                 for ex in ranked_fallback:
                     if ex.id in all_completed_exercise_ids:
@@ -869,7 +875,9 @@ class RecommendationService:
                         )
                     )
 
-                logger.debug(f"Recommandations fallback créées: {len(recommendations)}")
+                logger.debug(
+                    "Recommandations fallback créées: %s", len(recommendations)
+                )
 
             # Ajouter toutes les recommandations
             db.add_all(recommendations)
@@ -879,7 +887,8 @@ class RecommendationService:
 
         except SQLAlchemyError as recommendations_generation_error:
             logger.error(
-                f"Erreur dans la génération des recommandations: {str(recommendations_generation_error)}"
+                "Erreur dans la génération des recommandations: %s",
+                str(recommendations_generation_error),
             )
             db.rollback()
             return []
@@ -980,7 +989,8 @@ class RecommendationService:
             return True, recommendation
         except SQLAlchemyError as mark_clicked_error:
             logger.error(
-                f"Erreur lors du marquage de la recommandation comme cliquée: {str(mark_clicked_error)}"
+                "Erreur lors du marquage de la recommandation comme cliquée: %s",
+                str(mark_clicked_error),
             )
             db.rollback()
             return False, None
@@ -1019,7 +1029,8 @@ class RecommendationService:
             return False, None, None
         except SQLAlchemyError as mark_completed_error:
             logger.error(
-                f"Erreur lors du marquage de la recommandation comme complétée: {str(mark_completed_error)}"
+                "Erreur lors du marquage de la recommandation comme complétée: %s",
+                str(mark_completed_error),
             )
             db.rollback()
             return False, None, None
@@ -1043,7 +1054,7 @@ class RecommendationService:
                     db, user_id, limit=limit
                 )
             except SQLAlchemyError as gen_error:
-                logger.error(f"Erreur génération recommandations: {gen_error}")
+                logger.error("Erreur génération recommandations: %s", gen_error)
                 return []
 
         completed_exercise_ids = {

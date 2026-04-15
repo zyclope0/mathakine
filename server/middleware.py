@@ -143,7 +143,7 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Fail-open volontaire: laisser passer la requête si le check échoue
             logger.warning(
-                f"Maintenance check failed: {e} — fail-open, requête autorisée"
+                "Maintenance check failed: %s — fail-open, requête autorisée", e
             )
         return await call_next(request)
 
@@ -274,7 +274,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             if auth_header.startswith("Bearer "):
                 access_token = auth_header[7:].strip()
         if not access_token:
-            logger.info(f"Unauthorized access attempt to {request.url.path}")
+            logger.info("Unauthorized access attempt to %s", request.url.path)
             return api_error_response(401, "Authentication required")
 
         try:
@@ -304,13 +304,13 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         except HTTPException as http_exc:
             # 401 attendu : token expiré ou invalide — pas une erreur applicative
             logger.warning(
-                f"Unauthorized request to {request.url.path}: {http_exc.detail}"
+                "Unauthorized request to %s: %s", request.url.path, http_exc.detail
             )
             return api_error_response(http_exc.status_code, http_exc.detail)
         except Exception as auth_error:
             # Erreur inattendue lors du décodage (ex. clé corrompue, librairie)
             logger.error(
-                f"Unexpected auth error for {request.url.path}: {str(auth_error)}"
+                "Unexpected auth error for %s: %s", request.url.path, str(auth_error)
             )
             return api_error_response(401, "Invalid or expired token")
 

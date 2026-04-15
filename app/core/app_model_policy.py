@@ -118,20 +118,18 @@ def resolve_assistant_chat_model(
         mid = normalize_openai_model_id(legacy)
         if mid == _DEPRECATED_ASSISTANT_LEGACY_MODEL:
             logger.warning(
-                f"OPENAI_MODEL={legacy} ignoré pour assistant_chat "
-                "(legacy non supporté, IA10). Utiliser "
-                "OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE ou retirer gpt-3.5-turbo."
+                "OPENAI_MODEL=%s ignoré pour assistant_chat (legacy non supporté, IA10). Utiliser OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE ou retirer gpt-3.5-turbo.",
+                legacy,
             )
         elif mid in ASSISTANT_CHAT_ALLOWED_MODEL_IDS:
             logger.debug(
-                f"assistant_chat: utilisation de OPENAI_MODEL "
-                f"(legacy documenté)={mid}"
+                "assistant_chat: utilisation de OPENAI_MODEL (legacy documenté)=%s", mid
             )
             return mid
         else:
             logger.warning(
-                f"OPENAI_MODEL={legacy} ignoré pour assistant_chat "
-                "(hors allowlist IA10)."
+                "OPENAI_MODEL=%s ignoré pour assistant_chat (hors allowlist IA10).",
+                legacy,
             )
 
     tier = (user_tier or "standard").strip().lower()

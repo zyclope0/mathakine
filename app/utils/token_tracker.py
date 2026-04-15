@@ -126,8 +126,8 @@ class TokenTracker:
         # Calculer le coût — warning explicite si modèle inconnu (pas de fallback silencieux)
         if model not in cost_per_1k_tokens:
             logger.warning(
-                f"Modèle '{model}' absent de la table de coûts — estimation avec gpt-4o-mini. "
-                f"Mettre à jour token_tracker.py § cost_per_1k_tokens."
+                "Modèle '%s' absent de la table de coûts — estimation avec gpt-4o-mini. Mettre à jour token_tracker.py § cost_per_1k_tokens.",
+                model,
             )
         model_costs = cost_per_1k_tokens.get(model, cost_per_1k_tokens["gpt-4o-mini"])
         cost = (prompt_tokens / 1000 * model_costs["input"]) + (
@@ -156,9 +156,15 @@ class TokenTracker:
         self._prune_stale_daily_totals()
 
         logger.info(
-            f"Token usage tracked - Type: {challenge_type}, "
-            f"Tokens: {total_tokens} (prompt: {prompt_tokens}, completion: {completion_tokens}), "
-            f"Cost: ${cost:.6f}, Model: {model}"
+            "Token usage tracked - Type: %s, "
+            "Tokens: %s (prompt: %s, completion: %s), "
+            "Cost: $%.6f, Model: %s",
+            challenge_type,
+            total_tokens,
+            prompt_tokens,
+            completion_tokens,
+            cost,
+            model,
         )
 
         return {

@@ -46,7 +46,7 @@ async def _parse_json(
     try:
         return json.loads(body_bytes.decode("utf-8"))
     except (json.JSONDecodeError, ValueError) as exc:
-        logger.warning(f"Corps JSON invalide: {exc}")
+        logger.warning("Corps JSON invalide: %s", exc)
         return None
 
 

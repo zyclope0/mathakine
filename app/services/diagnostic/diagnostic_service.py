@@ -241,7 +241,9 @@ def _apply_answer(
             ts["done"] = True
             ts["last_error_level"] = current_level
             logger.debug(
-                f"Diagnostic: type={exercise_type} fige au niveau ordinal {current_level}"
+                "Diagnostic: type=%s fige au niveau ordinal %s",
+                exercise_type,
+                current_level,
             )
         else:
             # Descendre d'un niveau (plancher 0)
@@ -287,8 +289,10 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         raw = generate_ai_exercise(exercise_type, age_group)
     except Exception as exc:
         logger.error(
-            f"Diagnostic: erreur generation exercice type={exercise_type} "
-            f"difficulty={difficulty}: {exc}"
+            "Diagnostic: erreur generation exercice type=%s difficulty=%s: %s",
+            exercise_type,
+            difficulty,
+            exc,
         )
         return None
 
@@ -368,8 +372,10 @@ def save_result(
         db.commit()
         db.refresh(result)
         logger.info(
-            f"DiagnosticResult sauvegarde: user={user_id} "
-            f"questions={result.questions_asked} scores={scores}"
+            "DiagnosticResult sauvegarde: user=%s questions=%s scores=%s",
+            user_id,
+            result.questions_asked,
+            scores,
         )
 
         # Declenche la regeneration des recommandations pour profiter du diagnostic
@@ -378,7 +384,7 @@ def save_result(
         return True, result
 
     except SQLAlchemyError as exc:
-        logger.error(f"Erreur sauvegarde DiagnosticResult user={user_id}: {exc}")
+        logger.error("Erreur sauvegarde DiagnosticResult user=%s: %s", user_id, exc)
         db.rollback()
         return False, None
 
@@ -422,8 +428,9 @@ def _refresh_recommendations(db: Session, user_id: int) -> None:
         RecommendationService.generate_recommendations(db, user_id)
     except Exception as exc:
         logger.warning(
-            f"Impossible de regenerer les recommandations apres diagnostic "
-            f"user={user_id}: {exc}"
+            "Impossible de regenerer les recommandations apres diagnostic user=%s: %s",
+            user_id,
+            exc,
         )
 
 

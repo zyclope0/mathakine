@@ -42,7 +42,7 @@ def create_tables():
         logger.success("Migrations appliquées avec succès")
     except Exception as alembic_error:
         logger.warning(
-            f"Alembic non disponible ou échec ({alembic_error}), fallback create_all"
+            "Alembic non disponible ou échec (%s), fallback create_all", alembic_error
         )
         try:
             Base.metadata.create_all(bind=engine, checkfirst=True)
@@ -90,7 +90,8 @@ def populate_test_data():
     except Exception as test_data_creation_error:
         db.rollback()
         logger.error(
-            f"Erreur lors de la création des données de test: {str(test_data_creation_error)}"
+            "Erreur lors de la création des données de test: %s",
+            str(test_data_creation_error),
         )
         raise
     finally:
@@ -155,7 +156,7 @@ def create_test_users(db: Session):
 
     db.add_all(users)
     db.flush()
-    logger.info(f"{len(users)} utilisateurs créés (incluant ObiWan permanent)")
+    logger.info("%s utilisateurs créés (incluant ObiWan permanent)", len(users))
 
 
 def create_test_exercises(db: Session):
@@ -214,7 +215,7 @@ def create_test_exercises(db: Session):
 
     db.add_all(exercises)
     db.flush()
-    logger.info(f"{len(exercises)} exercices créés")
+    logger.info("%s exercices créés", len(exercises))
 
 
 def create_test_attempts(db: Session):
@@ -259,7 +260,7 @@ def create_test_attempts(db: Session):
         )
         db.add(successful_attempt)
         db.flush()
-        logger.info(f"Tentative réussie créée pour l'exercice {exercise.id}")
+        logger.info("Tentative réussie créée pour l'exercice %s", exercise.id)
 
         # Créer une tentative échouée
         failed_answer = ""
@@ -287,9 +288,9 @@ def create_test_attempts(db: Session):
         )
         db.add(failed_attempt)
         db.flush()
-        logger.info(f"Tentative échouée créée pour l'exercice {exercise.id}")
+        logger.info("Tentative échouée créée pour l'exercice %s", exercise.id)
 
-    logger.info(f"Tentatives créées pour {len(exercises)} exercices")
+    logger.info("Tentatives créées pour %s exercices", len(exercises))
 
 
 def create_test_logic_challenges(db: Session):
@@ -346,7 +347,7 @@ def create_test_logic_challenges(db: Session):
         assign_logic_challenge_difficulty_tier(ch)
     db.add_all(logic_challenges)
     db.flush()
-    logger.info(f"{len(logic_challenges)} défis logiques créés")
+    logger.info("%s défis logiques créés", len(logic_challenges))
 
 
 def initialize_database():
@@ -368,6 +369,7 @@ def initialize_database():
         logger.success("Base de données initialisée avec succès")
     except Exception as db_init_error:
         logger.error(
-            f"Erreur lors de l'initialisation de la base de données: {str(db_init_error)}"
+            "Erreur lors de l'initialisation de la base de données: %s",
+            str(db_init_error),
         )
         raise

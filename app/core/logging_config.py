@@ -125,7 +125,7 @@ def configure_logging(remove_existing_handlers=True):
         )
 
     logger.info("Journalisation configurée avec succès")
-    logger.debug(f"Dossier des logs: {LOGS_DIR}")
+    logger.debug("Dossier des logs: %s", LOGS_DIR)
 
 
 # Configuration automatique lors de l'importation du module

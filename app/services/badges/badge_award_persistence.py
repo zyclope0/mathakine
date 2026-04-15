@@ -51,6 +51,8 @@ def award_badge(
             raise
         rollback_fn()
         logger.error(
-            f"Erreur lors de l'attribution du badge {badge.code}: {badge_award_error}"
+            "Erreur lors de l'attribution du badge %s: %s",
+            badge.code,
+            badge_award_error,
         )
         return None

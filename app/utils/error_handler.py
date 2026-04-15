@@ -66,7 +66,7 @@ def capture_exception_for_sentry(
     except ImportError:
         return
     except Exception as sentry_capture_error:
-        logger.debug(f"Capture Sentry ignorée: {sentry_capture_error}")
+        logger.debug("Capture Sentry ignorée: %s", sentry_capture_error)
 
 
 def api_error_json(
@@ -212,8 +212,8 @@ class ErrorHandler:
                 exc_info=True,
             )
         else:
-            logger.error(f"{error_type}: {error_message}")
-            logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+            logger.error("%s: %s", error_type, error_message)
+            logger.debug("Traceback complet:\\n%s", traceback.format_exc())
         sentry_tags: Dict[str, str] = {
             "capture_path": "ErrorHandler.create_error_response",
         }
@@ -260,7 +260,7 @@ class ErrorHandler:
         if errors is not None and user_message is not None:
             # Mode 2 : erreurs multiples (challenge_handlers, etc.)
             field_errors = [{"field": "params", "message": e} for e in errors]
-            logger.warning(f"Erreur de validation: {user_message} — {errors}")
+            logger.warning("Erreur de validation: %s — %s", user_message, errors)
             payload = api_error_json(
                 status_code,
                 user_message,
@@ -269,7 +269,9 @@ class ErrorHandler:
             return JSONResponse(payload, status_code=status_code)
         if field and message:
             # Mode 1 : champ unique — rétrocompatibilité
-            logger.warning(f"Erreur de validation pour le champ '{field}': {message}")
+            logger.warning(
+                "Erreur de validation pour le champ '%s': %s", field, message
+            )
             payload = api_error_json(
                 status_code,
                 message,
@@ -297,7 +299,7 @@ class ErrorHandler:
             JSONResponse avec le format d'erreur "non trouvé"
         """
         message = f"{resource_type.capitalize()} non trouvé"
-        logger.warning(f"{message}: ID {resource_id}")
+        logger.warning("%s: ID %s", message, resource_id)
         payload = api_error_json(status_code, message)
         payload["resource_type"] = resource_type
         payload["resource_id"] = str(resource_id)

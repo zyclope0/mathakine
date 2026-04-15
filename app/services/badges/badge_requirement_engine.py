@@ -395,7 +395,7 @@ def check_requirements(
     try:
         return checker(db, user_id, requirements, attempt_data, stats_cache)
     except Exception as e:
-        logger.error(f"Erreur checker {req_type}: {e}")
+        logger.error("Erreur checker %s: %s", req_type, e)
         return False
 
 
@@ -656,5 +656,5 @@ def get_requirement_progress(
     try:
         return getter(db, user_id, requirements, stats_cache)
     except Exception as e:
-        logger.error(f"Erreur get_progress {req_type}: {e}")
+        logger.error("Erreur get_progress %s: %s", req_type, e)
         return None

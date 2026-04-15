@@ -48,9 +48,9 @@ def decode_token(token: str) -> dict:
         # Logger en debug plutôt qu'en error car c'est normal si le token est invalide/expiré
         error_msg = str(jwt_decode_error)
         if "Signature verification failed" in error_msg:
-            logger.debug(f"Signature verification failed (token invalide ou expiré)")
+            logger.debug("Signature verification failed (token invalide ou expiré)")
         else:
-            logger.debug(f"Erreur lors du décodage du token: {error_msg}")
+            logger.debug("Erreur lors du décodage du token: %s", error_msg)
         raise HTTPException(status_code=401, detail="Token invalide ou expiré")
 
 
@@ -111,7 +111,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         password_bytes = plain_password.encode("utf-8")
         if len(password_bytes) > 72:
             logger.warning(
-                f"Mot de passe trop long ({len(password_bytes)} bytes), tronqué à 72 bytes"
+                "Mot de passe trop long (%s bytes), tronqué à 72 bytes",
+                len(password_bytes),
             )
             plain_password = password_bytes[:72].decode("utf-8", errors="ignore")
 
@@ -123,11 +124,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             hashed_password_bytes = hashed_password
 
         result = bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password_bytes)
-        logger.debug(f"Résultat de la vérification: {result}")
+        logger.debug("Résultat de la vérification: %s", result)
         return result
     except Exception as password_verification_error:
         logger.error(
-            f"Erreur lors de la vérification du mot de passe: {str(password_verification_error)}"
+            "Erreur lors de la vérification du mot de passe: %s",
+            str(password_verification_error),
         )
         raise
 
@@ -142,7 +144,7 @@ def get_password_hash(password: str) -> str:
     Returns:
         Version hachée du mot de passe
     """
-    logger.debug(f"Génération du hash pour le mot de passe")
+    logger.debug("Génération du hash pour le mot de passe")
     try:
         # Utiliser bcrypt directement au lieu de passlib pour éviter les warnings de compatibilité
         # Générer un salt et hasher le mot de passe
@@ -153,7 +155,7 @@ def get_password_hash(password: str) -> str:
         return hashed
     except Exception as password_hashing_error:
         logger.error(
-            f"Erreur lors de la génération du hash: {str(password_hashing_error)}"
+            "Erreur lors de la génération du hash: %s", str(password_hashing_error)
         )
         raise
 

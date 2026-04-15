@@ -121,7 +121,7 @@ async def chat_api(request: Request) -> JSONResponse:
         return JSONResponse(response_data)
 
     except Exception as chat_api_error:
-        logger.error(f"Erreur dans chat_api: {str(chat_api_error)}", exc_info=True)
+        logger.error("Erreur dans chat_api: %s", str(chat_api_error), exc_info=True)
         generation_metrics.record_generation(
             challenge_type=metrics_key,
             success=False,
@@ -216,7 +216,7 @@ async def chat_api_stream(request: Request) -> Response:
                 yield f"data: {json.dumps({'type': 'done', 'model_used': cfg['model'], 'complexity': cfg['complexity']})}\n\n"
 
             except Exception as stream_generation_error:
-                logger.error(f"Erreur dans generate_stream: {stream_generation_error}")
+                logger.error("Erreur dans generate_stream: %s", stream_generation_error)
                 generation_metrics.record_generation(
                     challenge_type=metrics_key,
                     success=False,
@@ -237,7 +237,9 @@ async def chat_api_stream(request: Request) -> Response:
         )
 
     except Exception as chat_stream_error:
-        logger.error(f"Erreur dans chat_api_stream: {chat_stream_error}", exc_info=True)
+        logger.error(
+            "Erreur dans chat_api_stream: %s", chat_stream_error, exc_info=True
+        )
         generation_metrics.record_generation(
             challenge_type=metrics_key,
             success=False,

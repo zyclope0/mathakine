@@ -34,7 +34,8 @@ def normalize_exercise_type(exercise_type) -> str:
         return exercise_type_upper
 
     logger.info(
-        f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut"
+        "⚠️ Type d'exercice non reconnu: %s, utilisation de ADDITION par défaut",
+        exercise_type,
     )
     return ExerciseTypes.ADDITION
 
@@ -55,7 +56,8 @@ def normalize_difficulty(difficulty) -> str:
         return difficulty_upper
 
     logger.info(
-        f"⚠️ Niveau de difficulté non reconnu: {difficulty}, utilisation de PADAWAN par défaut"
+        "⚠️ Niveau de difficulté non reconnu: %s, utilisation de PADAWAN par défaut",
+        difficulty,
     )
     return DifficultyLevels.PADAWAN
 
@@ -73,13 +75,16 @@ def normalize_and_validate_exercise_params(
 
     if exercise_type not in ExerciseTypes.ALL_TYPES:
         logger.info(
-            f"⚠️ Type normalisé invalide: {exercise_type}, utilisation de ADDITION par défaut"
+            "⚠️ Type normalisé invalide: %s, utilisation de ADDITION par défaut",
+            exercise_type,
         )
         exercise_type = ExerciseTypes.ADDITION
 
     if age_group not in AgeGroups.ALL_GROUPS:
         logger.info(
-            f"⚠️ Groupe d'âge non reconnu: {age_group_raw}, utilisation de {AgeGroups.GROUP_6_8} par défaut"
+            "⚠️ Groupe d'âge non reconnu: %s, utilisation de %s par défaut",
+            age_group_raw,
+            AgeGroups.GROUP_6_8,
         )
         age_group = AgeGroups.GROUP_6_8
         derived_difficulty = get_difficulty_from_age_group(age_group)

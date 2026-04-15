@@ -289,7 +289,7 @@ async def generate_exercise_stream(
                 user_content=user_prompt,
             )
         except ValueError as policy_error:
-            logger.error(f"Configuration IA exercices invalide: {policy_error}")
+            logger.error("Configuration IA exercices invalide: %s", policy_error)
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
                 success=False,
@@ -338,7 +338,9 @@ async def generate_exercise_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur OpenAI exercices après {AIConfig.MAX_RETRIES} tentatives: {api_error}"
+                "Erreur OpenAI exercices après %s tentatives: %s",
+                AIConfig.MAX_RETRIES,
+                api_error,
             )
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -359,7 +361,8 @@ async def generate_exercise_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur inattendue lors de l'initialisation du stream exercices IA: {stream_error}"
+                "Erreur inattendue lors de l'initialisation du stream exercices IA: %s",
+                stream_error,
             )
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -397,7 +400,7 @@ async def generate_exercise_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur OpenAI exercices pendant le stream: {stream_api_error}"
+                "Erreur OpenAI exercices pendant le stream: %s", stream_api_error
             )
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -418,7 +421,7 @@ async def generate_exercise_stream(
             else:
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
-                f"Erreur inattendue pendant le stream exercices IA: {stream_other}"
+                "Erreur inattendue pendant le stream exercices IA: %s", stream_other
             )
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -447,8 +450,8 @@ async def generate_exercise_stream(
         try:
             exercise_data = extract_json_from_text(full_response)
         except json.JSONDecodeError as json_error:
-            logger.error(f"Exercice IA JSON invalide: {json_error}")
-            logger.debug(f"Extrait réponse: {full_response[:800]!r}")
+            logger.error("Exercice IA JSON invalide: %s", json_error)
+            logger.debug("Extrait réponse: %r", full_response[:800])
             _track_openai_cost()
             generation_metrics.record_generation(
                 challenge_type=metrics_key,
@@ -480,7 +483,7 @@ async def generate_exercise_stream(
         )
         if not valid:
             logger.warning(
-                f"Validation métier exercice IA refusée (non persistée): {reasons}"
+                "Validation métier exercice IA refusée (non persistée): %s", reasons
             )
             _track_openai_cost()
             generation_metrics.record_generation(
@@ -529,7 +532,7 @@ async def generate_exercise_stream(
                 persist_error = "sauvegarde_sans_identifiant"
         except Exception as save_error:
             persist_error = str(save_error)
-            logger.warning(f"Erreur lors de la sauvegarde exercice IA: {save_error}")
+            logger.warning("Erreur lors de la sauvegarde exercice IA: %s", save_error)
 
         _track_openai_cost()
 
@@ -558,7 +561,7 @@ async def generate_exercise_stream(
         yield _SSE_DONE
 
     except Exception as gen_error:
-        logger.error(f"Erreur lors de la génération IA: {gen_error}")
+        logger.error("Erreur lors de la génération IA: %s", gen_error)
         logger.debug(traceback.format_exc())
         generation_metrics.record_generation(
             challenge_type=metrics_key,

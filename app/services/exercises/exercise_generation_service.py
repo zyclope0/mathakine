@@ -47,7 +47,7 @@ def _resolve_age_group_adaptive_sync(
             if user:
                 return resolve_adaptive_difficulty(db, user, resolved_type)
     except Exception as err:
-        logger.warning(f"[AdaptiveDifficulty] Résolution échouée, fallback: {err}")
+        logger.warning("[AdaptiveDifficulty] Résolution échouée, fallback: %s", err)
     return age_group_raw
 
 
@@ -169,7 +169,7 @@ def generate_exercise_sync(
         exercise_dict["difficulty_tier"] = f42_profile["difficulty_tier"]
 
     exercise_dict = ensure_explanation(exercise_dict)
-    logger.debug(f"Explication générée: {exercise_dict.get('explanation', '')}")
+    logger.debug("Explication générée: %s", exercise_dict.get("explanation", ""))
 
     # Persistance conditionnelle
     if save:
@@ -192,11 +192,11 @@ def generate_exercise_sync(
                 )
                 if created and created.get("id"):
                     exercise_dict["id"] = created["id"]
-                    logger.info(f"Exercice sauvegardé avec ID={created['id']}")
+                    logger.info("Exercice sauvegardé avec ID=%s", created["id"])
                 else:
                     raise ValueError("Persistance exercice échouée (aucun id retourné)")
         except Exception as save_err:
-            logger.warning(f"Erreur lors de la sauvegarde: {save_err}")
+            logger.warning("Erreur lors de la sauvegarde: %s", save_err)
             raise
 
     return GenerateExerciseResult.model_validate(exercise_dict)

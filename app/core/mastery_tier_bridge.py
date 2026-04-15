@@ -160,8 +160,7 @@ def mastery_to_tier(
     if DIFFICULTY_TIER_MIN <= raw <= DIFFICULTY_TIER_MAX:
         return raw
     logger.warning(
-        "mastery_to_tier: tier out of bounds, clamping: raw=%s age_group=%s "
-        "mastery_level=%s (expected %s..%s)",
+        "mastery_to_tier: tier out of bounds, clamping: raw=%%s age_group=%%s mastery_level=%%s (expected %%s..%%s)",
         raw,
         age_group,
         mastery_level,
@@ -234,8 +233,7 @@ def project_challenge_progress_row_f42(row: Any, user: Any) -> Dict[str, Any]:
         tier = raw_tier
     else:
         logger.warning(
-            "project_challenge_progress_row_f42: tier out of bounds, clamping: "
-            "raw=%s age_group=%s mastery_level=%s band=%s (expected %s..%s)",
+            "project_challenge_progress_row_f42: tier out of bounds, clamping: raw=%%s age_group=%%s mastery_level=%%s band=%%s (expected %%s..%%s)",
             raw_tier,
             canon,
             getattr(row, "mastery_level", None),

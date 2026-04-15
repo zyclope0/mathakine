@@ -90,11 +90,11 @@ async def generate_exercise(request: Request) -> Response:
             False,  # require_age_group
         )
         if result.id:
-            logger.info(f"Nouvel exercice créé avec ID={result.id}")
+            logger.info("Nouvel exercice créé avec ID=%s", result.id)
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
     except Exception as exercise_generation_error:
         logger.error(
-            f"Erreur lors de la génération d'exercice: {exercise_generation_error}"
+            "Erreur lors de la génération d'exercice: %s", exercise_generation_error
         )
         logger.debug(traceback.format_exc())
         templates = request.app.state.templates
@@ -127,8 +127,9 @@ async def get_exercise(request: Request) -> JSONResponse:
         )
     except Exception as exercise_retrieval_error:
         logger.error(
-            f"Erreur récupération exercice: "
-            f"{type(exercise_retrieval_error).__name__}: {exercise_retrieval_error}"
+            "Erreur récupération exercice: %s: %s",
+            type(exercise_retrieval_error).__name__,
+            exercise_retrieval_error,
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -163,8 +164,9 @@ async def submit_answer(request: Request) -> JSONResponse:
         user_id = current_user.get("id", 1)
 
         logger.debug(
-            f"Traitement de la réponse: exercise_id={exercise_id}, "
-            f"answer={payload.answer}"
+            "Traitement de la réponse: exercise_id=%s, answer=%s",
+            exercise_id,
+            payload.answer,
         )
 
         response_data = await run_db_bound(
@@ -196,9 +198,9 @@ async def submit_answer(request: Request) -> JSONResponse:
         )
     except Exception as response_processing_error:
         logger.error(
-            f"❌ ERREUR lors du traitement de la réponse: "
-            f"{type(response_processing_error).__name__}: "
-            f"{response_processing_error}"
+            "❌ ERREUR lors du traitement de la réponse: %s: %s",
+            type(response_processing_error).__name__,
+            response_processing_error,
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -221,8 +223,11 @@ async def get_exercises_list(request: Request) -> JSONResponse:
         user_id = current_user.get("id") if current_user else None
 
         logger.debug(
-            f"API exercises: limit={q.limit}, skip={q.skip}, "
-            f"exercise_type={q.exercise_type}, age_group={q.age_group}"
+            "API exercises: limit=%s, skip=%s, exercise_type=%s, age_group=%s",
+            q.limit,
+            q.skip,
+            q.exercise_type,
+            q.age_group,
         )
 
         response_data = await run_db_bound(get_exercises_list_for_api_sync, q, user_id)
@@ -230,7 +235,7 @@ async def get_exercises_list(request: Request) -> JSONResponse:
 
     except Exception as exercises_list_error:
         logger.error(
-            f"Erreur lors de la récupération des exercices: {exercises_list_error}"
+            "Erreur lors de la récupération des exercices: %s", exercises_list_error
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -270,7 +275,7 @@ async def get_interleaved_plan_api(request: Request) -> JSONResponse:
             status_code=409,
         )
     except Exception as plan_err:
-        logger.error(f"Erreur plan entrelacé: {plan_err}")
+        logger.error("Erreur plan entrelacé: %s", plan_err)
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             plan_err,
@@ -322,7 +327,7 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
 
     except Exception as api_generation_error:
         logger.error(
-            f"Erreur lors de la génération d'exercice API: {api_generation_error}"
+            "Erreur lors de la génération d'exercice API: %s", api_generation_error
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -361,7 +366,7 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
 
         context, error = prepare_stream_context(query, user_id, accept_language)
         if error:
-            logger.warning(f"Préparation stream rejetée: {error}")
+            logger.warning("Préparation stream rejetée: %s", error)
             return sse_error_response(error)
 
         async def generate():
@@ -387,7 +392,7 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
         )
 
     except Exception as stream_error:
-        logger.error(f"Erreur dans generate_ai_exercise_stream: {stream_error}")
+        logger.error("Erreur dans generate_ai_exercise_stream: %s", stream_error)
         logger.debug(traceback.format_exc())
         from app.utils.sse_utils import sse_error_response
 
@@ -412,13 +417,16 @@ async def get_completed_exercises_ids(request: Request) -> JSONResponse:
         completed_ids = await run_db_bound(get_completed_exercise_ids_sync, user_id)
 
         logger.debug(
-            f"Récupération de {len(completed_ids)} exercices complétés pour l'utilisateur {user_id}"
+            "Récupération de %s exercices complétés pour l'utilisateur %s",
+            len(completed_ids),
+            user_id,
         )
         return JSONResponse({"completed_ids": completed_ids})
 
     except Exception as completed_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération des exercices complétés: {completed_retrieval_error}"
+            "Erreur lors de la récupération des exercices complétés: %s",
+            completed_retrieval_error,
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -451,13 +459,14 @@ async def get_exercises_stats(request: Request) -> JSONResponse:
         response_data = await run_db_bound(get_exercises_stats_for_api_sync)
         total_exercises = response_data["academy_statistics"]["total_exercises"]
         logger.info(
-            f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"
+            "Statistiques des épreuves récupérées: %s épreuves actives", total_exercises
         )
         return JSONResponse(response_data)
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des statistiques d'exercices: {e}",
+            "Erreur lors de la récupération des statistiques d'exercices: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(

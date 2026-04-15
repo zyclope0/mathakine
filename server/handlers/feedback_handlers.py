@@ -64,14 +64,17 @@ async def submit_feedback(request: Request) -> JSONResponse:
             )
 
         logger.info(
-            f"Feedback enregistre: type={feedback_type}, user_id={user_id}, id={report.id}"
+            "Feedback enregistre: type=%s, user_id=%s, id=%s",
+            feedback_type,
+            user_id,
+            report.id,
         )
         return JSONResponse(
             {"success": True, "id": report.id, "message": "Merci pour votre retour !"},
             status_code=201,
         )
     except Exception as e:
-        logger.error(f"Erreur submit_feedback: {e}", exc_info=True)
+        logger.error("Erreur submit_feedback: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
@@ -86,5 +89,5 @@ async def admin_list_feedback(request: Request) -> JSONResponse:
         items = await run_db_bound(list_feedback_for_admin, limit=500)
         return JSONResponse({"feedback": items})
     except Exception as e:
-        logger.error(f"Erreur admin_list_feedback: {e}", exc_info=True)
+        logger.error("Erreur admin_list_feedback: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))

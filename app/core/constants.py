@@ -229,7 +229,9 @@ def normalize_age_group(age_group):
         return result
 
     logger.warning(
-        f"Groupe d'âge non reconnu: '{age_group}', utilisation de {AgeGroups.GROUP_9_11} par défaut"
+        "Groupe d'âge non reconnu: '%s', utilisation de %s par défaut",
+        age_group,
+        AgeGroups.GROUP_9_11,
     )
     return AgeGroups.GROUP_9_11
 
@@ -259,7 +261,9 @@ def get_difficulty_from_age_group(age_group: str) -> str:
     else:
         # Valeur par défaut si le groupe d'âge n'est pas reconnu
         logger.info(
-            f"⚠️ Groupe d'âge non reconnu: {age_group}, utilisation de {DifficultyLevels.PADAWAN} par défaut"
+            "⚠️ Groupe d'âge non reconnu: %s, utilisation de %s par défaut",
+            age_group,
+            DifficultyLevels.PADAWAN,
         )
         return DifficultyLevels.PADAWAN
 

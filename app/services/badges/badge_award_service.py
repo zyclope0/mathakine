@@ -50,7 +50,7 @@ class BadgeAwardService:
         try:
             user = UserService.get_user(self.db, user_id)
             if not user:
-                logger.error(f"Utilisateur {user_id} non trouvé")
+                logger.error("Utilisateur %s non trouvé", user_id)
                 return []
 
             available_badges = (
@@ -81,7 +81,9 @@ class BadgeAwardService:
                         if new_badge:
                             new_badges.append(new_badge)
                             logger.info(
-                                f"🎖️ Badge '{badge.name}' attribué à l'utilisateur {user_id}"
+                                "🎖️ Badge '%s' attribué à l'utilisateur %s",
+                                badge.name,
+                                user_id,
                             )
 
             if new_badges:
@@ -104,7 +106,9 @@ class BadgeAwardService:
             else:
                 self._rollback_if_needed()
             logger.error(
-                f"Erreur DB lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
+                "Erreur DB lors de la vérification des badges pour l'utilisateur %s: %s",
+                user_id,
+                badge_check_error,
             )
             return []
         except (TypeError, ValueError) as badge_check_error:
@@ -113,7 +117,9 @@ class BadgeAwardService:
             else:
                 self._rollback_if_needed()
             logger.error(
-                f"Erreur de données lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
+                "Erreur de données lors de la vérification des badges pour l'utilisateur %s: %s",
+                user_id,
+                badge_check_error,
             )
             return []
 
@@ -134,7 +140,7 @@ class BadgeAwardService:
                 else badge.requirements
             )
         except (json.JSONDecodeError, TypeError):
-            logger.error(f"Requirements invalides pour le badge {badge.code}")
+            logger.error("Requirements invalides pour le badge %s", badge.code)
             return False
         if not isinstance(requirements, dict):
             return False

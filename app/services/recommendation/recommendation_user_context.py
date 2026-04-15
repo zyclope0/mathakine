@@ -146,8 +146,7 @@ def build_recommendation_user_context(user, db) -> RecommendationUserContext:
                             median_ordinal, default_difficulty
                         )
                         logger.debug(
-                            "Recommandations user=%s: difficulté globale (médiane "
-                            "diagnostic) → %s (ordinal %s), par_type=%s",
+                            "Recommandations user=%%s: difficulté globale (médiane diagnostic) → %%s (ordinal %%s), par_type=%%s",
                             user.id,
                             default_difficulty,
                             median_ordinal,

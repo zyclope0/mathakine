@@ -121,7 +121,7 @@ async def generate_image(client: Any, message: str) -> Optional[str]:
         )
         return image_response.data[0].url
     except Exception as e:
-        logger.error(f"Erreur génération image DALL-E: {e}")
+        logger.error("Erreur génération image DALL-E: %s", e)
         return None
 
 

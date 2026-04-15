@@ -65,7 +65,7 @@ def _prepare_challenge_data(
     """
     now = datetime.now(timezone.utc)
     db_age_group = normalize_age_group_for_db(age_group)
-    logger.debug(f"Conversion groupe d'âge: {age_group} -> {db_age_group}")
+    logger.debug("Conversion groupe d'âge: %s -> %s", age_group, db_age_group)
 
     tier = compute_difficulty_tier_for_logic_challenge(
         db_age_group, None, difficulty_rating
@@ -182,7 +182,7 @@ def create_challenge(
     )
     _validate_challenge_data(prepared)
     challenge = _persist_challenge(db, prepared)
-    logger.info(f"Challenge créé: {challenge.id} - {challenge.title}")
+    logger.info("Challenge créé: %s - %s", challenge.id, challenge.title)
     return challenge
 
 
@@ -460,7 +460,7 @@ def update_challenge(
     db.commit()
     db.refresh(challenge)
 
-    logger.info(f"Challenge mis à jour: {challenge.id}")
+    logger.info("Challenge mis à jour: %s", challenge.id)
     return challenge
 
 
@@ -483,7 +483,7 @@ def delete_challenge(db: Session, challenge_id: int) -> bool:
     challenge.is_active = False
     db.commit()
 
-    logger.info(f"Challenge supprimé (soft): {challenge.id}")
+    logger.info("Challenge supprimé (soft): %s", challenge.id)
     return True
 
 
@@ -567,7 +567,10 @@ def record_attempt(
     db.refresh(attempt)
 
     logger.info(
-        f"Tentative enregistrée: Challenge {challenge_id}, User {user_id}, Correct: {is_correct}"
+        "Tentative enregistrée: Challenge %s, User %s, Correct: %s",
+        challenge_id,
+        user_id,
+        is_correct,
     )
     return attempt
 

@@ -293,4 +293,4 @@ if settings.TESTING:
         ).geturl()
     except Exception:
         _safe_url = "<url non parsable>"
-    logger.info(f"Mode test détecté, utilisation de la base: {_safe_url}")
+    logger.info("Mode test détecté, utilisation de la base: %s", _safe_url)

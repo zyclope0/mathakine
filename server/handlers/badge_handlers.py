@@ -37,7 +37,8 @@ async def get_user_badges(request: Request) -> JSONResponse:
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des badges utilisateur: {e}",
+            "Erreur lors de la récupération des badges utilisateur: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -59,7 +60,7 @@ async def get_available_badges(request: Request) -> JSONResponse:
         )
         return JSONResponse({"success": True, "data": available_badges})
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des badges disponibles: {e}")
+        logger.error("Erreur lors de la récupération des badges disponibles: %s", e)
         logger.debug(traceback.format_exc())
         return api_error_response(500, get_safe_error_message(e))
 
@@ -89,7 +90,8 @@ async def check_user_badges(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.error(
-            f"Erreur lors de la vérification forcée des badges: {e}",
+            "Erreur lors de la vérification forcée des badges: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -111,7 +113,8 @@ async def get_user_gamification_stats(request: Request) -> JSONResponse:
         return JSONResponse({"success": True, "data": response_data})
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des statistiques de gamification: {e}",
+            "Erreur lors de la récupération des statistiques de gamification: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
@@ -150,7 +153,7 @@ async def patch_pinned_badges(request: Request) -> JSONResponse:
             {"success": True, "data": {"pinned_badge_ids": result.pinned_badge_ids}}
         )
     except Exception as e:
-        logger.error(f"Erreur patch_pinned_badges: {e}", exc_info=True)
+        logger.error("Erreur patch_pinned_badges: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
@@ -167,7 +170,7 @@ async def get_badges_rarity(request: Request) -> JSONResponse:
         data = await get_or_set("badges_rarity", 90.0, _fetch)
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
-        logger.error(f"Erreur get_badges_rarity: {e}", exc_info=True)
+        logger.error("Erreur get_badges_rarity: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
@@ -188,7 +191,8 @@ async def get_user_badges_progress(request: Request) -> JSONResponse:
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la progression des badges: {e}",
+            "Erreur lors de la récupération de la progression des badges: %s",
+            e,
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))

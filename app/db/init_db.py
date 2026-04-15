@@ -50,5 +50,5 @@ def create_tables_with_test_data():
 
         logger.success("Base de données initialisée avec succès")
     except Exception as e:
-        logger.error(f"Erreur lors de l'initialisation de la base de données: {e}")
+        logger.error("Erreur lors de l'initialisation de la base de données: %s", e)
         raise

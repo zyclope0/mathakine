@@ -44,7 +44,7 @@ class TransactionManager:
         # même si nous sommes dans une transaction externe
         try:
             savepoint = db_session.begin_nested()
-            logger.debug(f"{log_prefix}: Début de la transaction (avec savepoint)")
+            logger.debug("%s: Début de la transaction (avec savepoint)", log_prefix)
 
             yield db_session
 
@@ -53,7 +53,7 @@ class TransactionManager:
                 savepoint.commit()
                 # Commit de la transaction principale pour persister les données
                 db_session.commit()
-                logger.debug(f"{log_prefix}: Transaction validée (commit)")
+                logger.debug("%s: Transaction validée (commit)", log_prefix)
         except Exception as savepoint_error:
             # Rollback au savepoint
             if "savepoint" in locals() and savepoint.is_active:
@@ -61,7 +61,9 @@ class TransactionManager:
             # Également rollback de la transaction principale
             db_session.rollback()
             logger.error(
-                f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {savepoint_error}"
+                "%s: Transaction annulée (rollback) suite à l'erreur: %s",
+                log_prefix,
+                savepoint_error,
             )
             raise
 
@@ -70,12 +72,12 @@ class TransactionManager:
         """Valide les modifications de la session en cours"""
         try:
             db_session.commit()
-            logger.debug(f"{log_prefix}: Transaction validée (commit)")
+            logger.debug("%s: Transaction validée (commit)", log_prefix)
             return True
         except Exception as commit_error:
             db_session.rollback()
             logger.error(
-                f"{log_prefix}: Échec de commit, transaction annulée: {commit_error}"
+                "%s: Échec de commit, transaction annulée: %s", log_prefix, commit_error
             )
             return False
 
@@ -84,10 +86,10 @@ class TransactionManager:
         """Annule les modifications de la session en cours"""
         try:
             db_session.rollback()
-            logger.debug(f"{log_prefix}: Transaction annulée (rollback)")
+            logger.debug("%s: Transaction annulée (rollback)", log_prefix)
             return True
         except Exception as rollback_error:
-            logger.error(f"{log_prefix}: Échec de rollback: {rollback_error}")
+            logger.error("%s: Échec de rollback: %s", log_prefix, rollback_error)
             return False
 
     @staticmethod
@@ -131,14 +133,16 @@ class TransactionManager:
 
             db_session.delete(obj)
             logger.debug(
-                f"{log_prefix}: Objet {obj.__class__.__name__}"
-                f"(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression"
+                "%s: Objet %s(id=%s) marqué pour suppression",
+                log_prefix,
+                obj.__class__.__name__,
+                getattr(obj, "id", "N/A"),
             )
 
             if auto_commit:
                 try:
                     db_session.commit()
-                    logger.debug(f"{log_prefix}: Suppression confirmée avec succès")
+                    logger.debug("%s: Suppression confirmée avec succès", log_prefix)
                 except Exception as delete_commit_error:
                     db_session.rollback()
                     logger.error(
@@ -207,13 +211,15 @@ class TransactionManager:
 
             obj.is_archived = True
             logger.debug(
-                f"{log_prefix}: Objet {obj.__class__.__name__}"
-                f"(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé"
+                "%s: Objet %s(id=%s) marqué comme archivé",
+                log_prefix,
+                obj.__class__.__name__,
+                getattr(obj, "id", "N/A"),
             )
 
             if auto_commit:
                 db_session.commit()
-                logger.debug(f"{log_prefix}: Archivage confirmé avec succès")
+                logger.debug("%s: Archivage confirmé avec succès", log_prefix)
 
         except DatabaseOperationError:
             raise

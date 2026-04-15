@@ -155,7 +155,8 @@ class ExerciseService:
                 exercise.exercise_type = ExerciseType(exercise_type_normalized)
             except ValueError:
                 logger.warning(
-                    f"Type d'exercice invalide: {exercise_type_normalized}, utilisation de ADDITION par défaut"
+                    "Type d'exercice invalide: %s, utilisation de ADDITION par défaut",
+                    exercise_type_normalized,
                 )
                 exercise.exercise_type = ExerciseType.ADDITION
 
@@ -163,14 +164,17 @@ class ExerciseService:
                 exercise.difficulty = DifficultyLevel(difficulty_normalized)
             except ValueError:
                 logger.warning(
-                    f"Difficulté invalide: {difficulty_normalized}, utilisation de PADAWAN par défaut"
+                    "Difficulté invalide: %s, utilisation de PADAWAN par défaut",
+                    difficulty_normalized,
                 )
                 exercise.difficulty = DifficultyLevel.PADAWAN
 
             return exercise
         except SQLAlchemyError as get_exercise_error:
             logger.error(
-                f"Erreur lors de la récupération de l'exercice {exercise_id}: {get_exercise_error}"
+                "Erreur lors de la récupération de l'exercice %s: %s",
+                exercise_id,
+                get_exercise_error,
             )
             # Fallback vers la méthode originale en cas d'erreur
             try:
@@ -226,7 +230,7 @@ class ExerciseService:
         except ExerciseNotFoundError:
             raise
         except SQLAlchemyError as err:
-            logger.error(f"Erreur get_exercise_for_api {exercise_id}: {err}")
+            logger.error("Erreur get_exercise_for_api %s: %s", exercise_id, err)
             return None
 
     @staticmethod
@@ -270,7 +274,8 @@ class ExerciseService:
             return query.all()
         except SQLAlchemyError as exercises_fetch_error:
             logger.error(
-                f"Erreur lors de la récupération des exercices: {exercises_fetch_error}"
+                "Erreur lors de la récupération des exercices: %s",
+                exercises_fetch_error,
             )
             return []
 
@@ -474,7 +479,7 @@ class ExerciseService:
         """
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
-            logger.error(f"Exercice avec ID {exercise_id} non trouvé pour mise à jour")
+            logger.error("Exercice avec ID %s non trouvé pour mise à jour", exercise_id)
             return False
 
         from app.core.difficulty_tier import (
@@ -507,7 +512,7 @@ class ExerciseService:
         """
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
-            logger.error(f"Exercice avec ID {exercise_id} non trouvé pour archivage")
+            logger.error("Exercice avec ID %s non trouvé pour archivage", exercise_id)
             raise ExerciseNotFoundError(f"Exercice avec ID {exercise_id} non trouvé")
 
         DatabaseAdapter.archive(db, exercise)
@@ -528,7 +533,7 @@ class ExerciseService:
         """
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
-            logger.error(f"Exercice avec ID {exercise_id} non trouvé pour suppression")
+            logger.error("Exercice avec ID %s non trouvé pour suppression", exercise_id)
             raise ExerciseNotFoundError(f"Exercice avec ID {exercise_id} non trouvé")
 
         DatabaseAdapter.delete(db, exercise)
@@ -587,29 +592,31 @@ class ExerciseService:
         try:
             # Vérifier que l'exercice existe
             exercise_id = attempt_data.get("exercise_id")
-            logger.info(f"Tentative d'enregistrement pour l'exercice {exercise_id}")
+            logger.info("Tentative d'enregistrement pour l'exercice %s", exercise_id)
 
             exercise = ExerciseService.get_exercise(db, exercise_id)
 
             if not exercise:
                 logger.error(
-                    f"Exercice {exercise_id} introuvable — tentative non enregistrée"
+                    "Exercice %s introuvable — tentative non enregistrée", exercise_id
                 )
                 return None
 
-            logger.info(f"Exercice {exercise_id} trouvé: {exercise.title}")
+            logger.info("Exercice %s trouvé: %s", exercise_id, exercise.title)
 
             # Créer la tentative
-            logger.info(f"Création de la tentative avec attempt_data: {attempt_data}")
+            logger.info("Création de la tentative avec attempt_data: %s", attempt_data)
             attempt = Attempt(**attempt_data)
             db.add(attempt)
             db.flush()
-            logger.info(f"Tentative créée avec ID: {attempt.id}")
+            logger.info("Tentative créée avec ID: %s", attempt.id)
 
             # Log de l'action
             is_correct = attempt_data.get("is_correct", False)
             logger.info(
-                f"Tentative enregistrée pour l'exercice {exercise_id}: {'Correcte' if is_correct else 'Incorrecte'}"
+                "Tentative enregistrée pour l'exercice %s: %s",
+                exercise_id,
+                "Correcte" if is_correct else "Incorrecte",
             )
 
             if auto_commit:
@@ -624,7 +631,9 @@ class ExerciseService:
             if auto_commit:
                 db.rollback()
             logger.error(
-                f"❌ ERREUR lors de l'enregistrement de la tentative: {error_type}: {error_msg}"
+                "❌ ERREUR lors de l'enregistrement de la tentative: %s: %s",
+                error_type,
+                error_msg,
             )
-            logger.error(f"Traceback complet:\n{traceback.format_exc()}")
+            logger.error("Traceback complet:\\n%s", traceback.format_exc())
             return None
