@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, type ApiClientError } from "@/lib/api/client";
+import { debugError } from "@/lib/utils/debug";
 
 /**
  * Types pour les statistiques globales de l'Académie
@@ -85,7 +86,7 @@ export function useAcademyStats() {
         return response;
       } catch (err) {
         // En cas d'erreur, retourner null plutôt que de bloquer l'UI
-        console.error("Erreur lors de la récupération des stats de l'Académie:", err);
+        debugError("Erreur lors de la récupération des stats de l'Académie:", err);
         return null;
       }
     },

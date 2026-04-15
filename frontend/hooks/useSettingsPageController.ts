@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings, type UserSession } from "@/hooks/useSettings";
 import { api } from "@/lib/api/client";
+import { debugError } from "@/lib/utils/debug";
 import {
   SESSIONS_PAGE_SIZE,
   type LanguageSettingsState,
@@ -163,7 +164,7 @@ export function useSettingsPageController(): UseSettingsPageControllerResult {
         const userSessions = await getSessions();
         setSessions(userSessions);
       } catch (error) {
-        console.error("Erreur lors du chargement des sessions:", error);
+        debugError("Erreur lors du chargement des sessions:", error);
       } finally {
         setIsLoadingSessions(false);
       }

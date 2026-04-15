@@ -3,6 +3,8 @@
  * Consumed by AuthSyncProvider (bootstrap), useAuth (login/logout), and api/client (401 retry, ensure cookie).
  */
 
+import { debugError } from "@/lib/utils/debug";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
@@ -108,7 +110,7 @@ export async function refreshSessionViaHttpOnlyCookie(options: {
       }
       return true;
     } catch (error) {
-      console.error("[API Client] Erreur lors du refresh du token:", error);
+      debugError("[API Client] Erreur lors du refresh du token:", error);
       return false;
     } finally {
       isRefreshing = false;

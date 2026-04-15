@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, type ApiClientError } from "@/lib/api/client";
+import { debugError } from "@/lib/utils/debug";
 import { useTranslations } from "next-intl";
 import type { User } from "@/types/api";
 
@@ -137,7 +138,7 @@ export function useSettings() {
       const response = await api.get<UserSession[]>("/api/users/me/sessions");
       return response;
     } catch (error) {
-      console.error("Error fetching sessions:", error);
+      debugError("Error fetching sessions:", error);
       return [];
     }
   };
