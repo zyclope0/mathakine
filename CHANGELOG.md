@@ -40,7 +40,33 @@ Active references:
 
 ## [Unreleased]
 
+### Security
+
+- Password policy now enforces at least one special character in all `UserCreate` and password-change flows (SEC-PASS-01; `33cb2ad`).
+- `pyasn1` bumped to ≥ 0.6.3 to close CVE-2026-30922 (remote DoS via recursive ASN.1 parsing; Dependabot #43).
+- `next-pwa` upgraded to 10.2.9 and `serialize-javascript` forced to ≥ 7.0.5 (prototype-pollution CVE; Dependabot #38).
+- HSTS `Strict-Transport-Security` header now set on all production frontend responses.
+- `pytest` bumped to 9.0.3 (CVE tmpdir symlink-race handling; Dependabot #40).
+- Auth PII (user identifiers, SMTP addresses) redacted from structured logs to avoid leaking sensitive data in log aggregators.
+
+### Added
+
+- **ACTIF-03 — test co-location campaign**: all Vitest tests moved alongside their source files in four phases (A→D), covering hooks (`useAuth`, `useSettings`, `useBadges`, `useDashboard`, `useContentList`, `useSolver`, `useMicro`, `useProgress`, `useIrtScore`, `useAiGenerator`, `useGuestChatAccess`, `useChat`, profile, CSP, middleware), component tests (chat, visualization, badge, dashboard charts, Header, app bootstrap), and full page tests; admin page controllers extracted as dedicated modules (`useAdminUsersPageController`, `useAdminAiMonitoringPageController`).
+- **ACTIF-04 — vitest coverage gates**: CI-backed statement/branch/function/line thresholds introduced and bumped in two steps — COVERAGE-01 (43/36/40/44) then COVERAGE-02 (46/38/42/48) after new CI measurements confirmed the headroom.
+- `scripts/codemods/g004_lazy_logging.py`: libcst codemod converting f-string logger arguments to %-style lazy interpolation; handles `FormattedString`, `ConcatenatedString`, and `!r`/`!s`/`!a` conversions; run with `python -m libcst.tool codemod -x scripts.codemods.g004_lazy_logging.G004LazyLoggingCommand app/ server/`.
+- Nunito set as primary UI sans-serif font; JetBrains Mono as monospace font; logo wordmark added to the branding system.
+- `scripts/codemods/__init__.py` and `scripts/__init__.py` stub packages required for libcst module discovery.
+
 ### Changed
+
+- **Sprint D G004**: all f-string arguments to logger calls across 63 backend files (`app/` and `server/`) replaced with %-style lazy interpolation (`logger.warning("msg %s", var)`) to satisfy ruff rule G004; four locations with format mini-language specifiers (`.1f`, `.2f`, `.6f`) fixed manually after the automated codemod pass.
+- Backend runtime dependencies split into `requirements.txt` (production subset) and `requirements-dev.txt` (extends prod; adds pytest, httpx, beautifulsoup4, etc.) for cleaner production image builds (D7); CI pipeline updated to install `requirements-dev.txt`.
+- ANSI escape codes now disabled when `stderr` is not a TTY, preventing garbled output in log aggregators and CI pipelines (D1).
+- `.gitattributes` added to enforce LF line endings on all tracked text files; repository re-normalized in place (D8).
+- `PROJECT_VERSION` synchronized to `3.6.0-alpha.1` in all runtime version surfaces (D11).
+- Render deployment targets renamed (`Mathakine-alpha` / `Mathakine`) and secure-header middleware re-wired after the rename.
+- Concrete Starlette app object exposed as a dedicated `gunicorn_app` entrypoint for production multi-worker startup.
+- Challenge visualization `colorMap` extracted into a shared module (`_colorMap.ts`) consumed by both `ProbabilityRenderer` and `VisualRenderer`, eliminating the duplicated literal map.
 
 - Documentation truth was realigned across the active root/frontend/project guides:
   - active docs no longer point to removed root files such as `POINTS_RESTANTS_2026-03-15.md`, `BILAN_*`, `RECOMMENDATION_R7_*`, or `PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md`; references now target the correct archive buckets
@@ -67,6 +93,12 @@ Active references:
   - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
 
 ### Fixed
+
+- `console.error` calls in client-side hooks (`useAcademyStats`, `useSettings`, `useSettingsPageController`) and `auth-session-sync` replaced with the `debugError` guard (dev-only; silenced in production builds).
+- Test lambdas monkeypatching `logger.warning` updated from single-argument form to `(msg, *args)` to match the new %-style call signature after G004; affected tests: `test_classify_unknown_logs_the_actual_metric_key` and `test_assistant_legacy_openai_model_o3_ignored`.
+- Challenge symmetry layout converted from row-based to canonical flat format; `auto_correct_challenge` pre-correction extended to visual challenge types.
+- Avatar and badge icon image delivery hardened against missing or invalid source URLs.
+- Chat image audit finding closed; server component audit finding closed.
 
 - Local workspace cleanup no longer leaves stale generated artifacts in place:
   - Python caches/coverage outputs (`htmlcov`, `.pytest_cache`, `.mypy_cache`, `__pycache__`, `.coverage`, `coverage.xml`, `junit.xml`) were removed from the working tree
