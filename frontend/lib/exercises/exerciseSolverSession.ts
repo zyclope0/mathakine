@@ -41,6 +41,7 @@ export function parseInterleavedSessionFromStorage(raw: string): InterleavedSess
       ...(parsed.analytics && { analytics: parsed.analytics }),
     };
   } catch {
+    /* swallowed: corrupted localStorage state, session restarted from null */
     return null;
   }
 }
