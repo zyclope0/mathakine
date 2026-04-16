@@ -152,13 +152,6 @@ export function useAuth() {
       }
     },
     onSuccess: () => {
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.removeItem("refresh_token");
-        } catch {
-          /* ignore */
-        }
-      }
       Sentry.setUser(null);
 
       queryClient.setQueryData(["auth", "me"], null);
