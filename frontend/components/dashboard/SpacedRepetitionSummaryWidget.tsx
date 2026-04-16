@@ -64,6 +64,7 @@ export function SpacedRepetitionSummaryWidget({
     try {
       return format(parseISO(`${d}T12:00:00.000Z`), "PPP", { locale: dateLocale });
     } catch {
+      /* swallowed: invalid review date, ISO string used as fallback */
       return d;
     }
   }, [summary.next_review_date, todayUtc, dateLocale]);
