@@ -132,6 +132,7 @@ function getDefaultScale(visualData: Record<string, unknown> | null): number {
           try {
             return JSON.parse(visualData) as Record<string, unknown>;
           } catch {
+            /* swallowed: malformed visual_data JSON, empty fallback used */
             return {};
           }
         })()
