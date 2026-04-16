@@ -1,7 +1,7 @@
 # GETTING STARTED - MATHAKINE
 
 > Quick start
-> Updated: 05/04/2026
+> Updated: 16/04/2026
 > Visible product release: `3.6.0-alpha.1`
 
 ## Prerequisites
@@ -33,11 +33,13 @@ cd mathakine
 ```powershell
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 alembic upgrade head
 python enhanced_server.py
 ```
+
+Use `requirements-dev.txt` for local development and tests. `requirements.txt` remains the production/runtime subset used by Render builds.
 
 Backend default URL: `http://localhost:10000`
 

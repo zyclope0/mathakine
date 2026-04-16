@@ -1,16 +1,21 @@
 # Tests Frontend Mathakine
 
-Updated : 2026-04-10
+Updated : 2026-04-16
 
 ## Structure
 
 ```text
 __tests__/
-|-- unit/          # tests unitaires Vitest
-|-- integration/   # tests d'integration frontend
+|-- unit/          # reliquat intentional : architecture guardrail + helper API Next
 |-- e2e/           # tests Playwright
 `-- accessibility/ # checks accessibilite ponctuels
 ```
+
+Etat actuel :
+
+- la quasi-totalite des tests Vitest frontend est desormais co-localisee a cote des sources
+- `frontend/__tests__/unit/` ne garde plus qu'un vrai test actif : `architecture/frontendGuardrails.test.ts`
+- `frontend/__tests__/unit/app/api/_testRequest.ts` reste un helper partage, pas un test
 
 ### E2E actuels
 
@@ -60,7 +65,7 @@ npm run architecture:check
 
 ## Bonnes pratiques
 
-1. tester la logique isolee dans `unit/`
+1. tester la logique isolee au plus pres de la source (`components/**`, `hooks/**`, `lib/**`, `app/**`)
 2. garder les E2E sur des contrats visibles et robustes
 3. ouvrir explicitement menus et popovers avant assertion
 4. fournir les providers requis (`NextIntlClientProvider`, `QueryClientProvider`, etc.)
@@ -77,9 +82,10 @@ La source de verite couverture frontend est :
 Le repo a maintenant des seuils minimaux explicites :
 
 - `statements: 43`
-- `branches: 36`
-- `functions: 39`
-- `lines: 44`
+- `statements: 46`
+- `branches: 38`
+- `functions: 42`
+- `lines: 48`
 
 Donc :
 

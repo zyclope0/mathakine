@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 10/04/2026
+> Updated: 16/04/2026
 
 ## Read First
 
@@ -61,6 +61,7 @@
 - active cross-workload runtime governance belongs in `00-REFERENCE/`
 - project history, snapshots and closure notes belong in `03-PROJECT/`
 - non-doc build workspaces belong outside `docs/`
+- legacy widget redirects were archived out of the active flow; the canonical widget docs live under `04-FRONTEND/DASHBOARD_WIDGETS/`
 
 ## Archives
 

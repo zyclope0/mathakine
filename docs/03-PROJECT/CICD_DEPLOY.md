@@ -1,6 +1,6 @@
 # CI/CD, DEPLOY ET ROLLBACK
 
-> Mise a jour : 10/04/2026
+> Mise a jour : 16/04/2026
 > Source de verite CI : `.github/workflows/tests.yml`
 
 ## Variables d'environnement (exploitation)
@@ -83,7 +83,7 @@ cd frontend && npm run lint
 Verifications minimales:
 
 ```bash
-curl -s https://mathakine-backend.onrender.com/ready
+curl -s https://mathakine-alpha.onrender.com/ready
 curl -s -o /dev/null -w "%{http_code}" https://mathakine-frontend.onrender.com/
 ```
 

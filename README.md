@@ -90,11 +90,13 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 ```bash
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env   # or Copy-Item .env.example .env on Windows; then edit secrets
 alembic upgrade head
 python enhanced_server.py
 ```
+
+For Render or other production images, keep `requirements.txt` as the lean runtime set. For local development, tests, linting and docs tooling, use `requirements-dev.txt`.
 
 Backend default URL: `http://localhost:10000` (`PORT` défaut dans `enhanced_server.py`)
 

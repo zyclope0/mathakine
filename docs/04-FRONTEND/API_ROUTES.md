@@ -1,7 +1,7 @@
 # API Routes Next.js - Mathakine Frontend
 
 > Scope: `frontend/app/api/`
-> Updated: 2026-04-09
+> Updated: 2026-04-16
 > Voir aussi: [frontend/lib/chat/README.md](../../frontend/lib/chat/README.md), [README_TECH.md](../../README_TECH.md), [ADR-002](../05-ADR/ADR-002-chat-assistant-public-boundary.md) pour l'historique superseded du chat public
 
 ---
@@ -162,7 +162,7 @@ Toutes les routes proxy backend utilisent `frontend/lib/api/backendUrl.ts` :
 
 ## Tests
 
-Les handlers de routes sont couverts par `frontend/__tests__/unit/app/api/` :
+Les handlers de routes sont couverts par des `route.test.ts` co-localisés à côté de chaque `route.ts` sous `frontend/app/api/`, avec le helper historique `frontend/__tests__/unit/app/api/_testRequest.ts` conservé pour mutualiser la fabrication des requêtes Next :
 
 - `/api/chat` : succès, erreurs JSON, auth
 - `/api/chat/stream` : auth, erreurs backend, branche `body === null`, non-log en production

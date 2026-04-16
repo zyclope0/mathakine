@@ -1,7 +1,7 @@
-﻿# Dashboard Widgets Docs
+# Dashboard Widgets Docs
 
 > Canonical widget documentation location
-> Updated: 23/03/2026
+> Updated: 16/04/2026
 
 ## Scope
 
@@ -17,4 +17,5 @@ Cette sous-arborescence documente les widgets dashboard et leur integration fron
 
 ## Compatibility
 
-L'ancien dossier `docs/06-WIDGETS/` ne sert plus que de zone de redirection documentaire.
+Les anciens redirects `docs/06-WIDGETS/` ont ete archives hors du flux actif.
+Historique : [../archives/LEGACY_WIDGET_REDIRECTS_2026-04/README.md](../archives/LEGACY_WIDGET_REDIRECTS_2026-04/README.md).

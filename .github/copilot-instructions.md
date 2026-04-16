@@ -26,6 +26,8 @@ Ce fichier aligne **Copilot**, **Cursor**, **Claude** et tout assistant sur les 
 
 **Anti-références** : dashboards B2B SaaS (style Vercel, Stripe, Linear). **Interdiction** du “Grid of Boxes” (cartes `border` + `shadow-sm` partout). Séparer par **padding / gap**, pas par lignes ou cadres systématiques.
 
+**Constellation vs streak** : constellation = arc **persistant** (niveaux / paliers), motif géométrique sobre ; streak = indicateur **séparé**, pas le même motif ; pas deux constellations sans rôle distinct sur une même vue.
+
 ### Thème clair / sombre
 
 - **Égale importance.** Le sombre est une **nécessité d’accessibilité** (hypersensibilité visuelle).
@@ -52,6 +54,7 @@ Ce fichier aligne **Copilot**, **Cursor**, **Claude** et tout assistant sur les 
 4. **Espace > bordures** — pas de grille de cartes ombrées par défaut.
 5. **Pas de blanc pur** en fond page (clair) ; dark aussi important.
 6. WCAG AA + COGA + reduced-motion respectés dans les suggestions de code.
+7. Constellation (motif) = progression persistante uniquement ; streak hors de ce motif.
 
 ---
 

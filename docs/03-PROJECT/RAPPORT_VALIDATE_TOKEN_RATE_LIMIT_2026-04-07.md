@@ -335,7 +335,7 @@ Hors scope résiduel : headers CDN non standard, liste d’IPs proxy de confianc
 | Coalescence | Une seule requête HTTP en vol pour la même clé mémoire `baseUrl + "\\0" + token` (synchrone) |
 | Micro-cache | **Succès 200 uniquement** ; TTL **`VALIDATE_TOKEN_SUCCESS_TTL_MS` = 2500 ms** ; pas de stockage persistant |
 | Non cache | 401, autres HTTP, erreurs réseau → jamais réutilisés comme « valide » |
-| Tests | `__tests__/unit/lib/auth/server/validateTokenRuntime.test.ts` + resets dans `routeSession` / `sync-cookie` tests |
+| Tests | `frontend/lib/auth/server/validateTokenRuntime.test.ts` + resets dans `routeSession` / `sync-cookie` tests |
 
 **FFI-L19C** livré séparément (§17).
 

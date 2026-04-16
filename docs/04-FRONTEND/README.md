@@ -1,7 +1,7 @@
 ﻿# Frontend Docs - Mathakine
 
 > Point d'entree du dossier `04-FRONTEND`
-> Updated: 2026-04-05
+> Updated: 2026-04-16
 
 ## Role
 
@@ -30,3 +30,4 @@ Ce dossier regroupe les references frontend actives :
 - les docs frontend actives vivent ici
 - `UX_SURFACES.md` est la reference principale pour `home-learner`, `dashboard`, roles et boundaries UX
 - les widgets dashboard ne sont plus documentes dans `06-WIDGETS`; leur emplacement canonique est `04-FRONTEND/DASHBOARD_WIDGETS/`
+- les anciens redirects `docs/06-WIDGETS/` sont archives hors du flux actif

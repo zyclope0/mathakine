@@ -177,7 +177,7 @@ print(sys.executable)  # Chemin vers le Python utilisé
 1. **Toujours utiliser un environnement virtuel** pour chaque projet
 2. **Ne jamais commiter** `.venv/` ou `venv/` dans Git (déjà dans `.gitignore`)
 3. **Utiliser `requirements.txt`** pour partager les dépendances
-4. **Recreer l'environnement** si nécessaire : `python -m venv .venv && pip install -r requirements.txt`
+4. **Recreer l'environnement** si nécessaire : `python -m venv .venv && pip install -r requirements-dev.txt`
 
 ---
 
@@ -193,7 +193,7 @@ print(sys.executable)  # Chemin vers le Python utilisé
 .venv\Scripts\Activate.ps1
 
 # Installer les dépendances
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### "Python utilise l'environnement global au lieu de .venv"

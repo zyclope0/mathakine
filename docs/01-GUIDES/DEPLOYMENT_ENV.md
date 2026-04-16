@@ -1,9 +1,9 @@
 ﻿# Deployment Environment Variables - Render
 
-> Updated: 10/04/2026
+> Updated: 16/04/2026
 > Scope: alpha / production deployment on Render
 
-## Backend (`mathakine-backend`)
+## Backend (`Mathakine-alpha` on Render)
 
 ### Required In Production
 

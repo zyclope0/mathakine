@@ -1,6 +1,6 @@
 ﻿# Architecture Frontend â€” Mathakine
 
-> Dernière mise à jour : 09/04/2026  
+> Dernière mise à jour : 16/04/2026  
 > Validé contre le code source réel (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F/G/H + lots ciblés CHAT-AUTH-01 à OG-META-09)
 
 ---
@@ -11,7 +11,7 @@
 - [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 203 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
-- [../../.claude/session-plan.md](../../.claude/session-plan.md) - source de verite d'execution pour l'industrialisation frontend
+- [../../docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md](../../docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md) - source de vérité active pour le backlog qualité frontend
 
 ---
 
@@ -19,7 +19,7 @@
 
 | Technologie        | Usage                                | Version |
 | ------------------ | ------------------------------------ | ------- |
-| **Next.js**        | Framework (App Router)               | 16.1.6  |
+| **Next.js**        | Framework (App Router)               | 16.2.3  |
 | **TypeScript**     | Langage (strict mode)                | 5.x     |
 | **Tailwind CSS**   | Styling                              | v4      |
 | **shadcn/ui**      | Composants UI (Radix UI)             | â€”     |
@@ -227,7 +227,7 @@ La resolution de l'URL backend pour ces proxies est centralisee dans `lib/api/ba
 - fallback `http://localhost:10000` en developpement uniquement
 - en production : erreur explicite si l'URL est absente, mal formee ou locale (`localhost`, `127.0.0.1`, `::1`)
 
-Les handlers de routes Next.js sont maintenant couverts par des tests dedies (`frontend/__tests__/unit/app/api/...`) :
+Les handlers de routes Next.js sont maintenant couverts par des tests dédiés co-localisés (`frontend/app/api/**/route.test.ts`) :
 
 - succes et erreur JSON sur `/api/chat`
 - succes SSE, auth, non-log en prod, et garde `body === null` sur `/api/chat/stream`

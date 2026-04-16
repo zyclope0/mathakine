@@ -1,7 +1,7 @@
 # TESTING GUIDE - MATHAKINE
 
 > Test strategy and gates
-> Updated: 19/03/2026
+> Updated: 16/04/2026
 > Scope: backend + frontend
 
 ## Principles
@@ -15,7 +15,7 @@
 
 - local PostgreSQL reachable on `localhost:5432`
 - `TEST_DATABASE_URL` distinct from `DATABASE_URL`
-- Python dependencies installed via `pip install -r requirements.txt`
+- Python development/test dependencies installed via `pip install -r requirements-dev.txt`
 
 Quick preparation:
 
@@ -123,6 +123,7 @@ cd frontend
 npm run lint:ci
 npx tsc --noEmit
 npm run test
+npm run architecture:check
 ```
 
 When frontend runtime or build wiring changes:

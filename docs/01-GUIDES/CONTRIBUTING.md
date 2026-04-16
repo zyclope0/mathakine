@@ -1,6 +1,6 @@
 # CONTRIBUTING GUIDE - MATHAKINE
 
-> Mise a jour : 18/03/2026
+> Mise a jour : 16/04/2026
 > Audience : contributeurs code et documentation
 
 ## Principes de contribution
@@ -18,7 +18,7 @@
 ```powershell
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 alembic upgrade head
 ```

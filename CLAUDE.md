@@ -8,11 +8,13 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 **Mathakine** - plateforme EdTech SaaS d'apprentissage des mathematiques pour enfants.
 
-**Position produit au 2026-04-10 :**
+**Position produit au 2026-04-16 :**
 
-- transition active d'un ancien theme Star Wars/Jedi vers un theme spatial plus neutre ;
-- le codebase est encore **hybride** ;
-- ne pas introduire de nouvelles references Star Wars/Jedi dans les nouveaux flux, libelles, prompts ou tags sans raison explicite de compatibilite.
+- train visible courant : **`3.6.0-alpha.1`**
+- le theme spatial neutre est la direction active ; ne pas reintroduire de nouvelle copie Star Wars/Jedi hors compat legacy explicitement documentee
+- le frontend a ferme **ACTIF-03** (co-localisation des tests) ; le dernier finding frontend actif reste **ACTIF-04** (couverture / seuils Vitest)
+- la feuille de route produit active reste `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
+- `.claude/session-plan.md` est une note locale de pilotage founder, pas une preuve runtime autonome
 
 - **Modele** : Freemium B2C + B2B (familles, ecoles, colleges)
 - **Gratuit** : experience enfant complete (exercices, defis, gamification)
@@ -25,61 +27,66 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 | Couche        | Techno                                                                  |
 | ------------- | ----------------------------------------------------------------------- |
-| Backend       | Python / Starlette (PAS FastAPI) + SQLAlchemy + PostgreSQL              |
-| Frontend      | Next.js 16 + TypeScript + Tailwind, i18n fr/en                          |
-| IA            | OpenAI GPT via SSE POST (`exercise_ai_service`, `challenge_ai_service`) |
-| Auth          | JWT (access 15min + refresh 7j), cookies HTTP-only                      |
+| Backend       | Python / Starlette (pas FastAPI) + SQLAlchemy + PostgreSQL              |
+| Frontend      | Next.js 16.2.3 + TypeScript + Tailwind + next-intl fr/en                |
+| IA            | OpenAI via SSE POST (`exercise_ai_service`, `challenge_ai_service`)     |
+| Auth          | JWT (access 15 min + refresh 7 j), cookies HTTP-only                    |
 | Rate limiting | Redis (prod) / memoire (dev/test)                                       |
-| Deploiement   | Render (multi-worker Gunicorn)                                          |
-| Version       | 3.6.0-alpha.1                                                           |
+| Deploiement   | Render (Gunicorn + `uvicorn.workers.UvicornWorker`)                     |
+| Version       | `3.6.0-alpha.1`                                                         |
 
 ---
 
 ## Architecture cles
 
-- `app/services/` - logique metier (separation stricte)
+- `app/services/` - logique metier ; controllers/handlers minces
 - `server/handlers/` + `server/routes/` - couche HTTP
+- `enhanced_server.py` - exporte l'entree ASGI concrete `app = get_app()`
 - `app/core/ai_generation_policy.py` - policy modeles IA exercices
-- `app/core/ai_config.py` + `challenge_ai_model_policy.py` - policy modeles IA defis (deux systemes coexistent - dette connue)
+- `app/core/ai_config.py` + `challenge_ai_model_policy.py` - policy modeles IA defis (dualite documentee)
 - `challenge_contract_policy.py` - contrat IA9 (`response_mode` : QCM / texte / interaction)
-- SSE migre GET -> POST (body JSON) pour les deux flux IA
-- Gamification : ledger `point_events` + badges + streaks + champ legacy `jedi_rank` (neutralisation d'affichage en cours ; ne pas renommer sans plan de contrat)
+- frontend : logique runtime isolee dans hooks/controllers ; vues minces ; tests Vitest co-localises
+- gamification : ledger `point_events` + badges + streaks + champ legacy `jedi_rank` conserve comme compatibilite backend
 
 ---
 
-## Etat de sante (2026-03-25)
+## Etat de sante
 
-- Code review : **78/100** - `docs/03-PROJECT/CODE_REVIEW_2026-03-22.md`
-- Audit technique : **7.0/10** - `docs/03-PROJECT/AUDIT_TECHNIQUE_2026-03-22.md`
-- Tests : 1249 passent, 2 skipped, couverture backend 67%
-- Tooling : black + isort + mypy + flake8 - tous verts
-- Gate CI : `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov`
+- backend prod : entree Gunicorn/Starlette stabilisee avec `enhanced_server:app`
+- frontend quality:
+  - **ACTIF-03** ferme
+  - **ACTIF-04** encore ouvert
+  - seuils Vitest courants : **46 / 38 / 42 / 48**
+- dependances backend :
+  - `requirements.txt` = runtime/prod
+  - `requirements-dev.txt` = dev/test/docs
+- docs actives :
+  - gouvernance projet : `docs/03-PROJECT/README.md`
+  - reference technique vivante : `README_TECH.md`
+  - changelog release : `CHANGELOG.md`
 
 ---
 
 ## Risques prioritaires connus
 
-| Priorite | Fichier                                                    | Probleme                                                                                                  |
-| -------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| ~~P0~~   | ~~`app/utils/token_tracker.py`~~                           | ~~Fuite memoire read-path (`get_stats` + `defaultdict` -> buckets vides)~~ - **RESOLU**                   |
-| ~~P0~~   | ~~`app/services/gamification/gamification_service.py:86`~~ | ~~Race condition - `with_for_update()` absent~~ - **RESOLU**                                              |
-| P1       | `frontend/app/admin/layout.tsx`                            | Navigation admin encore hardcodee (labels FR inline) alors que les pages route-level admin sont i18nisees |
-| P2       | `frontend/hooks/useAuth.ts`                                | Toast de succes register garde encore une phrase FR inline hors namespace i18n                            |
-| ~~P1~~   | ~~`app/services/challenges/challenge_service.py:353`~~     | ~~Double filtrage `is_active`/`is_archived` incoherent~~ - **RESOLU**                                     |
-| ~~P1~~   | ~~`app/services/exercises/exercise_attempt_service.py`~~   | ~~`apply_points` non appele pour exercices standard~~ - **RESOLU**                                        |
+| Priorite | Sujet | Probleme |
+| -------- | ----- | -------- |
+| P1 | `ACTIF-04` frontend | couverture Vitest encore en dessous de l'horizon cible ; toute hausse de seuil doit etre appuyee par une nouvelle mesure CI |
+| P2 | Dette architecture backend IA | dualite `ai_config.py` / `challenge_ai_model_policy.py` encore documentee comme dette |
+| P2 | Dette docs founder/locales | `.claude/session-plan.md` peut diverger du runtime si on le traite comme source de verite au lieu d'une note de pilotage |
 
 ---
 
 ## Workflow outils IA
 
-| Situation                                   | Outil                            |
-| ------------------------------------------- | -------------------------------- |
-| Planifier une feature, sequencer les taches | **Codex**                        |
-| Verifier une approche avant de coder        | **Claude Code**                  |
-| Implementer, editer des fichiers            | **Cursor Composer**              |
-| Valider apres implementation                | **Claude Code** `/octo:review`   |
-| Debugger un probleme difficile              | **Claude Code** `/octo:debug`    |
-| Audit avant mise en prod                    | **Claude Code** `/octo:security` |
+| Situation | Outil |
+| --------- | ----- |
+| Planifier une feature, sequencer les taches | Codex |
+| Verifier une approche avant de coder | Claude Code |
+| Implementer, editer des fichiers | Cursor Composer |
+| Valider apres implementation | Claude Code `/octo:review` |
+| Debugger un probleme difficile | Claude Code `/octo:debug` |
+| Audit avant mise en prod | Claude Code `/octo:security` |
 
 **Regle imperative** : `git commit` avant de changer d'outil. Un seul outil ecrit le code a la fois.
 
@@ -87,11 +94,11 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ## Priorites produit actuelles
 
-1. **F42 completion end-to-end** - generation, progression/evaluation, defis, surfaces publiques
-2. **Neutralisation thematique progressive** - ne plus etendre Star Wars/Jedi, converger vers spatial neutre
-3. **Qualite frontend residuelle** - finir l'i18n du chrome admin et les quelques chaines inline restantes
-4. **Couverture E2E auth etendue** - admin auth et scenarios connectes plus representatifs si la stabilite infra le permet
-5. **Fiabilisation deploiement** - garder `.env.example` et les docs ops alignes sur le code actif
+1. **ACTIF-04 / qualite frontend** - remonter la couverture par ecriture de tests utiles puis re-mesure CI
+2. **Parent dashboard / relation parent-enfant** - voir `docs/02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md`
+3. **Beta fermee** - feedback outille, securite/headers, documentation utilisateur, cadrage OAuth Google (pilotage local dans `.claude/session-plan.md`)
+4. **Neutralisation thematique progressive** - ne plus etendre Star Wars/Jedi, converger vers spatial neutre
+5. **Fiabilisation documentation / ops** - garder guides, changelog et runbooks alignes sur le code actif
 
 ---
 
@@ -101,19 +108,21 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 - Langue de la doc projet : francais
 - Pas de `os.getenv()` direct - utiliser `settings.X` (Pydantic-validated)
 - Filtres SQLAlchemy : `.is_(True)` / `.is_(False)` (pas `== True`)
-- Logging : `logger.error("msg: %s", var)` (pas f-string)
+- Logging : `logger.error("msg %s", var)` (pas f-string)
 - Pas de nouvelle copie Star Wars/Jedi dans les nouveaux textes UI, prompts, tags ou commentaires metier ; preferer spatial neutre sauf compat legacy explicitement documentee
-- Tout nouveau backlog -> `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
+- Tout nouveau backlog produit -> `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
+- Toute note historique fermee doit quitter le flux actif et aller en archive canonique
 
 ---
 
 ## Reference rapide docs
 
-| Document                                        | Role                             |
-| ----------------------------------------------- | -------------------------------- |
-| `docs/03-PROJECT/README.md`                     | Index gouvernance projet         |
-| `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`   | Backlog produit source de verite |
-| `docs/02-FEATURES/API_QUICK_REFERENCE.md`       | Reference API runtime            |
-| `docs/02-FEATURES/CHALLENGE_CONTRACT_IA9.md`    | Contrat defis response_mode      |
-| `docs/03-PROJECT/CODE_REVIEW_2026-03-22.md`     | Derniere revue de code           |
-| `docs/03-PROJECT/AUDIT_TECHNIQUE_2026-03-22.md` | Dernier audit technique          |
+| Document | Role |
+| -------- | ---- |
+| `docs/03-PROJECT/README.md` | index gouvernance projet |
+| `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` | backlog produit source de verite |
+| `docs/02-FEATURES/API_QUICK_REFERENCE.md` | reference API runtime |
+| `docs/03-PROJECT/AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` | audit qualite frontend actif |
+| `docs/03-PROJECT/AUDIT_FRONTEND_STANDARDISATION_2026-03-29.md` | reference architecture frontend active |
+| `README_TECH.md` | reference technique vivante |
+| `CHANGELOG.md` | source de verite version / release |

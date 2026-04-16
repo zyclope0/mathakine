@@ -503,7 +503,7 @@ spaced_repetition_items (
 - Handler + route : `server/handlers/user_handlers.py`, `server/routes/users.py`
 - Hook + widget frontend : `frontend/hooks/useProgressTimeline.ts`, `frontend/components/dashboard/ProgressTimelineWidget.tsx`
 - IntÃƒÂ©gration dashboard : onglet Progression (`frontend/app/dashboard/page.tsx`)
-- Tests : `tests/unit/test_progress_timeline_service.py`, `tests/api/test_progress_endpoints.py`, `frontend/__tests__/unit/hooks/useProgressTimeline.test.tsx`
+- Tests : `tests/unit/test_progress_timeline_service.py`, `tests/api/test_progress_endpoints.py`, `frontend/hooks/useProgressTimeline.test.tsx`
 - RÃƒÂ©fÃƒÂ©rence dÃ¢â‚¬â„¢implÃƒÂ©mentation : [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md)
 
 **Effort estimÃƒÂ©** : 3-5 jours

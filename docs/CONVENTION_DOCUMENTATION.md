@@ -1,7 +1,7 @@
 ﻿# Convention de documentation Mathakine
 
 > Regles de structure, nommage et maintenance des documents projet
-> Version : 1.2 - 23/03/2026
+> Version : 1.3 - 16/04/2026
 
 ---
 
@@ -15,7 +15,6 @@ docs/
 |-- 03-PROJECT/          # Pilotage, audits, bilans, suivi projet
 |-- 04-FRONTEND/         # Documentation frontend vivante
 |-- 05-ADR/              # Architecture Decision Records
-|-- 06-WIDGETS/          # Compatibilite legacy - redirects uniquement
 |-- assets/              # Artefacts documentaires non-Markdown
 |-- INDEX.md             # Point d'entree global
 `-- CONVENTION_DOCUMENTATION.md
@@ -42,7 +41,7 @@ Emplacement recommande : `presentations/`, `tools/` ou un dossier metier dedie.
 
 ### Cas legacy explicites
 
-- `06-WIDGETS/` : ne sert plus qu'a rediriger vers `04-FRONTEND/DASHBOARD_WIDGETS/`
+- les anciens redirects widgets vivent desormais archives sous `04-FRONTEND/archives/LEGACY_WIDGET_REDIRECTS_2026-04/`
 - `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/` : collection legacy conservee pour compatibilite historique ; aucun nouveau document ne doit y etre cree
 - archive canonique active : `03-PROJECT/archives/`
 

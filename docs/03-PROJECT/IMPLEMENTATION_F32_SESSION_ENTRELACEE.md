@@ -284,10 +284,10 @@ EN recommande :
 
 ### Frontend
 
-- `frontend/__tests__/unit/app/exercises/InterleavedPage.test.tsx`
+- `frontend/app/exercises/InterleavedPage.test.tsx`
 - `frontend/hooks/useExerciseSolverController.test.ts`
-- `frontend/__tests__/unit/lib/exercises/exerciseSolverFlow.test.ts`
-- `frontend/__tests__/unit/exercises/exerciseSolverSession.test.ts`
+- `frontend/lib/exercises/exerciseSolverFlow.test.ts`
+- `frontend/lib/exercises/exerciseSolverSession.test.ts`
 
 ## Commandes de validation du lot initial
 

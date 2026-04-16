@@ -1,7 +1,7 @@
 ﻿# DEVELOPMENT GUIDE - MATHAKINE
 
 > Guide de developpement quotidien
-> Mise a jour : 18/03/2026
+> Mise a jour : 16/04/2026
 
 ## Modele d'architecture a respecter
 
@@ -35,7 +35,7 @@ A ne pas faire:
 ```powershell
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 alembic upgrade head
 python enhanced_server.py

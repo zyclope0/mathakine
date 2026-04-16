@@ -1,7 +1,7 @@
 # Guide de maintenance — Mathakine
 
-**Version** : 1.1.0  
-**Date** : 6 mars 2026 (revue alignée audit documentation 2026-03-22)  
+**Version** : 1.2.0  
+**Date** : 16 avril 2026 (revue vérité terrain)  
 **Audience** : DevOps, développeurs, mainteneurs
 
 > Pour les incidents de production, les migrations Alembic, le rollback et la rotation `SECRET_KEY`, utiliser d'abord [PRODUCTION_RUNBOOK.md](PRODUCTION_RUNBOOK.md). Ce guide reste centré sur la maintenance périodique.
@@ -99,7 +99,7 @@ Après chaque déploiement en production :
 
 ```bash
 # Tests rapides sur production
-BACKEND_URL=https://mathakine-backend.onrender.com \
+BACKEND_URL=https://mathakine-alpha.onrender.com \
 python scripts/load/run_load_tests.py --level quick
 ```
 
@@ -288,7 +288,7 @@ grep -r "logger.debug" app/
 
 **Solutions** :
 
-- Consulter `docs/03-PROJECT/SUIVI_IMPLEMENTATION_SECURITE.md`
+- Consulter d'abord `PRODUCTION_RUNBOOK.md`, `CICD_DEPLOY.md` et l'audit sécurité archivé pertinent sous `docs/03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/`
 - Appliquer les corrections recommandées
 - Réexécuter les scripts
 
@@ -365,5 +365,5 @@ python scripts/performance/benchmark_challenges_list.py
 
 ---
 
-**Dernière mise à jour** : 6 Décembre 2025  
-**Prochaine review** : 6 Janvier 2026
+**Dernière mise à jour** : 16 Avril 2026  
+**Prochaine review** : 16 Juillet 2026

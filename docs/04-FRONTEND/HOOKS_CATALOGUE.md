@@ -1,165 +1,189 @@
-﻿# Catalogue des hooks React â€” Mathakine
+# Catalogue des hooks React - Mathakine
 
 > Scope : `frontend/hooks/`
-> Updated : 2026-04-08
-> Total : 55 fichiers hooks (dont `hooks/chat/`)
+> Updated : 2026-04-16
+> Total : 58 hooks source (tests exclus)
+> Couverture terrain : 34 hooks avec test co-localise, 24 sans test co-localise
 
 ---
 
 ## Conventions de lecture
 
-| Colonne                | Signification                                   |
-| ---------------------- | ----------------------------------------------- |
-| **Test**               | âœ… test unitaire prÃ©sent / âŒ absent          |
-| **DÃ©pendances clÃ©s** | endpoints backend appelÃ©s ou stores consommÃ©s |
-| **React Query**        | utilise `useQuery` / `useMutation` / aucun      |
+| Colonne | Signification |
+| ------- | ------------- |
+| **Test** | `oui` = test co-localise present (`*.test.ts` ou `*.test.tsx`) |
+| **RQ** | usage principal React Query (`query`, `mutation`, `mixte`, `aucun`) |
+| **Notes** | dependances majeures ou statut particulier |
 
 ---
 
-## CatÃ©gorie 1 â€” Exercices
+## Exercices
 
-| Hook                        | RÃ´le                                              | Test | RQ       | DÃ©pendances clÃ©s                             |
-| --------------------------- | -------------------------------------------------- | ---- | -------- | ---------------------------------------------- |
-| `useExercises.ts`           | Liste paginÃ©e d'exercices avec filtres            | âŒ   | Query    | `GET /api/exercises`                           |
-| `useExercise.ts`            | DÃ©tail d'un exercice par ID                       | âŒ   | Query    | `GET /api/exercises/:id`                       |
-| `useSubmitAnswer.ts`        | Soumettre une rÃ©ponse Ã  un exercice              | âŒ   | Mutation | `POST /api/exercises/:id/submit`               |
-| `useAIExerciseGenerator.ts` | GÃ©nÃ©ration SSE d'exercice via IA                 | âŒ   | Aucun    | `POST /api/exercises/generate-ai-stream` (SSE) |
-| `useCompletedItems.ts`      | IDs des exercices/dÃ©fis complÃ©tÃ©s (cache local) | âœ…  | Aucun    | localStorage + state                           |
-
----
-
-## CatÃ©gorie 2 â€” DÃ©fis logiques
-
-| Hook                              | RÃ´le                                 | Test | RQ    | DÃ©pendances clÃ©s                              |
-| --------------------------------- | ------------------------------------- | ---- | ----- | ----------------------------------------------- |
-| `useChallenges.ts`                | Liste paginÃ©e de dÃ©fis avec filtres | âŒ   | Query | `GET /api/challenges`                           |
-| `useChallenge.ts`                 | DÃ©tail d'un dÃ©fi par ID             | âŒ   | Query | `GET /api/challenges/:id`                       |
-| `useChallengeSolverController.ts` | Runtime local du solver de dÃ©fi      | ✅   | Aucun | helpers solver + mutations `useChallenges`      |
-| `useAIChallengeGenerator.ts`      | GÃ©nÃ©ration SSE de dÃ©fi via IA      | âŒ   | Aucun | `POST /api/challenges/generate-ai-stream` (SSE) |
-| `useChallengesProgress.ts`        | Progression dÃ©fis de l'utilisateur   | âŒ   | Query | `GET /api/challenges/progress`                  |
-| `useChallengesStats.ts`           | Statistiques dÃ©fis (taux, types)     | âœ…  | Query | `GET /api/challenges/stats`                     |
-| `useDailyChallenges.ts`           | DÃ©fis quotidiens du jour             | âŒ   | Query | `GET /api/daily-challenges`                     |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useExercises.ts` | liste paginee d'exercices avec filtres | non | query | `GET /api/exercises` |
+| `useExercise.ts` | detail exercice par ID | non | query | `GET /api/exercises/:id` |
+| `useSubmitAnswer.ts` | soumission de reponse exercice | oui | mutation | `POST /api/exercises/:id/submit` |
+| `useAIExerciseGenerator.ts` | generation SSE d'exercice | oui | aucun | `POST /api/exercises/generate-ai-stream` |
+| `useExerciseSolverController.ts` | runtime solver exercice | oui | aucun | F04 / session entrelacee |
+| `useCompletedItems.ts` | IDs completes et cache local | oui | aucun | localStorage / state |
 
 ---
 
-## CatÃ©gorie 3 â€” Profil, Dashboard & Progression
+## Defis
 
-| Hook                             | RÃ´le                                                                         | Test | RQ    | DÃ©pendances clÃ©s                                                       |
-| -------------------------------- | ----------------------------------------------------------------------------- | ---- | ----- | ------------------------------------------------------------------------ |
-| `useProfilePageController.ts`    | Runtime local de la page profil (sections, formulaires, resets)               | ✅   | Aucun | `useProfile`, `useThemeStore`, `useAgeGroupDisplay`                      |
-| `useDashboardPageController.ts`  | Runtime local de la page dashboard (tabs, refresh, export, shell state)       | ✅   | Aucun | `useAuth`, stats hooks, React Query invalidation                         |
-| `useExerciseSolverController.ts` | Runtime local du solver exercice (F04 review, session entrelacee, navigation) | ✅   | Aucun | `useExercise`, `useSubmitAnswer`, `fetchNextReviewApi`, `sessionStorage` |
-| `useProfile.ts`                  | Profil complet de l'utilisateur connectÃ©                                     | âŒ   | Query | `GET /api/users/me`                                                      |
-| `useUserStats.ts`                | Stats globales dashboard, incluant le bloc F04 `spaced_repetition`            | âŒ   | Query | `GET /api/users/stats`                                                   |
-| `useNextReview.ts`               | Lecture one-shot de la prochaine revision F04 et du resume associe            | âŒ   | Aucun | `GET /api/users/me/reviews/next`                                         |
-| `useProgressStats.ts`            | Stats de progression par pÃ©riode                                             | âŒ   | Query | `GET /api/progress/stats`                                                |
-| `useProgressTimeline.ts`         | Timeline de progression historique                                            | âœ…  | Query | `GET /api/progress/timeline`                                             |
-| `usePaginatedContent.ts`         | Pagination gÃ©nÃ©rique rÃ©utilisable                                          | âœ…  | Aucun | abstraction interne                                                      |
-| `useIrtScores.ts`                | Scores IRT (thÃ©orie de rÃ©ponse Ã  l'item)                                   | âŒ   | Query | `GET /api/progress/irt`                                                  |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useChallenges.ts` | liste paginee de defis | oui | query | `GET /api/challenges` |
+| `useChallenge.ts` | detail defi par ID | non | query | `GET /api/challenges/:id` |
+| `useAIChallengeGenerator.ts` | generation SSE de defi | oui | aucun | `POST /api/challenges/generate-ai-stream` |
+| `useChallengeSolverController.ts` | runtime solver defi | oui | aucun | solver local |
+| `useChallengesProgress.ts` | progression defis utilisateur | non | query | `GET /api/challenges/progress` |
+| `useChallengesStats.ts` | statistiques defis | oui | query | `GET /api/challenges/stats` |
+| `useChallengeTranslations.ts` | mapping / labels challenge | oui | aucun | i18n / helpers |
+| `useDailyChallenges.ts` | defis quotidiens | non | query | `GET /api/daily-challenges` |
 
 ---
 
-## CatÃ©gorie 4 â€” Recommandations
+## Profil, dashboard et progression
 
-| Hook                                | RÃ´le                                       | Test | RQ    | DÃ©pendances clÃ©s         |
-| ----------------------------------- | ------------------------------------------- | ---- | ----- | -------------------------- |
-| `useRecommendations.ts`             | Recommandations personnalisÃ©es (liste)     | âŒ   | Query | `GET /api/recommendations` |
-| `useRecommendationsReason.ts` (lib) | Traduit les codes raison i18n cÃ´tÃ© client | âœ…  | Aucun | `next-intl`                |
-
----
-
-## CatÃ©gorie 5 â€” Gamification & Badges
-
-| Hook                         | RÃ´le                                                                                | Test | RQ    | DÃ©pendances clÃ©s                       |
-| ---------------------------- | ------------------------------------------------------------------------------------ | ---- | ----- | ---------------------------------------- |
-| `useBadges.ts`               | Liste des badges obtenus                                                             | âŒ   | Query | `GET /api/badges`                        |
-| `useBadgesProgress.ts`       | Progression vers badges non obtenus (types partagés `lib/badges/types.ts`, FFI-L20D) | âŒ   | Query | `GET /api/badges/progress`               |
-| `useBadgesPageController.ts` | Runtime local de la page badges                                                      | ✅   | Aucun | helpers badges + localStorage + confetti |
-| `useLeaderboard.ts`          | Classement public paginÃ©                                                            | âŒ   | Query | `GET /api/leaderboard`                   |
-| `useMyLeaderboardRank.ts`    | Rang de l'utilisateur courant                                                        | âŒ   | Query | `GET /api/leaderboard/me`                |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useProfile.ts` | profil complet utilisateur | oui | query | `GET /api/users/me` |
+| `useProfilePageController.ts` | runtime page profil | oui | aucun | sections / formulaires |
+| `useDashboardPageController.ts` | runtime page dashboard | oui | aucun | tabs / export / shell state |
+| `useUserStats.ts` | stats dashboard globales | non | query | `GET /api/users/stats` |
+| `useNextReview.ts` | prochaine revision F04 | non | aucun | `GET /api/users/me/reviews/next` |
+| `useProgressStats.ts` | stats progression par periode | non | query | `GET /api/progress/stats` |
+| `useProgressTimeline.ts` | timeline de progression | oui | query | `GET /api/progress/timeline` |
+| `useProgressionArc.ts` | arc de progression persistant | oui | aucun | constellation / UI progression |
+| `usePaginatedContent.ts` | pagination generique reutilisable | oui | aucun | abstraction locale |
+| `useIrtScores.ts` | scores IRT | oui | query | `GET /api/diagnostic/status` |
+| `useFirstVisitHint.ts` | hints de premiere visite | non | aucun | localStorage |
 
 ---
 
-## CatÃ©gorie 6 â€” Authentification
+## Recommandations, contenu et diagnostic
 
-| Hook                           | RÃ´le                                                                                                                                                                    | Test | RQ       | DÃ©pendances clÃ©s                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------- | -------------------------------------------------------- |
-| `useAuth.ts`                   | Facade auth (FFI-L20C) : session, login, register, logout, forgot-password ; contrats `lib/auth/types` + `authLoginFlow`                                                 | ✅   | Mutation | `POST /api/auth/login`, `POST /api/auth/logout`          |
-| `useSettings.ts`               | PrÃ©fÃ©rences utilisateur                                                                                                                                                | âŒ   | Mutation | `PUT /api/users/me`, export, delete, sessions            |
-| `useSettingsPageController.ts` | Ã‰tat local page settings (sync user, sessions, diagnostic, `visibleSessions` dÃ©rivÃ©) ; UI sÃ©curitÃ© dÃ©coupÃ©e en sous-composants FFI-L20E sans dÃ©placer ce runtime | âœ…  | Mutation | `useAuth` + `useSettings` + `GET /api/diagnostic/status` |
-
----
-
-## CatÃ©gorie 7 â€” Chat & IA
-
-| Hook                         | RÃ´le                                                                         | Test    | RQ    | DÃ©pendances clÃ©s                                                             |
-| ---------------------------- | ----------------------------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------ |
-| `useChat.ts`                 | Session chat avec l'assistant                                                 | âœ…     | Aucun | `POST /api/chat` (via route Next.js)                                           |
-| `chat/useGuestChatAccess.ts` | Quota invitÃ© **5 messages** / session (`sessionStorage`) ; etat hydrate-safe | âœ…     | Aucun | Aucun fetch ; **complement** au rate-limit chat **serveur** (autorite backend) |
-| `chat/` (dossier)            | Hooks internes du chat (streaming, history)                                   | Partiel | Aucun | SSE + localStorage                                                             |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useRecommendations.ts` | recommandations personnalisees | non | query | `GET /api/recommendations` |
+| `useContentListOrderPreference.ts` | persistance locale du tri liste | non | aucun | localStorage |
+| `useContentListViewControls.ts` | etat vue liste/grille | non | aucun | state local |
+| `useContentListPageController.ts` | runtime shared `Exercises` / `Challenges` | oui | aucun | toolbar / order / filters |
+| `useContentListOrderPreference.ts` | persistance locale du tri liste | non | aucun | localStorage |
+| `useContentListViewControls.ts` | etat vue liste/grille | non | aucun | state local |
+| `useDiagnostic.ts` | diagnostic initial | oui | query | `GET /api/diagnostic` |
+| `useRecommendationsReason.ts` | helper libelle raison reco | oui | aucun | `next-intl` |
 
 ---
 
-## CatÃ©gorie 8 â€” Admin
+## Badges et leaderboard
 
-| Hook                               | RÃ´le                                         | Test | RQ               | DÃ©pendances clÃ©s                      |
-| ---------------------------------- | --------------------------------------------- | ---- | ---------------- | --------------------------------------- |
-| `useAdminOverview.ts`              | Vue d'ensemble admin                          | âŒ   | Query            | `GET /api/admin/overview`               |
-| `useAdminUsers.ts`                 | Gestion utilisateurs admin                    | âŒ   | Query + Mutation | `GET/DELETE /api/admin/users`           |
-| `useAdminExercises.ts`             | Gestion exercices admin                       | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/exercises`  |
-| `useAdminContentPageController.ts` | Shell query `tab` / `edit` page contenu admin | âœ…  | Aucun            | Parse URL uniquement (FFI-L14)          |
-| `useAdminChallenges.ts`            | Gestion dÃ©fis admin                          | âŒ   | Query + Mutation | `GET/POST/DELETE /api/admin/challenges` |
-| `useAdminBadges.ts`                | Gestion badges admin                          | âŒ   | Query + Mutation | `GET/POST /api/admin/badges`            |
-| `useAdminAiStats.ts`               | Statistiques IA (usage, modÃ¨les, coÃ»t)      | âŒ   | Query            | `GET /api/admin/ai-stats`               |
-| `useAdminEdTechAnalytics.ts`       | Analytics EdTech admin                        | âŒ   | Query            | `GET /api/admin/analytics`              |
-| `useAdminFeedback.ts`              | Feedbacks utilisateurs admin                  | âŒ   | Query            | `GET /api/admin/feedback`               |
-| `useAdminModeration.ts`            | ModÃ©ration contenu admin                     | âŒ   | Query + Mutation | `GET/POST /api/admin/moderation`        |
-| `useAdminConfig.ts`                | Configuration plateforme admin                | âŒ   | Query + Mutation | `GET/PUT /api/admin/config`             |
-| `useAdminReports.ts`               | Rapports admin (exports)                      | âŒ   | Query            | `GET /api/admin/reports`                |
-| `useAdminAuditLog.ts`              | Journal d'audit admin                         | âŒ   | Query            | `GET /api/admin/audit-log`              |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useBadges.ts` | badges obtenus | oui | query | `GET /api/badges` |
+| `useBadgesProgress.ts` | progression vers badges | non | query | `GET /api/badges/progress` |
+| `useBadgesPageController.ts` | runtime page badges | oui | aucun | FFI-L12 |
+| `useLeaderboard.ts` | classement public | non | query | `GET /api/leaderboard` |
+| `useMyLeaderboardRank.ts` | rang utilisateur courant | non | query | `GET /api/leaderboard/me` |
 
 ---
 
-## CatÃ©gorie 9 â€” Divers
+## Authentification et parametres
 
-| Hook                               | RÃ´le                                                    | Test | RQ    | DÃ©pendances clÃ©s                                             |
-| ---------------------------------- | -------------------------------------------------------- | ---- | ----- | -------------------------------------------------------------- |
-| `useAcademyStats.ts`               | Stats globales de l'acadÃ©mie (public)                   | âŒ   | Query | `GET /api/stats/academy`                                       |
-| `useDiagnostic.ts`                 | RÃ©sultats diagnostic initial                            | âŒ   | Query | `GET /api/diagnostic`                                          |
-| `useContentListPageController.ts`  | Etat runtime shared des pages `Exercises` / `Challenges` | ✅   | Aucun | `useContentListViewControls` + `useContentListOrderPreference` |
-| `useContentListOrderPreference.ts` | Persistance locale du tri liste contenu                  | ❌   | Aucun | localStorage                                                   |
-| `useContentListViewControls.ts`    | Etat vue liste/grille et controles associes              | ❌   | Aucun | state local + localStorage                                     |
-
----
-
-## Bilan couverture tests
-
-| Statut                 | Nombre |
-| ---------------------- | ------ |
-| âœ… Avec test unitaire | 12     |
-| âŒ Sans test unitaire  | ~43    |
-| **Total**              | **55** |
-
-### Hooks critiques sans tests (prioritÃ© haute)
-
-| Hook                         | Pourquoi critique                                                   |
-| ---------------------------- | ------------------------------------------------------------------- |
-| `useAIExerciseGenerator.ts`  | Orchestre le flux SSE exercice â€” chemin principal de gÃ©nÃ©ration |
-| `useAIChallengeGenerator.ts` | Orchestre le flux SSE dÃ©fi â€” chemin principal de gÃ©nÃ©ration    |
-| `useExercises.ts`            | Hook principal de la page exercices                                 |
-| `useRecommendations.ts`      | Affiche les recommandations personnalisÃ©es                         |
-| `useSubmitAnswer.ts`         | Validation des rÃ©ponses â€” impact gamification                    |
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useAuth.ts` | facade auth | oui | mixte | login / logout / register / forgot-password |
+| `useSettings.ts` | preferences utilisateur | oui | mixte | `PUT /api/users/me`, export, sessions |
+| `useSettingsPageController.ts` | etat page settings | oui | aucun | sync user / sessions / diagnostic |
+| `useAccessibleAnimation.ts` | helper animation accessibilite | oui | aucun | implementation cible `frontend/lib/hooks/` |
 
 ---
 
-## RÃ¨gle d'ajout
+## Chat et assistant
+
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `chat/useChat.ts` | session chat avec assistant | oui | aucun | hook principal |
+| `chat/useChatAutoScroll.ts` | auto-scroll messages chat | non | aucun | UI only |
+| `chat/useGuestChatAccess.ts` | quota invite 5 messages / session | oui | aucun | `sessionStorage` |
+| `useChat.ts` | re-export legacy du hook chat | non | aucun | wrapper `export { useChat } from "./chat/useChat"` |
+
+---
+
+## Admin
+
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useAdminOverview.ts` | vue d'ensemble admin | non | query | `GET /api/admin/overview` |
+| `useAdminUsers.ts` | gestion utilisateurs admin | oui | mixte | `GET/DELETE /api/admin/users` |
+| `useAdminUsersPageController.ts` | runtime page admin users | oui | aucun | page mince |
+| `useAdminExercises.ts` | gestion exercices admin | oui | mixte | `GET/POST/DELETE /api/admin/exercises` |
+| `useAdminChallenges.ts` | gestion defis admin | oui | mixte | `GET/POST/DELETE /api/admin/challenges` |
+| `useAdminBadges.ts` | gestion badges admin | non | mixte | `GET/POST /api/admin/badges` |
+| `useAdminContentPageController.ts` | shell page contenu admin | oui | aucun | query params / tabs |
+| `useAdminAiStats.ts` | stats IA admin | oui | query | `GET /api/admin/ai-stats` |
+| `useAdminAiMonitoringPageController.ts` | runtime page ai-monitoring | oui | aucun | `days`, agrégats, harness=25 |
+| `useAdminEdTechAnalytics.ts` | analytics EdTech admin | non | query | `GET /api/admin/analytics` |
+| `useAdminFeedback.ts` | feedbacks utilisateurs admin | non | query | `GET /api/admin/feedback` |
+| `useAdminModeration.ts` | moderation admin | oui | mixte | `GET/POST /api/admin/moderation` |
+| `useAdminConfig.ts` | configuration plateforme admin | non | mixte | `GET/PUT /api/admin/config` |
+| `useAdminReports.ts` | rapports admin | non | query | `GET /api/admin/reports` |
+| `useAdminAuditLog.ts` | journal d'audit admin | oui | query | `GET /api/admin/audit-log` |
+
+---
+
+## Divers
+
+| Hook | Role | Test | RQ | Notes |
+| ---- | ---- | ---- | -- | ----- |
+| `useAcademyStats.ts` | stats academie publiques | non | query | `GET /api/stats/academy` |
+
+---
+
+## Hooks sans test co-localise (etat 2026-04-16)
+
+- `chat/useChatAutoScroll.ts`
+- `useAcademyStats.ts`
+- `useAdminBadges.ts`
+- `useAdminConfig.ts`
+- `useAdminEdTechAnalytics.ts`
+- `useAdminFeedback.ts`
+- `useAdminOverview.ts`
+- `useAdminReports.ts`
+- `useBadgesProgress.ts`
+- `useChallenge.ts`
+- `useChallengesProgress.ts`
+- `useChat.ts`
+- `useContentListOrderPreference.ts`
+- `useContentListViewControls.ts`
+- `useDailyChallenges.ts`
+- `useExercise.ts`
+- `useExercises.ts`
+- `useFirstVisitHint.ts`
+- `useLeaderboard.ts`
+- `useMyLeaderboardRank.ts`
+- `useNextReview.ts`
+- `useProgressStats.ts`
+- `useRecommendations.ts`
+- `useUserStats.ts`
+
+---
+
+## Bilan
+
+| Statut | Nombre |
+| ------ | ------ |
+| Avec test co-localise | 34 |
+| Sans test co-localise | 24 |
+| Total | 58 |
+
+## Regle d'ajout
 
 Tout nouveau hook doit :
 
-1. Figurer dans ce catalogue avec sa catÃ©gorie, son rÃ´le et ses dÃ©pendances.
-2. Avoir un fichier de test co-localise a proximite du hook source
-   (`frontend/hooks/useMonHook.test.ts` ou
-   `frontend/hooks/useMonHook.test.tsx`). Les anciens chemins
-   `frontend/__tests__/unit/hooks/` relevent de la migration progressive
-   `ACTIF-03`.
-3. Preferer React Query (`useQuery` / `useMutation`) pour tout appel reseau partage/cache ; une exception one-shot sans cache est acceptable si elle est documentee (ex: `useNextReview.ts` pour la session F04).
+1. figurer dans ce catalogue avec role, dependances et statut de test
+2. avoir un test co-localise a proximite du hook source quand le hook porte un comportement non trivial
+3. preferer React Query pour tout acces reseau partage/cache
+4. documenter explicitement les wrappers legacy ou re-exports (`useChat.ts`) pour eviter les faux doublons

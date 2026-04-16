@@ -23,7 +23,7 @@ const categoryKey = category.toLowerCase().replace('exercises.types.', '');
 
 **Note 24/03/2026 :**
 - le widget recalcule maintenant correctement ses libelles quand la locale change apres le premier rendu
-- une non-regression unitaire couvre ce cas : `frontend/__tests__/unit/components/dashboard/CategoryAccuracyChart.test.tsx`
+- une non-regression unitaire couvre ce cas : `frontend/components/dashboard/CategoryAccuracyChart.test.tsx`
 
 ---
 

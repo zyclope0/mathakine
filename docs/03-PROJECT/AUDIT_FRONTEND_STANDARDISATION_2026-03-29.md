@@ -904,14 +904,14 @@ Ajouter des tests cibles de non-regression avant tout refactor structurel (`FFI-
 - `FFI-L1` a `FFI-L18B` sont livres pour la standardisation structurelle prioritaire
 - la suite ne consiste plus a poursuivre une pseudo-sequence `FFI-L18` ouverte, mais a choisir des **lots cibles** sur les reliquats reels
 - avant de rouvrir de gros sweeps cosmetiques, verifier les budgets `PROTECTED_FRONTEND_SURFACES`
-- garder `D:\\Mathakine\\.claude\\session-plan.md` comme source de verite d'execution active ; cet audit reste la reference projet detaillee
+- garder `D:\\Mathakine\\.claude\\session-plan.md` comme note locale de pilotage founder ; la verite d'execution active reste le code, la roadmap et les audits actifs
 
 ### Plan initial (historique)
 
 > Ce bloc conserve le **plan initial** issu de l'extraction `/octo:extract`.
 > Il reste utile comme trace d'origine et comme justification des constats.
-> **La source de verite d'execution active est `D:\\Mathakine\\.claude\\session-plan.md`.**
-> En cas de divergence, suivre d'abord le `session-plan`, puis la feuille de route `FFI-L1` a `FFI-L17` ci-dessus.
+> **Le `session-plan` n'est pas une preuve runtime autonome.**
+> En cas de divergence, suivre d'abord le code, puis la roadmap et les audits actifs ; utiliser le `session-plan` comme cadrage local de pilotage.
 
 ### Chantier 1 — Tokens podium thème-aware
 

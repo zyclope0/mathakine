@@ -1,7 +1,7 @@
 # TROUBLESHOOTING GUIDE - MATHAKINE
 
 > Problemes courants et diagnostics utiles
-> Mise a jour : 13/03/2026
+> Mise a jour : 16/04/2026
 
 ## Backend ne demarre pas
 
@@ -23,7 +23,7 @@ python enhanced_server.py
 
 ```bash
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### Variables d'environnement absentes

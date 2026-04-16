@@ -1,7 +1,7 @@
 # Guide contribution i18n - Mathakine
 
 > Scope : `frontend/messages/` + `frontend/scripts/i18n/`
-> Updated : 2026-04-10
+> Updated : 2026-04-16
 
 ---
 
@@ -140,8 +140,8 @@ Points utiles :
 ## Limitations connues
 
 - `i18n:extract` peut encore remonter des hardcodes hors du lot courant.
-- certaines surfaces residuelles ne sont pas encore totalement i18nisees, notamment le chrome de `frontend/app/admin/layout.tsx`.
-- une chaine de succes register reste encore inline dans `frontend/hooks/useAuth.ts`.
+- les scripts `i18n:*` restent des garde-fous structurels, pas une preuve qu'aucun texte visible n'est inline sur tout le repo.
+- la validation d'un lot i18n doit encore etre recoupee avec les tests co-localises et les pages/composants reellement touches.
 
 ---
 

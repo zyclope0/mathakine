@@ -2,7 +2,7 @@
 
 **Version produit visible** : `3.6.0-alpha.1`  
 **Statut** : alpha avancee  
-**Framework** : Next.js `16.1.6` + App Router  
+**Framework** : Next.js `16.2.3` + App Router  
 **Langage** : TypeScript strict
 
 ---
@@ -136,7 +136,7 @@ Repere utile :
 
 ## Internationalisation
 
-- bibliotheque : `next-intl` `^4.8.3`
+- bibliotheque : `next-intl` `^4.9.1`
 - messages : `messages/fr.json`, `messages/en.json`
 - provider : `components/providers/NextIntlProvider.tsx`
 - locale stockee dans Zustand (`localeStore`)
@@ -144,8 +144,9 @@ Repere utile :
 Etat actuel :
 
 - les pages route-level admin et `offline` ont ete sorties des hardcodes principaux
-- le chrome `app/admin/layout.tsx` reste une dette i18n residuelle connue
-- une chaine FR inline persiste encore dans `hooks/useAuth.ts`
+- le chrome `app/admin/layout.tsx` est maintenant aligne sur `adminPages.layout.*`
+- les descriptions de toasts auth de `hooks/useAuth.ts` passent par `toasts.auth.*`
+- `i18n:extract` peut encore remonter des hardcodes hors du lot i18n traite
 
 Reference :
 
@@ -160,10 +161,10 @@ Reference :
 
 - configuration : `vitest.config.ts`
 - seuils actifs :
-  - `statements: 43`
-  - `branches: 36`
-  - `functions: 39`
-  - `lines: 44`
+  - `statements: 46`
+  - `branches: 38`
+  - `functions: 42`
+  - `lines: 48`
 
 ### Playwright
 
