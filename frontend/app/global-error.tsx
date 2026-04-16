@@ -17,6 +17,7 @@ function readPersistedLocale(): UiLocale {
     const parsed = JSON.parse(raw) as { state?: { locale?: string } };
     return parsed.state?.locale === "en" ? "en" : "fr";
   } catch {
+    /* swallowed: localStorage unavailable or invalid JSON, "fr" default used */
     return "fr";
   }
 }
