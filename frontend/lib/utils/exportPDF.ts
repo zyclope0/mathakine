@@ -54,6 +54,7 @@ function formatExportedDate(iso: string, locale: string): string {
       timeStyle: "short",
     });
   } catch {
+    /* swallowed: invalid timestamp, ISO string returned as fallback */
     return iso;
   }
 }
@@ -65,6 +66,7 @@ function formatActivityTime(time: string, locale: string): string {
       timeStyle: "short",
     });
   } catch {
+    /* swallowed: invalid timestamp, ISO string returned as fallback */
     return time;
   }
 }
