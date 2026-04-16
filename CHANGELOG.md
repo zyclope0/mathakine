@@ -85,6 +85,31 @@ Active references:
 - `README_TECH.md`, `docs/INDEX.md`, `docs/03-PROJECT/README.md`, `docs/04-FRONTEND/ARCHITECTURE.md`, `docs/04-FRONTEND/API_ROUTES.md`, `docs/04-FRONTEND/HOOKS_CATALOGUE.md`, and `docs/04-FRONTEND/COMPONENTS_CATALOGUE.md` now reflect the current active architecture instead of the pre-co-location snapshot.
 - Historical implementation notes and legacy widget redirects were archived out of the active flow, while archive READMEs and cross-links were updated so those notes remain discoverable without pretending to be active source-of-truth documents.
 - `.claude/session-plan.md` is now consistently described as a local founder-planning note rather than standalone runtime truth.
+## [3.6.0-beta.1] - Unreleased
+
+### Added
+
+- Feedback reports now capture full debug context: `user_role`, `active_theme`, `ni_state`, `component_id` — stored server-side from JWT state, never from client body. Alembic migration `20260416_feedback_context` extends `feedback_reports` table.
+- Rate limiting on `POST /api/feedback`: 10 requests/minute/IP via the existing Redis/memory rate-limit infrastructure.
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()` added to Next.js response headers (`next.config.ts`).
+- Privacy policy (`/privacy`) now covers GDPR Art. 13 explicitly: legal basis section (Art. 6.1.b contract + Art. 6.1.f legitimate interest) and minors/parental consent section (Art. 8), available in both French and English.
+
+### Changed
+
+- Privacy policy date updated to April 2026; `refresh_token` cookie removed from the cookies section (cookie was retired in a previous cycle).
+- `frontend/messages/fr.json` and `en.json` extended with `privacy.legalBasis` and `privacy.minors` sections.
+
+### Fixed
+
+- DOMPurify bumped from 3.3.3 to 3.4.0 via `npm audit fix` (Dependabot #41, GHSA-39q2-94rc-95cp, moderate severity transitive via jspdf).
+- `SameSite=Lax` on the frontend auth cookie confirmed correct for cross-subdomain architecture (was flagged as L2, resolved as false positive).
+- `isort` import order in `server/handlers/feedback_handlers.py` corrected to pass CI gate.
+
+### Notes
+
+- Beta scope is deliberately narrow: feedback context enrichment (A1 done, A2/A3/A4 pending), security hardening (B1+B2 done), and user documentation (C1/C2/C3 pending).
+- OAuth Google evaluation (B3) is deferred to post-beta.
+
 ## [3.6.0-alpha.1] - 2026-04-05
 
 ### Added

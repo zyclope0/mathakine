@@ -18,19 +18,17 @@ Une version beta fermée stable, sécurisée et instrumentée, prête à accueil
 
 ## Plan d'exécution
 
-### PHASE 1 — DEFINE (15%) : Inventaire et architecture
+### PHASE 1 — DEFINE (15%) : Inventaire et architecture ✅ TERMINÉ
 
 **Objectif :** Cadrer chaque chantier avant de toucher le code.
 
-| Tâche | Outil suggéré |
-|-------|--------------|
-| D1 — Auditer le payload feedback actuel (quels champs manquent) | Claude Code / Grep |
-| D2 — Auditer l'affichage admin feedback (champs manquants côté UI) | Claude Code / Read |
-| D3 — Lister les emplacements clés pour le bouton feedback discret | Claude Code / Explore |
-| D4 — Point d'architecture OAuth Google (Starlette + JWT + next-auth ?) | Claude Code + Codex |
-| D5 — Inventaire OWASP : headers, cookies, rate-limit, CSRF | `/octo:security` quick-pass |
-
-**Livrable :** Fiche de chantier par item (scope + approach + risk).
+| Tâche | Statut |
+|-------|--------|
+| D1 — Auditer le payload feedback actuel | ✅ fait (payload enrichi en A1) |
+| D2 — Auditer l'affichage admin feedback | ✅ fait (list_feedback_for_admin étendu) |
+| D3 — Lister les emplacements feedback discret | ✅ identifié (A4 à venir) |
+| D4 — Point d'architecture OAuth Google | ⏳ reporté post-beta |
+| D5 — Inventaire OWASP quick-pass | ✅ fait (M1 M2 M3 M4 L1 L2) |
 
 ---
 
@@ -38,55 +36,28 @@ Une version beta fermée stable, sécurisée et instrumentée, prête à accueil
 
 #### Chantier A — Feedback-Debug (priorité 1)
 
-**A1 — Enrichissement payload backend**
-- Ajouter au modèle `Feedback` : `user_role`, `active_theme`, `ni_state`, `page_path`, `component_id`
-- Migration Alembic
-- Route POST `/api/feedback` : lire ces champs du body
+| Tâche | Statut | Commit |
+|-------|--------|--------|
+| **A1** — Modèle + migration + handler backend | ✅ TERMINÉ | `bd130e3` + `9892fe9` + `af93508` + `daa6fb5` |
+| **A2** — Frontend `FeedbackFab.tsx` envoie les 4 champs | ⏳ À FAIRE | — |
+| **A3** — Vue admin affiche les nouveaux champs | ⏳ À FAIRE | — |
+| **A4** — Repositionnement bouton (header, fin exercice, fin défi) | ⏳ À FAIRE | — |
 
-**A2 — Enrichissement payload frontend**
-- `FeedbackFab.tsx` : collecter role (store auth), theme (localeStore / themeStore), ni_state, pathname + composant déclarant
-- Pattern recommandé : prop `feedbackContext` sur le composant hôte, injectée dans le body POST
+#### Chantier B — Sécurité / Auth ✅ TERMINÉ
 
-**A3 — Vue admin complète**
-- `app/admin/feedback/page.tsx` (ou équivalent) : afficher les nouveaux champs
-- Colonnes : rôle, thème, NI, page, composant, message, date
-
-**A4 — Repositionnement bouton**
-- Composant `FeedbackTrigger` discret (icône mini, sans FAB) à placer sur :
-  - Header global (desktop uniquement)
-  - Fin d'exercice (après validation)
-  - Fin de défi
-  - Page dashboard
-- FAB existant conservé en bas-droite sur les pages sans trigger discret
-
-#### Chantier B — Sécurité / Auth
-
-**B1 — Dependabot #41**
-- Identifier le package vulnérable : `gh api repos/zyclope0/mathakine/dependabot/alerts/41`
-- Appliquer la mise à jour, vérifier CI
-
-**B2 — OWASP quick-pass**
-- Headers : `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` dans proxy.ts (CSP déjà fait)
-- Cookies : vérifier `SameSite=Strict` sur les cookies auth
-- Rate-limiting : vérifier que les endpoints sensibles (/login, /register, /api/feedback) ont leur bucket
-
-**B3 — Évaluation OAuth Google**
-- Livrable : doc `docs/02-FEATURES/OAUTH_GOOGLE_ARCHITECTURE.md`
-- Contenu : option A (next-auth + backend token exchange) vs option B (backend-only Google OAuth), complexité, risques, effort
-- Décision : P0 beta / post-beta P1
+| Tâche | Statut | Commit |
+|-------|--------|--------|
+| **B1** — Dependabot #41 (DOMPurify 3.3.3→3.4.0) | ✅ TERMINÉ | `ebfa039` |
+| **B2** — OWASP quick-pass (M1 Permissions-Policy, M2 rate-limit feedback, M3 privacy RGPD) | ✅ TERMINÉ | `4c822fe` `ef1ea49` `68c052e` |
+| **B3** — Évaluation OAuth Google | ⏳ reporté post-beta | — |
 
 #### Chantier C — Documentation utilisateur
 
-**C1 — Onboarding in-app**
-- Tooltip/guide first-use sur dashboard (enfant) et tableau de bord parent
-- Peut être une séquence de 3 tooltips côté frontend, aucun backend requis
-
-**C2 — Page d'aide contextuelle**
-- `/help` ou section FAQ accessible depuis le menu
-- Contenu minimal : "Comment ça marche", "Mes points", "Les défis", "Contacter le support"
-
-**C3 — README utilisateur beta**
-- `docs/BETA_GUIDE.md` : instructions pour invités, comment signaler un bug (bouton feedback), périmètre beta
+| Tâche | Statut |
+|-------|--------|
+| **C1** — Onboarding in-app (tooltips first-use) | ⏳ À FAIRE |
+| **C2** — Page `/help` FAQ contextuelle | ⏳ À FAIRE |
+| **C3** — `docs/BETA_GUIDE.md` (instructions invités) | ⏳ À FAIRE |
 
 ---
 
