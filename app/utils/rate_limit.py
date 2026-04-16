@@ -38,6 +38,7 @@ _AUTH_LOG_CALLER_MAX = 48
 # Next.js server-side validate-token fetches may set this for log attribution (forged by clients is possible).
 VALIDATE_TOKEN_CALLER_HEADER = "x-mathakine-validate-caller"
 RATE_LIMIT_REGISTER_MAX = 3  # creation de compte
+RATE_LIMIT_FEEDBACK_MAX = 10  # feedback – 10 req/min/IP
 RATE_LIMIT_RESEND_VERIFICATION_MAX = 2  # resend-verification (abus email)
 RATE_LIMIT_CHAT_MAX = 15  # chat/stream - cout OpenAI, eviter abus
 RATE_LIMIT_AI_MAX_PER_HOUR = 10
@@ -49,6 +50,7 @@ RATE_LIMIT_EXERCISE_AI_MAX_PER_DAY = 50
 
 # Messages d'erreur centralises (429 Too Many Requests)
 MSG_RATE_LIMIT_RETRY = "Trop de tentatives. Veuillez reessayer dans une minute."
+MSG_FEEDBACK_RATE_LIMIT = "Trop de signalements. Veuillez reessayer dans une minute."
 MSG_CHAT_RATE_LIMIT = "Limite de messages atteinte. Veuillez reessayer dans une minute."
 MSG_AI_HOURLY_RATE_LIMIT = "Limite horaire de generation atteinte."
 MSG_AI_DAILY_RATE_LIMIT = "Limite journaliere de generation atteinte."
@@ -230,6 +232,21 @@ def rate_limit_register(func: Callable):
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
             logger.warning("Rate limit depasse pour register depuis {}", ip)
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
+        return await func(request, *args, **kwargs)
+
+    return wrapped
+
+
+def rate_limit_feedback(func: Callable):
+    """Decorateur rate limit pour POST /api/feedback : 10 req/min par IP."""
+
+    @wraps(func)
+    async def wrapped(request, *args, **kwargs):
+        ip = _get_client_ip(request)
+        key = f"rate_limit:feedback:{ip}"
+        if not _check_rate_limit(key, RATE_LIMIT_FEEDBACK_MAX):
+            logger.warning("Rate limit depasse pour feedback depuis {}", ip)
+            return _rate_limit_response(MSG_FEEDBACK_RATE_LIMIT)
         return await func(request, *args, **kwargs)
 
     return wrapped
