@@ -8,6 +8,7 @@ import {
   refreshSessionViaHttpOnlyCookie,
   syncCsrfTokenToFrontend,
 } from "@/lib/auth/auth-session-sync";
+import { getPersistedLocale } from "@/lib/stores/localeStore";
 
 export { syncAccessTokenToFrontend } from "@/lib/auth/auth-session-sync";
 
@@ -137,22 +138,7 @@ export async function apiRequest<T>(
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
 
-  // Récupérer la locale depuis le store (si disponible côté client)
-  let locale = "fr";
-  if (typeof window !== "undefined") {
-    try {
-      // Lire depuis localStorage directement pour éviter les problèmes de SSR
-      const stored = localStorage.getItem("locale-preferences");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.state?.locale) {
-          locale = parsed.state.locale;
-        }
-      }
-    } catch {
-      // Fallback silencieux si localStorage n'est pas disponible
-    }
-  }
+  const locale = getPersistedLocale();
 
   const config: RequestInit = {
     ...options,
