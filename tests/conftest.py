@@ -647,6 +647,24 @@ async def archiviste_client(db_session):
         yield result
 
 
+@pytest.fixture
+async def apprenant_client(db_session):
+    """Client authentifié avec rôle canonique apprenant (aligné API / tests récents)."""
+    async with _create_authenticated_client(
+        role="apprenant", db_session_for_role=db_session
+    ) as result:
+        yield result
+
+
+@pytest.fixture
+async def admin_client(db_session):
+    """Client authentifié avec rôle canonique admin (aligné API / tests récents)."""
+    async with _create_authenticated_client(
+        role="admin", db_session_for_role=db_session
+    ) as result:
+        yield result
+
+
 # ================================================================
 # SECTION 4: MOCK FIXTURES (donnees de test en memoire)
 # ================================================================

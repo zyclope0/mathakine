@@ -13,9 +13,9 @@ def ensure_feedback_reports_table(db_session):
     yield
 
 
-async def test_submit_feedback(padawan_client):
+async def test_submit_feedback(apprenant_client):
     """Soumettre un retour en étant authentifié."""
-    client = padawan_client["client"]
+    client = apprenant_client["client"]
     payload = {
         "feedback_type": "exercise",
         "description": "La question 3 était incorrecte.",
@@ -32,9 +32,9 @@ async def test_submit_feedback(padawan_client):
     assert "message" in data
 
 
-async def test_submit_feedback_invalid_type(padawan_client):
+async def test_submit_feedback_invalid_type(apprenant_client):
     """feedback_type invalide doit retourner 400."""
-    client = padawan_client["client"]
+    client = apprenant_client["client"]
     payload = {
         "feedback_type": "invalid_type",
         "description": "Test",
@@ -58,11 +58,11 @@ async def test_submit_feedback_unauthorized(client):
     assert response.status_code == 401
 
 
-async def test_admin_list_feedback(archiviste_client, padawan_client):
+async def test_admin_list_feedback(admin_client, apprenant_client):
     """Admin peut lister les retours après en avoir créé un."""
-    # Soumettre un retour avec padawan
-    padawan = padawan_client["client"]
-    await padawan.post(
+    # Soumettre un retour avec un compte apprenant
+    learner = apprenant_client["client"]
+    await learner.post(
         "/api/feedback",
         json={
             "feedback_type": "challenge",
@@ -87,9 +87,9 @@ async def test_admin_list_feedback(archiviste_client, padawan_client):
         assert first["feedback_type"] == "challenge"
 
 
-async def test_admin_feedback_forbidden_as_padawan(padawan_client):
-    """Un padawan ne peut pas accéder à l'API admin feedback."""
-    client = padawan_client["client"]
+async def test_admin_feedback_forbidden_as_apprenant(apprenant_client):
+    """Un apprenant ne peut pas accéder à l'API admin feedback."""
+    client = apprenant_client["client"]
 
     response = await client.get("/api/admin/feedback")
 
@@ -97,12 +97,12 @@ async def test_admin_feedback_forbidden_as_padawan(padawan_client):
 
 
 async def test_feedback_context_fields_persisted_for_admin(
-    padawan_client, archiviste_client
+    apprenant_client, admin_client
 ):
     """POST avec contexte optionnel : champs persistés ; user_role issu du serveur (canonique)."""
-    padawan = padawan_client["client"]
+    learner = apprenant_client["client"]
     marker = "A1 feedback context fields marker"
-    await padawan.post(
+    await learner.post(
         "/api/feedback",
         json={
             "feedback_type": "ui",
@@ -114,7 +114,7 @@ async def test_feedback_context_fields_persisted_for_admin(
         },
     )
 
-    admin = archiviste_client["client"]
+    admin = admin_client["client"]
     response = await admin.get("/api/admin/feedback")
     assert response.status_code == 200
     items = response.json()["feedback"]
@@ -127,12 +127,12 @@ async def test_feedback_context_fields_persisted_for_admin(
 
 
 async def test_feedback_invalid_ni_state_stored_as_none(
-    padawan_client, archiviste_client
+    apprenant_client, admin_client
 ):
     """ni_state hors on/off est normalisé en None côté serveur."""
-    padawan = padawan_client["client"]
+    learner = apprenant_client["client"]
     marker = "A1 ni_state invalid marker"
-    await padawan.post(
+    await learner.post(
         "/api/feedback",
         json={
             "feedback_type": "other",
@@ -141,7 +141,7 @@ async def test_feedback_invalid_ni_state_stored_as_none(
         },
     )
 
-    admin = archiviste_client["client"]
+    admin = admin_client["client"]
     response = await admin.get("/api/admin/feedback")
     assert response.status_code == 200
     items = response.json()["feedback"]
