@@ -57,6 +57,7 @@ export function useExerciseTypeDisplay() {
     try {
       return t(`types.${normalizedType}`);
     } catch {
+      /* swallowed: translation key absent, capitalized raw value returned */
       return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     }
   };
