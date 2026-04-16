@@ -36,6 +36,7 @@ export function resolveNextImageRemoteDelivery(
       return { mode: "next-image", src: trimmed };
     }
   } catch {
+    /* swallowed: unparseable src URL, native <img> fallback used */
     return { mode: "img", src: trimmed };
   }
   return { mode: "img", src: trimmed };
