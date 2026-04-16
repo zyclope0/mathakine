@@ -203,6 +203,7 @@ export function ProgressTimelineWidget({
                         year: "numeric",
                       });
                     } catch {
+                      /* swallowed: unparseable tick label, raw value used */
                       return label;
                     }
                   }}
