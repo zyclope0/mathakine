@@ -18,6 +18,7 @@ export function DashboardLastUpdate({ time, locale }: DashboardLastUpdateProps) 
     const dateLocale = locale === "en" ? enUS : fr;
     displayTime = formatDistanceToNow(date, { addSuffix: true, locale: dateLocale });
   } catch {
+    /* swallowed: invalid date string, raw timestamp displayed */
     displayTime = time;
   }
 
