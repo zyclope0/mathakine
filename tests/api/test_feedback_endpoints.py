@@ -94,3 +94,57 @@ async def test_admin_feedback_forbidden_as_padawan(padawan_client):
     response = await client.get("/api/admin/feedback")
 
     assert response.status_code == 403
+
+
+async def test_feedback_context_fields_persisted_for_admin(
+    padawan_client, archiviste_client
+):
+    """POST avec contexte optionnel : champs persistés ; user_role issu du serveur (canonique)."""
+    padawan = padawan_client["client"]
+    marker = "A1 feedback context fields marker"
+    await padawan.post(
+        "/api/feedback",
+        json={
+            "feedback_type": "ui",
+            "description": marker,
+            "page_url": "http://test/ui",
+            "active_theme": " aurora ",
+            "ni_state": "ON",
+            "component_id": " ExerciseCard ",
+        },
+    )
+
+    admin = archiviste_client["client"]
+    response = await admin.get("/api/admin/feedback")
+    assert response.status_code == 200
+    items = response.json()["feedback"]
+    match = next((x for x in items if x.get("description") == marker), None)
+    assert match is not None
+    assert match["user_role"] == "apprenant"
+    assert match["active_theme"] == "aurora"
+    assert match["ni_state"] == "on"
+    assert match["component_id"] == "ExerciseCard"
+
+
+async def test_feedback_invalid_ni_state_stored_as_none(
+    padawan_client, archiviste_client
+):
+    """ni_state hors on/off est normalisé en None côté serveur."""
+    padawan = padawan_client["client"]
+    marker = "A1 ni_state invalid marker"
+    await padawan.post(
+        "/api/feedback",
+        json={
+            "feedback_type": "other",
+            "description": marker,
+            "ni_state": "maybe",
+        },
+    )
+
+    admin = archiviste_client["client"]
+    response = await admin.get("/api/admin/feedback")
+    assert response.status_code == 200
+    items = response.json()["feedback"]
+    match = next((x for x in items if x.get("description") == marker), None)
+    assert match is not None
+    assert match["ni_state"] is None

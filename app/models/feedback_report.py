@@ -24,6 +24,10 @@ class FeedbackReport(Base):
     exercise_id = Column(Integer, nullable=True, index=True)
     challenge_id = Column(Integer, nullable=True, index=True)
     description = Column(Text, nullable=True)
+    user_role = Column(String(30), nullable=True)
+    active_theme = Column(String(50), nullable=True)
+    ni_state = Column(String(20), nullable=True)
+    component_id = Column(String(100), nullable=True)
     status = Column(String(20), default="new", nullable=False)  # new | read | resolved
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

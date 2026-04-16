@@ -23,6 +23,10 @@ def create_feedback_report_sync(
     exercise_id: Optional[int] = None,
     challenge_id: Optional[int] = None,
     user_id: Optional[int] = None,
+    user_role: Optional[str] = None,
+    active_theme: Optional[str] = None,
+    ni_state: Optional[str] = None,
+    component_id: Optional[str] = None,
 ) -> Tuple[Optional[FeedbackReport], Optional[str]]:
     """
     Use case sync: cree un rapport de feedback.
@@ -37,6 +41,10 @@ def create_feedback_report_sync(
             exercise_id=exercise_id,
             challenge_id=challenge_id,
             user_id=user_id,
+            user_role=user_role,
+            active_theme=active_theme,
+            ni_state=ni_state,
+            component_id=component_id,
         )
 
 
@@ -53,6 +61,10 @@ class FeedbackService:
         exercise_id: Optional[int] = None,
         challenge_id: Optional[int] = None,
         user_id: Optional[int] = None,
+        user_role: Optional[str] = None,
+        active_theme: Optional[str] = None,
+        ni_state: Optional[str] = None,
+        component_id: Optional[str] = None,
     ) -> Tuple[Optional[FeedbackReport], Optional[str]]:
         """
         Cree un rapport de feedback.
@@ -72,6 +84,10 @@ class FeedbackService:
             exercise_id=exercise_id,
             challenge_id=challenge_id,
             description=description or None,
+            user_role=user_role or None,
+            active_theme=active_theme or None,
+            ni_state=ni_state or None,
+            component_id=component_id or None,
         )
         db.add(report)
         db.commit()
@@ -99,6 +115,10 @@ class FeedbackService:
                 "exercise_id": r.exercise_id,
                 "challenge_id": r.challenge_id,
                 "description": r.description,
+                "user_role": r.user_role,
+                "active_theme": r.active_theme,
+                "ni_state": r.ni_state,
+                "component_id": r.component_id,
                 "status": r.status,
                 "created_at": r.created_at.isoformat() if r.created_at else None,
             }

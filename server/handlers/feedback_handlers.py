@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.core.user_roles import serialize_user_role
 from app.core.runtime import run_db_bound
 from app.services.admin.admin_read_service import list_feedback_for_admin
 from app.services.feedback.feedback_service import create_feedback_report_sync
@@ -40,6 +41,15 @@ async def submit_feedback(request: Request) -> JSONResponse:
         challenge_id = body_or_err.get("challenge_id")
         description = (body_or_err.get("description") or "").strip()
 
+        active_theme = (body_or_err.get("active_theme") or "").strip() or None
+        ni_raw = (body_or_err.get("ni_state") or "").strip().lower() or None
+        ni_state = ni_raw if ni_raw in ("on", "off") else None
+        component_id = (body_or_err.get("component_id") or "").strip() or None
+
+        user_role = None
+        if hasattr(request.state, "user") and request.state.user:
+            user_role = serialize_user_role(request.state.user.get("role"))
+
         if exercise_id is not None:
             try:
                 exercise_id = int(exercise_id)
@@ -59,6 +69,10 @@ async def submit_feedback(request: Request) -> JSONResponse:
             exercise_id=exercise_id,
             challenge_id=challenge_id,
             user_id=user_id,
+            user_role=user_role,
+            active_theme=active_theme,
+            ni_state=ni_state,
+            component_id=component_id,
         )
         if err:
             return api_error_response(
