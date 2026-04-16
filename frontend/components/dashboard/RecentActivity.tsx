@@ -45,6 +45,7 @@ function formatActivityTime(time: string, locale: string): string {
     }
     return formatDistanceToNow(date, { addSuffix: true, locale: locale === "en" ? enUS : fr });
   } catch {
+    /* swallowed: invalid date string, raw value returned */
     return time;
   }
 }
