@@ -13,14 +13,14 @@ const fourNodes: ProgressionConstellationNode[] = [
 ];
 
 describe("ProgressionConstellation", () => {
-  it("expose role=img avec aria-label et liste sr-only décrite", () => {
+  it("expose role=region avec aria-label et liste sr-only décrite", () => {
     render(<ProgressionConstellation nodes={fourNodes} ariaLabel="Progression sur 4 paliers" />);
 
-    const img = screen.getByRole("img", { name: "Progression sur 4 paliers" });
-    expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("aria-describedby");
+    const region = screen.getByRole("region", { name: "Progression sur 4 paliers" });
+    expect(region).toBeInTheDocument();
+    expect(region).toHaveAttribute("aria-describedby");
 
-    const id = img.getAttribute("aria-describedby");
+    const id = region.getAttribute("aria-describedby");
     expect(id).toBeTruthy();
     const list = document.getElementById(id!);
     expect(list?.tagName).toBe("UL");
@@ -29,15 +29,15 @@ describe("ProgressionConstellation", () => {
     expect(screen.getByText("Actuel: current step")).toBeInTheDocument();
   });
 
-  it("affiche les labels visibles (aria-hidden sur la grille)", () => {
+  it("affiche les labels visibles (aria-hidden sur le conteneur des libellés)", () => {
     render(<ProgressionConstellation nodes={fourNodes} ariaLabel="Résumé progression" />);
     expect(screen.getByText("Expert")).toBeInTheDocument();
   });
 
-  it("aligne les labels sur une grille à colonnes explicites (4 paliers)", () => {
+  it("zone défilante horizontale sans scrollbar visible (no-scrollbar)", () => {
     const { container } = render(<ProgressionConstellation nodes={fourNodes} ariaLabel="Test" />);
-    const labelRow = container.querySelector(".grid-cols-4");
-    expect(labelRow).toBeTruthy();
+    const scrollRegion = container.querySelector(".no-scrollbar.overflow-x-auto");
+    expect(scrollRegion).toBeTruthy();
   });
 
   it("retourne null si nodes vide", () => {

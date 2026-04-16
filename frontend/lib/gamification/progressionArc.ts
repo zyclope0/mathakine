@@ -22,16 +22,13 @@ export const PROGRESSION_RANK_LADDER_ORDER = [
 export type ProgressionRankBucketId = (typeof PROGRESSION_RANK_LADDER_ORDER)[number];
 
 /**
- * Nombre de nœuds affichés sur la constellation (MVP).
- * Le ladder complet compte 8 rangs publics (`PROGRESSION_RANK_LADDER_ORDER`) : au-delà
- * de ce nombre, ajuster la densité SVG / responsive (scroll horizontal, 2 lignes, etc.)
- * avant d’augmenter cette constante en prod.
+ * Nœuds affichés sur la constellation = ladder public complet (8 rangs).
+ * Le défilement horizontal est géré dans `ProgressionConstellation` (pas de réduction du GAP SVG).
  */
-export const PROGRESSION_ARC_NODE_COUNT = 4;
+export const PROGRESSION_ARC_NODE_COUNT = PROGRESSION_RANK_LADDER_ORDER.length;
 
 /**
- * Paliers représentés sur l’arc « permanent » (MVP).
- * Sous-suite du ladder : les quatre premiers grades publics.
+ * Paliers représentés sur l’arc « permanent » : sous-suite du ladder (tous les rangs publics affichés).
  */
 export const PROGRESSION_ARC_VISIBLE_BUCKETS = PROGRESSION_RANK_LADDER_ORDER.slice(
   0,

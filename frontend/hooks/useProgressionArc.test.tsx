@@ -30,7 +30,7 @@ describe("useProgressionArc", () => {
       progression_rank: "explorer",
     };
     const { result } = renderHook(() => useProgressionArc(gl));
-    expect(result.current.constellation?.nodes).toHaveLength(4);
+    expect(result.current.constellation?.nodes).toHaveLength(8);
     expect(result.current.constellation?.nodes[2]?.state).toBe("current");
     expect(result.current.constellation?.ariaLabel).toContain(
       "homeLearner.progressionArc.ariaLabel"
