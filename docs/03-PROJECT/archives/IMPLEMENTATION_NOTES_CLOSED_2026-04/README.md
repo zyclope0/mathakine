@@ -1,14 +1,15 @@
-# Closed implementation notes - 2026-04
+# Implementation Notes Closed - 2026-04
 
-This bucket stores implementation notes that are no longer active root
-documents but still matter for traceability.
+Archive bucket for implementation notes and validation reports that remain useful for traceability but are no longer active source-of-truth documents.
 
-Rules:
-
-- active truth stays in code, policies, and active guides
-- closed delivery notes move here once the implementation is stable
-- active docs should prefer linking to the current policy/runtime document first
-
-Current notes:
+## Archived here
 
 - `IMPLEMENTATION_F35_REDACTION_LOGS_DB.md`
+- `IMPLEMENTATION_F07_TIMELINE.md`
+- `IMPLEMENTATION_F32_SESSION_ENTRELACEE.md`
+- `RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md`
+
+## Reading rule
+
+- Use these files for historical rationale and closed-lot traceability.
+- Do not treat them as active runtime truth ahead of the code, the roadmap, `README_TECH.md`, or the active audits.

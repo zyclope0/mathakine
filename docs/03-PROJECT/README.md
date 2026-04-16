@@ -44,6 +44,7 @@ Latest active frontend audit checkpoint:
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md)                                                                     | CI/CD, quality gates, deploy and rollback                                      |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first execution protocol                                               |
 | [ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md](./ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md) | active dependency-upgrade analysis and opportunity notes                       |
+| [RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md](./RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md)                 | exhaustive active-document truth review and archive decisions                  |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                            |
 
 ## Archive Buckets
@@ -59,7 +60,7 @@ Latest active frontend audit checkpoint:
 
 ## Reading Rules
 
-- current execution tracking lives in [../../.claude/session-plan.md](../../.claude/session-plan.md)
+- local founder planning currently lives in [../../.claude/session-plan.md](../../.claude/session-plan.md), but it is not runtime truth by itself
 - active product prioritization lives in [../02-FEATURES/ROADMAP_FONCTIONNALITES.md](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)
 - runtime truth lives in the code and the active references under `docs/00-REFERENCE/`
 - a dated audit, review, pilotage, or closure note is historical by default once its lot is closed

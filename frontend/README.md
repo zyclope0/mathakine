@@ -90,7 +90,7 @@ Regle pratique :
 frontend/
 |-- app/              # routes App Router, pages et API routes Next
 |-- components/       # composants UI et metier
-|-- hooks/            # 55 hooks React (majoritairement React Query)
+|-- hooks/            # 58 hooks React (majoritairement React Query)
 |-- lib/              # utilitaires, stores, auth, securite, API, i18n
 |-- messages/         # dictionnaires FR / EN
 |-- public/           # assets statiques
@@ -130,7 +130,7 @@ Repere utile :
 - composants de vue aussi purs que possible
 - pages route-level fines
 - proxies Next minces, logique partagee dans `lib/api/`
-- une seule source de verite documentaire active : `README_TECH.md`, `.claude/session-plan.md`, audits actifs sous `docs/03-PROJECT/`
+- references documentaires actives : `README_TECH.md`, audits actifs sous `docs/03-PROJECT/`, et `.claude/session-plan.md` comme note locale de pilotage (pas comme preuve runtime autonome)
 
 ---
 

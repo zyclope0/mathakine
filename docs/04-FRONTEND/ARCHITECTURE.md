@@ -7,7 +7,7 @@
 
 ## RÃ©fÃ©rences
 
-- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 55 hooks React (rÃ´le, dÃ©pendances, couverture tests)
+- [HOOKS_CATALOGUE.md](HOOKS_CATALOGUE.md) â€” catalogue des 58 hooks React (rÃ´le, dÃ©pendances, couverture tests)
 - [COMPONENTS_CATALOGUE.md](COMPONENTS_CATALOGUE.md) â€” 203 composants React (catÃ©gories, rÃ´les, conventions)
 - [API_ROUTES.md](API_ROUTES.md) â€” routes Next.js frontend et proxys backend
 - [UX_SURFACES.md](UX_SURFACES.md) - surfaces apprenant/adulte, navigation et boundary NI-13
@@ -104,7 +104,7 @@ frontend/
 â”‚   â”œâ”€â”€ theme/                    # ThemeSelectorCompact, DarkModeToggle
 â”‚   â””â”€â”€ ui/                       # shadcn/ui (Button, Card, Dialog, Input, Selectâ€¦)
 â”‚
-â”œâ”€â”€ hooks/                        # 55 hooks React (majoritairement React Query)
+â”œâ”€â”€ hooks/                        # 58 hooks React (majoritairement React Query)
 â”‚   â”œâ”€â”€ chat/                     # useChat, useGuestChatAccess, useChatAutoScroll (chatbot, IA13b + FFI-L16 invite quota)
 â”‚   â”œâ”€â”€ useAuth.ts                # Authentification (login, logout, register)
 â”‚   â”œâ”€â”€ useExercise(s).ts         # Exercices (liste, dÃ©tail, pagination)
@@ -428,3 +428,4 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:10000   # Dev (API Starlette)
 - [PWA](PWA.md) â€” configuration Progressive Web App
 - [i18n](../02-FEATURES/I18N.md) â€” internationalisation next-intl
 - [UX Surfaces](UX_SURFACES.md) - home learner, dashboard, roles et boundaries
+

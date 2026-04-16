@@ -71,8 +71,6 @@
 | `useContentListOrderPreference.ts` | persistance locale du tri liste | non | aucun | localStorage |
 | `useContentListViewControls.ts` | etat vue liste/grille | non | aucun | state local |
 | `useContentListPageController.ts` | runtime shared `Exercises` / `Challenges` | oui | aucun | toolbar / order / filters |
-| `useContentListOrderPreference.ts` | persistance locale du tri liste | non | aucun | localStorage |
-| `useContentListViewControls.ts` | etat vue liste/grille | non | aucun | state local |
 | `useDiagnostic.ts` | diagnostic initial | oui | query | `GET /api/diagnostic` |
 | `useRecommendationsReason.ts` | helper libelle raison reco | oui | aucun | `next-intl` |
 

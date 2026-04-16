@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to the project are documented in this file.
 
@@ -42,81 +42,49 @@ Active references:
 
 ### Security
 
-- Password policy now enforces at least one special character in all `UserCreate` and password-change flows (SEC-PASS-01; `33cb2ad`).
-- `pyasn1` bumped to ≥ 0.6.3 to close CVE-2026-30922 (remote DoS via recursive ASN.1 parsing; Dependabot #43).
-- `next-pwa` upgraded to 10.2.9 and `serialize-javascript` forced to ≥ 7.0.5 (prototype-pollution CVE; Dependabot #38).
-- HSTS `Strict-Transport-Security` header now set on all production frontend responses.
-- `pytest` bumped to 9.0.3 (CVE tmpdir symlink-race handling; Dependabot #40).
-- Auth PII (user identifiers, SMTP addresses) redacted from structured logs to avoid leaking sensitive data in log aggregators.
+- Password policy now enforces at least one special character in all `UserCreate` and password-change flows (`SEC-PASS-01`; `33cb2ad`, `f8f6cb6`).
+- `pyasn1` bumped to `>= 0.6.3` to close `CVE-2026-30922` (recursive ASN.1 parsing DoS; Dependabot `#43`).
+- `next-pwa` upgraded to `10.2.9` and `serialize-javascript` forced to `>= 7.0.5` to close the prototype-pollution advisory (Dependabot `#38`).
+- `pytest` bumped to `9.0.3` for the tmpdir symlink-race fix (Dependabot `#40`).
+- Production frontend responses now emit `Strict-Transport-Security`, and production secure-header middleware now also emits `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- `POST /api/feedback` is now rate-limited, closing the last missing sensitive-write bucket on the public app surface.
+- Auth PII (user identifiers, SMTP addresses) is now redacted from structured logs.
 
 ### Added
 
-- **ACTIF-03 — test co-location campaign**: all Vitest tests moved alongside their source files in four phases (A→D), covering hooks (`useAuth`, `useSettings`, `useBadges`, `useDashboard`, `useContentList`, `useSolver`, `useMicro`, `useProgress`, `useIrtScore`, `useAiGenerator`, `useGuestChatAccess`, `useChat`, profile, CSP, middleware), component tests (chat, visualization, badge, dashboard charts, Header, app bootstrap), and full page tests; admin page controllers extracted as dedicated modules (`useAdminUsersPageController`, `useAdminAiMonitoringPageController`).
-- **ACTIF-04 — vitest coverage gates**: CI-backed statement/branch/function/line thresholds introduced and bumped in two steps — COVERAGE-01 (43/36/40/44) then COVERAGE-02 (46/38/42/48) after new CI measurements confirmed the headroom.
-- `scripts/codemods/g004_lazy_logging.py`: libcst codemod converting f-string logger arguments to %-style lazy interpolation; handles `FormattedString`, `ConcatenatedString`, and `!r`/`!s`/`!a` conversions; run with `python -m libcst.tool codemod -x scripts.codemods.g004_lazy_logging.G004LazyLoggingCommand app/ server/`.
-- Nunito set as primary UI sans-serif font; JetBrains Mono as monospace font; logo wordmark added to the branding system.
-- `scripts/codemods/__init__.py` and `scripts/__init__.py` stub packages required for libcst module discovery.
+- **ACTIF-03 - frontend test co-location** is now closed: runtime Vitest suites live next to their sources, while `frontend/__tests__/unit/` is intentionally reduced to the architecture guardrail test plus the `_testRequest.ts` helper.
+- **ACTIF-04 - frontend coverage hardening** progressed in three steps: thresholds were introduced, raised to `46 / 38 / 42 / 48`, and then backed by eleven additional hook suites (`ACTIF-04-COVERAGE-03`).
+- `requirements-dev.txt` now extends the production dependency set with test/doc tooling, while `requirements.txt` stays production-only.
+- `frontend/components/challenges/visualizations/_colorMap.ts` now provides the shared visualization color truth (`VISUALIZATION_COLOR_MAP`, `resolveVisualizationColor`, `findVisualizationColorInText`) with dedicated tests.
+- `tests/integration/test_enhanced_server_entrypoint.py` now protects the production ASGI entrypoint shape used by Gunicorn/Uvicorn workers.
+- `docs/03-PROJECT/ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md` now tracks dependency-upgrade value and follow-up opportunities as a dedicated active project note.
 
 ### Changed
 
-- **Sprint D G004**: all f-string arguments to logger calls across 63 backend files (`app/` and `server/`) replaced with %-style lazy interpolation (`logger.warning("msg %s", var)`) to satisfy ruff rule G004; four locations with format mini-language specifiers (`.1f`, `.2f`, `.6f`) fixed manually after the automated codemod pass.
-- Backend runtime dependencies split into `requirements.txt` (production subset) and `requirements-dev.txt` (extends prod; adds pytest, httpx, beautifulsoup4, etc.) for cleaner production image builds (D7); CI pipeline updated to install `requirements-dev.txt`.
-- ANSI escape codes now disabled when `stderr` is not a TTY, preventing garbled output in log aggregators and CI pipelines (D1).
-- `.gitattributes` added to enforce LF line endings on all tracked text files; repository re-normalized in place (D8).
-- `PROJECT_VERSION` synchronized to `3.6.0-alpha.1` in all runtime version surfaces (D11).
-- Render deployment targets renamed (`Mathakine-alpha` / `Mathakine`) and secure-header middleware re-wired after the rename.
-- Concrete Starlette app object exposed as a dedicated `gunicorn_app` entrypoint for production multi-worker startup.
-- Challenge visualization `colorMap` extracted into a shared module (`_colorMap.ts`) consumed by both `ProbabilityRenderer` and `VisualRenderer`, eliminating the duplicated literal map.
-
-- **Frontend — peaufinage graphique (distill / Impeccable)** : remplacement des bandeaux d’accent latéraux épais (`border-l-*`) par des bordures complètes, anneaux inset ou fonds teintés (dashboard Quick Start, recommandations, solver, diagnostic, leaderboard, pages About/Docs). Page badges : texte thématique lisible sur fond clair (`text-primary`), rangée « En cours » sans double surface carte, transitions limitées (`transform` / `width` / ombre, plus de `transition-all` générique), barre `Progress` Radix en `transition-transform`, boutons épingle et fermeture toolbar avec cibles ≥ 44×44 px, dépliage earned en `grid-template-rows` + conteneur interne. Thème spatial : `theme_color` PWA/meta et fallback logo sur le primaire, pile typo Nunito explicite sur `html`/`body`, footer avec longueur de ligne bornée. Ajout du contexte design projet : `.impeccable.md`, `.github/copilot-instructions.md` (`03488c7`).
-
-- Documentation truth was realigned across the active root/frontend/project guides:
-  - active docs no longer point to removed root files such as `POINTS_RESTANTS_2026-03-15.md`, `BILAN_*`, `RECOMMENDATION_R7_*`, or `PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md`; references now target the correct archive buckets
-  - root/project/frontend guides now reflect the closure of frontend quality lots through `QF-07B`
-  - active i18n guides now distinguish the hard gate (`i18n:validate` + `i18n:check`) from the broader repository-wide `i18n:extract` audit
-  - active test/readme docs now reflect authenticated Chromium E2E coverage, realistic coverage thresholds, and CSP nonce hardening
-
-- Project hygiene and documentation governance were tightened without changing runtime behavior:
-  - the historical frontend industrialization audit was moved out of `docs/03-PROJECT/` root into `docs/03-PROJECT/archives/AUDITS_AND_REVIEWS_2026-03/`
-  - active references were realigned in `.claude/session-plan.md`, `README_TECH.md`, `docs/03-PROJECT/README.md`, and archive cross-links so the archived audit stays discoverable but is no longer presented as an active root document
-  - root/frontend ignore rules now explicitly cover local generated artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `frontend/junit.xml`, `frontend/vitest-coverage.log`, `frontend/coverage/`, `frontend/tsconfig.tsbuildinfo`)
-  - `frontend/.prettierignore` now ignores generated frontend outputs that should never participate in `prettier --check .`
-  - the root `.gitignore` now keeps `.claude/session-plan.md` tracked while still ignoring other local `.claude` artifacts, and no longer ignores the tracked `CLAUDE.md`
-
-- Frontend architecture documentation is now aligned on the post-`FFI-L10` truth:
-  - `ChallengeSolver` is no longer tracked as a monolithic runtime seam
-  - `ProfilePage` is no longer tracked as a mega-page runtime seam
-  - `BadgesPage` is no longer tracked as a mega-page runtime seam
-  - `SettingsPage` is no longer tracked as a mega-page runtime seam (`FFI-L13` closed)
-  - `AdminContentPage` is no longer tracked as a mega-page runtime seam (`FFI-L14` closed for frontend structure)
-  - the shared learner `content-list` platform is now standardized (`FFI-L15` closed)
-  - `FFI-L16` is closed on the **frontend architecture** side: `Header` is documented and implemented as a shell facade with extracted subcomponents; global chatbot UI lives under `components/chat/`; **guest** assistant access stays public with **no** header Assistant CTA, **FAB** entry, and a **5-message per session** client cap (`useGuestChatAccess`) alongside unchanged **server-side** chat rate limits; **authenticated** users keep the existing header Assistant CTA
-  - the active architecture backlog now starts at `FFI-L17` (guardrails)
-  - the historical industrialization audit remains context only, while `session-plan.md` and the standardization audit define the current execution truth
+- All backend logger f-string arguments across `app/` and `server/` were converted to lazy `%`-style interpolation to satisfy Ruff `G004`; supporting codemod stubs were added under `scripts/codemods/`.
+- ANSI color codes are now disabled automatically when `stderr` is not a TTY, preventing polluted CI and log-aggregator output.
+- `PROJECT_VERSION` was synchronized to `3.6.0-alpha.1` across runtime version surfaces.
+- Production and development Python installs are now explicitly separated: CI installs `requirements-dev.txt`, while production images stay on `requirements.txt`.
+- The production ASGI entrypoint is now the concrete Starlette object exposed at `enhanced_server:app`; this fixed Render startup on `uvicorn 0.44.0`.
+- Frontend dependencies were advanced on the active train: `next 16.2.3`, `eslint-config-next 16.2.3`, `next-intl 4.9.1`, `vite 7.3.2`, the Vitest family `4.1.4`, plus targeted library bumps (`dompurify`, `zustand`, `jspdf`, `katex`, `undici`, `pillow`, `sphinx`, `requests`, `uvicorn`).
+- Frontend visual polish continued on the active learner-facing surfaces: Nunito became the primary UI sans-serif, JetBrains Mono the monospace companion, and the spatial theme / calm-surface passes were applied across learner home, badges, docs, and dashboard surfaces.
+- Documentation governance was tightened: closed implementation notes moved into `docs/03-PROJECT/archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/`, and the legacy `docs/06-WIDGETS/` redirect bucket was archived under `docs/04-FRONTEND/archives/LEGACY_WIDGET_REDIRECTS_2026-04/`.
 
 ### Fixed
 
-- `console.error` calls in client-side hooks (`useAcademyStats`, `useSettings`, `useSettingsPageController`) and `auth-session-sync` replaced with the `debugError` guard (dev-only; silenced in production builds).
-- Test lambdas monkeypatching `logger.warning` updated from single-argument form to `(msg, *args)` to match the new %-style call signature after G004; affected tests: `test_classify_unknown_logs_the_actual_metric_key` and `test_assistant_legacy_openai_model_o3_ignored`.
-- Challenge symmetry layout converted from row-based to canonical flat format; `auto_correct_challenge` pre-correction extended to visual challenge types.
-- Avatar and badge icon image delivery hardened against missing or invalid source URLs.
-- Chat image audit finding closed; server component audit finding closed.
+- `console.error` calls in client-side hooks and auth sync were replaced with the `debugError` guard (development-visible, silent in production).
+- Test monkeypatches for `logger.warning` were aligned with the new `(msg, *args)` call shape after the lazy-logging migration.
+- Challenge symmetry normalization now converts row-based layouts into the canonical flat format before correction, and visual challenge auto-correction covers the same path.
+- Avatar and badge icon delivery were hardened against missing or invalid image sources.
+- Middleware entrypoint compatibility was restored for Next.js 16 by moving back to the supported `proxy.ts` convention.
+- The challenge solver retry flow now fully resets multi-position visual selections.
 
-- Local workspace cleanup no longer leaves stale generated artifacts in place:
-  - Python caches/coverage outputs (`htmlcov`, `.pytest_cache`, `.mypy_cache`, `__pycache__`, `.coverage`, `coverage.xml`, `junit.xml`) were removed from the working tree
-  - frontend generated outputs (`.next`, `coverage`, `junit.xml`, `vitest-coverage.log`, `tsconfig.tsbuildinfo`) were removed from the working tree
-  - `npm run format:check` in `frontend/` is green again after ignore coverage was aligned with the actual generated files
+### Documentation
 
-- The challenge solver retry flow now fully resets multi-position visual selections through `useChallengeSolverController`, matching the expected learner-facing “retry from zero” behavior.
-
-- The profile page refactor now preserves the original password policy on the client (`min 8`), and its controller coverage is now backed by real hook tests instead of helper-only tests mislabeled as hook coverage.
-
-- The badges page refactor now ships with a real thin container plus stable page/controller/helper coverage: repeated dynamic imports were removed from the page tests, the dead `rankInfo` controller input was dropped, and the remaining badge page derivations are more centralized.
-
-- The settings page refactor (`FFI-L13`) now ships with a thin container, `useSettingsPageController`, pure helpers in `lib/settings/settingsPage.ts`, and section components under `components/settings/`; session list slicing (`visibleSessions`) is derived in the controller. Known remainder: `SettingsSecuritySection` stays relatively dense (privacy + active sessions).
-
-- The admin content page refactor (`FFI-L14`) now ships with a thin container, `useAdminContentPageController`, pure helpers under `lib/admin/content/` and `lib/admin/exercises/adminExerciseCoherence.ts`, and section components under `components/admin/content/`. This closes the **frontend architecture** seam; it does **not** claim final product alignment for admin exercise difficulty until the admin list API reliably exposes `difficulty_tier`. List UI uses transitional neutral labels; edit modals still persist legacy difficulty enum values for API compatibility.
-
+- Active root, guide, feature, project, and frontend docs were re-aligned on repo truth: current versions, active coverage thresholds, route-test locations, Render service names, requirements split, and the reduced `frontend/__tests__/unit/` footprint.
+- `README_TECH.md`, `docs/INDEX.md`, `docs/03-PROJECT/README.md`, `docs/04-FRONTEND/ARCHITECTURE.md`, `docs/04-FRONTEND/API_ROUTES.md`, `docs/04-FRONTEND/HOOKS_CATALOGUE.md`, and `docs/04-FRONTEND/COMPONENTS_CATALOGUE.md` now reflect the current active architecture instead of the pre-co-location snapshot.
+- Historical implementation notes and legacy widget redirects were archived out of the active flow, while archive READMEs and cross-links were updated so those notes remain discoverable without pretending to be active source-of-truth documents.
+- `.claude/session-plan.md` is now consistently described as a local founder-planning note rather than standalone runtime truth.
 ## [3.6.0-alpha.1] - 2026-04-05
 
 ### Added
@@ -438,3 +406,5 @@ Active references:
 ## [2.0.0] and earlier
 
 Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.
+
+

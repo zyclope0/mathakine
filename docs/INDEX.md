@@ -51,7 +51,8 @@
 | Prototypes / doc assets           | [assets/README.md](assets/README.md)                                                                                                              |
 | ADRs                              | [05-ADR/README.md](05-ADR/README.md)                                                                                                              |
 | Project governance                | [03-PROJECT/README.md](03-PROJECT/README.md)                                                                                                      |
-| Rapport prod validate-token / 429 | [03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](03-PROJECT/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (FFI-L19A : quota dédié) |
+| Documentation truth review        | [03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md](03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md)                                      |
+| Rapport prod validate-token / 429 | [03-PROJECT/archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](03-PROJECT/archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (historique FFI-L19) |
 | Product changelog                 | [../CHANGELOG.md](../CHANGELOG.md)                                                                                                                |
 
 ## Reading Rules
