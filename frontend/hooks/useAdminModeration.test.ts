@@ -28,8 +28,26 @@ function wrapper() {
 }
 
 const sampleData = {
-  exercises: [{ id: 1, title: "E", exercise_type: "a", age_group: "6-8", is_archived: false, created_at: null }],
-  challenges: [{ id: 2, title: "C", challenge_type: "x", age_group: "6-8", is_archived: false, created_at: null }],
+  exercises: [
+    {
+      id: 1,
+      title: "E",
+      exercise_type: "a",
+      age_group: "6-8",
+      is_archived: false,
+      created_at: null,
+    },
+  ],
+  challenges: [
+    {
+      id: 2,
+      title: "C",
+      challenge_type: "x",
+      age_group: "6-8",
+      is_archived: false,
+      created_at: null,
+    },
+  ],
   total_exercises: 1,
   total_challenges: 1,
 };

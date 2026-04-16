@@ -128,10 +128,7 @@ describe("useProfile", () => {
       current_password: "a",
       new_password: "b",
     });
-    expect(toast.success).toHaveBeenCalledWith(
-      "profile.passwordChangeSuccess",
-      expect.any(Object)
-    );
+    expect(toast.success).toHaveBeenCalledWith("profile.passwordChangeSuccess", expect.any(Object));
   });
 
   it("changePassword error 401 passwordIncorrect", async () => {
@@ -170,9 +167,10 @@ describe("useProfile", () => {
 
   it("exposes pending flags", async () => {
     mockPut.mockImplementation(
-      () => new Promise(() => {
-        /* never */
-      })
+      () =>
+        new Promise(() => {
+          /* never */
+        })
     );
 
     const { result } = renderHook(() => useProfile(), { wrapper: wrapper() });

@@ -68,9 +68,13 @@ describe("useAdminUsers", () => {
   it("builds query with search, role, is_active", async () => {
     mockGet.mockResolvedValueOnce({ items: [], total: 0 });
 
-    renderHook(() => useAdminUsers({ search: "ab", role: "enseignant", is_active: true, skip: 5, limit: 10 }), {
-      wrapper: wrapper(),
-    });
+    renderHook(
+      () =>
+        useAdminUsers({ search: "ab", role: "enseignant", is_active: true, skip: 5, limit: 10 }),
+      {
+        wrapper: wrapper(),
+      }
+    );
 
     await waitFor(() => expect(mockGet).toHaveBeenCalled());
     expect(mockGet).toHaveBeenCalledWith(

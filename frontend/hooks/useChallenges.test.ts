@@ -176,7 +176,9 @@ describe("useChallenges", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     await act(async () => {
-      await expect(result.current.submitAnswer({ challenge_id: 1, answer: "z" })).rejects.toBeDefined();
+      await expect(
+        result.current.submitAnswer({ challenge_id: 1, answer: "z" })
+      ).rejects.toBeDefined();
     });
 
     expect(toast.error).toHaveBeenCalled();

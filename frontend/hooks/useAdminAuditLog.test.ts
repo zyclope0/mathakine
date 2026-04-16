@@ -44,7 +44,18 @@ describe("useAdminAuditLog", () => {
 
   it("returns items and total on success", async () => {
     mockGet.mockResolvedValueOnce({
-      items: [{ id: 1, admin_user_id: 2, admin_username: "a", action: "x", resource_type: null, resource_id: null, details: null, created_at: "t" }],
+      items: [
+        {
+          id: 1,
+          admin_user_id: 2,
+          admin_username: "a",
+          action: "x",
+          resource_type: null,
+          resource_id: null,
+          details: null,
+          created_at: "t",
+        },
+      ],
       total: 1,
     });
 

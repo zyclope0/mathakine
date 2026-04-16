@@ -225,7 +225,9 @@ describe("useSettings", () => {
   it("getSessions returns data on success", async () => {
     mockGet.mockImplementationOnce((url: string) => {
       if (url.startsWith("/api/users/me/sessions")) {
-        return Promise.resolve([{ id: 1, last_activity: "t", created_at: "t", expires_at: "t", is_active: true }]);
+        return Promise.resolve([
+          { id: 1, last_activity: "t", created_at: "t", expires_at: "t", is_active: true },
+        ]);
       }
       return Promise.reject(new Error(`unexpected ${url}`));
     });
@@ -264,7 +266,10 @@ describe("useSettings", () => {
     });
 
     await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Erreur", expect.objectContaining({ description: expect.any(String) }))
+      expect(toast.error).toHaveBeenCalledWith(
+        "Erreur",
+        expect.objectContaining({ description: expect.any(String) })
+      )
     );
   });
 });
