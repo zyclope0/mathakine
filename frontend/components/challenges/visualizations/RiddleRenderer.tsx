@@ -45,6 +45,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
       try {
         return JSON.parse(val) as unknown;
       } catch {
+        /* swallowed: field is not JSON, raw value used as-is */
         return val;
       }
     }
