@@ -72,7 +72,7 @@ async def test_admin_list_feedback(admin_client, apprenant_client):
     )
 
     # Admin liste les retours
-    admin = archiviste_client["client"]
+    admin = admin_client["client"]
     response = await admin.get("/api/admin/feedback")
 
     assert response.status_code == 200
