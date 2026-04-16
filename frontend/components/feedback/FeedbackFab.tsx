@@ -16,6 +16,8 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
+import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
+import { useThemeStore } from "@/lib/stores/themeStore";
 import { cn } from "@/lib/utils";
 
 const FEEDBACK_EMAIL = process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "webmaster@mathakine.fun";
@@ -28,6 +30,7 @@ export type FeedbackContext = {
 interface FeedbackFabProps {
   context?: FeedbackContext;
   className?: string;
+  componentId?: string;
 }
 
 const FEEDBACK_TYPES = [
@@ -39,7 +42,7 @@ const FEEDBACK_TYPES = [
 
 type FeedbackTypeId = (typeof FEEDBACK_TYPES)[number]["id"];
 
-export function FeedbackFab({ context: contextProp, className }: FeedbackFabProps) {
+export function FeedbackFab({ context: contextProp, className, componentId }: FeedbackFabProps) {
   const t = useTranslations("feedback.fab");
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +74,12 @@ export function FeedbackFab({ context: contextProp, className }: FeedbackFabProp
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const activeTheme = useThemeStore((s) => s.theme);
+  const { dyslexiaMode, focusMode, reducedMotion, largeText, highContrast } =
+    useAccessibilityStore();
+  const niState =
+    dyslexiaMode || focusMode || reducedMotion || largeText || highContrast ? "on" : "off";
+
   const getTypeLabel = (id: FeedbackTypeId) => {
     const labels: Record<FeedbackTypeId, string> = {
       exercise: t("typeExercise", { default: "Exercice incorrect" }),
@@ -98,6 +107,9 @@ export function FeedbackFab({ context: contextProp, className }: FeedbackFabProp
         page_url: typeof window !== "undefined" ? window.location.href : pathname,
         exercise_id: context?.exerciseId ?? undefined,
         challenge_id: context?.challengeId ?? undefined,
+        active_theme: activeTheme,
+        ni_state: niState,
+        component_id: componentId ?? "FeedbackFab",
       };
       await api.post<{ success: boolean; id: number }>("/api/feedback", payload);
       toast.success(t("successMessage", { default: "Merci pour votre retour !" }));
