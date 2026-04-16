@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { getUserRoleLabel } from "@/lib/auth/userRoles";
 import { useAdminFeedback } from "@/hooks/useAdminFeedback";
 import { MessageCircle, FileQuestion, AlertTriangle, Bug, ExternalLink } from "lucide-react";
 
@@ -65,6 +66,7 @@ export default function AdminFeedbackPage() {
                       <th className="px-4 py-3 text-left font-medium">{t("colContext")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colDescription")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colPage")}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t("colDebug")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -127,6 +129,36 @@ export default function AdminFeedbackPage() {
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
+                              {item.user_role && (
+                                <span className="rounded bg-muted px-1.5 py-0.5">
+                                  {getUserRoleLabel(item.user_role)}
+                                </span>
+                              )}
+                              {item.active_theme && (
+                                <span className="rounded bg-muted px-1.5 py-0.5">
+                                  {item.active_theme}
+                                </span>
+                              )}
+                              {item.ni_state === "on" && (
+                                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                  NI:on
+                                </span>
+                              )}
+                              {item.component_id && item.component_id !== "FeedbackFab" && (
+                                <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
+                                  {item.component_id}
+                                </span>
+                              )}
+                              {!item.user_role &&
+                                !item.active_theme &&
+                                item.ni_state !== "on" &&
+                                (!item.component_id || item.component_id === "FeedbackFab") && (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
+                            </div>
                           </td>
                         </tr>
                       );

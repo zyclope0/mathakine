@@ -2534,6 +2534,7 @@
       "colContext": "Contexte",
       "colDescription": "Description",
       "colPage": "Page",
+      "colDebug": "Debug ctx",
       "types": {
         "exercise": "Exercice incorrect",
         "challenge": "Défi incorrect",

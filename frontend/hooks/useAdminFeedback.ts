@@ -12,6 +12,10 @@ export interface FeedbackReportItem {
   exercise_id: number | null;
   challenge_id: number | null;
   description: string | null;
+  user_role: string | null;
+  active_theme: string | null;
+  ni_state: string | null;
+  component_id: string | null;
   status: string;
   created_at: string | null;
 }
