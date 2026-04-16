@@ -807,7 +807,7 @@
       "statusCompleted": "Terminé",
       "statusPending": "{current}/{target} en cours",
       "allDone": "Tous les défis du jour complétés !",
-      "allDoneMessage": "Constellation complète ! Reviens demain.",
+      "allDoneMessage": "Tous les objectifs du jour sont atteints. Reviens demain !",
       "progressAriaLabel": "{done} sur {total} défis complétés"
     },
     "spacedRepetition": {
@@ -906,14 +906,14 @@
       "showMore": "Voir {count} entrée(s) de plus",
       "noActivity": "Aucune activité récente",
       "empty": "Aucune activité récente.",
-      "emptyHint": "Commencez à résoudre des exercices pour voir votre progression !"
+      "emptyHint": "Résous des exercices pour voir ton activité ici."
     },
     "streak": {
-      "title": "Série en cours",
+      "title": "Régularité",
       "days": "{count, plural, =0 {jour} =1 {jour} other {jours}}",
-      "best": "Meilleure série",
-      "record": "Nouveau record !",
-      "keepGoing": "Continue comme ça ! Reviens demain pour maintenir ta série."
+      "best": "Plus long enchaînement",
+      "record": "Record personnel !",
+      "keepGoing": "Belle régularité ! Chaque visite peut prolonger cette suite — à ton rythme."
     },
     "leaderboardWidget": {
       "title": "Classement",
@@ -1046,8 +1046,8 @@
         "level": "Niveau",
         "booleanYes": "Oui",
         "booleanNo": "Non",
-        "currentStreak": "Série en cours",
-        "highestStreak": "Meilleure série",
+        "currentStreak": "Jours d'affilée (actuel)",
+        "highestStreak": "Record (jours d'affilée)",
         "averageTime": "Temps moyen (secondes)",
         "performanceByCategory": "Performance par catégorie",
         "category": "Catégorie",
@@ -1314,7 +1314,7 @@
     "rank": "Rang",
     "level": "Niveau",
     "you": "Toi",
-    "streakStat": "Série en jours",
+    "streakStat": "Jours d'affilée",
     "badgesStat": "Badges obtenus",
     "podiumSeparator": "Podium",
     "topTenSeparator": "Top 10",
@@ -1802,7 +1802,7 @@
       "challenges": "Défis logiques",
       "challengesDesc": "Séquences, motifs visuels, énigmes, probabilités… Entraîne ton esprit critique. Certains défis sont générés par IA pour offrir une rejouabilité infinie.",
       "dashboard": "Tableau de bord & Défis du jour",
-      "dashboardDesc": "Retrouve chaque jour 3 objectifs à accomplir pour gagner de l'XP bonus et maintenir ta série. Suis ta précision par catégorie et exporte ton journal en PDF.",
+      "dashboardDesc": "Retrouve chaque jour 3 objectifs pour gagner un bonus XP. Suis ta précision par catégorie et exporte ton journal en PDF.",
       "badges": "Badges et progression",
       "badgesDesc": "Gagne de l'XP à chaque réussite pour monter en niveau. Débloque des dizaines de badges uniques illustrant tes progrès mathématiques."
     },
@@ -1830,7 +1830,7 @@
       "q3": "Les exercices s'adaptent-ils tous seuls ?",
       "a3": "Oui ! L'Intelligence Artificielle de Mathakine modifie la difficulté en fonction de tes réponses. Si tu as du mal, elle proposera même des réponses à choix multiples.",
       "q4": "Où voir ma progression ?",
-      "a4": "Dans le menu \"Tableau de bord\". Tu y trouveras tes défis quotidiens, ta précision globale, ta série de jours consécutifs et tous tes badges.",
+      "a4": "Dans le menu « Tableau de bord » : défis du jour, précision globale, régularité (jours d'affilée) et badges.",
       "q5": "C'est quoi les Défis du Jour ?",
       "a5": "Chaque jour, Mathakine génère 3 objectifs personnalisés pour te pousser à t'entraîner dans différentes catégories. Cela rapporte des points d'expérience bonus.",
       "q6": "Dois-je choisir la difficulté manuellement ?",
@@ -2099,7 +2099,7 @@
       "items": [
         "Nouveaux defis du jour : 3 objectifs quotidiens pour garder le rythme.",
         "Tableau de bord reorganise avec une vue d ensemble plus lisible et un onglet Mon Profil dedie.",
-        "Les defis du jour et la serie en cours sont maintenant cote a cote pour une lecture plus claire.",
+        "Les défis du jour et l'indicateur de régularité sont maintenant côte à côte pour une lecture plus claire.",
         "Amelioration visuelle des defis avec badges XP mieux mis en valeur."
       ]
     },
@@ -2265,6 +2265,10 @@
     "progress": {
       "heading": "Ma progression",
       "seeBadges": "Voir tous mes badges"
+    },
+    "progressionArc": {
+      "sectionHeading": "Tes paliers",
+      "ariaLabel": "Parcours des paliers : {rank}. Étape {step} sur {total}."
     },
     "reviews": {
       "heading": "Révisions du jour"

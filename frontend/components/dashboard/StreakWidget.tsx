@@ -48,12 +48,7 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
       transition={transition}
       className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <Card
-        className={cn(
-          "rounded-2xl border",
-          currentStreak > 0 ? "border-warning/40 bg-warning/10" : "dashboard-card-surface--calm"
-        )}
-      >
+      <Card className="dashboard-card-surface--calm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">

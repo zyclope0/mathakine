@@ -1,16 +1,11 @@
 "use client";
 
 /**
- * StudentChallengesBoard — Tableau de défis gamifié pour la vue étudiant (NI-13 / OVERDRIVE-C).
+ * StudentChallengesBoard — Bandeau « défis du jour » (vue apprenant).
  *
- * Design : Constellation Board.
- * - 3 défis = 3 nœuds d'une constellation reliés par des traits SVG qui se "dessinent"
- *   progressivement au fur et à mesure des completions (stroke-dashoffset CSS).
- * - Arc de progression circulaire SVG pour le score global.
- * - Fond avec micro-particules colorées héritant de --primary (CSS box-shadow trick).
- * - Burst de complétion : @keyframes CSS pur, aucune lib externe.
- * - 100 % multi-thème via var(--primary), var(--card), var(--border), etc.
- * - prefers-reduced-motion respecté nativement (classe .motion-reduce:* + classe conditionnelle).
+ * Métaphore distincte de la constellation de progression (niveaux / paliers) : ici un
+ * triplet d’objectifs quotidiens en rail pleine largeur, séparateurs discrets, sans carte
+ * dashboard générique ni particules de fond.
  */
 
 import Link from "next/link";
@@ -23,91 +18,60 @@ import { Calculator, Puzzle, Target, CheckCircle2, ChevronRight } from "lucide-r
 import { cn } from "@/lib/utils";
 import type { DailyChallenge } from "@/types/api";
 
-/* ── Icônes par type ─────────────────────────────────────────────────────── */
 const CHALLENGE_ICONS = {
   volume_exercises: Calculator,
   specific_type: Target,
   logic_challenge: Puzzle,
 } as const;
 
-/* ── Points de la constellation (positions relatives, 0-100) ─────────────── */
-const NODE_POSITIONS = [
-  { x: 50, y: 18 }, // sommet
-  { x: 14, y: 78 }, // bas gauche
-  { x: 86, y: 78 }, // bas droite
-] as const;
-
-/* ── Traits de la constellation : paires d'indices de nœuds ─────────────── */
-const EDGES = [
-  [0, 1],
-  [1, 2],
-  [2, 0],
-] as const;
-
-/* ── Arc de progression circulaire ──────────────────────────────────────── */
-const ARC_R = 36; // rayon SVG viewBox 100x100
+const ARC_R = 36;
 const ARC_CIRCUMFERENCE = 2 * Math.PI * ARC_R;
 
-function CircularProgress({
-  value,
-  size = 96,
-  label,
-}: {
-  value: number; // 0-100
-  size?: number;
-  label: string;
-}) {
+function CircularProgress({ value, label }: { value: number; label: string }) {
   const offset = ARC_CIRCUMFERENCE * (1 - value / 100);
   return (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size }}
-    >
+    <div className="relative flex size-20 shrink-0 items-center justify-center">
       <svg
-        width={size}
-        height={size}
+        className="size-full rotate-[-90deg]"
         viewBox="0 0 100 100"
         aria-label={label}
         role="img"
-        className="rotate-[-90deg]"
       >
-        {/* Piste de fond */}
         <circle
           cx="50"
           cy="50"
           r={ARC_R}
           fill="none"
           stroke="currentColor"
-          strokeWidth="7"
+          strokeWidth="6"
           className="text-border"
         />
-        {/* Arc de progression */}
         <circle
           cx="50"
           cy="50"
           r={ARC_R}
           fill="none"
           stroke="currentColor"
-          strokeWidth="7"
+          strokeWidth="6"
           strokeLinecap="round"
-          className="text-primary transition-all duration-700 ease-out motion-reduce:transition-none"
+          className="text-primary transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
           strokeDasharray={ARC_CIRCUMFERENCE}
           strokeDashoffset={offset}
         />
       </svg>
-      {/* Texte centré — rotation inverse pour rester lisible */}
       <span
         className="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight"
         aria-hidden="true"
       >
-        <span className="text-xl font-bold text-foreground tabular-nums">{Math.round(value)}%</span>
+        <span className="text-lg font-bold text-foreground tabular-nums sm:text-xl">
+          {Math.round(value)}%
+        </span>
       </span>
     </div>
   );
 }
 
-/* ── Nœud de constellation ───────────────────────────────────────────────── */
-function ConstellationNode({
+function DailyChallengeSlot({
   challenge,
   getTypeDisplay,
   t,
@@ -130,47 +94,31 @@ function ConstellationNode({
 
   const ariaLabel = `${label} — ${isCompleted ? t("completed") : t("pending", { current: challenge.completed_count, target: challenge.target_count })}`;
 
-  const nodeClasses = cn(
-    "flex flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-300",
-    "motion-reduce:transition-none",
-    isCompleted
-      ? // Nœud terminé : statique, pas de hover (aucune action possible)
-        "border-primary/40 bg-primary/[0.08]"
-      : // Nœud actif : interactif, hover explicite
-        "group border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+  const slotShell = cn(
+    "flex min-h-[8.5rem] flex-1 flex-col items-center justify-between gap-3 px-3 py-4 sm:min-h-[9rem] sm:px-4 sm:py-5",
+    "transition-colors duration-200 motion-reduce:transition-none"
   );
 
-  // Nœuds complétés : non-cliquables (informatifs)
-  // Nœuds en attente : Link vers la destination correspondant au type de défi
   if (isCompleted) {
     return (
-      <div className={nodeClasses} aria-label={ariaLabel}>
-        {/* Icône complétée avec halo */}
-        <div className="relative">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+      <div className={cn(slotShell, "bg-muted/20")} aria-label={ariaLabel}>
+        <div className="relative flex flex-col items-center gap-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/15 text-primary">
             <CheckCircle2
               className={cn(
-                "h-6 w-6",
-                !reducedMotion && "animate-[challenge-pop_0.4s_ease-out_both]"
+                "h-5 w-5",
+                !reducedMotion && "motion-safe:animate-[challenge-pop_0.35s_ease-out_both]"
               )}
               aria-hidden="true"
             />
           </div>
-          {!reducedMotion && (
-            <span
-              className="pointer-events-none absolute inset-0 rounded-full bg-primary/30 animate-[challenge-halo_0.6s_ease-out_forwards]"
-              aria-hidden="true"
-            />
-          )}
           <span
-            className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold bg-primary text-primary-foreground"
+            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold bg-primary text-primary-foreground"
             aria-hidden="true"
           >
             +{challenge.bonus_points}
           </span>
         </div>
-
-        {/* Label barré */}
         <p className="text-center text-xs font-medium leading-snug text-muted-foreground line-through">
           {label}
         </p>
@@ -178,31 +126,33 @@ function ConstellationNode({
     );
   }
 
-  // Nœud actif → Link cliquable vers la destination du défi
   const href = getChallengeHref(challenge);
   return (
-    <Link href={href} className={nodeClasses} aria-label={ariaLabel}>
-      {/* Icône avec burst conditionnel */}
-      <div className="relative">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
-          <IconComponent className="h-6 w-6" aria-hidden="true" />
+    <Link
+      href={href}
+      className={cn(
+        slotShell,
+        "group border-border/40 bg-background/40 hover:bg-muted/30",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      )}
+      aria-label={ariaLabel}
+    >
+      <div className="relative flex flex-col items-center gap-2">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+          <IconComponent className="h-5 w-5" aria-hidden="true" />
         </div>
-
-        {/* Badge points */}
         <span
-          className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold bg-muted text-muted-foreground"
+          className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold bg-muted-foreground/15 text-foreground"
           aria-hidden="true"
         >
           +{challenge.bonus_points}
         </span>
       </div>
 
-      {/* Label */}
       <p className="text-center text-xs font-medium leading-snug text-foreground">{label}</p>
 
-      {/* Mini barre de progression */}
-      <div className="w-full space-y-1" aria-hidden="true">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
+      <div className="w-full max-w-[10rem] space-y-1" aria-hidden="true">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
           <div
             className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out motion-reduce:transition-none"
             style={{ width: `${progress}%` }}
@@ -216,78 +166,35 @@ function ConstellationNode({
   );
 }
 
-/* ── SVG constellation ───────────────────────────────────────────────────── */
-function ConstellationSvg({
-  completedCount,
-  reducedMotion,
-}: {
-  completedCount: number;
-  reducedMotion: boolean;
-}) {
-  // Un trait est "allumé" si BOTH nœuds qu'il relie sont complétés
-  // Simplifié : on allume les traits progressivement selon completedCount (0→3)
-  const activeEdges = useMemo(() => {
-    // Ordre d'activation : 0-1, 1-2, 2-0
-    return EDGES.map((_, i) => i < completedCount);
-  }, [completedCount]);
-
+function DailyChallengesLoading({ title }: { title: string }) {
   return (
-    <svg
-      viewBox="0 0 200 150"
-      className="pointer-events-none absolute inset-0 h-full w-full"
-      aria-hidden="true"
+    <section
+      className="w-full overflow-hidden rounded-xl border border-border/80 bg-muted/10"
+      aria-busy="true"
+      aria-label={title}
     >
-      {EDGES.map(([from, to], i) => {
-        const x1 = (NODE_POSITIONS[from].x / 100) * 200;
-        const y1 = (NODE_POSITIONS[from].y / 100) * 150;
-        const x2 = (NODE_POSITIONS[to].x / 100) * 200;
-        const y2 = (NODE_POSITIONS[to].y / 100) * 150;
-        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-        const isActive = activeEdges[i];
-
-        return (
-          <line
-            key={i}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            className={cn(
-              isActive ? "text-primary" : "text-border/60",
-              !reducedMotion && "transition-all duration-700"
-            )}
-            strokeDasharray={length}
-            strokeDashoffset={reducedMotion ? 0 : isActive ? 0 : length}
-            style={
-              !reducedMotion
-                ? {
-                    transition: `stroke-dashoffset 0.7s ease ${i * 0.15}s, color 0.5s ease`,
-                  }
-                : undefined
-            }
-          />
-        );
-      })}
-
-      {/* Points des nœuds */}
-      {NODE_POSITIONS.map((pos, i) => (
-        <circle
-          key={i}
-          cx={(pos.x / 100) * 200}
-          cy={(pos.y / 100) * 150}
-          r="4"
-          fill="currentColor"
-          className={cn(i < completedCount ? "text-primary" : "text-border/60")}
-        />
-      ))}
-    </svg>
+      <div className="border-b border-border/60 px-4 py-4 sm:px-5 sm:py-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <div className="h-6 w-40 rounded-md bg-muted/70" />
+            <div className="h-4 w-56 max-w-full rounded-md bg-muted/50" />
+          </div>
+          <div className="h-20 w-20 shrink-0 rounded-full bg-muted/70" />
+        </div>
+      </div>
+      <div className="flex flex-col divide-y divide-border/60 sm:flex-row sm:divide-x sm:divide-y-0">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="min-h-[8.5rem] flex-1 px-3 py-4 sm:min-h-[9rem] sm:px-4">
+            <div className="mx-auto flex h-11 w-11 rounded-full bg-muted/70" />
+            <div className="mx-auto mt-3 h-3 w-24 rounded bg-muted/50" />
+            <div className="mx-auto mt-4 h-1.5 w-full max-w-[10rem] rounded-full bg-muted/50" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
-/* ── Composant principal ─────────────────────────────────────────────────── */
 export function StudentChallengesBoard() {
   const { challenges, isLoading } = useDailyChallenges();
   const { getTypeDisplay } = useExerciseTranslations();
@@ -303,112 +210,76 @@ export function StudentChallengesBoard() {
   const allDone = completedCount === challenges.length && challenges.length > 0;
   const hasPending = challenges.some((c) => c.status === "pending");
 
+  const firstPending = challenges.find((c) => c.status === "pending");
+  const primaryCtaHref = firstPending ? getChallengeHref(firstPending) : "/exercises";
+
   if (isLoading) {
-    return (
-      <div
-        className="rounded-2xl border border-border/50 bg-card/60 p-6 space-y-4"
-        aria-busy="true"
-        aria-label={t("title")}
-      >
-        <div className="flex justify-between items-center">
-          <div className="h-5 w-32 rounded bg-muted/60 animate-pulse" />
-          <div className="h-16 w-16 rounded-full bg-muted/60 animate-pulse" />
-        </div>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-28 rounded-2xl bg-muted/40 animate-pulse" />
-        ))}
-      </div>
-    );
+    return <DailyChallengesLoading title={t("title")} />;
   }
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/60 p-5 space-y-5"
+      className="w-full overflow-hidden rounded-xl border border-border/80 bg-muted/10 shadow-sm"
       role="region"
       aria-label={t("title")}
     >
-      {/* Micro-particules de fond — CSS box-shadow trick, hérite de --primary */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        aria-hidden="true"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 15% 25%, color-mix(in srgb, var(--primary) 12%, transparent) 0%, transparent 50%),
-            radial-gradient(circle at 85% 70%, color-mix(in srgb, var(--primary) 8%, transparent) 0%, transparent 40%)
-          `,
-        }}
-      />
-
-      {/* Constellation SVG de fond (décorative) */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <ConstellationSvg completedCount={completedCount} reducedMotion={shouldReduceMotion} />
-      </div>
-
-      {/* En-tête avec arc de progression */}
-      <div className="relative flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-foreground">{t("title")}</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {allDone ? t("allDone") : t("subtitle")}
-          </p>
-        </div>
-        <CircularProgress
-          value={progressPct}
-          size={80}
-          label={t("progressAriaLabel", { done: completedCount, total: challenges.length })}
-        />
-      </div>
-
-      {/* Grille constellation — 3 nœuds */}
-      <div className="relative grid grid-cols-3 gap-3" role="list">
-        {challenges.map((challenge) => (
-          <ConstellationNode
-            key={challenge.id}
-            challenge={challenge}
-            getTypeDisplay={getTypeDisplay}
-            t={t}
-            reducedMotion={shouldReduceMotion}
+      <div className="border-b border-border/60 px-4 py-4 sm:px-5 sm:py-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">{t("title")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {allDone ? t("allDone") : t("subtitle")}
+            </p>
+          </div>
+          <CircularProgress
+            value={progressPct}
+            label={t("progressAriaLabel", { done: completedCount, total: challenges.length })}
           />
-        ))}
+        </div>
       </div>
 
-      {/* CTA */}
-      {hasPending && (
-        <Link
-          href="/exercises"
-          className={cn(
-            "relative flex w-full items-center justify-center gap-2 rounded-xl",
-            "bg-primary text-primary-foreground",
-            "py-3 text-sm font-semibold",
-            "transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          )}
-        >
-          {t("cta")}
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      )}
+      <ul className="m-0 flex list-none flex-col divide-y divide-border/60 p-0 sm:flex-row sm:divide-x sm:divide-y-0">
+        {challenges.map((challenge) => (
+          <li key={challenge.id} className="min-w-0 flex-1">
+            <DailyChallengeSlot
+              challenge={challenge}
+              getTypeDisplay={getTypeDisplay}
+              t={t}
+              reducedMotion={shouldReduceMotion}
+            />
+          </li>
+        ))}
+      </ul>
 
-      {/* État victoire */}
-      {allDone && (
-        <div className="relative flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 py-3 text-sm font-semibold text-primary">
-          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          {t("allDoneMessage")}
+      {hasPending ? (
+        <div className="border-t border-border/60 bg-muted/5 px-4 py-4 sm:px-5">
+          <Link
+            href={primaryCtaHref}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-lg",
+              "bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground",
+              "transition-colors hover:bg-primary/90",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            )}
+          >
+            {t("cta")}
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </Link>
         </div>
-      )}
+      ) : null}
+
+      {allDone ? (
+        <div className="border-t border-border/60 px-4 py-3 sm:px-5">
+          <div className="flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-muted/20 py-3 text-sm font-medium text-foreground">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            {t("allDoneMessage")}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-
-/**
- * Détermine la route cible d'un nœud de défi selon son type.
- * - volume_exercises  → /exercises (liste libre)
- * - specific_type     → /exercises?type={exercise_type} (filtre pré-appliqué)
- * - logic_challenge   → /challenges
- */
 function getChallengeHref(challenge: DailyChallenge): string {
   if (challenge.challenge_type === "logic_challenge") {
     return "/challenges";

@@ -9,7 +9,12 @@
   /* Police UI explicite — évite les faux positifs « Roboto / Inter » sur les outils de scan. */
   html,
   body {
-    font-family: var(--font-nunito-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family:
+      var(--font-nunito-sans),
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
     scroll-behavior: smooth;
@@ -2380,11 +2385,7 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
     0 0 16px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
-/* ── StudentChallengesBoard — keyframes (NI-13 / OVERDRIVE-C) ─────────────
- * Burst de completion sur l'icône CheckCircle2 du nœud complété.
- * Halo expansion sur le fond de l'icône.
- * prefers-reduced-motion : les animations ne sont PAS appliquées via
- * la classe conditionnelle dans le composant — pas besoin de @media ici. */
+/* ── StudentChallengesBoard — micro-feedback complétion (sans halo décoratif) ─ */
 @keyframes challenge-pop {
   0% {
     transform: scale(0.6);
@@ -2397,16 +2398,5 @@ html[data-mathakine-dashboard] [data-spatial-layer="dino-floating"] {
   100% {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes challenge-halo {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
   }
 }

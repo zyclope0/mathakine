@@ -49,51 +49,53 @@ export function BadgeCardCardContent({
         <div className="badge-card-expandable">
           <div className="badge-card-expandable-inner min-h-0 overflow-hidden">
             <div className="space-y-4">
-          {thematicLine && (
-            <CardDescription className="text-primary italic text-sm">
-              {thematicLine}
-            </CardDescription>
-          )}
-          {isRareRarityInfo(rarity) && (
-            <BadgeComponent
-              variant="outline"
-              className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0 w-fit"
-              aria-label={t("rarity.rare")}
-            >
-              ✨ {t("rarity.rare")}
-            </BadgeComponent>
-          )}
-          <div className="rounded-lg bg-muted/40 px-3 py-2.5">
-            {badge.description ? (
-              <p className="text-sm text-muted-foreground leading-relaxed">{badge.description}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground/60 italic leading-relaxed">
-                {t("noDescription")}
-              </p>
-            )}
-          </div>
-          {rarity && (
-            <div
-              className="inline-flex w-fit rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs text-muted-foreground"
-              role="status"
-            >
-              {t("socialProof", { percent: rarity.unlock_percent })}
-            </div>
-          )}
-          <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2.5">
-            <div className="flex items-center gap-2 text-base font-semibold">
-              <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
-              <span className="text-foreground">{badge.points_reward}</span>
-              <span className="text-muted-foreground text-sm">pts</span>
-            </div>
-            {userBadge?.earned_at && (
-              <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded-md">
-                {t("earnedOn", {
-                  date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
-                })}
+              {thematicLine && (
+                <CardDescription className="text-primary italic text-sm">
+                  {thematicLine}
+                </CardDescription>
+              )}
+              {isRareRarityInfo(rarity) && (
+                <BadgeComponent
+                  variant="outline"
+                  className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0 w-fit"
+                  aria-label={t("rarity.rare")}
+                >
+                  ✨ {t("rarity.rare")}
+                </BadgeComponent>
+              )}
+              <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+                {badge.description ? (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {badge.description}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground/60 italic leading-relaxed">
+                    {t("noDescription")}
+                  </p>
+                )}
               </div>
-            )}
-          </div>
+              {rarity && (
+                <div
+                  className="inline-flex w-fit rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs text-muted-foreground"
+                  role="status"
+                >
+                  {t("socialProof", { percent: rarity.unlock_percent })}
+                </div>
+              )}
+              <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+                  <span className="text-foreground">{badge.points_reward}</span>
+                  <span className="text-muted-foreground text-sm">pts</span>
+                </div>
+                {userBadge?.earned_at && (
+                  <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded-md">
+                    {t("earnedOn", {
+                      date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

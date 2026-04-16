@@ -828,7 +828,7 @@
       "statusCompleted": "Completed",
       "statusPending": "{current}/{target} in progress",
       "allDone": "All daily challenges completed!",
-      "allDoneMessage": "Constellation complete! Come back tomorrow.",
+      "allDoneMessage": "All daily goals done. Come back tomorrow!",
       "progressAriaLabel": "{done} of {total} challenges completed"
     },
     "spacedRepetition": {
@@ -927,14 +927,14 @@
       "showMore": "Load {count} more",
       "noActivity": "No recent activity",
       "empty": "No recent activity.",
-      "emptyHint": "Start solving exercises to see your progress!"
+      "emptyHint": "Solve exercises to see your activity here."
     },
     "streak": {
-      "title": "Current Streak",
+      "title": "Rhythm",
       "days": "{count, plural, =0 {day} =1 {day} other {days}}",
-      "best": "Best streak",
-      "record": "New record!",
-      "keepGoing": "Keep it up! Come back tomorrow to maintain your streak."
+      "best": "Longest run",
+      "record": "Personal best!",
+      "keepGoing": "Nice rhythm! Each visit can extend this run—at your own pace."
     },
     "leaderboardWidget": {
       "title": "Leaderboard",
@@ -1046,8 +1046,8 @@
         "level": "Level",
         "booleanYes": "Yes",
         "booleanNo": "No",
-        "currentStreak": "Current streak",
-        "highestStreak": "Best streak",
+        "currentStreak": "Days in a row (current)",
+        "highestStreak": "Record (days in a row)",
         "averageTime": "Average time (seconds)",
         "performanceByCategory": "Performance by category",
         "category": "Category",
@@ -1314,7 +1314,7 @@
     "rank": "Rank",
     "level": "Level",
     "you": "You",
-    "streakStat": "Day streak",
+    "streakStat": "Days in a row",
     "badgesStat": "Badges earned",
     "podiumSeparator": "Podium",
     "topTenSeparator": "Top 10",
@@ -1802,7 +1802,7 @@
       "challenges": "Logic Challenges",
       "challengesDesc": "Sequences, visual patterns, riddles, probability... Train your critical thinking. Some challenges are AI-generated to provide infinite replayability.",
       "dashboard": "Dashboard & Daily Challenges",
-      "dashboardDesc": "Find 3 daily goals to complete to earn bonus XP and keep your streak alive. Track your accuracy by category and export your log as a PDF.",
+      "dashboardDesc": "Find 3 daily goals for bonus XP. Track your accuracy by category and export your log as a PDF.",
       "badges": "Badges & progress",
       "badgesDesc": "Earn XP with every success to level up. Unlock dozens of unique badges illustrating your mathematical progress."
     },
@@ -1830,7 +1830,7 @@
       "q3": "Do exercises adapt automatically?",
       "a3": "Yes! Mathakine's Artificial Intelligence modifies the difficulty based on your answers. If you struggle, it may even switch to multiple-choice answers.",
       "q4": "Where can I see my progress?",
-      "a4": "In the \"Dashboard\" menu. You'll find your daily challenges, global accuracy, current streaks, and all your badges.",
+      "a4": "Under \"Dashboard\": daily challenges, overall accuracy, days in a row, and badges.",
       "q5": "What are the Daily Challenges?",
       "a5": "Every day, Mathakine generates 3 personalized goals to encourage you to practice across different categories. They reward you with bonus XP.",
       "q6": "Do I have to choose the difficulty manually?",
@@ -2099,7 +2099,7 @@
       "items": [
         "New daily challenges with 3 goals to keep practice regular.",
         "Dashboard reorganized with a simpler overview and a dedicated My Profile tab.",
-        "Daily challenges and current streak now sit side by side for a clearer overview.",
+        "Daily challenges and the rhythm indicator now sit side by side for a clearer overview.",
         "Challenge visuals improved, especially for XP badges and labels."
       ]
     },
@@ -2266,6 +2266,10 @@
     "progress": {
       "heading": "My progress",
       "seeBadges": "See all my badges"
+    },
+    "progressionArc": {
+      "sectionHeading": "Your ranks",
+      "ariaLabel": "Rank milestones: {rank}. Step {step} of {total}."
     },
     "reviews": {
       "heading": "Reviews due today"
