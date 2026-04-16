@@ -27,6 +27,25 @@ export default async function PrivacyPage() {
         </Card>
       </PageSection>
 
+      <PageSection title={t("legalBasis.title")} description={t("legalBasis.desc")}>
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <p className="text-muted-foreground">{t("legalBasis.contract")}</p>
+            <p className="text-muted-foreground">{t("legalBasis.legitimate")}</p>
+          </CardContent>
+        </Card>
+      </PageSection>
+
+      <PageSection title={t("minors.title")} description={t("minors.desc")}>
+        <Card>
+          <CardContent className="pt-6 space-y-2">
+            <p className="text-muted-foreground">{t("minors.consent")}</p>
+            <p className="text-sm text-muted-foreground">{t("minors.betaNote")}</p>
+            <p className="text-sm text-muted-foreground">{t("minors.contact")}</p>
+          </CardContent>
+        </Card>
+      </PageSection>
+
       <PageSection title={t("data.title")} description={t("data.intro")}>
         <Card>
           <CardContent className="pt-6 space-y-4">

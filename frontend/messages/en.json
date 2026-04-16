@@ -1922,11 +1922,24 @@
   "privacy": {
     "title": "Privacy Policy",
     "subtitle": "How Mathakine handles your personal data",
-    "lastUpdate": "Last updated: February 2026",
+    "lastUpdate": "Last updated: April 2026",
     "controller": {
       "title": "Data controller",
       "desc": "In accordance with the General Data Protection Regulation (GDPR).",
       "text": "The data controller is Yannick Malgorn. For any questions regarding your personal data: webmaster@mathakine.fun"
+    },
+    "legalBasis": {
+      "title": "Legal basis for processing",
+      "desc": "In accordance with Article 13.1.c of the GDPR, Mathakine informs you of the legal basis for each processing activity.",
+      "contract": "Performance of a contract (Art. 6.1.b): account creation, authentication, progress tracking, gamification. These processing activities are necessary to provide the service you signed up for.",
+      "legitimate": "Legitimate interest (Art. 6.1.f): technical logs, error diagnostics (Sentry), service security. These processing activities are proportionate and do not have a disproportionate impact on your rights."
+    },
+    "minors": {
+      "title": "Minors and parental consent",
+      "desc": "Mathakine is intended for children from age 6. In accordance with Article 8 of the GDPR.",
+      "consent": "For users under 15 years of age, registration and use of the service requires the consent of a holder of parental authority.",
+      "betaNote": "During the closed beta, minor accounts are created directly by a known parent or teacher, who attests to holding parental authority.",
+      "contact": "Any parent or legal guardian may exercise GDPR rights on behalf of the minor via: webmaster@mathakine.fun"
     },
     "data": {
       "title": "Data collected and purposes",
@@ -1977,7 +1990,7 @@
     "cookies": {
       "title": "Cookies",
       "intro": "Mathakine uses strictly necessary cookies for the service to function.",
-      "essential": "Authentication cookies (access_token, refresh_token): maintaining the logged-in session. CSRF cookie: protection against cross-site attacks. These cookies are essential; refusing them prevents use of the service.",
+      "essential": "Authentication cookie (access_token): maintaining the logged-in session. CSRF cookie: protection against cross-site attacks. These cookies are essential; refusing them prevents use of the service.",
       "noMarketing": "No advertising cookies or third-party trackers."
     }
   },

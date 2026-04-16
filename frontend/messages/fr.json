@@ -1922,11 +1922,24 @@
   "privacy": {
     "title": "Politique de confidentialité",
     "subtitle": "Comment Mathakine traite vos données personnelles",
-    "lastUpdate": "Dernière mise à jour : février 2026",
+    "lastUpdate": "Dernière mise à jour : avril 2026",
     "controller": {
       "title": "Responsable du traitement",
       "desc": "Conformément au Règlement général sur la protection des données (RGPD).",
       "text": "Le responsable du traitement des données est Yannick Malgorn. Pour toute question relative à vos données personnelles : webmaster@mathakine.fun"
+    },
+    "legalBasis": {
+      "title": "Base légale des traitements",
+      "desc": "Conformément à l'article 13.1.c du RGPD, Mathakine vous informe des bases légales de chaque traitement.",
+      "contract": "Exécution du contrat (Art. 6.1.b) : création de compte, authentification, suivi de progression, gamification. Ces traitements sont nécessaires à la fourniture du service auquel vous vous êtes inscrit.",
+      "legitimate": "Intérêt légitime (Art. 6.1.f) : logs techniques, diagnostics d'erreurs (Sentry), sécurité du service. Ces traitements sont proportionnés et n'ont pas d'impact disproportionné sur vos droits."
+    },
+    "minors": {
+      "title": "Mineurs et consentement parental",
+      "desc": "Mathakine est destiné aux enfants à partir de 6 ans. Conformément à l'article 8 du RGPD.",
+      "consent": "Pour les utilisateurs âgés de moins de 15 ans, l'inscription et l'utilisation du service nécessitent le consentement d'un titulaire de l'autorité parentale.",
+      "betaNote": "Durant la beta fermée, les comptes mineurs sont créés directement par un parent ou enseignant connu, qui atteste exercer l'autorité parentale.",
+      "contact": "Tout parent ou tuteur légal peut exercer les droits RGPD au nom du mineur via : webmaster@mathakine.fun"
     },
     "data": {
       "title": "Données collectées et finalités",
@@ -1977,7 +1990,7 @@
     "cookies": {
       "title": "Cookies",
       "intro": "Mathakine utilise des cookies strictement nécessaires au fonctionnement du service.",
-      "essential": "Cookies d'authentification (access_token, refresh_token) : maintien de la session connectée. Cookie CSRF : protection contre les attaques cross-site. Ces cookies sont indispensables ; leur refus empêche l'utilisation du service.",
+      "essential": "Cookie d'authentification (access_token) : maintien de la session connectée. Cookie CSRF : protection contre les attaques cross-site. Ces cookies sont indispensables ; leur refus empêche l'utilisation du service.",
       "noMarketing": "Aucun cookie publicitaire ou de trackers tiers."
     }
   },
