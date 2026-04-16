@@ -118,7 +118,7 @@ export const metadata: Metadata = {
 
 /**
  * CSP nonce (prod): static HTML cannot receive per-request nonces — force dynamic
- * rendering so Next applies the nonce from middleware (`proxy.ts`) to framework
+ * rendering so Next applies the nonce from proxy (`proxy.ts`) to framework
  * inline scripts. See QF-07C / README_TECH (SSR cost).
  */
 export const dynamic = "force-dynamic";

@@ -1,6 +1,6 @@
 /**
  * Pure builder for the global Content-Security-Policy header string.
- * Emitted from `proxy.ts` (Edge middleware) so production can use a per-request
+ * Emitted from `proxy.ts` (Edge proxy) so production can use a per-request
  * script nonce; Next.js reads the nonce from the incoming CSP header (see
  * `getScriptNonceFromHeader` in Next).
  */
