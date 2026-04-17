@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 import { ExerciseSolverHint } from "@/components/exercises/ExerciseSolverHint";
+import { FeedbackTrigger } from "@/components/feedback/FeedbackTrigger";
 
 interface ExerciseModalProps {
   exerciseId: number | null;
@@ -415,6 +416,17 @@ function ExerciseModalContent({
                   </div>
                 </div>
               )}
+
+              {hasSubmitted && submitResult ? (
+                <div className="mt-4 flex flex-wrap items-center justify-end border-t border-border/40 pt-4">
+                  <FeedbackTrigger
+                    componentId="exercise-result"
+                    context={{ exerciseId: exercise.id }}
+                    variant="subtle"
+                    layout="icon-label"
+                  />
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}
