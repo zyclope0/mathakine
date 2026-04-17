@@ -85,7 +85,7 @@ Active references:
 - `README_TECH.md`, `docs/INDEX.md`, `docs/03-PROJECT/README.md`, `docs/04-FRONTEND/ARCHITECTURE.md`, `docs/04-FRONTEND/API_ROUTES.md`, `docs/04-FRONTEND/HOOKS_CATALOGUE.md`, and `docs/04-FRONTEND/COMPONENTS_CATALOGUE.md` now reflect the current active architecture instead of the pre-co-location snapshot.
 - Historical implementation notes and legacy widget redirects were archived out of the active flow, while archive READMEs and cross-links were updated so those notes remain discoverable without pretending to be active source-of-truth documents.
 - `.claude/session-plan.md` is now consistently described as a local founder-planning note rather than standalone runtime truth.
-## [3.6.0-beta.1] - 2026-04-06
+## [3.6.0-beta.1] - 2026-04-17
 
 ### Added
 
