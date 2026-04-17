@@ -87,29 +87,30 @@ export default async function DocsPage() {
   return (
     <PageLayout maxWidth="2xl">
       {/* 1. Hero — beta-oriented */}
-      <header className="text-center py-12 md:py-16 space-y-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
-            <div className="relative bg-card border border-border/50 p-4 rounded-2xl shadow-sm">
-              <BookOpen className="h-10 w-10 text-primary" aria-hidden="true" />
-            </div>
+      <header className="space-y-5 py-10 text-center md:space-y-6 md:py-14">
+        <div className="mb-2 flex justify-center md:mb-3">
+          <div className="rounded-2xl border border-border/60 bg-card/90 p-4 ring-1 ring-primary/15">
+            <BookOpen className="h-10 w-10 text-primary" aria-hidden="true" />
           </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-foreground">{t("betaHero.title")}</h1>
-        <p className="text-lg md:text-xl text-primary font-medium">{t("betaHero.subtitle")}</p>
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4">
-          <Button asChild size="lg" className="w-full sm:w-auto gap-2 group">
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground md:text-5xl">
+          {t("betaHero.title")}
+        </h1>
+        <p className="mx-auto max-w-[42ch] text-pretty text-lg font-medium text-primary md:max-w-[48ch] md:text-xl">
+          {t("betaHero.subtitle")}
+        </p>
+        <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row sm:pt-3">
+          <Button asChild size="lg" className="group w-full gap-2 sm:w-auto min-h-11">
             <Link href="/register">
               <UserPlus className="h-5 w-5" aria-hidden="true" />
               {t("betaHero.ctaRegister")}
               <ChevronRight
-                className="h-4 w-4 -mr-1 group-hover:translate-x-1 transition-transform"
+                className="-mr-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
                 aria-hidden="true"
               />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto gap-2">
+          <Button asChild variant="outline" size="lg" className="w-full gap-2 sm:w-auto min-h-11">
             <Link href="/exercises">
               <Dumbbell className="h-5 w-5 text-primary" aria-hidden="true" />
               {t("betaHero.ctaExercises")}
@@ -118,30 +119,34 @@ export default async function DocsPage() {
         </div>
       </header>
 
-      <div className="space-y-12 md:space-y-16">
+      <div className="space-y-14 md:space-y-20">
         {/* 2. Quickstart — 5 steps */}
         <PageSection
           title={t("quickstart.title")}
           description={t("quickstart.intro")}
           icon={<ListTodo className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="space-y-5 relative z-10">
+          <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
+            <div className="divide-y divide-border/50">
               {QUICKSTART_STEPS.map(({ step, icon: Icon, href }) => (
-                <div key={step} className="flex items-start gap-4">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold ring-1 ring-primary/20">
+                <div key={step} className="flex items-start gap-4 px-4 py-5 sm:px-6 sm:py-6">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary ring-1 ring-primary/15">
                     {step}
                   </span>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-foreground">{t(`quickstart.step${step}`)}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed mt-0.5">
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                       {t(`quickstart.step${step}Desc`)}
                     </p>
                   </div>
-                  <Button asChild variant="outline" size="sm" className="shrink-0 hidden sm:flex">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="hidden min-h-9 shrink-0 sm:flex"
+                  >
                     <Link href={href}>
-                      <Icon className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                      <Icon className="mr-1.5 h-4 w-4" aria-hidden="true" />
                       {t(`quickstart.step${step}Cta`)}
                     </Link>
                   </Button>
@@ -157,11 +162,11 @@ export default async function DocsPage() {
           description={t("betaExpect.intro")}
           icon={<AlertTriangle className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4">
             {betaExpectItems.map((item, i) => (
               <div
                 key={i}
-                className="bg-muted/30 border border-border/50 p-4 rounded-xl text-sm text-foreground"
+                className="rounded-xl bg-muted/20 p-4 text-sm leading-snug text-foreground ring-1 ring-border/40"
               >
                 {item}
               </div>
@@ -175,19 +180,22 @@ export default async function DocsPage() {
           description={t("howToReport.intro")}
           icon={<Flag className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="bg-card/50 border border-border rounded-2xl p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-5 rounded-2xl border border-border/60 bg-muted/10 p-6 md:p-7">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {REPORT_ENTRIES.map(({ key, icon: Icon }) => (
                 <div
                   key={key}
-                  className="flex items-center gap-3 bg-muted/20 border border-border/50 p-3 rounded-xl text-sm"
+                  className="flex items-start gap-3 rounded-xl bg-card/70 p-3.5 text-sm ring-1 ring-border/40 sm:items-center"
                 >
-                  <Icon className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
-                  <span className="text-foreground">{t(`howToReport.${key}`)}</span>
+                  <Icon
+                    className="mt-0.5 h-4 w-4 shrink-0 text-primary sm:mt-0"
+                    aria-hidden="true"
+                  />
+                  <span className="text-pretty text-foreground">{t(`howToReport.${key}`)}</span>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground italic">{t("howToReport.note")}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">{t("howToReport.note")}</p>
           </div>
         </PageSection>
 
@@ -197,17 +205,22 @@ export default async function DocsPage() {
           description={t("betaLimits.intro")}
           icon={<Info className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="bg-muted/20 border border-border/50 p-6 rounded-2xl space-y-3">
+          <div className="space-y-4 rounded-2xl bg-muted/15 p-6 ring-1 ring-border/40 md:p-7">
             {betaLimitItems.map((item, i) => (
-              <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                <span className="text-primary mt-0.5">—</span>
+              <div key={i} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
+                <span
+                  className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/40"
+                  aria-hidden="true"
+                />
                 <span>{item}</span>
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-xl border border-border/50 bg-card/70 p-4">
-            <p className="text-sm font-medium text-foreground">{t("betaGuideNoteTitle")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("betaGuideLink")}</p>
+          <div className="mt-5 rounded-xl bg-card/80 p-4 ring-1 ring-border/50 md:p-5">
+            <p className="text-sm font-semibold text-foreground">{t("betaGuideNoteTitle")}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {t("betaGuideLink")}
+            </p>
           </div>
         </PageSection>
 
@@ -221,7 +234,7 @@ export default async function DocsPage() {
             {whyItems.map(({ key, icon: Icon }) => (
               <div
                 key={key}
-                className="bg-muted/30 border border-border/50 p-5 rounded-xl flex flex-col gap-3 transition-all hover:bg-muted/50 hover:border-primary/20"
+                className="flex flex-col gap-3 rounded-xl bg-muted/25 p-5 ring-1 ring-border/40 transition-colors hover:bg-muted/40"
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -244,7 +257,7 @@ export default async function DocsPage() {
             {usingItems.map(({ key, icon: Icon }) => (
               <div
                 key={key}
-                className="bg-card/50 border border-border p-5 md:p-6 rounded-xl flex gap-4 transition-all hover:bg-card hover:shadow-sm hover:border-primary/20"
+                className="flex gap-4 rounded-xl bg-card/60 p-5 ring-1 ring-border/50 transition-colors hover:bg-card/80 md:p-6"
               >
                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
@@ -265,7 +278,7 @@ export default async function DocsPage() {
           title={t("accessibility.title")}
           icon={<Accessibility className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="border border-primary/30 bg-primary/5 p-6 md:p-8 rounded-2xl space-y-4">
+          <div className="space-y-4 rounded-2xl border border-primary/25 bg-primary/5 p-6 md:p-8">
             <p className="text-foreground font-medium leading-relaxed">
               {t("accessibility.intro")}
             </p>
@@ -309,24 +322,24 @@ export default async function DocsPage() {
           title={t("faq.title")}
           icon={<MessageCircleQuestion className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
-          <div className="bg-card/50 border border-border rounded-2xl overflow-hidden divide-y divide-border">
+          <div className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60 bg-card/40">
             {faqItems.map((item) => (
               <details
                 key={item.id}
                 id={`faq-${item.id}`}
                 className="group [&_summary::-webkit-details-marker]:hidden"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between p-5 text-sm md:text-base font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset">
-                  <span>{t(`faq.${item.q}`)}</span>
-                  <div className="ml-4 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full border border-border/50 group-open:bg-primary/10 group-open:border-primary/20 transition-all">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-5 md:text-base">
+                  <span className="text-pretty text-left">{t(`faq.${item.q}`)}</span>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/50 bg-muted/20 group-open:border-primary/25 group-open:bg-primary/10">
                     <ChevronDown
-                      className="h-4 w-4 text-muted-foreground group-open:text-primary transition-transform duration-300 group-open:rotate-180"
+                      className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180 group-open:text-primary motion-reduce:transition-none"
                       aria-hidden="true"
                     />
                   </div>
                 </summary>
-                <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed animate-in slide-in-from-top-1 fade-in duration-200">
-                  {t(`faq.${item.a}`)}
+                <div className="border-t border-border/40 bg-muted/10 px-4 pb-4 pt-0 text-sm leading-relaxed text-muted-foreground md:px-5 md:pb-5">
+                  <div className="pt-3">{t(`faq.${item.a}`)}</div>
                 </div>
               </details>
             ))}
@@ -334,31 +347,45 @@ export default async function DocsPage() {
         </PageSection>
 
         {/* 11. CTA final */}
-        <section className="py-8 md:py-12 text-center space-y-8 border-t border-border">
-          <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("cta")}</h2>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Button asChild size="lg" className="w-full sm:w-auto gap-2 group">
-              <Link href="/exercises">
-                <Dumbbell className="h-5 w-5" aria-hidden="true" />
-                {t("ctaExercises")}
-                <ChevronRight
-                  className="h-4 w-4 -mr-1 group-hover:translate-x-1 transition-transform"
-                  aria-hidden="true"
-                />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto gap-2">
-              <Link href="/challenges">
-                <Puzzle className="h-5 w-5 text-primary" aria-hidden="true" />
-                {t("ctaChallenges")}
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto gap-2">
-              <Link href="/register">
-                <UserPlus className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                {t("ctaRegister")}
-              </Link>
-            </Button>
+        <section className="rounded-2xl bg-muted/20 px-4 py-10 text-center ring-1 ring-border/50 md:px-8 md:py-12">
+          <div className="mx-auto max-w-2xl space-y-6 md:space-y-8">
+            <h2 className="text-balance text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+              {t("cta")}
+            </h2>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+              <Button asChild size="lg" className="group w-full gap-2 sm:w-auto min-h-11">
+                <Link href="/exercises">
+                  <Dumbbell className="h-5 w-5" aria-hidden="true" />
+                  {t("ctaExercises")}
+                  <ChevronRight
+                    className="-mr-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="w-full gap-2 sm:w-auto min-h-11"
+              >
+                <Link href="/challenges">
+                  <Puzzle className="h-5 w-5 text-primary" aria-hidden="true" />
+                  {t("ctaChallenges")}
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="secondary"
+                size="lg"
+                className="w-full gap-2 sm:w-auto min-h-11"
+              >
+                <Link href="/register">
+                  <UserPlus className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                  {t("ctaRegister")}
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
       </div>
