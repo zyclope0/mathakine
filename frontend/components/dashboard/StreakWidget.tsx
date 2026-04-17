@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Badge } from "@/components/ui/badge";
+import { DocTip } from "@/components/ui/DocTip";
 import { Flame, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -67,7 +68,10 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
                   )}
                 />
               </motion.div>
-              {t("title")}
+              <span className="flex min-w-0 items-center gap-1.5">
+                {t("title")}
+                <DocTip label={t("docTip")} side="top" />
+              </span>
             </CardTitle>
             {isNewRecord && (
               <Badge className="bg-warning/20 text-warning border-warning/30 flex items-center gap-1">

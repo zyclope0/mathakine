@@ -2,7 +2,7 @@
 
 > Quick start
 > Updated: 16/04/2026
-> Visible product release: `3.6.0-alpha.1`
+> Visible product release: `3.6.0-beta.1`
 
 ## Prerequisites
 

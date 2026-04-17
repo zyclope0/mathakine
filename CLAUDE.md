@@ -10,7 +10,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 **Position produit au 2026-04-16 :**
 
-- train visible courant : **`3.6.0-alpha.1`**
+- train visible courant : **`3.6.0-beta.1`**
 - le theme spatial neutre est la direction active ; ne pas reintroduire de nouvelle copie Star Wars/Jedi hors compat legacy explicitement documentee
 - le frontend a ferme **ACTIF-03** (co-localisation des tests) ; le dernier finding frontend actif reste **ACTIF-04** (couverture / seuils Vitest)
 - la feuille de route produit active reste `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
@@ -33,7 +33,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 | Auth          | JWT (access 15 min + refresh 7 j), cookies HTTP-only                    |
 | Rate limiting | Redis (prod) / memoire (dev/test)                                       |
 | Deploiement   | Render (Gunicorn + `uvicorn.workers.UvicornWorker`)                     |
-| Version       | `3.6.0-alpha.1`                                                         |
+| Version       | `3.6.0-beta.1`                                                          |
 
 ---
 

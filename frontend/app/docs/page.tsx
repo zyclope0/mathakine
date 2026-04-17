@@ -47,6 +47,7 @@ export default async function DocsPage() {
     { id: "q8", q: "q8", a: "a8" },
     { id: "q9", q: "q9", a: "a9" },
     { id: "q10", q: "q10", a: "a10" },
+    { id: "q11", q: "q11", a: "a11" },
   ];
 
   const whyItems = [

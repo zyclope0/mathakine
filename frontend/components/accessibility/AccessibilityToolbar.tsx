@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { DocTip } from "@/components/ui/DocTip";
 import {
   Settings2,
   Contrast,
@@ -30,6 +32,8 @@ import { cn } from "@/lib/utils";
 interface AccessibilityOption {
   id: string;
   label: string;
+  /** Contextual help next to the label (Focus / dyslexia only). */
+  docTip?: string;
   shortcut: string;
   icon: React.ReactNode;
   isActive: boolean;
@@ -37,6 +41,7 @@ interface AccessibilityOption {
 }
 
 export function AccessibilityToolbar() {
+  const t = useTranslations("accessibility");
   const isHydrated = useHydrated();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,49 +61,65 @@ export function AccessibilityToolbar() {
     resetAll,
   } = useAccessibilityStore();
 
-  // Options d'accessibilité
-  const options: AccessibilityOption[] = [
-    {
-      id: "contrast",
-      label: "Contraste élevé",
-      shortcut: "Alt+C",
-      icon: <Contrast className="h-4 w-4" />,
-      isActive: highContrast,
-      toggle: toggleHighContrast,
-    },
-    {
-      id: "text",
-      label: "Texte agrandi",
-      shortcut: "Alt+T",
-      icon: <Type className="h-4 w-4" />,
-      isActive: largeText,
-      toggle: toggleLargeText,
-    },
-    {
-      id: "motion",
-      label: "Réduire animations",
-      shortcut: "Alt+M",
-      icon: <Move className="h-4 w-4" />,
-      isActive: reducedMotion,
-      toggle: toggleReducedMotion,
-    },
-    {
-      id: "dyslexia",
-      label: "Mode dyslexie",
-      shortcut: "Alt+D",
-      icon: <BookOpen className="h-4 w-4" />,
-      isActive: dyslexiaMode,
-      toggle: toggleDyslexiaMode,
-    },
-    {
-      id: "focus",
-      label: "Mode focus",
-      shortcut: "Alt+F",
-      icon: <Focus className="h-4 w-4" />,
-      isActive: focusMode,
-      toggle: toggleFocusMode,
-    },
-  ];
+  const options: AccessibilityOption[] = useMemo(
+    () => [
+      {
+        id: "contrast",
+        label: t("toolbar.highContrast"),
+        shortcut: "Alt+C",
+        icon: <Contrast className="h-4 w-4" />,
+        isActive: highContrast,
+        toggle: toggleHighContrast,
+      },
+      {
+        id: "text",
+        label: t("toolbar.largeText"),
+        shortcut: "Alt+T",
+        icon: <Type className="h-4 w-4" />,
+        isActive: largeText,
+        toggle: toggleLargeText,
+      },
+      {
+        id: "motion",
+        label: t("toolbar.reducedMotion"),
+        shortcut: "Alt+M",
+        icon: <Move className="h-4 w-4" />,
+        isActive: reducedMotion,
+        toggle: toggleReducedMotion,
+      },
+      {
+        id: "dyslexia",
+        label: t("toolbar.dyslexiaMode"),
+        docTip: t("docTips.dyslexiaMode"),
+        shortcut: "Alt+D",
+        icon: <BookOpen className="h-4 w-4" />,
+        isActive: dyslexiaMode,
+        toggle: toggleDyslexiaMode,
+      },
+      {
+        id: "focus",
+        label: t("toolbar.focusMode"),
+        docTip: t("docTips.focusMode"),
+        shortcut: "Alt+F",
+        icon: <Focus className="h-4 w-4" />,
+        isActive: focusMode,
+        toggle: toggleFocusMode,
+      },
+    ],
+    [
+      t,
+      highContrast,
+      largeText,
+      reducedMotion,
+      dyslexiaMode,
+      focusMode,
+      toggleHighContrast,
+      toggleLargeText,
+      toggleReducedMotion,
+      toggleDyslexiaMode,
+      toggleFocusMode,
+    ]
+  );
 
   const activeCount = options.filter((o) => o.isActive).length;
 
@@ -221,13 +242,16 @@ export function AccessibilityToolbar() {
                   >
                     {option.icon}
                   </span>
-                  <span
-                    className={cn(
-                      "flex-1 text-sm text-foreground",
-                      option.isActive && "font-medium"
-                    )}
-                  >
-                    {option.label}
+                  <span className="flex min-w-0 flex-1 items-center gap-1">
+                    <span
+                      className={cn(
+                        "min-w-0 truncate text-sm text-foreground",
+                        option.isActive && "font-medium"
+                      )}
+                    >
+                      {option.label}
+                    </span>
+                    {option.docTip ? <DocTip label={option.docTip} side="top" /> : null}
                   </span>
                   <span className="text-xs text-muted-foreground hidden sm:inline">
                     {option.shortcut}

@@ -913,7 +913,8 @@
       "days": "{count, plural, =0 {jour} =1 {jour} other {jours}}",
       "best": "Plus long enchaînement",
       "record": "Record personnel !",
-      "keepGoing": "Belle régularité ! Chaque visite peut prolonger cette suite — à ton rythme."
+      "keepGoing": "Belle régularité ! Chaque visite peut prolonger cette suite — à ton rythme.",
+      "docTip": "Ta série compte les jours consécutifs où tu as complété au moins un exercice. Elle repart à zéro si tu sautes un jour."
     },
     "leaderboardWidget": {
       "title": "Classement",
@@ -1336,6 +1337,10 @@
       "reducedMotion": "Réduire les animations (Alt+M)",
       "dyslexiaMode": "Mode dyslexie (Alt+D)",
       "focusMode": "Mode Focus TSA/TDAH (Alt+F)"
+    },
+    "docTips": {
+      "focusMode": "Réduit les animations et le bruit visuel. Idéal pour TSA, TDAH et DYS.",
+      "dyslexiaMode": "Active une police optimisée pour la lecture des personnes dyslexiques."
     }
   },
   "theme": {
@@ -1836,13 +1841,15 @@
       "q6": "Dois-je choisir la difficulté manuellement ?",
       "a6": "Non, c'est optionnel. L'algorithme ajuste la difficulté en arrière-plan selon tes résultats et ton évaluation initiale. Si aucune donnée n'est disponible, il utilise le \"Groupe d'âge préféré\" (6-8 ans, 9-11 ans, etc.) défini dans tes Paramètres comme point de départ.",
       "q7": "L'interface est trop chargée pour moi.",
-      "a7": "Ouvre les Paramètres (ou fais Alt+F) pour activer le Mode Focus. Tu peux aussi réduire les animations (Alt+M) et changer le thème (Dune, Forêt...).",
+      "a7": "Ouvre les Paramètres (ou fais Alt+F) pour activer le Mode Focus. Tu peux aussi réduire les animations (Alt+M) et changer le thème parmi : Spatial, Minimaliste, Océan, Dune, Forêt, Aurora, Dino, Licorne.",
       "q8": "Les résultats sont-ils notés (sur 20) ?",
       "a8": "Non. Le système récompense l'expérience accumulée (XP). Le but est de s'entraîner sans avoir peur de l'échec et d'apprendre des explications détaillées (LaTeX).",
       "q9": "Est-ce que ça fonctionne hors ligne ?",
       "a9": "Oui ! Installe l'application Web Progressive (PWA) depuis ton navigateur pour l'utiliser sans internet (mode restreint aux exercices).",
       "q10": "Un exercice ou un défi semble incorrect ?",
-      "a10": "Utilise le bouton de signalement (drapeau rouge) présent en bas de chaque page d'exercice. L'erreur sera corrigée très vite."
+      "a10": "Utilise le bouton de signalement (icône drapeau) : il est disponible dans l'en-tête du site (desktop), à la fin de chaque exercice et à la fin de chaque défi, ainsi qu'en bas à droite de toutes les pages (bouton flottant). L'erreur sera corrigée très vite.",
+      "q11": "Je suis parent ou enseignant, puis-je suivre la progression ?",
+      "a11": "Le tableau de bord parent/enseignant est en cours de développement et sera disponible dans une prochaine mise à jour. Durant la beta, vous pouvez vous connecter directement avec le compte de l'enfant pour consulter ses badges et son historique."
     },
     "cta": "Prêt à commencer ?",
     "ctaExercises": "Voir les exercices",
@@ -1998,7 +2005,15 @@
     "title": "Nouveautes",
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
-    "alphaNote": "Mathakine reste en version alpha : le produit est stable a l usage, mais les surfaces et parcours evoluent encore.",
+    "alphaNote": "Mathakine est en version beta : le produit se stabilise ; quelques fonctions (tableau de bord parent) arrivent encore.",
+    "release_3_6_0_beta_1": {
+      "version": "v3.6.0-beta.1",
+      "date": "6 avril 2026",
+      "items": [
+        "La FAQ du guide d utilisation est a jour : 8 themes, signalement (en-tete, fin d exercice ou de defi, bouton flottant), reponse parents sur le suivi.",
+        "De petites aides contextuelles pres du mode Focus, du mode dyslexie et sur la serie du tableau de bord expliquent l essentiel en un survol."
+      ]
+    },
     "release_3_6_0_alpha_1": {
       "version": "v3.6.0-alpha.1",
       "date": "5 avril 2026",

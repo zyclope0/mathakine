@@ -934,7 +934,8 @@
       "days": "{count, plural, =0 {day} =1 {day} other {days}}",
       "best": "Longest run",
       "record": "Personal best!",
-      "keepGoing": "Nice rhythm! Each visit can extend this run—at your own pace."
+      "keepGoing": "Nice rhythm! Each visit can extend this run—at your own pace.",
+      "docTip": "Your streak counts consecutive days with at least one completed exercise. It resets if you skip a day."
     },
     "leaderboardWidget": {
       "title": "Leaderboard",
@@ -1336,6 +1337,10 @@
       "reducedMotion": "Reduce animations (Alt+M)",
       "dyslexiaMode": "Dyslexia mode (Alt+D)",
       "focusMode": "Focus mode TSA/ADHD (Alt+F)"
+    },
+    "docTips": {
+      "focusMode": "Reduces animation and visual noise. Helpful for ASD, ADHD and dyslexia-related needs.",
+      "dyslexiaMode": "Enables a reading-optimized font for dyslexic learners."
     }
   },
   "theme": {
@@ -1836,13 +1841,15 @@
       "q6": "Do I have to choose the difficulty manually?",
       "a6": "No, it's optional. The algorithm adjusts difficulty in the background based on your results and initial assessment. If no data is available, it uses the \"Preferred age group\" (6-8 years, 9-11 years, etc.) set in your Settings as a starting point.",
       "q7": "The interface is too cluttered for me.",
-      "a7": "Open Settings (or press Alt+F) to enable Focus Mode. You can also reduce animations (Alt+M) and change the theme (Dune, Forest...).",
+      "a7": "Open Settings (or press Alt+F) to enable Focus Mode. You can also reduce animations (Alt+M) and switch between these themes: Spatial, Minimalist, Ocean, Dune, Forest, Aurora, Dino, Unicorn.",
       "q8": "Are the results graded (out of 100)?",
       "a8": "No. The system rewards accumulated experience (XP). The goal is to practice without fear of failure and to learn from detailed explanations (LaTeX).",
       "q9": "Does it work offline?",
       "a9": "Yes! Install the Progressive Web App (PWA) from your browser to use it without the internet (mode restricted to exercises).",
       "q10": "An exercise or challenge seems incorrect?",
-      "a10": "Use the report button (red flag) at the bottom of each exercise page. We will correct the error as quickly as possible."
+      "a10": "Use the report control (flag icon): it is available in the site header (desktop), at the end of each exercise and challenge, and as a floating button at the bottom-right of every page. The issue will be fixed as quickly as possible.",
+      "q11": "I am a parent or teacher. Can I monitor progress?",
+      "a11": "The parent/teacher dashboard is currently in development and will arrive in a future update. During the beta, you can sign in directly with the child account to review badges and activity history."
     },
     "cta": "Ready to start?",
     "ctaExercises": "View exercises",
@@ -1998,7 +2005,15 @@
     "title": "What's new",
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
-    "alphaNote": "Mathakine remains in alpha: the product is stable in use, but surfaces and flows are still evolving.",
+    "alphaNote": "Mathakine is now in beta: the product is stabilizing; some features (such as the parent dashboard) are still on the way.",
+    "release_3_6_0_beta_1": {
+      "version": "v3.6.0-beta.1",
+      "date": "April 6, 2026",
+      "items": [
+        "The in-app user guide FAQ is up to date: eight themes, reporting (header, end of exercise or challenge, floating button), and a parent-facing answer about progress tracking.",
+        "Short contextual tips next to Focus mode, dyslexia mode, and your dashboard streak explain the essentials on hover."
+      ]
+    },
     "release_3_6_0_alpha_1": {
       "version": "v3.6.0-alpha.1",
       "date": "April 5, 2026",
