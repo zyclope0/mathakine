@@ -135,7 +135,7 @@ jobs:
 
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
@@ -255,7 +255,7 @@ jobs:
 
     - name: Upload frontend test results to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
@@ -295,7 +295,7 @@ jobs:
     # Two uploads so Codecov project statuses (codecov.yml) apply per flag; avoids one
     # blended aggregate % that mixed backend pytest and frontend Vitest semantics.
     - name: Upload backend coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
@@ -305,7 +305,7 @@ jobs:
         fail_ci_if_error: false
 
     - name: Upload frontend coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
