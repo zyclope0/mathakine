@@ -2445,6 +2445,22 @@
         "exportSuccess": "Export téléchargé",
         "errorTitle": "Erreur",
         "downloadFailed": "Échec du téléchargement"
+      },
+      "academyStats": {
+        "title": "Statistiques académie",
+        "endpointReused": "Endpoint réutilisé : <path></path>",
+        "unavailable": "Statistiques globales indisponibles pour le moment.",
+        "summaryDescription": "Vue globale réutilisant <path></path> sans nouveau backend.",
+        "kpi": {
+          "totalExercises": "Exercices",
+          "totalChallenges": "Défis",
+          "aiGenerated": "Contenus IA",
+          "totalAttempts": "Tentatives"
+        },
+        "topDisciplines": "Disciplines dominantes",
+        "noDisciplines": "Aucune discipline disponible.",
+        "byRank": "Répartition par rang",
+        "noRanks": "Aucun rang disponible."
       }
     },
     "analytics": {

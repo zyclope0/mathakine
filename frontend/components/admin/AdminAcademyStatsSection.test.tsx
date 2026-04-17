@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { AdminAcademyStatsSection } from "./AdminAcademyStatsSection";
 import { useAcademyStats } from "@/hooks/useAcademyStats";
+import fr from "@/messages/fr.json";
 
 vi.mock("@/hooks/useAcademyStats", () => ({
   useAcademyStats: vi.fn(),
 }));
+
+const academy = fr.adminPages.overview.academyStats;
 
 describe("AdminAcademyStatsSection", () => {
   it("affiche les KPI academie et les top listes a partir du hook existant", () => {
@@ -61,16 +65,20 @@ describe("AdminAcademyStatsSection", () => {
       refetch: vi.fn(),
     });
 
-    render(<AdminAcademyStatsSection />);
+    render(
+      <NextIntlClientProvider locale="fr" messages={fr}>
+        <AdminAcademyStatsSection />
+      </NextIntlClientProvider>
+    );
 
-    expect(screen.getByText("Statistiques academie")).toBeInTheDocument();
+    expect(screen.getByText(academy.title)).toBeInTheDocument();
     expect(screen.getByText("120")).toBeInTheDocument();
     expect(screen.getByText("18")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("640")).toBeInTheDocument();
-    expect(screen.getByText("Disciplines dominantes")).toBeInTheDocument();
+    expect(screen.getByText(academy.topDisciplines)).toBeInTheDocument();
     expect(screen.getByText("Algebre")).toBeInTheDocument();
-    expect(screen.getByText("Repartition par rang")).toBeInTheDocument();
+    expect(screen.getByText(academy.byRank)).toBeInTheDocument();
     expect(screen.getByText("Initie")).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, Brain, Puzzle, Target } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAcademyStats } from "@/hooks/useAcademyStats";
@@ -11,22 +12,29 @@ function getTopEntries<T extends { count: number }>(items: Record<string, T>, li
     .slice(0, limit);
 }
 
+const STATS_ENDPOINT_PATH = "/api/exercises/stats";
+
 export function AdminAcademyStatsSection() {
+  const t = useTranslations("adminPages.overview.academyStats");
   const { stats, isLoading, error } = useAcademyStats();
+
+  const endpointLine = (
+    <p className="text-sm text-muted-foreground">
+      {t.rich("endpointReused", {
+        path: () => <code>{STATS_ENDPOINT_PATH}</code>,
+      })}
+    </p>
+  );
 
   if (error || (!isLoading && !stats)) {
     return (
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Statistiques academie</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Endpoint reutilise : <code>/api/exercises/stats</code>
-          </p>
+          <CardTitle className="text-sm font-medium">{t("title")}</CardTitle>
+          {endpointLine}
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Statistiques globales indisponibles pour le moment.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("unavailable")}</p>
         </CardContent>
       </Card>
     );
@@ -36,10 +44,8 @@ export function AdminAcademyStatsSection() {
     return (
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Statistiques academie</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Endpoint reutilise : <code>/api/exercises/stats</code>
-          </p>
+          <CardTitle className="text-sm font-medium">{t("title")}</CardTitle>
+          {endpointLine}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -74,25 +80,25 @@ export function AdminAcademyStatsSection() {
   const statItems = [
     {
       key: "total_exercises",
-      label: "Exercices",
+      label: t("kpi.totalExercises"),
       value: stats.academy_statistics.total_exercises,
       icon: BookOpen,
     },
     {
       key: "total_challenges",
-      label: "Defis",
+      label: t("kpi.totalChallenges"),
       value: stats.academy_statistics.total_challenges,
       icon: Puzzle,
     },
     {
       key: "ai_generated",
-      label: "Contenus IA",
+      label: t("kpi.aiGenerated"),
       value: stats.academy_statistics.ai_generated,
       icon: Brain,
     },
     {
       key: "total_attempts",
-      label: "Tentatives",
+      label: t("kpi.totalAttempts"),
       value: stats.global_performance.total_attempts,
       icon: Target,
     },
@@ -101,9 +107,11 @@ export function AdminAcademyStatsSection() {
   return (
     <Card className="mt-6">
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Statistiques academie</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("title")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Vue globale reutilisant <code>/api/exercises/stats</code> sans nouveau backend.
+          {t.rich("summaryDescription", {
+            path: () => <code>{STATS_ENDPOINT_PATH}</code>,
+          })}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -124,7 +132,7 @@ export function AdminAcademyStatsSection() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border p-4">
-            <h3 className="text-sm font-medium">Disciplines dominantes</h3>
+            <h3 className="text-sm font-medium">{t("topDisciplines")}</h3>
             <div className="mt-3 space-y-2">
               {topDisciplines.length > 0 ? (
                 topDisciplines.map((discipline) => (
@@ -139,13 +147,13 @@ export function AdminAcademyStatsSection() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">Aucune discipline disponible.</p>
+                <p className="text-sm text-muted-foreground">{t("noDisciplines")}</p>
               )}
             </div>
           </div>
 
           <div className="rounded-lg border p-4">
-            <h3 className="text-sm font-medium">Repartition par rang</h3>
+            <h3 className="text-sm font-medium">{t("byRank")}</h3>
             <div className="mt-3 space-y-2">
               {topRanks.length > 0 ? (
                 topRanks.map((rank) => (
@@ -160,7 +168,7 @@ export function AdminAcademyStatsSection() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">Aucun rang disponible.</p>
+                <p className="text-sm text-muted-foreground">{t("noRanks")}</p>
               )}
             </div>
           </div>
