@@ -2544,7 +2544,18 @@
       },
       "linkExercise": "Ex. #{id}",
       "linkChallenge": "Challenge #{id}",
-      "linkLabel": "Link"
+      "linkLabel": "Link",
+      "viewDetails": "View",
+      "detailTitle": "{type} · {date}",
+      "detailUser": "User",
+      "detailContext": "Context",
+      "detailDebug": "Debug",
+      "detailPage": "Page",
+      "detailDescription": "Description",
+      "detailDescriptionLabel": "Report content",
+      "copyDetails": "Copy",
+      "copySuccess": "Copied to clipboard",
+      "close": "Close"
     },
     "moderation": {
       "title": "AI moderation",

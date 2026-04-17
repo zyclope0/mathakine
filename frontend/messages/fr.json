@@ -2543,7 +2543,18 @@
       },
       "linkExercise": "Ex. #{id}",
       "linkChallenge": "Défi #{id}",
-      "linkLabel": "Lien"
+      "linkLabel": "Lien",
+      "viewDetails": "Voir",
+      "detailTitle": "{type} · {date}",
+      "detailUser": "Utilisateur",
+      "detailContext": "Contexte",
+      "detailDebug": "Debug",
+      "detailPage": "Page",
+      "detailDescription": "Description",
+      "detailDescriptionLabel": "Contenu du signalement",
+      "copyDetails": "Copier",
+      "copySuccess": "Copié dans le presse-papiers",
+      "close": "Fermer"
     },
     "moderation": {
       "title": "Modération IA",
