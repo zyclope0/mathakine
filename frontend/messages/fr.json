@@ -786,6 +786,11 @@
       "startCta": "Commencer",
       "browseAll": "Explorer la liste"
     },
+    "betaHelp": {
+      "title": "Nouveau dans la beta ?",
+      "description": "Consulte le guide rapide pour savoir quoi tester, comment signaler un problème et ce qui est normal pendant la beta.",
+      "cta": "Voir le guide beta"
+    },
     "levelWidget": {
       "title": "Ton Profil Mathématique",
       "notDone": "Établis ton niveau pour des exercices adaptés à tes compétences",
@@ -1836,7 +1841,8 @@
         "Certaines surfaces sont encore en stabilisation — tes retours nous aident à prioriser"
       ]
     },
-    "betaGuideLink": "Tu accompagnes un enfant ? Un guide beta complet pour les parents et enseignants est aussi partagé par l'équipe.",
+    "betaGuideNoteTitle": "Pour les parents et enseignants",
+    "betaGuideLink": "Le guide beta complet, partagé par l'équipe, détaille la création de compte enfant, la confidentialité et les points d'observation utiles pendant les tests.",
     "why": {
       "title": "Pourquoi Mathakine ?",
       "intro": "Mathakine est conçu pour que chacun progresse à son rythme, sans pression ni surcharge cognitive. C'est l'outil idéal pour reprendre confiance en soi.",

@@ -205,7 +205,10 @@ export default async function DocsPage() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-4">{t("betaGuideLink")}</p>
+          <div className="mt-4 rounded-xl border border-border/50 bg-card/70 p-4">
+            <p className="text-sm font-medium text-foreground">{t("betaGuideNoteTitle")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("betaGuideLink")}</p>
+          </div>
         </PageSection>
 
         {/* 6. Pourquoi Mathakine */}

@@ -27,6 +27,11 @@ const protectedRouteProps = {
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const tToasts = useTranslations("toasts.dashboard");
+  const betaHelp = {
+    title: t("betaHelp.title"),
+    description: t("betaHelp.description"),
+    cta: t("betaHelp.cta"),
+  };
   const {
     activeTab,
     challengesProgress,
@@ -135,6 +140,7 @@ export default function DashboardPage() {
             <DashboardTabsNav />
             <TabsContent value="overview" className="space-y-6">
               <DashboardOverviewSection
+                betaHelp={betaHelp}
                 isLoadingProgress={isLoadingProgress}
                 progressStats={progressStats}
                 stats={stats}
