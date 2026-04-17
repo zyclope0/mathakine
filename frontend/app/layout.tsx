@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Nunito } from "next/font/google";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
+import { LOCALE_COOKIE_NAME, resolveLocaleForHtml } from "@/lib/localeCookie";
 import { Providers } from "@/components/providers/Providers";
 import { CSP_NONCE_REQUEST_HEADER } from "@/lib/security/middlewareCsp";
 import { AccessibilityToolbar } from "@/components/accessibility/AccessibilityToolbar";
@@ -146,9 +147,11 @@ export default async function RootLayout({
 }>) {
   const headerList = await headers();
   const cspNonce = headerList.get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
+  const cookieStore = await cookies();
+  const htmlLang = resolveLocaleForHtml(cookieStore.get(LOCALE_COOKIE_NAME)?.value);
 
   return (
-    <html lang="fr" suppressHydrationWarning nonce={cspNonce} data-scroll-behavior="smooth">
+    <html lang={htmlLang} suppressHydrationWarning nonce={cspNonce} data-scroll-behavior="smooth">
       <body className={`${nunito.variable} ${jetbrainsMono.variable} antialiased font-sans`}>
         <Providers>
           <SpatialBackground />

@@ -8,7 +8,7 @@ import { useLocaleStore } from "@/lib/stores/localeStore";
  * Détecte la langue du navigateur et applique la locale appropriée
  */
 export function LocaleInitializer() {
-  const { locale, setLocale } = useLocaleStore();
+  const { setLocale } = useLocaleStore();
 
   // Première visite : détection navigateur (persist Zustand absent).
   useEffect(() => {
@@ -22,14 +22,6 @@ export function LocaleInitializer() {
       setLocale(detectedLocale);
     }
   }, [setLocale]);
-
-  // Réhydratation / changement de locale : setLocale met déjà à jour le document,
-  // mais ce sync couvre le premier rendu après rehydrate sans repasser par setLocale.
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = locale;
-    }
-  }, [locale]);
 
   return null;
 }

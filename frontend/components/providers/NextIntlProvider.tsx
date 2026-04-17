@@ -2,7 +2,6 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { useLocaleStore } from "@/lib/stores/localeStore";
-import { useEffect } from "react";
 import frMessages from "@/messages/fr.json";
 import enMessages from "@/messages/en.json";
 
@@ -18,13 +17,6 @@ interface NextIntlProviderProps {
 export function NextIntlProvider({ children }: NextIntlProviderProps) {
   const { locale } = useLocaleStore();
   const messages = messageModules[locale] ?? frMessages;
-
-  // Mettre à jour l'attribut lang du document
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = locale;
-    }
-  }, [locale]);
 
   return (
     <NextIntlClientProvider
