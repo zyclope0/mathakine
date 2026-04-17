@@ -41,7 +41,7 @@ Une version beta fermée stable, sécurisée et instrumentée, prête à accueil
 | **A1** — Modèle + migration + handler backend | ✅ TERMINÉ | `bd130e3` + `9892fe9` + `af93508` + `daa6fb5` |
 | **A2** — Frontend `FeedbackFab.tsx` envoie les 4 champs | ✅ TERMINÉ | `bdba53c` |
 | **A3** — Vue admin affiche les nouveaux champs | ✅ TERMINÉ | `132368f` |
-| **A4** — Repositionnement bouton (header, fin exercice, fin défi) | ⏳ À FAIRE | — |
+| **A4** — Repositionnement bouton (header, fin exercice, fin défi) | ✅ TERMINÉ | `ae08c8f` |
 
 #### Chantier B — Sécurité / Auth ✅ TERMINÉ
 
