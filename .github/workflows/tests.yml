@@ -18,7 +18,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: mathakine_test
+          POSTGRES_DB: test_mathakine
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -57,7 +57,7 @@ jobs:
         LOG_LEVEL=INFO
         EOF
     
-    - name: Create test database
+    - name: Ensure test database exists
       env:
         PYTHONPATH: ${{ github.workspace }}
       run: |
@@ -65,7 +65,8 @@ jobs:
         import psycopg2
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
         
-        # Se connecter à la base de données postgres par défaut pour créer test_mathakine
+        # Sanity check idempotent : la base de service cible est déjà `test_mathakine`,
+        # mais on la vérifie explicitement pour éviter toute divergence future.
         conn = psycopg2.connect(
             host='localhost',
             port=5432,
@@ -127,7 +128,7 @@ jobs:
 
     - name: Upload backend coverage artifact
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v6
       with:
         name: backend-coverage
         path: coverage.xml
@@ -247,7 +248,7 @@ jobs:
 
     - name: Upload frontend coverage artifact
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v6
       with:
         name: frontend-coverage
         path: frontend/coverage/
@@ -280,13 +281,13 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Download coverage artifacts
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@v5
       with:
         name: backend-coverage
         path: coverage_backend
 
     - name: Download frontend coverage
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@v5
       with:
         name: frontend-coverage
         path: coverage_frontend
