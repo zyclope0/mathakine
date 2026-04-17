@@ -1,5 +1,6 @@
 "use client";
 
+import { FeedbackTrigger } from "@/components/feedback/FeedbackTrigger";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Lightbulb, RotateCcw } from "lucide-react";
@@ -109,6 +110,10 @@ export function ChallengeSolverFeedback({
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center justify-start sm:justify-end">
+        <FeedbackTrigger componentId="challenge-result" variant="subtle" layout="icon-label" />
       </div>
 
       {/* Actions post-soumission */}

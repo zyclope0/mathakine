@@ -18,6 +18,7 @@ import { HeaderDesktopNav } from "@/components/layout/HeaderDesktopNav";
 import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
 import { HeaderMobileMenu } from "@/components/layout/HeaderMobileMenu";
 import { buildHeaderNavigation, isHeaderNavLinkActive } from "@/lib/layout/headerNavigation";
+import { FeedbackTrigger } from "@/components/feedback/FeedbackTrigger";
 
 export function Header() {
   const pathname = usePathname();
@@ -94,6 +95,10 @@ export function Header() {
               <LanguageSelector />
               <ThemeSelectorCompact />
               <DarkModeToggle />
+
+              <span className="hidden md:inline-flex md:items-center">
+                <FeedbackTrigger componentId="header-nav" variant="ghost" layout="icon" />
+              </span>
 
               {isAuthenticated ? (
                 <HeaderUserMenu

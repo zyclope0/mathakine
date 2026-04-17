@@ -1,5 +1,6 @@
 "use client";
 
+import { FeedbackTrigger } from "@/components/feedback/FeedbackTrigger";
 import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathText } from "@/components/ui/MathText";
@@ -103,6 +104,12 @@ export function ExerciseSolverFeedback({
           </div>
         </div>
       )}
+
+      {hasSubmitted && submitResultPresent ? (
+        <div className="mt-8 flex flex-wrap items-center justify-end border-t border-border/40 pt-4">
+          <FeedbackTrigger componentId="exercise-result" variant="subtle" layout="icon-label" />
+        </div>
+      ) : null}
     </>
   );
 }
