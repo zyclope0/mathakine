@@ -49,6 +49,7 @@ vi.mock("sonner", () => ({
 
 vi.mock("@sentry/nextjs", () => ({
   setUser: vi.fn(),
+  captureException: vi.fn(),
 }));
 
 vi.mock("next-intl", () => ({
@@ -162,6 +163,146 @@ describe("useAuth", () => {
         description: "loginInvalidCredentials",
       })
     );
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  it("login error 500 shows toast and captures Sentry with mutation tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("server", 500));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.loginAsync({ username: "u", password: "p" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(toast.error).toHaveBeenCalled();
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "login",
+          status: "500",
+        }),
+      })
+    );
+  });
+
+  it("register error 400 shows toast and does not capture Sentry", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("bad request", 400));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.registerAsync({
+          username: "u",
+          email: "e@x.com",
+          password: "pw",
+        });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("registerError", expect.any(Object));
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  it("register error 500 captures Sentry with mutation tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("server", 500));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.registerAsync({
+          username: "u",
+          email: "e@x.com",
+          password: "pw",
+        });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "register",
+          status: "500",
+        }),
+      })
+    );
+  });
+
+  it("forgot password error status 0 captures Sentry with forgot_password tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("network", 0));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.forgotPasswordAsync({ email: "a@b.com" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "forgot_password",
+          status: "0",
+        }),
+      })
+    );
+  });
+
+  it("forgot password error 500 captures Sentry with forgot_password tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("server", 500));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.forgotPasswordAsync({ email: "a@b.com" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "forgot_password",
+          status: "500",
+        }),
+      })
+    );
+  });
+
+  it("forgot password error 400 shows toast and does not capture Sentry", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("bad", 400));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.forgotPasswordAsync({ email: "a@b.com" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(toast.error).toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   it("logout clears Sentry user, toasts, clears cache, replaces home, refreshes", async () => {

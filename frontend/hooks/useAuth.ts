@@ -36,6 +36,31 @@ export type {
   TokenResponse,
 } from "@/lib/auth/types";
 
+type AuthMutationName = "login" | "register" | "forgot_password";
+
+/**
+ * Auth mutations surface expected 4xx responses (invalid credentials, validation, etc.).
+ * Sentry should only receive operational / unexpected failures: network (0) or server (5xx).
+ */
+function shouldCaptureAuthMutationError(error: ApiClientError): boolean {
+  return error.status === 0 || error.status >= 500;
+}
+
+function captureUnexpectedAuthMutationError(
+  error: ApiClientError,
+  mutation: AuthMutationName
+): void {
+  if (!shouldCaptureAuthMutationError(error)) {
+    return;
+  }
+  Sentry.captureException(error, {
+    tags: {
+      mutation,
+      status: String(error.status),
+    },
+  });
+}
+
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -101,6 +126,7 @@ export function useAuth() {
       router.replace(target);
     },
     onError: (error: ApiClientError) => {
+      captureUnexpectedAuthMutationError(error, "login");
       const message = resolveLoginErrorDescription(error, {
         loginForbidden: t("loginForbidden"),
         loginInvalidCredentials: t("loginInvalidCredentials"),
@@ -133,6 +159,7 @@ export function useAuth() {
       }
     },
     onError: (error: ApiClientError) => {
+      captureUnexpectedAuthMutationError(error, "register");
       const message = error.message || t("registerError");
       toast.error(t("registerError"), {
         description: message,
@@ -172,6 +199,7 @@ export function useAuth() {
       });
     },
     onError: (error: ApiClientError) => {
+      captureUnexpectedAuthMutationError(error, "forgot_password");
       toast.error(t("forgotPasswordError"), {
         description: error.message || t("forgotPasswordErrorDescription"),
       });
