@@ -2530,6 +2530,7 @@
       "emptyHint": "Les retours sont soumis via le bouton flottant « Signaler ».",
       "colDate": "Date",
       "colType": "Type",
+      "colStatus": "Statut",
       "colUser": "Utilisateur",
       "colContext": "Contexte",
       "colDescription": "Description",
@@ -2554,7 +2555,15 @@
       "detailDescriptionLabel": "Contenu du signalement",
       "copyDetails": "Copier",
       "copySuccess": "Copié dans le presse-papiers",
-      "close": "Fermer"
+      "close": "Fermer",
+      "statusNew": "Nouveau",
+      "statusRead": "Lu",
+      "statusResolved": "Résolu",
+      "markAsRead": "Marquer comme lu",
+      "markAsResolved": "Résolu",
+      "reopen": "Réouvrir",
+      "statusUpdateSuccess": "Statut mis à jour",
+      "statusUpdateError": "Impossible de mettre à jour le statut"
     },
     "moderation": {
       "title": "Modération IA",

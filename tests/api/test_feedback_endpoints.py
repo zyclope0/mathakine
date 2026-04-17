@@ -148,3 +148,86 @@ async def test_feedback_invalid_ni_state_stored_as_none(
     match = next((x for x in items if x.get("description") == marker), None)
     assert match is not None
     assert match["ni_state"] is None
+
+
+async def test_admin_patch_feedback_status_read(apprenant_client, admin_client):
+    """Admin peut passer un retour au statut read."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3c patch read"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    admin = admin_client["client"]
+    resp = await admin.patch(f"/api/admin/feedback/{fid}", json={"status": "read"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["id"] == fid
+    assert data["status"] == "read"
+
+
+async def test_admin_patch_feedback_status_resolved(apprenant_client, admin_client):
+    """Admin peut passer un retour au statut resolved."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3c patch resolved"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    admin = admin_client["client"]
+    resp = await admin.patch(f"/api/admin/feedback/{fid}", json={"status": "resolved"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["id"] == fid
+    assert data["status"] == "resolved"
+
+
+async def test_admin_patch_feedback_status_back_to_new(apprenant_client, admin_client):
+    """Admin peut repasser un retour au statut new."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3c patch new"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    admin = admin_client["client"]
+    r1 = await admin.patch(f"/api/admin/feedback/{fid}", json={"status": "read"})
+    assert r1.status_code == 200
+    r2 = await admin.patch(f"/api/admin/feedback/{fid}", json={"status": "new"})
+    assert r2.status_code == 200
+    assert r2.json() == {"id": fid, "status": "new"}
+
+
+async def test_admin_patch_feedback_invalid_status(admin_client, apprenant_client):
+    """Statut inconnu -> 400."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3c patch invalid"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    admin = admin_client["client"]
+    resp = await admin.patch(f"/api/admin/feedback/{fid}", json={"status": "not_a_status"})
+    assert resp.status_code == 400
+
+
+async def test_admin_patch_feedback_forbidden_apprenant(apprenant_client):
+    """Patch admin feedback interdit pour un apprenant -> 403."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3c patch 403"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    resp = await learner.patch(f"/api/admin/feedback/{fid}", json={"status": "read"})
+    assert resp.status_code == 403

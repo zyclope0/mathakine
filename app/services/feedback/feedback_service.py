@@ -14,6 +14,25 @@ logger = get_logger(__name__)
 
 VALID_TYPES = frozenset({"exercise", "challenge", "ui", "other"})
 
+VALID_STATUSES = frozenset({"new", "read", "resolved"})
+
+
+def update_feedback_status_sync(
+    *, feedback_id: int, status: str
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """
+    Use case sync: met a jour le statut d'un rapport de feedback.
+    Execute via run_db_bound() depuis les handlers async.
+
+    Returns:
+        ({ "id", "status" }, None) en cas de succes
+        (None, "not_found" | "invalid_status") sinon
+    """
+    with sync_db_session() as db:
+        return FeedbackService.update_feedback_status(
+            db, feedback_id=feedback_id, status=status
+        )
+
 
 def create_feedback_report_sync(
     *,
@@ -124,3 +143,30 @@ class FeedbackService:
             }
             for r in reports
         ]
+
+    @staticmethod
+    def update_feedback_status(
+        db: Session,
+        *,
+        feedback_id: int,
+        status: str,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+        """
+        Met a jour le statut d'un rapport (new | read | resolved).
+
+        Returns:
+            ({"id", "status"}, None) en cas de succes
+            (None, "not_found" | "invalid_status") sinon
+        """
+        normalized = (status or "").strip().lower()
+        if normalized not in VALID_STATUSES:
+            return None, "invalid_status"
+
+        report = db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        if report is None:
+            return None, "not_found"
+
+        report.status = normalized
+        db.commit()
+        db.refresh(report)
+        return {"id": report.id, "status": normalized}, None

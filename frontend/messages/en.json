@@ -2531,6 +2531,7 @@
       "emptyHint": "Feedback is submitted via the floating “Report” button.",
       "colDate": "Date",
       "colType": "Type",
+      "colStatus": "Status",
       "colUser": "User",
       "colContext": "Context",
       "colDescription": "Description",
@@ -2555,7 +2556,15 @@
       "detailDescriptionLabel": "Report content",
       "copyDetails": "Copy",
       "copySuccess": "Copied to clipboard",
-      "close": "Close"
+      "close": "Close",
+      "statusNew": "New",
+      "statusRead": "Read",
+      "statusResolved": "Resolved",
+      "markAsRead": "Mark as read",
+      "markAsResolved": "Resolved",
+      "reopen": "Reopen",
+      "statusUpdateSuccess": "Status updated",
+      "statusUpdateError": "Could not update status"
     },
     "moderation": {
       "title": "AI moderation",

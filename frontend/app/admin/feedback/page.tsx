@@ -16,7 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getUserRoleLabel } from "@/lib/auth/userRoles";
-import { type FeedbackReportItem, useAdminFeedback } from "@/hooks/useAdminFeedback";
+import {
+  type FeedbackReportItem,
+  type FeedbackStatus,
+  useAdminFeedback,
+} from "@/hooks/useAdminFeedback";
 import { MessageCircle, FileQuestion, AlertTriangle, Bug, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +33,34 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 
 function localeTag(locale: string): string {
   return locale === "en" ? "en-US" : "fr-FR";
+}
+
+function FeedbackStatusBadge({
+  status,
+  labels,
+}: {
+  status: FeedbackStatus;
+  labels: Record<FeedbackStatus, string>;
+}) {
+  const label = labels[status];
+  if (status === "new") {
+    return (
+      <Badge variant="outline" className="border-primary/40 text-primary">
+        {label}
+      </Badge>
+    );
+  }
+  if (status === "read") {
+    return <Badge variant="secondary">{label}</Badge>;
+  }
+  return (
+    <Badge
+      variant="outline"
+      className="border-emerald-600/35 bg-emerald-50 text-emerald-900 dark:border-emerald-500/35 dark:bg-emerald-950/50 dark:text-emerald-100"
+    >
+      {label}
+    </Badge>
+  );
 }
 
 function feedbackDebugBadges(item: FeedbackReportItem) {
@@ -62,7 +94,7 @@ export default function AdminFeedbackPage() {
   const t = useTranslations("adminPages.feedback");
   const locale = useLocale();
   const dateLocale = localeTag(locale);
-  const { feedback, isLoading, error } = useAdminFeedback();
+  const { feedback, isLoading, error, updateFeedbackStatus, isUpdatingStatus } = useAdminFeedback();
   const [selectedItem, setSelectedItem] = useState<FeedbackReportItem | null>(null);
 
   const typeLabels = useMemo(
@@ -72,6 +104,16 @@ export default function AdminFeedbackPage() {
       ui: t("types.ui"),
       other: t("types.other"),
     }),
+    [t]
+  );
+
+  const statusLabels = useMemo(
+    () =>
+      ({
+        new: t("statusNew"),
+        read: t("statusRead"),
+        resolved: t("statusResolved"),
+      }) satisfies Record<FeedbackStatus, string>,
     [t]
   );
 
@@ -135,6 +177,19 @@ export default function AdminFeedbackPage() {
     }
   };
 
+  const handleStatusUpdate = async (next: FeedbackStatus) => {
+    if (!selectedItem) {
+      return;
+    }
+    try {
+      await updateFeedbackStatus({ feedbackId: selectedItem.id, status: next });
+      toast.success(t("statusUpdateSuccess"));
+      setSelectedItem((prev) => (prev ? { ...prev, status: next } : null));
+    } catch {
+      toast.error(t("statusUpdateError"));
+    }
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader title={t("title")} description={t("description")} />
@@ -159,6 +214,7 @@ export default function AdminFeedbackPage() {
                     <tr className="border-b bg-muted/50">
                       <th className="px-4 py-3 text-left font-medium">{t("colDate")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colType")}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t("colStatus")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colUser")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colContext")}</th>
                       <th className="px-4 py-3 text-left font-medium">{t("colDescription")}</th>
@@ -183,6 +239,9 @@ export default function AdminFeedbackPage() {
                               {typeLabels[item.feedback_type as keyof typeof typeLabels] ??
                                 item.feedback_type}
                             </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <FeedbackStatusBadge status={item.status} labels={statusLabels} />
                           </td>
                           <td className="px-4 py-3">
                             {item.username ?? <span className="text-muted-foreground">—</span>}
@@ -283,6 +342,69 @@ export default function AdminFeedbackPage() {
                     {t("detailUser")}
                   </p>
                   <p className="mt-1">{selectedItem.username ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("colStatus")}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <FeedbackStatusBadge status={selectedItem.status} labels={statusLabels} />
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedItem.status === "new" ? (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={isUpdatingStatus}
+                          onClick={() => void handleStatusUpdate("read")}
+                        >
+                          {t("markAsRead")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={isUpdatingStatus}
+                          onClick={() => void handleStatusUpdate("resolved")}
+                        >
+                          {t("markAsResolved")}
+                        </Button>
+                      </>
+                    ) : null}
+                    {selectedItem.status === "read" ? (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={isUpdatingStatus}
+                          onClick={() => void handleStatusUpdate("resolved")}
+                        >
+                          {t("markAsResolved")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={isUpdatingStatus}
+                          onClick={() => void handleStatusUpdate("new")}
+                        >
+                          {t("reopen")}
+                        </Button>
+                      </>
+                    ) : null}
+                    {selectedItem.status === "resolved" ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isUpdatingStatus}
+                        onClick={() => void handleStatusUpdate("new")}
+                      >
+                        {t("reopen")}
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

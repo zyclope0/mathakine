@@ -9,7 +9,10 @@ from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.core.user_roles import serialize_user_role
 from app.services.admin.admin_read_service import list_feedback_for_admin
-from app.services.feedback.feedback_service import create_feedback_report_sync
+from app.services.feedback.feedback_service import (
+    create_feedback_report_sync,
+    update_feedback_status_sync,
+)
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.rate_limit import rate_limit_feedback
 from app.utils.request_utils import parse_json_body_any
@@ -91,6 +94,52 @@ async def submit_feedback(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.error("Erreur submit_feedback: %s", e, exc_info=True)
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_admin
+async def admin_patch_feedback_status(request: Request) -> JSONResponse:
+    """
+    Met a jour le statut d'un retour (admin).
+    Route: PATCH /api/admin/feedback/{feedback_id}
+    Body: { "status": "new" | "read" | "resolved" }
+    """
+    try:
+        feedback_id_raw = request.path_params.get("feedback_id")
+        if feedback_id_raw is None:
+            return api_error_response(400, "Identifiant feedback manquant")
+        try:
+            feedback_id = int(feedback_id_raw)
+        except (TypeError, ValueError):
+            return api_error_response(400, "Identifiant feedback invalide")
+
+        body_or_err = await parse_json_body_any(request)
+        if isinstance(body_or_err, JSONResponse):
+            return body_or_err
+
+        status_raw = body_or_err.get("status")
+        if not isinstance(status_raw, str) or not status_raw.strip():
+            return api_error_response(400, "Champ status requis (new, read, resolved)")
+
+        payload, err = await run_db_bound(
+            update_feedback_status_sync,
+            feedback_id=feedback_id,
+            status=status_raw,
+        )
+        if err == "not_found":
+            return api_error_response(404, "Retour introuvable")
+        if err == "invalid_status":
+            return api_error_response(400, "Statut invalide (new, read, resolved)")
+        if err or payload is None:
+            logger.error(
+                "admin_patch_feedback_status: unexpected err=%s payload=%s", err, payload
+            )
+            return api_error_response(500, "Erreur lors de la mise à jour du statut")
+
+        return JSONResponse(payload)
+    except Exception as e:
+        logger.error("Erreur admin_patch_feedback_status: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
