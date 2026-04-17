@@ -106,7 +106,7 @@ describe("Admin route pages i18n smoke (QF-03)", () => {
 
   it("feedback: titre depuis les messages", () => {
     render(<AdminFeedbackPage />, { wrapper: Wrapper });
-    expect(screen.getByRole("heading", { name: "Retours utilisateurs" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Signalements" })).toBeInTheDocument();
   });
 
   it("moderation: titre depuis les messages", () => {

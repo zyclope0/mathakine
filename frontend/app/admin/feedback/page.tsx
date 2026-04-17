@@ -24,6 +24,10 @@ import {
 import { MessageCircle, FileQuestion, AlertTriangle, Bug, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
 
+/** Minimum 44px touch height on narrow viewports; compact on sm+ for dense admin table. */
+const ROW_CTRL_CLASS = "min-h-11 h-auto px-3 text-xs sm:min-h-9";
+const MODAL_BTN_CLASS = "min-h-11 sm:min-h-9";
+
 const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   exercise: FileQuestion,
   challenge: AlertTriangle,
@@ -126,6 +130,12 @@ export default function AdminFeedbackPage() {
     [t]
   );
 
+  const listStats = useMemo(() => {
+    const total = feedback.length;
+    const newCount = feedback.reduce((acc, item) => acc + (item.status === "new" ? 1 : 0), 0);
+    return { total, newCount };
+  }, [feedback]);
+
   const formatItemDate = (item: FeedbackReportItem) =>
     item.created_at ? new Date(item.created_at).toLocaleString(dateLocale) : "—";
 
@@ -216,34 +226,74 @@ export default function AdminFeedbackPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title={t("title")} description={t("description")} />
+      <div className="space-y-3">
+        <PageHeader title={t("title")} description={t("description")} />
+        {!error && !isLoading && feedback.length > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("statsSummary", {
+              total: listStats.total,
+              newCount: listStats.newCount,
+            })}
+          </p>
+        ) : null}
+      </div>
 
       <PageSection>
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="border-border/80">
+          <CardContent className="px-4 pb-6 pt-4 md:px-6">
             {error ? (
               <p className="py-8 text-center text-destructive">{t("errorLoading")}</p>
             ) : isLoading ? (
-              <LoadingState message={t("loading")} />
+              <div className="py-4">
+                <LoadingState message={t("loading")} />
+              </div>
             ) : feedback.length === 0 ? (
-              <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
+              <div className="rounded-md border border-dashed p-10 text-center text-muted-foreground md:p-12">
                 <MessageCircle className="mx-auto mb-3 h-12 w-12 opacity-50" />
                 <p>{t("emptyTitle")}</p>
                 <p className="mt-1 text-sm">{t("emptyHint")}</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="px-4 py-3 text-left font-medium">{t("colDate")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colType")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colStatus")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colUser")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colContext")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colDescription")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colPage")}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t("colDebug")}</th>
+              <div className="-mx-4 overflow-x-auto md:-mx-6">
+                <table className="w-full min-w-[52rem] text-sm" aria-label={t("tableAriaLabel")}>
+                  <thead className="sticky top-0 z-[1]">
+                    <tr className="border-b bg-muted/90 shadow-[inset_0_-1px_0_0_hsl(var(--border))] backdrop-blur-sm dark:bg-muted/85">
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colDate")}
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colType")}
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colStatus")}
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colUser")}
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colContext")}
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-2.5 text-left text-xs font-semibold sm:px-4 sm:py-3"
+                      >
+                        {t("colDescription")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -251,82 +301,80 @@ export default function AdminFeedbackPage() {
                       const Icon = TYPE_ICONS[item.feedback_type] ?? MessageCircle;
                       const descTrimmed = item.description?.trim();
                       return (
-                        <tr key={item.id} className="border-b last:border-0 hover:bg-muted/50">
-                          <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                        <tr key={item.id} className="border-b last:border-0 hover:bg-muted/40">
+                          <td className="align-top whitespace-nowrap px-3 py-2.5 text-muted-foreground sm:px-4 sm:py-3">
                             {item.created_at
                               ? new Date(item.created_at).toLocaleString(dateLocale)
                               : "-"}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="align-top px-3 py-2.5 sm:px-4 sm:py-3">
                             <Badge variant="outline" className="flex w-fit items-center gap-1">
                               <Icon className="h-3 w-3" />
                               {typeLabels[item.feedback_type as keyof typeof typeLabels] ??
                                 item.feedback_type}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="align-top px-3 py-2.5 sm:px-4 sm:py-3">
                             <FeedbackStatusBadge status={item.status} labels={statusLabels} />
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="align-top px-3 py-2.5 sm:px-4 sm:py-3">
                             {item.username ?? <span className="text-muted-foreground">—</span>}
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-1">
-                              {item.exercise_id && (
-                                <Button variant="ghost" size="sm" asChild className="h-7 text-xs">
+                          <td className="align-top px-3 py-2.5 sm:px-4 sm:py-3">
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.exercise_id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  asChild
+                                  className={ROW_CTRL_CLASS}
+                                >
                                   <Link href={`/exercises/${item.exercise_id}`}>
                                     {t("linkExercise", { id: item.exercise_id })}
                                   </Link>
                                 </Button>
-                              )}
-                              {item.challenge_id && (
-                                <Button variant="ghost" size="sm" asChild className="h-7 text-xs">
+                              ) : null}
+                              {item.challenge_id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  asChild
+                                  className={ROW_CTRL_CLASS}
+                                >
                                   <Link href={`/challenge/${item.challenge_id}`}>
                                     {t("linkChallenge", { id: item.challenge_id })}
                                   </Link>
                                 </Button>
-                              )}
-                              {!item.exercise_id && !item.challenge_id && (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="max-w-[280px] px-4 py-3">
-                            <div className="flex flex-col gap-1.5">
-                              <span className="line-clamp-2">
-                                {item.description || (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
-                              </span>
-                              {descTrimmed ? (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 w-fit shrink-0 px-2 text-xs"
-                                  onClick={() => setSelectedItem(item)}
-                                >
-                                  {t("viewDetails")}
-                                </Button>
+                              ) : null}
+                              {!item.exercise_id && !item.challenge_id ? (
+                                <span className="inline-flex min-h-11 items-center text-muted-foreground sm:min-h-9">
+                                  —
+                                </span>
                               ) : null}
                             </div>
                           </td>
-                          <td className="px-4 py-3">
-                            {item.page_url ? (
-                              <a
-                                href={item.page_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-primary hover:underline"
+                          <td className="max-w-[min(100%,20rem)] align-top px-3 py-2.5 sm:max-w-[24rem] sm:px-4 sm:py-3">
+                            <div className="flex flex-col gap-2">
+                              <span className="line-clamp-2 text-foreground/90">
+                                {descTrimmed ? (
+                                  item.description
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    {t("tableDescriptionPlaceholder")}
+                                  </span>
+                                )}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className={`${ROW_CTRL_CLASS} w-fit shrink-0`}
+                                onClick={() => setSelectedItem(item)}
                               >
-                                <ExternalLink className="h-3 w-3" />
-                                {t("linkLabel")}
-                              </a>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                                {t("viewDetails")}
+                              </Button>
+                            </div>
                           </td>
-                          <td className="px-4 py-3">{feedbackDebugBadges(item)}</td>
                         </tr>
                       );
                     })}
@@ -361,74 +409,81 @@ export default function AdminFeedbackPage() {
                   {t("detailDescription")} — {selectedItem.id}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 text-sm">
+              <div className="space-y-6 text-sm">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {t("detailUser")}
                   </p>
                   <p className="mt-1">{selectedItem.username ?? "—"}</p>
                 </div>
-                <div>
+                <div className="space-y-2">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("colStatus")}
+                    {t("sectionTreatment")}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <FeedbackStatusBadge status={selectedItem.status} labels={statusLabels} />
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedItem.status === "new" ? (
-                      <>
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={isUpdatingStatus || isDeletingFeedback}
-                          onClick={() => void handleStatusUpdate("read")}
-                        >
-                          {t("markAsRead")}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={isUpdatingStatus || isDeletingFeedback}
-                          onClick={() => void handleStatusUpdate("resolved")}
-                        >
-                          {t("markAsResolved")}
-                        </Button>
-                      </>
-                    ) : null}
-                    {selectedItem.status === "read" ? (
-                      <>
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={isUpdatingStatus || isDeletingFeedback}
-                          onClick={() => void handleStatusUpdate("resolved")}
-                        >
-                          {t("markAsResolved")}
-                        </Button>
+                  <div className="space-y-3 rounded-lg border border-border/70 bg-muted/25 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <FeedbackStatusBadge status={selectedItem.status} labels={statusLabels} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedItem.status === "new" ? (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className={MODAL_BTN_CLASS}
+                            disabled={isUpdatingStatus || isDeletingFeedback}
+                            onClick={() => void handleStatusUpdate("read")}
+                          >
+                            {t("markAsRead")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className={MODAL_BTN_CLASS}
+                            disabled={isUpdatingStatus || isDeletingFeedback}
+                            onClick={() => void handleStatusUpdate("resolved")}
+                          >
+                            {t("markAsResolved")}
+                          </Button>
+                        </>
+                      ) : null}
+                      {selectedItem.status === "read" ? (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className={MODAL_BTN_CLASS}
+                            disabled={isUpdatingStatus || isDeletingFeedback}
+                            onClick={() => void handleStatusUpdate("resolved")}
+                          >
+                            {t("markAsResolved")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className={MODAL_BTN_CLASS}
+                            disabled={isUpdatingStatus || isDeletingFeedback}
+                            onClick={() => void handleStatusUpdate("new")}
+                          >
+                            {t("reopen")}
+                          </Button>
+                        </>
+                      ) : null}
+                      {selectedItem.status === "resolved" ? (
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className={MODAL_BTN_CLASS}
                           disabled={isUpdatingStatus || isDeletingFeedback}
                           onClick={() => void handleStatusUpdate("new")}
                         >
                           {t("reopen")}
                         </Button>
-                      </>
-                    ) : null}
-                    {selectedItem.status === "resolved" ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={isUpdatingStatus || isDeletingFeedback}
-                        onClick={() => void handleStatusUpdate("new")}
-                      >
-                        {t("reopen")}
-                      </Button>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -499,23 +554,34 @@ export default function AdminFeedbackPage() {
                   </div>
                 </div>
               </div>
-              <div className="border-t pt-4">
+              <div className="border-t border-border/60 pt-5">
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
+                  className={MODAL_BTN_CLASS}
                   disabled={isUpdatingStatus || isDeletingFeedback}
                   onClick={() => setDeleteConfirmOpen(true)}
                 >
                   {t("delete")}
                 </Button>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button type="button" variant="outline" onClick={() => setSelectedItem(null)}>
+              <DialogFooter className="mt-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={MODAL_BTN_CLASS}
+                  onClick={() => setSelectedItem(null)}
+                >
                   {t("close")}
                 </Button>
-                <Button type="button" variant="secondary" onClick={handleCopyDetails}>
-                  <Copy className="mr-2 h-4 w-4" aria-hidden />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className={MODAL_BTN_CLASS}
+                  onClick={handleCopyDetails}
+                >
+                  <Copy className="mr-2 h-4 w-4 shrink-0" aria-hidden />
                   {t("copyDetails")}
                 </Button>
               </DialogFooter>
@@ -530,10 +596,11 @@ export default function AdminFeedbackPage() {
             <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
             <DialogDescription>{t("deleteConfirmDescription")}</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:justify-end">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
+              className={MODAL_BTN_CLASS}
               disabled={isDeletingFeedback}
               onClick={() => setDeleteConfirmOpen(false)}
             >
@@ -542,6 +609,7 @@ export default function AdminFeedbackPage() {
             <Button
               type="button"
               variant="destructive"
+              className={MODAL_BTN_CLASS}
               disabled={isDeletingFeedback}
               onClick={() => void handleConfirmDelete()}
             >

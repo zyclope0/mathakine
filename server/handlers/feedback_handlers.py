@@ -134,7 +134,9 @@ async def admin_patch_feedback_status(request: Request) -> JSONResponse:
             return api_error_response(400, "Statut invalide (new, read, resolved)")
         if err or payload is None:
             logger.error(
-                "admin_patch_feedback_status: unexpected err=%s payload=%s", err, payload
+                "admin_patch_feedback_status: unexpected err=%s payload=%s",
+                err,
+                payload,
             )
             return api_error_response(500, "Erreur lors de la mise à jour du statut")
 

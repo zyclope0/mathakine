@@ -12,6 +12,7 @@ Ce fichier aligne **Copilot**, **Cursor**, **Claude** et tout assistant sur les 
 
 - **Apprenants (enfants / collégiens)** : exercices et défis au centre ; charge cognitive **minimale**.
 - **Adultes (parents / enseignants)** : efficacité et clarté, **sans** “grid of boxes” façon B2B.
+- **Administrateurs (`/admin/*`)** — **pas** apprenants ni parents : retours, modération, comptes = **triage / ops** ; clarté opérationnelle et actions explicites OK ; toujours sobre + WCAG (voir `.impeccable.md`).
 - **Multilingue fr/en** ; patterns maintenables.
 
 ### Brand Personality (3 mots)

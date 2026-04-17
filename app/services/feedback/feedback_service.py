@@ -166,7 +166,9 @@ class FeedbackService:
             (True, None) en cas de succes
             (False, "not_found") sinon
         """
-        report = db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        report = (
+            db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        )
         if report is None:
             return False, "not_found"
 
@@ -192,7 +194,9 @@ class FeedbackService:
         if normalized not in VALID_STATUSES:
             return None, "invalid_status"
 
-        report = db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        report = (
+            db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        )
         if report is None:
             return None, "not_found"
 
