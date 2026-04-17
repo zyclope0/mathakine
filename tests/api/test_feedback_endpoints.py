@@ -250,6 +250,11 @@ async def test_admin_delete_feedback(apprenant_client, admin_client):
     assert data.get("success") is True
     assert data.get("id") == fid
 
+    list_resp = await admin.get("/api/admin/feedback")
+    assert list_resp.status_code == 200
+    ids = [item["id"] for item in list_resp.json()["feedback"]]
+    assert fid not in ids
+
 
 async def test_admin_delete_feedback_not_found(admin_client):
     """Suppression d'un retour inexistant -> 404."""
