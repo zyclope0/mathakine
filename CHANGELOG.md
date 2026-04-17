@@ -40,6 +40,8 @@ Active references:
 
 ## [Unreleased]
 
+## [3.6.0-beta.2] - 2026-04-17
+
 ### Security
 
 - Password policy now enforces at least one special character in all `UserCreate` and password-change flows (`SEC-PASS-01`; `33cb2ad`, `f8f6cb6`).
@@ -58,12 +60,14 @@ Active references:
 - `frontend/components/challenges/visualizations/_colorMap.ts` now provides the shared visualization color truth (`VISUALIZATION_COLOR_MAP`, `resolveVisualizationColor`, `findVisualizationColorInText`) with dedicated tests.
 - `tests/integration/test_enhanced_server_entrypoint.py` now protects the production ASGI entrypoint shape used by Gunicorn/Uvicorn workers.
 - `docs/03-PROJECT/ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md` now tracks dependency-upgrade value and follow-up opportunities as a dedicated active project note.
+- Admin feedback triage is now operational end-to-end: detailed modal, `new/read/resolved` workflow, hard delete, and contextual feedback entry points in the header plus exercise/challenge result states.
+- `/docs` now acts as the in-app beta onboarding surface, and the dashboard exposes a direct, low-noise entry point to that guide.
 
 ### Changed
 
 - All backend logger f-string arguments across `app/` and `server/` were converted to lazy `%`-style interpolation to satisfy Ruff `G004`; supporting codemod stubs were added under `scripts/codemods/`.
 - ANSI color codes are now disabled automatically when `stderr` is not a TTY, preventing polluted CI and log-aggregator output.
-- `PROJECT_VERSION` was synchronized to `3.6.0-alpha.1` across runtime version surfaces.
+- Visible version surfaces are now synchronized on `3.6.0-beta.2` across runtime and package metadata.
 - Production and development Python installs are now explicitly separated: CI installs `requirements-dev.txt`, while production images stay on `requirements.txt`.
 - The production ASGI entrypoint is now the concrete Starlette object exposed at `enhanced_server:app`; this fixed Render startup on `uvicorn 0.44.0`.
 - Frontend dependencies were advanced on the active train: `next 16.2.3`, `eslint-config-next 16.2.3`, `next-intl 4.9.1`, `vite 7.3.2`, the Vitest family `4.1.4`, plus targeted library bumps (`dompurify`, `zustand`, `jspdf`, `katex`, `undici`, `pillow`, `sphinx`, `requests`, `uvicorn`).
@@ -78,6 +82,7 @@ Active references:
 - Avatar and badge icon delivery were hardened against missing or invalid image sources.
 - Middleware entrypoint compatibility was restored for Next.js 16 by moving back to the supported `proxy.ts` convention.
 - The challenge solver retry flow now fully resets multi-position visual selections.
+- Patch coverage on the beta docs/dashboard delta is now backed by targeted characterization tests for `app/docs/page.tsx` and `DashboardOverviewSection.tsx`.
 
 ### Documentation
 
@@ -85,6 +90,8 @@ Active references:
 - `README_TECH.md`, `docs/INDEX.md`, `docs/03-PROJECT/README.md`, `docs/04-FRONTEND/ARCHITECTURE.md`, `docs/04-FRONTEND/API_ROUTES.md`, `docs/04-FRONTEND/HOOKS_CATALOGUE.md`, and `docs/04-FRONTEND/COMPONENTS_CATALOGUE.md` now reflect the current active architecture instead of the pre-co-location snapshot.
 - Historical implementation notes and legacy widget redirects were archived out of the active flow, while archive READMEs and cross-links were updated so those notes remain discoverable without pretending to be active source-of-truth documents.
 - `.claude/session-plan.md` is now consistently described as a local founder-planning note rather than standalone runtime truth.
+- Beta documentation now has clearly separated roles: `/docs` is the short in-app guide, `docs/BETA_GUIDE.md` is the fuller parent/teacher reference, and the dashboard help entry points to the in-app guide.
+
 ## [3.6.0-beta.1] - 2026-04-17
 
 ### Added
@@ -432,5 +439,3 @@ Active references:
 ## [2.0.0] and earlier
 
 Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.
-
-

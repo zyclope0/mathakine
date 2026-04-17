@@ -2068,6 +2068,15 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version beta : le produit se stabilise ; quelques fonctions (tableau de bord parent) arrivent encore.",
+    "release_3_6_0_beta_2": {
+      "version": "v3.6.0-beta.2",
+      "date": "17 avril 2026",
+      "items": [
+        "Les signalements sont maintenant exploitables de bout en bout : contexte complet, points d entree discrets dans l app, vue detail admin, statuts et suppression.",
+        "La documentation beta est plus claire : /docs sert de guide rapide dans l app, BETA_GUIDE reste la reference parent/enseignant, et le dashboard pointe desormais vers cette aide.",
+        "La stabilisation continue en coulisses : dependances de securite mises a jour, runtime et CI durcis, et surfaces de version alignees sur le train beta."
+      ]
+    },
     "release_3_6_0_beta_1": {
       "version": "v3.6.0-beta.1",
       "date": "17 avril 2026",

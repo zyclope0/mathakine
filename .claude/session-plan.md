@@ -1,120 +1,166 @@
-# Session Plan — Beta Fermée Mathakine
+# Session Plan - Beta Fermee Mathakine
 
-**Créé :** 2026-04-16  
+**Cree :** 2026-04-16  
+**Mis a jour :** 2026-04-17  
 **Intent Contract :** `.claude/session-intent.md`  
-**Version cible :** v3.6.0-beta.1
+**Version cible :** `v3.6.0-beta.2`
 
 ---
 
-## Ce que tu auras à la fin
+## Ou on en est
 
-Une version beta fermée stable, sécurisée et instrumentée, prête à accueillir des invités réels :
-- Feedback-debug opérationnel avec contexte complet (rôle, thème, NI, emplacement)
-- Auth solide et Dependabot #41 résolu
-- Documentation utilisateur de base pour enfant + parent/enseignant
-- Décision architecturale OAuth Google documentée
+Le scope beta est maintenant largement en place :
+
+- feedback-debug complet, de la collecte frontend jusqu'au triage admin
+- securite/auth durcies pour un premier cercle de testeurs reels
+- documentation beta in-app + guide adulte en place
+- version visible alignee sur `3.6.0-beta.2`
+
+En pratique, le produit est **proche d'une beta fermee publiable**, mais il reste encore un petit bloc "release readiness" a fermer avant de dire "beta du site prete".
 
 ---
 
-## Plan d'exécution
+## Ce qui est termine
 
-### PHASE 1 — DEFINE (15%) : Inventaire et architecture ✅ TERMINÉ
+### PHASE 1 - DEFINE (terminee)
 
-**Objectif :** Cadrer chaque chantier avant de toucher le code.
-
-| Tâche | Statut |
+| Tache | Statut |
 |-------|--------|
-| D1 — Auditer le payload feedback actuel | ✅ fait (payload enrichi en A1) |
-| D2 — Auditer l'affichage admin feedback | ✅ fait (list_feedback_for_admin étendu) |
-| D3 — Lister les emplacements feedback discret | ✅ identifié (A4 à venir) |
-| D4 — Point d'architecture OAuth Google | ⏳ reporté post-beta |
-| D5 — Inventaire OWASP quick-pass | ✅ fait (M1 M2 M3 M4 L1 L2) |
+| D1 - Audit payload feedback | DONE |
+| D2 - Audit affichage admin feedback | DONE |
+| D3 - Emplacements feedback discret | DONE |
+| D4 - Point architecture OAuth Google | POST-BETA |
+| D5 - Inventaire OWASP quick-pass | DONE |
 
 ---
 
-### PHASE 2 — DEVELOP (55%) : Trois chantiers en parallèle
+### PHASE 2 - DEVELOP
 
-#### Chantier A — Feedback-Debug (priorité 1)
+#### Chantier A - Feedback / triage admin (termine)
 
-| Tâche | Statut | Commit |
-|-------|--------|--------|
-| **A1** — Modèle + migration + handler backend | ✅ TERMINÉ | `bd130e3` + `9892fe9` + `af93508` + `daa6fb5` |
-| **A2** — Frontend `FeedbackFab.tsx` envoie les 4 champs | ✅ TERMINÉ | `bdba53c` |
-| **A3** — Vue admin affiche les nouveaux champs | ✅ TERMINÉ | `132368f` |
-| **A4** — Repositionnement bouton (header, fin exercice, fin défi) | ✅ TERMINÉ | `ae08c8f` |
+| Tache | Statut | Commits de reference |
+|-------|--------|----------------------|
+| A1 - Backend feedback context + migration | DONE | `bd130e3`, `9892fe9`, `af93508`, `daa6fb5` |
+| A2 - `FeedbackFab` envoie le contexte frontend | DONE | `bdba53c` |
+| A3 - Vue admin enrichie + detail + statut + suppression | DONE | `132368f`, `c27580c`, `a586f4c`, `bc475a4`, `8a4428d`, `a7ea81f` |
+| A4 - Triggers feedback discrets (header + fin exercice + fin defi) | DONE | `ae08c8f`, `4281115` |
 
-#### Chantier B — Sécurité / Auth ✅ TERMINÉ
+**Resultat obtenu :**
+- feedback capture `user_role`, `active_theme`, `ni_state`, `component_id`
+- admin voit le contexte, ouvre le detail, change le statut et supprime si necessaire
+- feedback declenchable depuis le FAB global + les points d'entree contextuels
 
-| Tâche | Statut | Commit |
-|-------|--------|--------|
-| **B1** — Dependabot #41 (DOMPurify 3.3.3→3.4.0) | ✅ TERMINÉ | `ebfa039` |
-| **B2** — OWASP quick-pass (M1 Permissions-Policy, M2 rate-limit feedback, M3 privacy RGPD) | ✅ TERMINÉ | `4c822fe` `ef1ea49` `68c052e` |
-| **B3** — Évaluation OAuth Google | ⏳ reporté post-beta | — |
+#### Chantier B - Securite / auth (quasi boucle pour la beta)
 
-#### Chantier C — Documentation utilisateur
+| Tache | Statut | Commits de reference |
+|-------|--------|----------------------|
+| B1 - Dependabot #41 / DOMPurify | DONE | `ebfa039` |
+| B2 - OWASP quick-pass beta (headers, rate-limit feedback, privacy) | DONE | `4c822fe`, `ef1ea49`, `68c052e` |
+| B3 - Evaluation OAuth Google | POST-BETA | - |
 
-| Tâche | Statut |
+**Resultat obtenu :**
+- hardening minimum beta present
+- feedback rate-limite
+- privacy / RGPD mieux cadre
+- OAuth Google explicitement sorti du scope beta
+
+#### Chantier C - Documentation beta (termine pour la beta)
+
+| Tache | Statut | Commits de reference |
+|-------|--------|----------------------|
+| C1 - Micro-guidage contextuel (`DocTip`) | DONE | `4cf56c5` |
+| C2 - Doc utilisateur in-app orientee beta (`/docs`) | DONE | `1b13242`, `e9a10b1`, `a45c8d0` |
+| C3 - `docs/BETA_GUIDE.md` + convergence parent/enseignant | DONE | `4cf56c5`, `1b13242`, `e9a10b1` |
+
+**Note importante :**
+- le besoin "page help contextuelle" a ete absorbe proprement par une page `/docs` refondue, plus utile qu'une nouvelle route `/help`
+- le dashboard expose maintenant une entree discrete vers la doc beta
+
+---
+
+## Ce qui manque encore pour dire "beta du site prete"
+
+### PHASE 3 - DELIVER (reste a fermer)
+
+| Tache | Statut reel | Priorite |
+|-------|-------------|----------|
+| Smoke test enfant complet (`register -> exercice -> defi -> feedback`) | TODO manuel | Haute |
+| Smoke test admin (`login admin -> lecture feedback -> statut -> suppression`) | TODO manuel | Haute |
+| Validation CI complete (`tsc`, `prettier`, `vitest`, `pytest`, checks GitHub`) | PARTIEL | Haute |
+| Tag Git `v3.6.0-beta.2` | TODO | Haute |
+| Preparation/envoi aux 3-5 beta-testeurs | TODO | Moyenne |
+
+### Detail des manques reels
+
+1. **Parcours manuel beta**
+- verifier qu'un nouvel utilisateur peut vraiment :
+  - creer son compte
+  - acceder aux exercices
+  - finir un defi
+  - envoyer un feedback
+- verifier qu'un admin peut :
+  - voir ce feedback
+  - changer son statut
+  - le supprimer
+
+2. **Validation technique complete**
+- les checks cibles frontend sont bons
+- les checks cibles docs sont bons
+- il reste a revalider le bloc backend/global dans un environnement propre, surtout autour de `pytest`
+
+3. **Release operation**
+- le changelog beta existe
+- la version visible est alignee sur `3.6.0-beta.2`
+- **mais le tag Git `v3.6.0-beta.2` n'existe pas encore**
+
+4. **Go-to-beta**
+- il faut preparer le micro-cercle de testeurs
+- il faut clarifier le message d'invitation et ce qu'on attend d'eux
+
+---
+
+## Ce qui n'est pas bloquant pour la beta
+
+| Sujet | Statut |
 |-------|--------|
-| **C1** — Onboarding in-app (tooltips first-use) | ⏳ À FAIRE |
-| **C2** — Page `/help` FAQ contextuelle | ⏳ À FAIRE |
-| **C3** — `docs/BETA_GUIDE.md` (instructions invités) | ⏳ À FAIRE |
+| OAuth Google | reporte post-beta |
+| Dashboard parent/enseignant complet | pas disponible, deja documente comme limite beta |
+| Google sign-in | pas bloquant |
+| Export PDF de progression | pas bloquant |
 
 ---
 
-### PHASE 3 — DELIVER (30%) : Validation et tag
+## Verdict actuel
 
-| Tâche | Critère |
-|-------|---------|
-| Smoke test beta : parcours enfant complet (register → exercice → défi → feedback) | Aucun crash |
-| Smoke test admin : login admin → voir feedbacks avec contexte complet | Données correctes |
-| `npx tsc --noEmit` + `prettier --check` + `pytest -q` verts | CI verte |
-| Tag `v3.6.0-beta.1` + entry CHANGELOG | Fait |
-| Email d'invitation aux 3-5 premiers bêta-testeurs | Liste préparée |
+### Beta produit
+**Le socle produit beta est pret**
 
----
+### Beta release
+**La release beta n'est pas completement fermee**
 
-## Séquencement recommandé (solo founder)
-
-```
-Semaine 1 : Phase 1 (Define) + Chantier B1 (Dependabot #41, quick-win)
-Semaine 2 : Chantier A1-A3 (feedback backend + admin)
-Semaine 3 : Chantier A4 (repositionnement) + Chantier B2 (OWASP)
-Semaine 4 : Chantier B3 (OAuth eval) + Chantier C (doc)
-Semaine 5 : Phase 3 (Deliver) + tag beta
-```
+Il reste principalement :
+- les smoke tests manuels
+- une validation complete des checks
+- le tag Git beta
+- la preparation du premier envoi beta
 
 ---
 
-## 🔸 Points de décision (debate checkpoints)
+## Prochaines actions recommandees
 
-| Moment | Question | Format |
-|--------|----------|--------|
-| Après D4 | "next-auth vs backend-only pour OAuth Google ?" | `/octo:debate` 1 round |
-| Après A2 | "prop feedbackContext vs hook usePageContext ?" | Claude Code analyse |
-| Avant tag | "la beta est-elle prête ?" | `/octo:review` working-tree |
-
----
-
-## Providers disponibles
-
-| Provider | Statut | Rôle |
-|----------|--------|------|
-| 🔴 Codex CLI | Available ✓ | Architecture OAuth, séquencement chantiers |
-| 🟡 Gemini CLI | Available ✓ | Audit sécurité OWASP, edge cases |
-| 🟣 Perplexity | Not configured ✗ | CVE lookup |
-| 🔵 Claude | Available ✓ | Synthèse, review, documentation |
+1. lancer un smoke test enfant complet
+2. lancer un smoke test admin complet
+3. verifier l'etat reel des checks GitHub / CI
+4. creer le tag `v3.6.0-beta.2`
+5. preparer le message d'invitation beta et la shortlist testeurs
 
 ---
 
-## Pour exécuter ce plan
+## Checkpoint decision
 
-```bash
-# Phase par phase
-/octo:security   # Chantier B (OWASP quick-pass)
-/octo:develop    # Chantier A (feedback-debug)
-/octo:docs       # Chantier C (documentation)
-/octo:review     # Phase Deliver (validation finale)
+**Question utile maintenant :**
 
-# Ou en lifecycle complet
-/octo:embrace "beta fermée Mathakine v3.6.0"
-```
+> Si les smoke tests manuels passent et que la CI est verte, est-ce qu'on tague immediatement `v3.6.0-beta.2` ?
+
+Ma recommandation : **oui**.  
+Le scope beta est suffisamment ferme. Le reste est du release management, pas du chantier produit.
