@@ -1,19 +1,38 @@
 # Configuration Codecov - Mathakine
 # https://docs.codecov.com/docs/codecov-yaml
+#
+# --- Coverage governance (read this first) ---
+# Blocking gates live in GitHub Actions, not in this file alone:
+# - Backend (Python): job `test` runs pytest with `--cov-fail-under=63` on `app` + `server`
+#   (.github/workflows/tests.yml). That value is the authoritative backend floor.
+# - Frontend (TS/TSX): job `frontend` runs Vitest with thresholds in frontend/vitest.config.ts
+#   (statements/branches/functions/lines). CI must pass those before the codecov job runs.
+# Codecov below mirrors those two scopes via separate uploads (flags `backend` / `frontend`)
+# so we never compare one blended "project %" against a threshold meant for another stack.
+# A root-level coverage.xml from a local run is not normative for CI or Codecov.
+# Patch status stays lower than project gates: it applies to diff-only coverage on PRs.
 
-# Corriger les chemins CI (GitHub Actions) pour matcher la structure git
-# Format GitHub Actions: /home/runner/work/OWNER/REPO/
 fixes:
+  # Corriger les chemins CI (GitHub Actions) pour matcher la structure git
+  # Format GitHub Actions: /home/runner/work/OWNER/REPO/
   - "/home/runner/work/[^/]+/[^/]+/::"
 
 coverage:
-  range: 40..100
+  range: 45..100
   precision: 2
   round: down
   status:
     project:
-      default:
-        target: 45%
+      backend:
+        target: 63%
+        threshold: 0.5%
+        flags:
+          - backend
+      frontend:
+        target: 48%
+        threshold: 1%
+        flags:
+          - frontend
     patch:
       default:
         target: 40%

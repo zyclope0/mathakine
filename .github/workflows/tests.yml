@@ -101,6 +101,8 @@ jobs:
         print('Database schema initialized (no seed - tests use fixtures)')
         "
     
+    # Blocking backend coverage gate: --cov-fail-under must stay aligned with codecov.yml
+    # flag `backend` project target (63%). See codecov.yml header for governance.
     - name: Run tests (coverage + JUnit)
       id: run_tests
       env:
@@ -289,13 +291,25 @@ jobs:
         name: frontend-coverage
         path: coverage_frontend
 
-    - name: Upload combined coverage to Codecov
+    # Two uploads so Codecov project statuses (codecov.yml) apply per flag; avoids one
+    # blended aggregate % that mixed backend pytest and frontend Vitest semantics.
+    - name: Upload backend coverage to Codecov
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
-        files: coverage_backend/coverage.xml,coverage_frontend/lcov.info
-        flags: backend,frontend
-        name: codecov-mathakine
+        files: coverage_backend/coverage.xml
+        flags: backend
+        name: codecov-backend-mathakine
+        fail_ci_if_error: false
+
+    - name: Upload frontend coverage to Codecov
+      uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
+      with:
+        files: coverage_frontend/lcov.info
+        flags: frontend
+        name: codecov-frontend-mathakine
         fail_ci_if_error: false
 

@@ -154,6 +154,7 @@ Gate standard backend (`test_admin_auth_stability.py` exclu â€” test spÃ©
 - `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
 - measured local coverage on `app` + `server`: `67.30 %`
 - backend CI coverage gate -> `63 %`
+- **Coverage governance (CI vs Codecov)** : the **blocking** backend gate is **`pytest --cov-fail-under=63`** in **`.github/workflows/tests.yml`** (job `test`, packages `app` + `server`). The **blocking** frontend gate is **`frontend/vitest.config.ts`** thresholds (Vitest job `frontend`). **Codecov** (**`codecov.yml`**) uses **separate project targets per flag** (`backend` / `frontend`), with **two uploads** in the **`codecov`** job, so thresholds are not applied to a single blended repo-wide % that would contradict pytest or Vitest. **`patch`** in Codecov remains a lower bar for PR diff coverage. A stray root **`coverage.xml`** from a local run is **not** authoritative for CI.
 
 ## Recommendation Iteration R Closure (2026-03-21)
 
