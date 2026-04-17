@@ -218,48 +218,56 @@ export function AccessibilityToolbar() {
 
             <div className="py-2" role="group" aria-label="Options disponibles">
               {options.map((option) => (
-                <button
+                <div
                   key={option.id}
-                  type="button"
-                  role="switch"
-                  aria-label={option.label}
-                  aria-checked={option.isActive}
-                  onClick={() => {
-                    option.toggle();
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-2.5 text-left",
-                    "hover:bg-muted focus:outline-none focus:bg-muted",
-                    "transition-colors",
-                    option.isActive && "bg-primary/10"
-                  )}
+                  className={cn("flex items-center gap-2", option.isActive && "bg-primary/10")}
                 >
-                  <span
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-label={option.label}
+                    aria-checked={option.isActive}
+                    onClick={() => {
+                      option.toggle();
+                    }}
                     className={cn(
-                      "flex-shrink-0",
-                      option.isActive ? "text-primary" : "text-muted-foreground"
+                      "min-w-0 flex-1 flex items-center gap-3 px-4 py-2.5 text-left",
+                      "hover:bg-muted focus:outline-none focus:bg-muted",
+                      "transition-colors"
                     )}
                   >
-                    {option.icon}
-                  </span>
-                  <span className="flex min-w-0 flex-1 items-center gap-1">
                     <span
                       className={cn(
-                        "min-w-0 truncate text-sm text-foreground",
+                        "flex-shrink-0",
+                        option.isActive ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      {option.icon}
+                    </span>
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-sm text-foreground",
                         option.isActive && "font-medium"
                       )}
                     >
                       {option.label}
                     </span>
-                    {option.docTip ? <DocTip label={option.docTip} side="top" /> : null}
-                  </span>
-                  <span className="text-xs text-muted-foreground hidden sm:inline">
-                    {option.shortcut}
-                  </span>
-                  {option.isActive && (
-                    <Check className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
-                  )}
-                </button>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">
+                      {option.shortcut}
+                    </span>
+                    {option.isActive && (
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
+                    )}
+                  </button>
+
+                  {option.docTip ? (
+                    <DocTip
+                      label={option.docTip}
+                      side="right"
+                      className="pr-4 text-muted-foreground"
+                    />
+                  ) : null}
+                </div>
               ))}
             </div>
 

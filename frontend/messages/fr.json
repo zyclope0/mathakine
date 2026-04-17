@@ -1781,6 +1781,62 @@
   "docs": {
     "title": "Guide d'utilisation",
     "subtitle": "Tout ce qu'il faut savoir pour bien démarrer",
+    "betaHero": {
+      "title": "Bienvenue dans la beta Mathakine",
+      "subtitle": "Tu fais partie des premiers à tester. Voici comment bien démarrer.",
+      "ctaRegister": "Créer un compte",
+      "ctaExercises": "Explorer les exercices"
+    },
+    "quickstart": {
+      "title": "Tester Mathakine en 5 minutes",
+      "intro": "Cinq actions concrètes pour explorer le produit.",
+      "step1": "Crée un compte",
+      "step1Desc": "Inscris-toi via la page d'inscription. Vérifie ton email pour débloquer toutes les fonctionnalités.",
+      "step1Cta": "S'inscrire",
+      "step2": "Passe l'évaluation rapide",
+      "step2Desc": "10 questions pour que l'algorithme comprenne ton profil et calibre tes exercices.",
+      "step2Cta": "Lancer le diagnostic",
+      "step3": "Lance un exercice",
+      "step3Desc": "Addition, fractions, géométrie… L'IA génère des exercices adaptés à ton niveau.",
+      "step3Cta": "Voir les exercices",
+      "step4": "Essaie un défi logique",
+      "step4Desc": "Séquences, probabilités, puzzles visuels. Entraîne ton esprit critique.",
+      "step4Cta": "Voir les défis",
+      "step5": "Explore tes réglages",
+      "step5Desc": "Thème visuel, accessibilité (Focus, dyslexie, contraste), langue, raccourcis clavier.",
+      "step5Cta": "Ouvrir les paramètres"
+    },
+    "betaExpect": {
+      "title": "Ce qu'on attend de toi",
+      "intro": "Tu n'as pas besoin d'être expert. Signale ce qui te semble bizarre.",
+      "items": [
+        "Exercice incorrect ou incompréhensible",
+        "Défi incohérent ou mal formulé",
+        "Souci de lisibilité ou d'affichage",
+        "Problème d'accessibilité",
+        "Difficulté mal calibrée (trop facile ou trop difficile)",
+        "Bug d'interface ou de navigation"
+      ]
+    },
+    "howToReport": {
+      "title": "Comment signaler un problème",
+      "intro": "Quatre façons simples, selon où tu es.",
+      "entry1": "Icône drapeau dans l'en-tête du site (desktop)",
+      "entry2": "Bouton « Signaler » à la fin d'un exercice",
+      "entry3": "Bouton « Signaler » à la fin d'un défi",
+      "entry4": "Bouton flottant (drapeau) en bas à droite de chaque page",
+      "note": "Un signalement précis (page, description, ce que tu attendais) nous aide à corriger plus vite."
+    },
+    "betaLimits": {
+      "title": "Ce qui n'est pas encore disponible",
+      "intro": "Mathakine est en beta. Certaines fonctionnalités ne sont pas encore prêtes.",
+      "items": [
+        "Tableau de bord parent / enseignant — en cours de conception",
+        "Connexion Google — en cours d'évaluation",
+        "Certaines surfaces sont encore en stabilisation — tes retours nous aident à prioriser"
+      ]
+    },
+    "betaGuideLink": "Tu accompagnes un enfant ? Un guide beta complet pour les parents et enseignants est aussi partagé par l'équipe.",
     "why": {
       "title": "Pourquoi Mathakine ?",
       "intro": "Mathakine est conçu pour que chacun progresse à son rythme, sans pression ni surcharge cognitive. C'est l'outil idéal pour reprendre confiance en soi.",
@@ -1833,7 +1889,7 @@
       "q2": "Comment se déroule l'évaluation initiale ?",
       "a2": "Elle s'active automatiquement pour cibler le niveau. 10 questions suffisent pour configurer ton espace et adapter la difficulté.",
       "q3": "Les exercices s'adaptent-ils tous seuls ?",
-      "a3": "Oui ! L'Intelligence Artificielle de Mathakine modifie la difficulté en fonction de tes réponses. Si tu as du mal, elle proposera même des réponses à choix multiples.",
+      "a3": "Oui ! L'Intelligence Artificielle ajuste la difficulté en fonction de tes réponses. Si tu avances bien, les exercices deviennent plus exigeants ; si tu as du mal, l'algorithme revient à un niveau plus accessible.",
       "q4": "Où voir ma progression ?",
       "a4": "Dans le menu « Tableau de bord » : défis du jour, précision globale, régularité (jours d'affilée) et badges.",
       "q5": "C'est quoi les Défis du Jour ?",

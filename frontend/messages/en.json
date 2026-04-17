@@ -1781,6 +1781,62 @@
   "docs": {
     "title": "User Guide",
     "subtitle": "Everything you need to get started",
+    "betaHero": {
+      "title": "Welcome to the Mathakine beta",
+      "subtitle": "You are among the first to test. Here's how to get started.",
+      "ctaRegister": "Create an account",
+      "ctaExercises": "Explore exercises"
+    },
+    "quickstart": {
+      "title": "Try Mathakine in 5 minutes",
+      "intro": "Five concrete actions to explore the product.",
+      "step1": "Create an account",
+      "step1Desc": "Sign up on the registration page. Verify your email to unlock all features.",
+      "step1Cta": "Sign up",
+      "step2": "Take the quick assessment",
+      "step2Desc": "10 questions so the algorithm can understand your profile and calibrate your exercises.",
+      "step2Cta": "Start diagnostic",
+      "step3": "Launch an exercise",
+      "step3Desc": "Addition, fractions, geometry… The AI generates exercises adapted to your level.",
+      "step3Cta": "View exercises",
+      "step4": "Try a logic challenge",
+      "step4Desc": "Sequences, probability, visual puzzles. Train your critical thinking.",
+      "step4Cta": "View challenges",
+      "step5": "Explore your settings",
+      "step5Desc": "Visual theme, accessibility (Focus, dyslexia, contrast), language, keyboard shortcuts.",
+      "step5Cta": "Open settings"
+    },
+    "betaExpect": {
+      "title": "What we expect from you",
+      "intro": "You don't need to be an expert. Just flag anything that seems off.",
+      "items": [
+        "Incorrect or confusing exercise",
+        "Incoherent or poorly worded challenge",
+        "Readability or display issue",
+        "Accessibility problem",
+        "Badly calibrated difficulty (too easy or too hard)",
+        "Interface or navigation bug"
+      ]
+    },
+    "howToReport": {
+      "title": "How to report a problem",
+      "intro": "Four simple ways, depending on where you are.",
+      "entry1": "Flag icon in the site header (desktop)",
+      "entry2": "'Report' button at the end of an exercise",
+      "entry3": "'Report' button at the end of a challenge",
+      "entry4": "Floating button (flag) at the bottom right of every page",
+      "note": "A precise report (page, description, what you expected) helps us fix issues faster."
+    },
+    "betaLimits": {
+      "title": "What's not available yet",
+      "intro": "Mathakine is in beta. Some features are not ready yet.",
+      "items": [
+        "Parent / teacher dashboard — in design phase",
+        "Google sign-in — under evaluation",
+        "Some areas are still stabilizing — your feedback helps us prioritize"
+      ]
+    },
+    "betaGuideLink": "Supporting a child? A fuller beta guide for parents and teachers is also shared by the team.",
     "why": {
       "title": "Why Mathakine?",
       "intro": "Mathakine is designed so everyone progresses at their own pace, without pressure or cognitive overload. It's the ideal tool to regain self-confidence.",
@@ -1833,7 +1889,7 @@
       "q2": "How does the initial evaluation work?",
       "a2": "It starts automatically to target your level. 10 questions are enough to set up your space and adapt the difficulty.",
       "q3": "Do exercises adapt automatically?",
-      "a3": "Yes! Mathakine's Artificial Intelligence modifies the difficulty based on your answers. If you struggle, it may even switch to multiple-choice answers.",
+      "a3": "Yes! The AI adapts the difficulty based on your answers. If you're doing well, exercises become more challenging; if you struggle, the algorithm steps back to a more accessible level.",
       "q4": "Where can I see my progress?",
       "a4": "Under \"Dashboard\": daily challenges, overall accuracy, days in a row, and badges.",
       "q5": "What are the Daily Challenges?",

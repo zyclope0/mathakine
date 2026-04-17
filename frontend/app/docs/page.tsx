@@ -19,19 +19,31 @@ import {
   ChevronRight,
   MessageCircleQuestion,
   Heart,
+  Flag,
+  Brain,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { PageLayout, PageSection } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 
-/**
- * Page Documentation — Guide utilisateur intégré
- * Ton rassurant, valorisation des progrès, pas de pression.
- * Refonte UI : Semantic Design & Anti-Cheap (Glassmorphism, Bento grids, typography accentuée)
- * Server Component : i18n via getTranslations ; entrées animées conditionnées par prefers-reduced-motion (motion-safe:).
- */
-/** Lucide header icon styling for PageSection (must be elements, not component refs, from a Server Component). */
 const SECTION_HEADER_ICON_CLASS = "h-5 w-5 text-primary";
+
+const QUICKSTART_STEPS = [
+  { step: 1, icon: UserPlus, href: "/register" },
+  { step: 2, icon: Brain, href: "/diagnostic" },
+  { step: 3, icon: Dumbbell, href: "/exercises" },
+  { step: 4, icon: Puzzle, href: "/challenges" },
+  { step: 5, icon: Settings, href: "/settings" },
+] as const;
+
+const REPORT_ENTRIES = [
+  { key: "entry1", icon: Flag },
+  { key: "entry2", icon: Dumbbell },
+  { key: "entry3", icon: Puzzle },
+  { key: "entry4", icon: Flag },
+] as const;
 
 export default async function DocsPage() {
   const t = await getTranslations("docs");
@@ -69,25 +81,134 @@ export default async function DocsPage() {
     { key: "choose", icon: Sparkles },
   ] as const;
 
+  const betaExpectItems: string[] = [0, 1, 2, 3, 4, 5].map((i) => t(`betaExpect.items.${i}`));
+  const betaLimitItems: string[] = [0, 1, 2].map((i) => t(`betaLimits.items.${i}`));
+
   return (
     <PageLayout maxWidth="2xl">
-      {/* 1. En-tête (Hero Section) */}
+      {/* 1. Hero — beta-oriented */}
       <header className="text-center py-12 md:py-16 space-y-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="flex justify-center mb-6">
           <div className="relative">
-            {/* Effet lumineux Anti-cheap derrière l'icône */}
             <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
             <div className="relative bg-card border border-border/50 p-4 rounded-2xl shadow-sm">
               <BookOpen className="h-10 w-10 text-primary" aria-hidden="true" />
             </div>
           </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-foreground">{t("title")}</h1>
-        <p className="text-lg md:text-xl text-primary font-medium">{t("subtitle")}</p>
+        <h1 className="text-3xl md:text-5xl font-bold text-foreground">{t("betaHero.title")}</h1>
+        <p className="text-lg md:text-xl text-primary font-medium">{t("betaHero.subtitle")}</p>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4">
+          <Button asChild size="lg" className="w-full sm:w-auto gap-2 group">
+            <Link href="/register">
+              <UserPlus className="h-5 w-5" aria-hidden="true" />
+              {t("betaHero.ctaRegister")}
+              <ChevronRight
+                className="h-4 w-4 -mr-1 group-hover:translate-x-1 transition-transform"
+                aria-hidden="true"
+              />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto gap-2">
+            <Link href="/exercises">
+              <Dumbbell className="h-5 w-5 text-primary" aria-hidden="true" />
+              {t("betaHero.ctaExercises")}
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <div className="space-y-12 md:space-y-16">
-        {/* 2. Pourquoi Mathakine */}
+        {/* 2. Quickstart — 5 steps */}
+        <PageSection
+          title={t("quickstart.title")}
+          description={t("quickstart.intro")}
+          icon={<ListTodo className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
+          <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="space-y-5 relative z-10">
+              {QUICKSTART_STEPS.map(({ step, icon: Icon, href }) => (
+                <div key={step} className="flex items-start gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold ring-1 ring-primary/20">
+                    {step}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground">{t(`quickstart.step${step}`)}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mt-0.5">
+                      {t(`quickstart.step${step}Desc`)}
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="shrink-0 hidden sm:flex">
+                    <Link href={href}>
+                      <Icon className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                      {t(`quickstart.step${step}Cta`)}
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </PageSection>
+
+        {/* 3. Beta expectations */}
+        <PageSection
+          title={t("betaExpect.title")}
+          description={t("betaExpect.intro")}
+          icon={<AlertTriangle className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {betaExpectItems.map((item, i) => (
+              <div
+                key={i}
+                className="bg-muted/30 border border-border/50 p-4 rounded-xl text-sm text-foreground"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </PageSection>
+
+        {/* 4. How to report */}
+        <PageSection
+          title={t("howToReport.title")}
+          description={t("howToReport.intro")}
+          icon={<Flag className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
+          <div className="bg-card/50 border border-border rounded-2xl p-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {REPORT_ENTRIES.map(({ key, icon: Icon }) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-3 bg-muted/20 border border-border/50 p-3 rounded-xl text-sm"
+                >
+                  <Icon className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
+                  <span className="text-foreground">{t(`howToReport.${key}`)}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground italic">{t("howToReport.note")}</p>
+          </div>
+        </PageSection>
+
+        {/* 5. Beta limits */}
+        <PageSection
+          title={t("betaLimits.title")}
+          description={t("betaLimits.intro")}
+          icon={<Info className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
+        >
+          <div className="bg-muted/20 border border-border/50 p-6 rounded-2xl space-y-3">
+            {betaLimitItems.map((item, i) => (
+              <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                <span className="text-primary mt-0.5">—</span>
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">{t("betaGuideLink")}</p>
+        </PageSection>
+
+        {/* 6. Pourquoi Mathakine */}
         <PageSection
           title={t("why.title")}
           description={t("why.intro")}
@@ -111,34 +232,7 @@ export default async function DocsPage() {
           </div>
         </PageSection>
 
-        {/* 3. Démarrer - Parcours simple */}
-        <PageSection
-          title={t("getStarted.title")}
-          icon={<UserPlus className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
-        >
-          <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-8 relative overflow-hidden">
-            {/* Design d'accentuation subtil */}
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold ring-1 ring-primary/20">
-                      {step}
-                    </span>
-                    <h3 className="font-semibold text-foreground">{t(`getStarted.step${step}`)}</h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed pl-11">
-                    {t(`getStarted.step${step}Desc`)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </PageSection>
-
-        {/* 4. Utiliser Mathakine */}
+        {/* 7. Utiliser Mathakine */}
         <PageSection
           title={t("using.title")}
           icon={<ListTodo className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
@@ -163,7 +257,7 @@ export default async function DocsPage() {
           </div>
         </PageSection>
 
-        {/* 5. Accessibilité */}
+        {/* 8. Accessibilité */}
         <PageSection
           title={t("accessibility.title")}
           icon={<Accessibility className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
@@ -184,7 +278,7 @@ export default async function DocsPage() {
           </div>
         </PageSection>
 
-        {/* 6. Rétention / Motivation */}
+        {/* 9. Rétention / Motivation */}
         <PageSection
           title={t("retention.title")}
           icon={<Heart className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
@@ -207,14 +301,18 @@ export default async function DocsPage() {
           </div>
         </PageSection>
 
-        {/* 7. FAQ */}
+        {/* 10. FAQ */}
         <PageSection
           title={t("faq.title")}
           icon={<MessageCircleQuestion className={SECTION_HEADER_ICON_CLASS} aria-hidden />}
         >
           <div className="bg-card/50 border border-border rounded-2xl overflow-hidden divide-y divide-border">
             {faqItems.map((item) => (
-              <details key={item.id} className="group [&_summary::-webkit-details-marker]:hidden">
+              <details
+                key={item.id}
+                id={`faq-${item.id}`}
+                className="group [&_summary::-webkit-details-marker]:hidden"
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between p-5 text-sm md:text-base font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset">
                   <span>{t(`faq.${item.q}`)}</span>
                   <div className="ml-4 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full border border-border/50 group-open:bg-primary/10 group-open:border-primary/20 transition-all">
@@ -232,7 +330,7 @@ export default async function DocsPage() {
           </div>
         </PageSection>
 
-        {/* 8. CTA */}
+        {/* 11. CTA final */}
         <section className="py-8 md:py-12 text-center space-y-8 border-t border-border">
           <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("cta")}</h2>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">

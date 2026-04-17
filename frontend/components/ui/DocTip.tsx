@@ -24,7 +24,7 @@ export function DocTip({ label, side = "top", className }: DocTipProps) {
         >
           <HelpCircle className="h-3.5 w-3.5" aria-hidden />
         </TooltipTrigger>
-        <TooltipContent side={side} className="max-w-[220px] text-xs whitespace-normal">
+        <TooltipContent side={side} className="z-[100010] max-w-[220px] text-xs whitespace-normal">
           {label}
         </TooltipContent>
       </Tooltip>

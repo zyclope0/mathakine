@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 06/04/2026
+> Updated: 17/04/2026
 
 ## Read First
 
@@ -26,35 +26,35 @@
 
 ## Folder Map
 
-| Need                              | Document                                                                                                                                          |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Beta fermée (parents / équipe)    | [BETA_GUIDE.md](BETA_GUIDE.md)                                                                                                                     |
-| Global architecture               | [00-REFERENCE/ARCHITECTURE.md](00-REFERENCE/ARCHITECTURE.md)                                                                                      |
-| Difficulty + ranks architecture   | [00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md](00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)                                                    |
-| Difficulty + ranks guide (simple) | [02-FEATURES/DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](02-FEATURES/DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)                                      |
-| AI model governance               | [00-REFERENCE/AI_MODEL_GOVERNANCE.md](00-REFERENCE/AI_MODEL_GOVERNANCE.md)                                                                        |
-| Setup                             | [00-REFERENCE/GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md)                                                                                |
-| Development workflow              | [01-GUIDES/DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md)                                                                                              |
-| Testing                           | [01-GUIDES/TESTING.md](01-GUIDES/TESTING.md)                                                                                                      |
-| Deployment env                    | [01-GUIDES/DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md)                                                                                        |
-| Production runbook                | [01-GUIDES/PRODUCTION_RUNBOOK.md](01-GUIDES/PRODUCTION_RUNBOOK.md)                                                                                |
-| Sentry monitoring                 | [01-GUIDES/SENTRY_MONITORING.md](01-GUIDES/SENTRY_MONITORING.md)                                                                                  |
-| Troubleshooting                   | [01-GUIDES/TROUBLESHOOTING.md](01-GUIDES/TROUBLESHOOTING.md)                                                                                      |
-| Features map                      | [02-FEATURES/README.md](02-FEATURES/README.md)                                                                                                    |
-| Active API                        | [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)                                                                          |
-| Auth flow                         | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md)                                                                                              |
-| Parent dashboard spec             | [02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)                                                |
-| Gamification account + ledger     | [02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)                                |
-| Frontend architecture             | [04-FRONTEND/ARCHITECTURE.md](04-FRONTEND/ARCHITECTURE.md)                                                                                        |
-| Frontend UX surfaces              | [04-FRONTEND/UX_SURFACES.md](04-FRONTEND/UX_SURFACES.md)                                                                                          |
-| Theme system                      | [02-FEATURES/THEMES.md](02-FEATURES/THEMES.md)                                                                                                    |
-| Dashboard widgets docs            | [04-FRONTEND/DASHBOARD_WIDGETS/README.md](04-FRONTEND/DASHBOARD_WIDGETS/README.md)                                                                |
-| Prototypes / doc assets           | [assets/README.md](assets/README.md)                                                                                                              |
-| ADRs                              | [05-ADR/README.md](05-ADR/README.md)                                                                                                              |
-| Project governance                | [03-PROJECT/README.md](03-PROJECT/README.md)                                                                                                      |
-| Documentation truth review        | [03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md](03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md)                                      |
+| Need                              | Document                                                                                                                                                                                                                                |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Beta fermée (parents / équipe)    | [BETA_GUIDE.md](BETA_GUIDE.md)                                                                                                                                                                                                          |
+| Global architecture               | [00-REFERENCE/ARCHITECTURE.md](00-REFERENCE/ARCHITECTURE.md)                                                                                                                                                                            |
+| Difficulty + ranks architecture   | [00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md](00-REFERENCE/DIFFICULTY_AND_RANKS_MANIFEST.md)                                                                                                                                          |
+| Difficulty + ranks guide (simple) | [02-FEATURES/DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md](02-FEATURES/DIFFICULTE_PEDAGOGIQUE_ET_RANGS_GUIDE.md)                                                                                                                            |
+| AI model governance               | [00-REFERENCE/AI_MODEL_GOVERNANCE.md](00-REFERENCE/AI_MODEL_GOVERNANCE.md)                                                                                                                                                              |
+| Setup                             | [00-REFERENCE/GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md)                                                                                                                                                                      |
+| Development workflow              | [01-GUIDES/DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md)                                                                                                                                                                                    |
+| Testing                           | [01-GUIDES/TESTING.md](01-GUIDES/TESTING.md)                                                                                                                                                                                            |
+| Deployment env                    | [01-GUIDES/DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md)                                                                                                                                                                              |
+| Production runbook                | [01-GUIDES/PRODUCTION_RUNBOOK.md](01-GUIDES/PRODUCTION_RUNBOOK.md)                                                                                                                                                                      |
+| Sentry monitoring                 | [01-GUIDES/SENTRY_MONITORING.md](01-GUIDES/SENTRY_MONITORING.md)                                                                                                                                                                        |
+| Troubleshooting                   | [01-GUIDES/TROUBLESHOOTING.md](01-GUIDES/TROUBLESHOOTING.md)                                                                                                                                                                            |
+| Features map                      | [02-FEATURES/README.md](02-FEATURES/README.md)                                                                                                                                                                                          |
+| Active API                        | [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)                                                                                                                                                                |
+| Auth flow                         | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md)                                                                                                                                                                                    |
+| Parent dashboard spec             | [02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md](02-FEATURES/PARENT_DASHBOARD_AND_CHILD_LINKS.md)                                                                                                                                      |
+| Gamification account + ledger     | [02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md](02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md)                                                                                                                      |
+| Frontend architecture             | [04-FRONTEND/ARCHITECTURE.md](04-FRONTEND/ARCHITECTURE.md)                                                                                                                                                                              |
+| Frontend UX surfaces              | [04-FRONTEND/UX_SURFACES.md](04-FRONTEND/UX_SURFACES.md)                                                                                                                                                                                |
+| Theme system                      | [02-FEATURES/THEMES.md](02-FEATURES/THEMES.md)                                                                                                                                                                                          |
+| Dashboard widgets docs            | [04-FRONTEND/DASHBOARD_WIDGETS/README.md](04-FRONTEND/DASHBOARD_WIDGETS/README.md)                                                                                                                                                      |
+| Prototypes / doc assets           | [assets/README.md](assets/README.md)                                                                                                                                                                                                    |
+| ADRs                              | [05-ADR/README.md](05-ADR/README.md)                                                                                                                                                                                                    |
+| Project governance                | [03-PROJECT/README.md](03-PROJECT/README.md)                                                                                                                                                                                            |
+| Documentation truth review        | [03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md](03-PROJECT/RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md)                                                                                                                              |
 | Rapport prod validate-token / 429 | [03-PROJECT/archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md](03-PROJECT/archives/IMPLEMENTATION_NOTES_CLOSED_2026-04/RAPPORT_VALIDATE_TOKEN_RATE_LIMIT_2026-04-07.md) (historique FFI-L19) |
-| Product changelog                 | [../CHANGELOG.md](../CHANGELOG.md)                                                                                                                |
+| Product changelog                 | [../CHANGELOG.md](../CHANGELOG.md)                                                                                                                                                                                                      |
 
 ## Reading Rules
 

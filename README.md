@@ -9,7 +9,7 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 
 ## Product Status
 
-- visible release: `3.6.0-alpha.1`
+- visible release: `3.6.0-beta.1`
 - release source of truth: `CHANGELOG.md` and `frontend/package.json`
 - note: `pyproject.toml` now carries the aligned Python package metadata version `3.6.0b1`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
 
@@ -70,9 +70,9 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 
 - visible product releases follow SemVer prerelease stages
 - current visible train: `3.6.0-beta.1`
-- moving from `3.5.0-alpha.1` to `3.6.0-alpha.1` opens a new minor prerelease train because learner/adult surface routing, canonical roles, neuro-inclusion UX, and the visible theme system changed materially for end users
+- moving from `3.5.0-alpha.1` to the `3.6.0` prerelease train opened a new minor product cycle because learner/adult surface routing, canonical roles, neuro-inclusion UX, and the visible theme system changed materially for end users
 - moving directly to `3.2.0` stable would be misleading in the current context
-- while still in `alpha`, incrementing `alpha.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists
+- while still in a prerelease phase, incrementing `alpha.N` or `beta.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists
 - internal iterations (`I`, `R`, etc.) are engineering milestones, not product versions
 
 ## Stack

@@ -1,5 +1,7 @@
 # Guide Beta Fermée — Mathakine v3.6.0-beta.1
 
+> **Version en ligne :** la page [/docs](https://mathakine.fun/docs) reprend l'essentiel de ce guide sous forme interactive, avec FAQ et liens d'action. Ce document reste la référence complète pour les parents et enseignants accompagnant un enfant.
+
 ## Bienvenue
 
 Mathakine est une plateforme d’apprentissage des mathématiques pour enfants et adolescents, avec exercices adaptatifs, défis logiques et une progression ludique (XP, badges, séries).
@@ -55,11 +57,12 @@ Raccourcis clavier courants : **Alt+C**, **Alt+T**, **Alt+M**, **Alt+D**, **Alt+
 
 ## Comment signaler un problème
 
-Trois façons simples de remonter un exercice incorrect, un bug ou une suggestion :
+Quatre façons simples de remonter un exercice incorrect, un bug ou une suggestion :
 
 1. **Icône drapeau** dans l’**en-tête** du site (**desktop**)
-2. Lien **« Signaler »** à la **fin d’un exercice** ou d’un **défi** (après la réponse)
-3. **Bouton flottant** (drapeau) en **bas à droite** sur les pages
+2. Bouton **« Signaler »** à la **fin d’un exercice** (après la réponse)
+3. Bouton **« Signaler »** à la **fin d’un défi** (après la réponse)
+4. **Bouton flottant** (drapeau) en **bas à droite** sur les pages
 
 Les signalements sont traités par l’équipe via l’interface d’administration ; merci d’être aussi précis que possible (page concernée, ce que vous attendiez, ce qui s’est passé).
 
@@ -80,3 +83,7 @@ Les signalements sont traités par l’équipe via l’interface d’administrat
 - **Courriel :** webmaster@mathakine.fun  
 - Nous visons une réponse sous **7 jours ouvrés** dans la mesure du possible pour une équipe réduite  
 - Merci encore pour votre temps et votre bienveillance pendant cette beta.
+
+---
+
+**Voir aussi :** la [page Documentation en ligne](https://mathakine.fun/docs) pour la FAQ interactive et les liens d'action rapides.
