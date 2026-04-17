@@ -46,6 +46,7 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-select",
       "recharts",
+      "framer-motion",
     ],
   },
 
