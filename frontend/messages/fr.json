@@ -2606,7 +2606,96 @@
     },
     "content": {
       "title": "Contenu",
-      "description": "Exercices, défis logiques et badges — archivage"
+      "description": "Exercices, défis logiques et badges — archivage",
+      "badgeCreateModal": {
+        "title": "Créer un badge",
+        "cancel": "Annuler",
+        "create": "Créer",
+        "creating": "Création...",
+        "validation": {
+          "codeRequired": "Le code est obligatoire",
+          "codeInvalid": "Code : lettres minuscules, chiffres et underscores uniquement",
+          "nameRequired": "Le nom est obligatoire",
+          "requirementsInvalidSchema": "requirements doit contenir un schéma valide (ex : attempts_count)",
+          "requirementsInvalidJson": "JSON invalide"
+        },
+        "toasts": {
+          "incompleteFields": "Champs incomplets",
+          "incompleteFieldsDescription": "Vérifiez les champs obligatoires.",
+          "requirementsJsonInvalid": "Requirements JSON invalide",
+          "badgeCreated": "Badge créé",
+          "errorTitle": "Erreur",
+          "createFailed": "Échec de la création"
+        },
+        "labels": {
+          "code": "Code",
+          "name": "Nom",
+          "description": "Description",
+          "icon": "Icône (emoji ou URL)",
+          "category": "Catégorie",
+          "difficulty": "Difficulté",
+          "points": "Points",
+          "thematicTitle": "Titre thématique (optionnel)",
+          "requirementsJson": "Requirements (JSON)",
+          "secretBadge": "Badge secret"
+        },
+        "placeholders": {
+          "code": "ex : premiers_pas",
+          "name": "Premiers pas",
+          "description": "Résous ton premier exercice",
+          "icon": "✨ ou https://...",
+          "thematicTitle": "ex. Première mission réussie",
+          "requirements": "{\"attempts_count\": 10}"
+        },
+        "hints": {
+          "iconHelp": "Emoji (ex : ✨ ⚡ 🎯 🌟) ou URL d’image — esprit progression sans droits d’auteur"
+        },
+        "principlesToggle": "Principes psychologiques — design des badges",
+        "principles": {
+          "goalGradientBold": "Goal-gradient :",
+          "goalGradientBody": "Objectif progressif (X/Y), barre visible, « Plus que X » — incite à l’effort",
+          "endowmentBold": "Endowment :",
+          "endowmentBody": "Visuel valorisant pour les badges obtenus, option épingler — renforce la propriété perçue",
+          "scarcityBold": "Scarcity :",
+          "scarcityBody": "Badges or/légendaire = visuels distincts ; « Rare » (<5 %) — rareté motive",
+          "socialProofBold": "Social proof :",
+          "socialProofBody": "« X % ont débloqué » — comparaison avec les pairs renforce le désir",
+          "lossAversionBold": "Loss aversion :",
+          "lossAversionBody": "Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus",
+          "visualBold": "Visuel :",
+          "visualBody": "Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur (ex. « Premiers pas », « Expert du calcul ») — progression et maîtrise"
+        },
+        "examples": {
+          "attempts": {
+            "short": "Tentatives",
+            "label": "Tentatives (ex : 10)"
+          },
+          "successRate": {
+            "short": "Taux",
+            "label": "Taux réussite (ex : 50 tentatives, 80 %)"
+          },
+          "consecutiveDays": {
+            "short": "Jours",
+            "label": "Jours consécutifs (ex : 7)"
+          },
+          "maxTime": {
+            "short": "Temps",
+            "label": "Temps max (ex : 5 s)"
+          },
+          "logicChallenges": {
+            "short": "Défis",
+            "label": "Défis logiques (ex : 10) — B5"
+          },
+          "mixed": {
+            "short": "Mixte",
+            "label": "Mixte (ex : 20 exercices + 5 défis) — B5"
+          },
+          "comeback": {
+            "short": "Comeback",
+            "label": "Comeback (7 j sans activité)"
+          }
+        }
+      }
     },
     "feedback": {
       "title": "Signalements",

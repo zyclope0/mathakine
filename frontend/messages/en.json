@@ -2607,7 +2607,96 @@
     },
     "content": {
       "title": "Content",
-      "description": "Exercises, logic challenges and badges — archiving"
+      "description": "Exercises, logic challenges and badges — archiving",
+      "badgeCreateModal": {
+        "title": "Create a badge",
+        "cancel": "Cancel",
+        "create": "Create",
+        "creating": "Creating…",
+        "validation": {
+          "codeRequired": "Code is required",
+          "codeInvalid": "Code: lowercase letters, digits and underscores only",
+          "nameRequired": "Name is required",
+          "requirementsInvalidSchema": "requirements must contain a valid schema (e.g. attempts_count)",
+          "requirementsInvalidJson": "Invalid JSON"
+        },
+        "toasts": {
+          "incompleteFields": "Incomplete fields",
+          "incompleteFieldsDescription": "Check required fields.",
+          "requirementsJsonInvalid": "Invalid requirements JSON",
+          "badgeCreated": "Badge created",
+          "errorTitle": "Error",
+          "createFailed": "Creation failed"
+        },
+        "labels": {
+          "code": "Code",
+          "name": "Name",
+          "description": "Description",
+          "icon": "Icon (emoji or URL)",
+          "category": "Category",
+          "difficulty": "Difficulty",
+          "points": "Points",
+          "thematicTitle": "Thematic title (optional)",
+          "requirementsJson": "Requirements (JSON)",
+          "secretBadge": "Secret badge"
+        },
+        "placeholders": {
+          "code": "e.g. first_steps",
+          "name": "First steps",
+          "description": "Complete your first exercise",
+          "icon": "✨ or https://...",
+          "thematicTitle": "e.g. First mission complete",
+          "requirements": "{\"attempts_count\": 10}"
+        },
+        "hints": {
+          "iconHelp": "Emoji (e.g. ✨ ⚡ 🎯 🌟) or image URL — progression feel, no copyrighted assets"
+        },
+        "principlesToggle": "Psychological principles — badge design",
+        "principles": {
+          "goalGradientBold": "Goal-gradient:",
+          "goalGradientBody": "Progressive goal (X/Y), visible bar, “Only X left” — encourages effort",
+          "endowmentBold": "Endowment:",
+          "endowmentBody": "Rewarding visuals for earned badges, optional pin — strengthens perceived ownership",
+          "scarcityBold": "Scarcity:",
+          "scarcityBody": "Gold/legendary badges = distinct visuals; “Rare” (<5%) — scarcity motivates",
+          "socialProofBold": "Social proof:",
+          "socialProofBody": "“X% have unlocked” — peer comparison boosts desire",
+          "lossAversionBold": "Loss aversion:",
+          "lossAversionBody": "Streaks, “You’re close, don’t give up!” — fear of losing motivates ~2× more",
+          "visualBold": "Visual:",
+          "visualBody": "Emoji or URL (✨ ⚡ 🎯 🌟), evocative name (e.g. “First steps”, “Calculation expert”) — progression and mastery"
+        },
+        "examples": {
+          "attempts": {
+            "short": "Attempts",
+            "label": "Attempts (e.g. 10)"
+          },
+          "successRate": {
+            "short": "Rate",
+            "label": "Success rate (e.g. 50 attempts, 80%)"
+          },
+          "consecutiveDays": {
+            "short": "Days",
+            "label": "Consecutive days (e.g. 7)"
+          },
+          "maxTime": {
+            "short": "Time",
+            "label": "Max time (e.g. 5s)"
+          },
+          "logicChallenges": {
+            "short": "Logic",
+            "label": "Logic challenges (e.g. 10) — B5"
+          },
+          "mixed": {
+            "short": "Mixed",
+            "label": "Mixed (e.g. 20 exercises + 5 challenges) — B5"
+          },
+          "comeback": {
+            "short": "Comeback",
+            "label": "Comeback (7d without activity)"
+          }
+        }
+      }
     },
     "feedback": {
       "title": "Feedback reports",

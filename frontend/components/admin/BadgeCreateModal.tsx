@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -24,21 +25,25 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { BADGE_CATEGORIES, BADGE_DIFFICULTIES } from "@/lib/constants/badges";
 
-const REQUIREMENT_EXAMPLES = [
-  { label: "Tentatives (ex: 10)", value: '{"attempts_count": 10}' },
-  {
-    label: "Taux réussite (ex: 50 tentatives, 80%)",
-    value: '{"min_attempts": 50, "success_rate": 80}',
-  },
-  { label: "Jours consécutifs (ex: 7)", value: '{"consecutive_days": 7}' },
-  { label: "Temps max (ex: 5s)", value: '{"max_time": 5}' },
-  { label: "Défis logiques (ex: 10) — B5", value: '{"logic_attempts_count": 10}' },
-  {
-    label: "Mixte (ex: 20 exercices + 5 défis) — B5",
-    value: '{"attempts_count": 20, "logic_attempts_count": 5}',
-  },
-  { label: "Comeback (7j sans activité)", value: '{"comeback_days": 7}' },
-];
+const REQUIREMENT_EXAMPLE_VALUES = [
+  '{"attempts_count": 10}',
+  '{"min_attempts": 50, "success_rate": 80}',
+  '{"consecutive_days": 7}',
+  '{"max_time": 5}',
+  '{"logic_attempts_count": 10}',
+  '{"attempts_count": 20, "logic_attempts_count": 5}',
+  '{"comeback_days": 7}',
+] as const;
+
+const REQUIREMENT_EXAMPLE_KEYS = [
+  "attempts",
+  "successRate",
+  "consecutiveDays",
+  "maxTime",
+  "logicChallenges",
+  "mixed",
+  "comeback",
+] as const;
 
 interface BadgeCreateModalProps {
   open: boolean;
@@ -60,10 +65,21 @@ const initialState = {
 };
 
 export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateModalProps) {
+  const t = useTranslations("adminPages.content.badgeCreateModal");
   const [data, setData] = useState(initialState);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [principlesOpen, setPrinciplesOpen] = useState(false);
+
+  const requirementExamples = useMemo(
+    () =>
+      REQUIREMENT_EXAMPLE_KEYS.map((key, i) => ({
+        value: REQUIREMENT_EXAMPLE_VALUES[i],
+        short: t(`examples.${key}.short`),
+        label: t(`examples.${key}.label`),
+      })),
+    [t]
+  );
 
   const update = (k: keyof typeof initialState, v: unknown) => {
     setData((prev) => ({ ...prev, [k]: v }));
@@ -72,16 +88,16 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
-    if (!data.code.trim()) e.code = "Le code est obligatoire";
+    if (!data.code.trim()) e.code = t("validation.codeRequired");
     else if (!/^[a-z0-9_]+$/.test(data.code.replace(/\s/g, "_")))
-      e.code = "Code : lettres minuscules, chiffres et underscores uniquement";
-    if (!data.name.trim()) e.name = "Le nom est obligatoire";
+      e.code = t("validation.codeInvalid");
+    if (!data.name.trim()) e.name = t("validation.nameRequired");
     try {
       const req = JSON.parse(data.requirements || "{}");
       if (!req || typeof req !== "object" || Object.keys(req).length === 0)
-        e.requirements = "requirements doit contenir un schéma valide (ex: attempts_count)";
+        e.requirements = t("validation.requirementsInvalidSchema");
     } catch {
-      e.requirements = "JSON invalide";
+      e.requirements = t("validation.requirementsInvalidJson");
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -89,7 +105,9 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
 
   const handleCreate = async () => {
     if (!validate()) {
-      toast.error("Champs incomplets", { description: "Vérifiez les champs obligatoires." });
+      toast.error(t("toasts.incompleteFields"), {
+        description: t("toasts.incompleteFieldsDescription"),
+      });
       return;
     }
     setSaving(true);
@@ -98,7 +116,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
       try {
         requirements = JSON.parse(data.requirements) as Record<string, unknown>;
       } catch {
-        toast.error("Requirements JSON invalide");
+        toast.error(t("toasts.requirementsJsonInvalid"));
         setSaving(false);
         return;
       }
@@ -114,13 +132,13 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
         requirements,
         star_wars_title: data.star_wars_title.trim() || undefined,
       });
-      toast.success("Badge créé");
+      toast.success(t("toasts.badgeCreated"));
       setData(initialState);
       onOpenChange(false);
       onCreated();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Échec de la création";
-      toast.error("Erreur", { description: msg });
+      const msg = err instanceof Error ? err.message : t("toasts.createFailed");
+      toast.error(t("toasts.errorTitle"), { description: msg });
     } finally {
       setSaving(false);
     }
@@ -130,7 +148,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Créer un badge</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
 
         <div className="mb-4">
@@ -141,40 +159,36 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
             onClick={() => setPrinciplesOpen(!principlesOpen)}
           >
             <span className="flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              Principes psychologiques — design des badges
+              <Info className="h-4 w-4" aria-hidden="true" />
+              {t("principlesToggle")}
             </span>
             {principlesOpen ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
             )}
           </Button>
           {principlesOpen && (
-            <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1.5 mt-2">
+            <div className="mt-2 space-y-1.5 rounded-md border bg-muted/50 p-3 text-sm">
               <p>
-                <strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus
-                que X » — incite à l&apos;effort
+                <strong>{t("principles.goalGradientBold")}</strong>{" "}
+                {t("principles.goalGradientBody")}
               </p>
               <p>
-                <strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option
-                épingler — renforce la propriété perçue
+                <strong>{t("principles.endowmentBold")}</strong> {t("principles.endowmentBody")}
               </p>
               <p>
-                <strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare »
-                (&lt;5%) — rareté motive
+                <strong>{t("principles.scarcityBold")}</strong> {t("principles.scarcityBody")}
               </p>
               <p>
-                <strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs
-                renforce le désir
+                <strong>{t("principles.socialProofBold")}</strong> {t("principles.socialProofBody")}
               </p>
               <p>
-                <strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de
-                perdre motive 2× plus
+                <strong>{t("principles.lossAversionBold")}</strong>{" "}
+                {t("principles.lossAversionBody")}
               </p>
-              <p className="pt-2 mt-2 border-t border-border/50">
-                <strong>Visuel :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur (ex. « Premiers
-                pas », « Expert du calcul ») — progression et maîtrise
+              <p className="mt-2 border-t border-border/50 pt-2">
+                <strong>{t("principles.visualBold")}</strong> {t("principles.visualBody")}
               </p>
             </div>
           )}
@@ -184,24 +198,24 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>
-                Code <span className="text-destructive">*</span>
+                {t("labels.code")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={data.code}
                 onChange={(e) => update("code", e.target.value)}
-                placeholder="ex: premiers_pas"
+                placeholder={t("placeholders.code")}
                 className={errors.code ? "border-destructive" : ""}
               />
               {errors.code && <p className="text-sm text-destructive">{errors.code}</p>}
             </div>
             <div className="grid gap-2">
               <Label>
-                Nom <span className="text-destructive">*</span>
+                {t("labels.name")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={data.name}
                 onChange={(e) => update("name", e.target.value)}
-                placeholder="Premiers Pas"
+                placeholder={t("placeholders.name")}
                 className={errors.name ? "border-destructive" : ""}
               />
               {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
@@ -209,31 +223,28 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
           </div>
 
           <div className="grid gap-2">
-            <Label>Description</Label>
+            <Label>{t("labels.description")}</Label>
             <Textarea
               value={data.description}
               onChange={(e) => update("description", e.target.value)}
               rows={2}
-              placeholder="Résous ton premier exercice"
+              placeholder={t("placeholders.description")}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label>Icône (emoji ou URL)</Label>
+            <Label>{t("labels.icon")}</Label>
             <Input
               value={data.icon_url}
               onChange={(e) => update("icon_url", e.target.value)}
-              placeholder="✨ ou https://..."
+              placeholder={t("placeholders.icon")}
             />
-            <p className="text-xs text-muted-foreground">
-              Emoji (ex: ✨ ⚡ 🎯 🌟) ou URL d&apos;image — esprit progression sans droits
-              d&apos;auteur
-            </p>
+            <p className="text-xs text-muted-foreground">{t("hints.iconHelp")}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Catégorie</Label>
+              <Label>{t("labels.category")}</Label>
               <Select value={data.category} onValueChange={(v) => update("category", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -248,7 +259,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Difficulté</Label>
+              <Label>{t("labels.difficulty")}</Label>
               <Select value={data.difficulty} onValueChange={(v) => update("difficulty", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -266,7 +277,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Points</Label>
+              <Label>{t("labels.points")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -275,31 +286,33 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
               />
             </div>
             <div className="grid gap-2">
-              <Label>Titre thématique (optionnel)</Label>
+              <Label>{t("labels.thematicTitle")}</Label>
               <Input
                 value={data.star_wars_title}
                 onChange={(e) => update("star_wars_title", e.target.value)}
-                placeholder="ex. Première mission réussie"
+                placeholder={t("placeholders.thematicTitle")}
               />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label>
-                Requirements (JSON) <span className="text-destructive">*</span>
+                {t("labels.requirementsJson")} <span className="text-destructive">*</span>
               </Label>
-              <div className="flex gap-1 flex-wrap">
-                {REQUIREMENT_EXAMPLES.map((ex) => (
+              <div className="flex flex-wrap gap-1">
+                {requirementExamples.map((ex) => (
                   <Button
                     key={ex.value}
                     type="button"
                     variant="ghost"
                     size="sm"
                     className="h-7 text-xs"
+                    title={ex.label}
+                    aria-label={ex.label}
                     onClick={() => update("requirements", ex.value)}
                   >
-                    {ex.label.split(" ")[0]}
+                    {ex.short}
                   </Button>
                 ))}
               </div>
@@ -308,7 +321,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
               value={data.requirements}
               onChange={(e) => update("requirements", e.target.value)}
               rows={3}
-              placeholder='{"attempts_count": 10}'
+              placeholder={t("placeholders.requirements")}
               className={`font-mono text-sm ${errors.requirements ? "border-destructive" : ""}`}
             />
             {errors.requirements && (
@@ -324,16 +337,16 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
               onChange={(e) => update("is_secret", e.target.checked)}
               className="rounded"
             />
-            <Label htmlFor="is_secret">Badge secret</Label>
+            <Label htmlFor="is_secret">{t("labels.secretBadge")}</Label>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("cancel")}
           </Button>
           <Button onClick={handleCreate} disabled={saving}>
-            {saving ? "Création..." : "Créer"}
+            {saving ? t("creating") : t("create")}
           </Button>
         </DialogFooter>
       </DialogContent>
