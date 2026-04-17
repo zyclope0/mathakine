@@ -252,7 +252,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
                 <SelectContent>
                   {BADGE_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
-                      {c}
+                      {t(`categoryOptions.${c}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -267,7 +267,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
                 <SelectContent>
                   {BADGE_DIFFICULTIES.map((d) => (
                     <SelectItem key={d} value={d}>
-                      {d}
+                      {t(`difficultyOptions.${d}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>

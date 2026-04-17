@@ -2651,6 +2651,20 @@
         "hints": {
           "iconHelp": "Emoji (e.g. ✨ ⚡ 🎯 🌟) or image URL — progression feel, no copyrighted assets"
         },
+        "categoryOptions": {
+          "progression": "Progression",
+          "mastery": "Mastery",
+          "special": "Special",
+          "performance": "Performance",
+          "regularity": "Regularity",
+          "discovery": "Discovery"
+        },
+        "difficultyOptions": {
+          "bronze": "Bronze",
+          "silver": "Silver",
+          "gold": "Gold",
+          "legendary": "Legendary"
+        },
         "principlesToggle": "Psychological principles — badge design",
         "principles": {
           "goalGradientBold": "Goal-gradient:",

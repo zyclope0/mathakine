@@ -2650,6 +2650,20 @@
         "hints": {
           "iconHelp": "Emoji (ex : ✨ ⚡ 🎯 🌟) ou URL d’image — esprit progression sans droits d’auteur"
         },
+        "categoryOptions": {
+          "progression": "Progression",
+          "mastery": "Maîtrise",
+          "special": "Spécial",
+          "performance": "Performance",
+          "regularity": "Régularité",
+          "discovery": "Découverte"
+        },
+        "difficultyOptions": {
+          "bronze": "Bronze",
+          "silver": "Argent",
+          "gold": "Or",
+          "legendary": "Légendaire"
+        },
         "principlesToggle": "Principes psychologiques — design des badges",
         "principles": {
           "goalGradientBold": "Goal-gradient :",
