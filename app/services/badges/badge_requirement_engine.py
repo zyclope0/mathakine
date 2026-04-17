@@ -109,7 +109,7 @@ def _check_max_time(
         db.query(Attempt)
         .filter(
             Attempt.user_id == user_id,
-            Attempt.is_correct == True,
+            Attempt.is_correct.is_(True),
             Attempt.time_spent <= max_t,
         )
         .first()
@@ -498,7 +498,7 @@ def _progress_max_time(
             db.query(Attempt)
             .filter(
                 Attempt.user_id == user_id,
-                Attempt.is_correct == True,
+                Attempt.is_correct.is_(True),
                 Attempt.time_spent <= max_t,
             )
             .first()

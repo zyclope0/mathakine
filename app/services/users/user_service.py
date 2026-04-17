@@ -140,7 +140,7 @@ class UserService:
             Liste des utilisateurs actifs
         """
         try:
-            query = db.query(User).filter(User.is_active == True)
+            query = db.query(User).filter(User.is_active.is_(True))
 
             if offset is not None:
                 query = query.offset(offset)
@@ -307,7 +307,7 @@ class UserService:
                 )
 
             total_attempts = attempts_query.count()
-            correct_attempts = attempts_query.filter(Attempt.is_correct == True).count()
+            correct_attempts = attempts_query.filter(Attempt.is_correct.is_(True)).count()
 
             # Calculer le taux de réussite (éviter la division par zéro)
             success_rate = (
@@ -628,7 +628,7 @@ class UserService:
                 db.query(LogicChallengeAttempt)
                 .filter(
                     LogicChallengeAttempt.user_id == user_id,
-                    LogicChallengeAttempt.is_correct == True,
+                    LogicChallengeAttempt.is_correct.is_(True),
                 )
                 .count()
             )
@@ -967,8 +967,8 @@ class UserService:
         total_challenges = (
             db.query(LogicChallenge)
             .filter(
-                LogicChallenge.is_active == True,
-                LogicChallenge.is_archived == False,
+                LogicChallenge.is_active.is_(True),
+                LogicChallenge.is_archived.is_(False),
             )
             .count()
         )
@@ -1367,7 +1367,7 @@ class UserService:
             .filter(
                 and_(
                     UserSession.user_id == user_id,
-                    UserSession.is_active == True,
+                    UserSession.is_active.is_(True),
                     UserSession.expires_at > datetime.now(timezone.utc),
                 )
             )

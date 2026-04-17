@@ -28,7 +28,7 @@ def get_moderation_for_api(
         "total_challenges": 0,
     }
     if mod_type in ("exercises", "all"):
-        q_ex = db.query(Exercise).filter(Exercise.ai_generated == True)
+        q_ex = db.query(Exercise).filter(Exercise.ai_generated.is_(True))
         result["total_exercises"] = q_ex.count()
         rows_ex = (
             q_ex.order_by(Exercise.created_at.desc()).offset(skip).limit(limit).all()

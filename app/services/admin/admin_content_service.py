@@ -293,7 +293,7 @@ class AdminContentService:
                 db.query(
                     Attempt.exercise_id,
                     func.count(Attempt.id).label("attempt_count"),
-                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
+                    func.sum(case((Attempt.is_correct.is_(True), 1), else_=0)).label(
                         "correct_count"
                     ),
                 )
@@ -571,7 +571,7 @@ class AdminContentService:
                     LogicChallengeAttempt.challenge_id,
                     func.count(LogicChallengeAttempt.id).label("attempt_count"),
                     func.sum(
-                        case((LogicChallengeAttempt.is_correct == True, 1), else_=0)
+                        case((LogicChallengeAttempt.is_correct.is_(True), 1), else_=0)
                     ).label("correct_count"),
                 )
                 .filter(LogicChallengeAttempt.challenge_id.in_(ch_ids))

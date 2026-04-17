@@ -26,19 +26,19 @@ class ExerciseStatsService:
         # 1. Stats générales
         total_exercises = (
             db.query(func.count(Exercise.id))
-            .filter(Exercise.is_active == True)
+            .filter(Exercise.is_active.is_(True))
             .scalar()
             or 0
         )
         total_archived = (
             db.query(func.count(Exercise.id))
-            .filter(Exercise.is_archived == True)
+            .filter(Exercise.is_archived.is_(True))
             .scalar()
             or 0
         )
         ai_generated_count = (
             db.query(func.count(Exercise.id))
-            .filter(Exercise.ai_generated == True, Exercise.is_active == True)
+            .filter(Exercise.ai_generated.is_(True), Exercise.is_active.is_(True))
             .scalar()
             or 0
         )
@@ -57,7 +57,7 @@ class ExerciseStatsService:
         }
         by_type_query = (
             db.query(Exercise.exercise_type, func.count(Exercise.id).label("count"))
-            .filter(Exercise.is_active == True)
+            .filter(Exercise.is_active.is_(True))
             .group_by(Exercise.exercise_type)
             .all()
         )
@@ -104,7 +104,7 @@ class ExerciseStatsService:
         }
         by_difficulty_query = (
             db.query(Exercise.difficulty, func.count(Exercise.id).label("count"))
-            .filter(Exercise.is_active == True)
+            .filter(Exercise.is_active.is_(True))
             .group_by(Exercise.difficulty)
             .all()
         )
@@ -156,7 +156,7 @@ class ExerciseStatsService:
         }
         by_age_query = (
             db.query(Exercise.age_group, func.count(Exercise.id).label("count"))
-            .filter(Exercise.is_active == True)
+            .filter(Exercise.is_active.is_(True))
             .group_by(Exercise.age_group)
             .all()
         )
@@ -181,7 +181,7 @@ class ExerciseStatsService:
         # 5. Complétion globale
         total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
         correct_attempts = (
-            db.query(func.count(Attempt.id)).filter(Attempt.is_correct == True).scalar()
+            db.query(func.count(Attempt.id)).filter(Attempt.is_correct.is_(True)).scalar()
             or 0
         )
         global_success_rate = (
@@ -199,7 +199,7 @@ class ExerciseStatsService:
                 func.count(Attempt.id).label("attempt_count"),
             )
             .join(Attempt, Attempt.exercise_id == Exercise.id)
-            .filter(Exercise.is_active == True)
+            .filter(Exercise.is_active.is_(True))
             .group_by(
                 Exercise.id, Exercise.title, Exercise.exercise_type, Exercise.difficulty
             )
@@ -223,7 +223,7 @@ class ExerciseStatsService:
         # 6. Stats défis logiques
         total_logic_challenges = (
             db.query(func.count(LogicChallenge.id))
-            .filter(LogicChallenge.is_archived == False)
+            .filter(LogicChallenge.is_archived.is_(False))
             .scalar()
             or 0
         )
@@ -232,7 +232,7 @@ class ExerciseStatsService:
         )
         correct_challenge_attempts = (
             db.query(func.count(LogicChallengeAttempt.id))
-            .filter(LogicChallengeAttempt.is_correct == True)
+            .filter(LogicChallengeAttempt.is_correct.is_(True))
             .scalar()
             or 0
         )

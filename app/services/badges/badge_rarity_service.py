@@ -20,7 +20,7 @@ def get_badges_rarity_stats(db: Session) -> Dict[str, Any]:
     """
     try:
         total_users = (
-            db.query(func.count(User.id)).filter(User.is_active == True).scalar() or 1
+            db.query(func.count(User.id)).filter(User.is_active.is_(True)).scalar() or 1
         )
         rows = db.execute(text("""
             SELECT ua.achievement_id, COUNT(DISTINCT ua.user_id) as unlock_count

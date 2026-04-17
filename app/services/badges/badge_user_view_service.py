@@ -117,7 +117,7 @@ def get_available_badges(
     try:
         badges = (
             db.query(Achievement)
-            .filter(Achievement.is_active == True)
+            .filter(Achievement.is_active.is_(True))
             .order_by(Achievement.category, Achievement.difficulty)
             .limit(effective_limit)
             .all()

@@ -17,12 +17,12 @@ def get_overview_for_api(db: Session) -> dict:
     """KPIs globaux : users, exercises, challenges, attempts."""
     total_users = db.query(func.count(User.id)).scalar() or 0
     total_exercises = (
-        db.query(func.count(Exercise.id)).filter(Exercise.is_archived == False).scalar()
+        db.query(func.count(Exercise.id)).filter(Exercise.is_archived.is_(False)).scalar()
         or 0
     )
     total_challenges = (
         db.query(func.count(LogicChallenge.id))
-        .filter(LogicChallenge.is_archived == False)
+        .filter(LogicChallenge.is_archived.is_(False))
         .scalar()
         or 0
     )

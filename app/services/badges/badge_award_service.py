@@ -54,7 +54,7 @@ class BadgeAwardService:
                 return []
 
             available_badges = (
-                self.db.query(Achievement).filter(Achievement.is_active == True).all()
+                self.db.query(Achievement).filter(Achievement.is_active.is_(True)).all()
             )
             earned_badge_ids = set(
                 badge_id[0]

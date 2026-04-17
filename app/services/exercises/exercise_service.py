@@ -256,7 +256,7 @@ class ExerciseService:
         """
         try:
             query = db.query(Exercise).filter(
-                Exercise.is_archived == False, Exercise.is_active == True
+                Exercise.is_archived.is_(False), Exercise.is_active.is_(True)
             )
 
             if exercise_type:
@@ -339,7 +339,7 @@ class ExerciseService:
                 db.query(Attempt.exercise_id)
                 .filter(
                     Attempt.user_id == user_id,
-                    Attempt.is_correct == True,
+                    Attempt.is_correct.is_(True),
                 )
                 .distinct()
                 .all()
@@ -347,7 +347,7 @@ class ExerciseService:
             completed_ids_to_exclude = [r[0] for r in subq if r[0] is not None]
 
         # Requête de base pour le count
-        count_query = db.query(Exercise).filter(Exercise.is_archived == False)
+        count_query = db.query(Exercise).filter(Exercise.is_archived.is_(False))
         count_query = ExerciseService._apply_exercise_list_filters(
             count_query,
             exercise_type,
@@ -375,7 +375,7 @@ class ExerciseService:
             cast(Exercise.difficulty, String).label("difficulty_str"),
             Exercise.age_group,
             Exercise.difficulty_tier,
-        ).filter(Exercise.is_archived == False)
+        ).filter(Exercise.is_archived.is_(False))
         exercises_query = ExerciseService._apply_exercise_list_filters(
             exercises_query,
             exercise_type,
@@ -554,7 +554,7 @@ class ExerciseService:
             db.query(Attempt.exercise_id)
             .filter(
                 Attempt.user_id == user_id,
-                Attempt.is_correct == True,
+                Attempt.is_correct.is_(True),
             )
             .distinct()
             .all()

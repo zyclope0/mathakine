@@ -30,7 +30,7 @@ def get_reports_for_api(
     attempts_exercises = (
         db.query(
             func.count(Attempt.id).label("total"),
-            func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct"),
+            func.sum(case((Attempt.is_correct.is_(True), 1), else_=0)).label("correct"),
         )
         .filter(Attempt.created_at >= since)
         .first()
@@ -47,7 +47,7 @@ def get_reports_for_api(
         db.query(func.count(LogicChallengeAttempt.id))
         .filter(
             LogicChallengeAttempt.created_at >= since,
-            LogicChallengeAttempt.is_correct == True,
+            LogicChallengeAttempt.is_correct.is_(True),
         )
         .scalar()
         or 0

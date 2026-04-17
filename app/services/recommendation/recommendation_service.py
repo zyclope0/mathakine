@@ -220,8 +220,8 @@ def _select_logic_challenge_recommendation_entries(
     now = datetime.now(timezone.utc)
 
     challenge_query = db.query(LogicChallenge).filter(
-        LogicChallenge.is_archived == False,
-        LogicChallenge.is_active == True,
+        LogicChallenge.is_archived.is_(False),
+        LogicChallenge.is_active.is_(True),
     )
     if user_age_group != AgeGroups.ALL_AGES:
         try:
@@ -360,7 +360,7 @@ class RecommendationService:
                 for a in db.query(Attempt)
                 .filter(
                     Attempt.user_id == user_id,
-                    Attempt.is_correct == True,
+                    Attempt.is_correct.is_(True),
                     Attempt.exercise_id.isnot(None),
                 )
                 .all()
@@ -376,7 +376,7 @@ class RecommendationService:
             # synchronize_session=False : évite de marquer des instances ORM déjà en session
             # comme « supprimées » (ObjectDeletedError) lors d’un 2e generate dans la même session.
             db.query(Recommendation).filter(
-                Recommendation.user_id == user_id, Recommendation.is_completed == False
+                Recommendation.user_id == user_id, Recommendation.is_completed.is_(False)
             ).delete(synchronize_session=False)
             # Le DELETE bulk ne vide pas ``user.recommendations`` (relation ``delete-orphan``).
             # ``expire`` sur la relation a montré des effets de bord (FK user_id) ; on réaligne
@@ -430,8 +430,8 @@ class RecommendationService:
                         exercise_tier_filter_expression(improv_tier, target_difficulty),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
-                        Exercise.is_archived == False,
-                        Exercise.is_active == True,
+                        Exercise.is_archived.is_(False),
+                        Exercise.is_active.is_(True),
                     )
                     # Cibler le groupe d'âge utilisateur (sauf tous-ages = pas de filtre)
                     if user_age_group != AgeGroups.ALL_AGES:
@@ -522,8 +522,8 @@ class RecommendationService:
                             exercise_tier_filter_expression(prog_tier, next_difficulty),
                             Exercise.exercise_type.in_(valid_types),
                             Exercise.difficulty.in_(valid_difficulties),
-                            Exercise.is_archived == False,
-                            Exercise.is_active == True,
+                            Exercise.is_archived.is_(False),
+                            Exercise.is_active.is_(True),
                         )
 
                         # Exclure les exercices déjà réussis
@@ -640,8 +640,8 @@ class RecommendationService:
                         exercise_tier_filter_expression(maint_tier, user_level),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
-                        Exercise.is_archived == False,
-                        Exercise.is_active == True,
+                        Exercise.is_archived.is_(False),
+                        Exercise.is_active.is_(True),
                     ]
                     if user_age_group != AgeGroups.ALL_AGES:
                         age_values = list(
@@ -709,8 +709,8 @@ class RecommendationService:
                         exercise_tier_filter_expression(disc_tier, target_d),
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
-                        Exercise.is_archived == False,
-                        Exercise.is_active == True,
+                        Exercise.is_archived.is_(False),
+                        Exercise.is_active.is_(True),
                     ]
                     if user_age_group != AgeGroups.ALL_AGES:
                         age_values = list(
@@ -763,7 +763,7 @@ class RecommendationService:
                 for a in db.query(LogicChallengeAttempt)
                 .filter(
                     LogicChallengeAttempt.user_id == user_id,
-                    LogicChallengeAttempt.is_correct == True,
+                    LogicChallengeAttempt.is_correct.is_(True),
                     LogicChallengeAttempt.challenge_id.isnot(None),
                 )
                 .all()
@@ -811,8 +811,8 @@ class RecommendationService:
                 ex_filter = [
                     Exercise.exercise_type.in_(valid_types),
                     Exercise.difficulty.in_(valid_difficulties),
-                    Exercise.is_archived == False,
-                    Exercise.is_active == True,
+                    Exercise.is_archived.is_(False),
+                    Exercise.is_active.is_(True),
                 ]
                 if fb_tier is not None:
                     lo_fb = max(1, fb_tier - 1)
@@ -908,7 +908,7 @@ class RecommendationService:
                         and_(
                             Attempt.user_id == user_id,
                             Attempt.exercise_id == recommendation.exercise_id,
-                            Attempt.is_correct == True,
+                            Attempt.is_correct.is_(True),
                         )
                     )
                 ).scalar()
@@ -921,7 +921,7 @@ class RecommendationService:
                         and_(
                             LogicChallengeAttempt.user_id == user_id,
                             LogicChallengeAttempt.challenge_id == cid,
-                            LogicChallengeAttempt.is_correct == True,
+                            LogicChallengeAttempt.is_correct.is_(True),
                         )
                     )
                 ).scalar()
@@ -946,7 +946,7 @@ class RecommendationService:
                 .filter(
                     Recommendation.id.in_(recommendation_ids),
                     Recommendation.user_id == user_id,
-                    Recommendation.is_completed == False,
+                    Recommendation.is_completed.is_(False),
                 )
                 .all()
             )
@@ -976,7 +976,7 @@ class RecommendationService:
                 .filter(
                     Recommendation.id == recommendation_id,
                     Recommendation.user_id == user_id,
-                    Recommendation.is_completed == False,
+                    Recommendation.is_completed.is_(False),
                 )
                 .first()
             )
@@ -1062,7 +1062,7 @@ class RecommendationService:
             for a in db.query(Attempt)
             .filter(
                 Attempt.user_id == user_id,
-                Attempt.is_correct == True,
+                Attempt.is_correct.is_(True),
                 Attempt.exercise_id.isnot(None),
             )
             .all()
@@ -1073,7 +1073,7 @@ class RecommendationService:
             for a in db.query(LogicChallengeAttempt)
             .filter(
                 LogicChallengeAttempt.user_id == user_id,
-                LogicChallengeAttempt.is_correct == True,
+                LogicChallengeAttempt.is_correct.is_(True),
                 LogicChallengeAttempt.challenge_id.isnot(None),
             )
             .all()
@@ -1176,7 +1176,7 @@ class RecommendationService:
                 selectinload(Recommendation.challenge),
             )
             .filter(
-                Recommendation.user_id == user_id, Recommendation.is_completed == False
+                Recommendation.user_id == user_id, Recommendation.is_completed.is_(False)
             )
             .order_by(Recommendation.priority.desc())
             .limit(limit + 10)

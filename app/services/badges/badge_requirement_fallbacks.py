@@ -254,7 +254,7 @@ def _check_speed_demon(
         db.query(Attempt)
         .filter(
             Attempt.user_id == user_id,
-            Attempt.is_correct == True,
+            Attempt.is_correct.is_(True),
             Attempt.time_spent <= max_time,
         )
         .first()

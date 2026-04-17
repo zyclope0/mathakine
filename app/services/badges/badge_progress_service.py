@@ -69,7 +69,7 @@ def get_badges_progress(db: Session, user_id: int) -> Dict[str, Any]:
         .filter(UserAchievement.user_id == user_id)
         .all()
     }
-    all_badges = db.query(Achievement).filter(Achievement.is_active == True).all()
+    all_badges = db.query(Achievement).filter(Achievement.is_active.is_(True)).all()
     stats_cache = build_stats_cache(db, user_id)
 
     unlocked = []

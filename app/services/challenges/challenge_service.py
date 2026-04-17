@@ -502,7 +502,7 @@ def get_user_completed_challenges(db: Session, user_id: int) -> List[int]:
         db.query(LogicChallengeAttempt.challenge_id)
         .filter(
             LogicChallengeAttempt.user_id == user_id,
-            LogicChallengeAttempt.is_correct == True,
+            LogicChallengeAttempt.is_correct.is_(True),
         )
         .distinct()
         .all()
@@ -549,7 +549,7 @@ def record_attempt(
         stats = (
             db.query(
                 func.count(LogicChallengeAttempt.id).label("total"),
-                func.count(case((LogicChallengeAttempt.is_correct == True, 1))).label(
+                func.count(case((LogicChallengeAttempt.is_correct.is_(True), 1))).label(
                     "correct"
                 ),
             )

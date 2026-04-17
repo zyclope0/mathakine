@@ -103,7 +103,7 @@ class DatabaseAdapter:
 
             # Filtrer par is_archived si le modèle a cet attribut
             if hasattr(model_class, "is_archived"):
-                query = query.filter(getattr(model_class, "is_archived") == False)
+                query = query.filter(getattr(model_class, "is_archived").is_(False))
 
             # Appliquer limit et offset si spécifiés
             if offset is not None:
