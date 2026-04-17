@@ -39,7 +39,11 @@ from server.handlers.admin_handlers import (
     admin_users_send_reset_password,
 )
 from server.handlers.analytics_handlers import admin_analytics_edtech
-from server.handlers.feedback_handlers import admin_list_feedback, admin_patch_feedback_status
+from server.handlers.feedback_handlers import (
+    admin_delete_feedback,
+    admin_list_feedback,
+    admin_patch_feedback_status,
+)
 
 
 def get_admin_routes():
@@ -130,6 +134,11 @@ def get_admin_routes():
                     "/feedback/{feedback_id:int}",
                     endpoint=admin_patch_feedback_status,
                     methods=["PATCH"],
+                ),
+                Route(
+                    "/feedback/{feedback_id:int}",
+                    endpoint=admin_delete_feedback,
+                    methods=["DELETE"],
                 ),
                 Route("/audit-log", endpoint=admin_audit_log, methods=["GET"]),
                 Route("/moderation", endpoint=admin_moderation, methods=["GET"]),

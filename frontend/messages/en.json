@@ -2564,7 +2564,14 @@
       "markAsResolved": "Resolved",
       "reopen": "Reopen",
       "statusUpdateSuccess": "Status updated",
-      "statusUpdateError": "Could not update status"
+      "statusUpdateError": "Could not update status",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete this feedback?",
+      "deleteConfirmDescription": "This cannot be undone. The report will be removed from the list.",
+      "deleteConfirmAction": "Delete permanently",
+      "deleteSuccess": "Feedback deleted",
+      "deleteError": "Could not delete this feedback",
+      "cancel": "Cancel"
     },
     "moderation": {
       "title": "AI moderation",

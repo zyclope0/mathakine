@@ -17,6 +17,19 @@ VALID_TYPES = frozenset({"exercise", "challenge", "ui", "other"})
 VALID_STATUSES = frozenset({"new", "read", "resolved"})
 
 
+def delete_feedback_sync(*, feedback_id: int) -> Tuple[bool, Optional[str]]:
+    """
+    Use case sync: supprime un rapport de feedback (hard delete).
+    Execute via run_db_bound() depuis les handlers async.
+
+    Returns:
+        (True, None) en cas de succes
+        (False, "not_found") si le rapport n'existe pas
+    """
+    with sync_db_session() as db:
+        return FeedbackService.delete_feedback(db, feedback_id=feedback_id)
+
+
 def update_feedback_status_sync(
     *, feedback_id: int, status: str
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
@@ -143,6 +156,23 @@ class FeedbackService:
             }
             for r in reports
         ]
+
+    @staticmethod
+    def delete_feedback(db: Session, *, feedback_id: int) -> Tuple[bool, Optional[str]]:
+        """
+        Supprime un rapport par identifiant.
+
+        Returns:
+            (True, None) en cas de succes
+            (False, "not_found") sinon
+        """
+        report = db.query(FeedbackReport).filter(FeedbackReport.id == feedback_id).first()
+        if report is None:
+            return False, "not_found"
+
+        db.delete(report)
+        db.commit()
+        return True, None
 
     @staticmethod
     def update_feedback_status(

@@ -94,8 +94,17 @@ export default function AdminFeedbackPage() {
   const t = useTranslations("adminPages.feedback");
   const locale = useLocale();
   const dateLocale = localeTag(locale);
-  const { feedback, isLoading, error, updateFeedbackStatus, isUpdatingStatus } = useAdminFeedback();
+  const {
+    feedback,
+    isLoading,
+    error,
+    updateFeedbackStatus,
+    isUpdatingStatus,
+    deleteFeedback,
+    isDeletingFeedback,
+  } = useAdminFeedback();
   const [selectedItem, setSelectedItem] = useState<FeedbackReportItem | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const typeLabels = useMemo(
     () => ({
@@ -187,6 +196,21 @@ export default function AdminFeedbackPage() {
       setSelectedItem((prev) => (prev ? { ...prev, status: next } : null));
     } catch {
       toast.error(t("statusUpdateError"));
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedItem) {
+      return;
+    }
+    const id = selectedItem.id;
+    try {
+      await deleteFeedback(id);
+      toast.success(t("deleteSuccess"));
+      setDeleteConfirmOpen(false);
+      setSelectedItem(null);
+    } catch {
+      toast.error(t("deleteError"));
     }
   };
 
@@ -319,6 +343,7 @@ export default function AdminFeedbackPage() {
         onOpenChange={(open) => {
           if (!open) {
             setSelectedItem(null);
+            setDeleteConfirmOpen(false);
           }
         }}
       >
@@ -356,7 +381,7 @@ export default function AdminFeedbackPage() {
                         <Button
                           type="button"
                           size="sm"
-                          disabled={isUpdatingStatus}
+                          disabled={isUpdatingStatus || isDeletingFeedback}
                           onClick={() => void handleStatusUpdate("read")}
                         >
                           {t("markAsRead")}
@@ -365,7 +390,7 @@ export default function AdminFeedbackPage() {
                           type="button"
                           variant="secondary"
                           size="sm"
-                          disabled={isUpdatingStatus}
+                          disabled={isUpdatingStatus || isDeletingFeedback}
                           onClick={() => void handleStatusUpdate("resolved")}
                         >
                           {t("markAsResolved")}
@@ -377,7 +402,7 @@ export default function AdminFeedbackPage() {
                         <Button
                           type="button"
                           size="sm"
-                          disabled={isUpdatingStatus}
+                          disabled={isUpdatingStatus || isDeletingFeedback}
                           onClick={() => void handleStatusUpdate("resolved")}
                         >
                           {t("markAsResolved")}
@@ -386,7 +411,7 @@ export default function AdminFeedbackPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          disabled={isUpdatingStatus}
+                          disabled={isUpdatingStatus || isDeletingFeedback}
                           onClick={() => void handleStatusUpdate("new")}
                         >
                           {t("reopen")}
@@ -398,7 +423,7 @@ export default function AdminFeedbackPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        disabled={isUpdatingStatus}
+                        disabled={isUpdatingStatus || isDeletingFeedback}
                         onClick={() => void handleStatusUpdate("new")}
                       >
                         {t("reopen")}
@@ -474,6 +499,17 @@ export default function AdminFeedbackPage() {
                   </div>
                 </div>
               </div>
+              <div className="border-t pt-4">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={isUpdatingStatus || isDeletingFeedback}
+                  onClick={() => setDeleteConfirmOpen(true)}
+                >
+                  {t("delete")}
+                </Button>
+              </div>
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button type="button" variant="outline" onClick={() => setSelectedItem(null)}>
                   {t("close")}
@@ -485,6 +521,33 @@ export default function AdminFeedbackPage() {
               </DialogFooter>
             </>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
+            <DialogDescription>{t("deleteConfirmDescription")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeletingFeedback}
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeletingFeedback}
+              onClick={() => void handleConfirmDelete()}
+            >
+              {t("deleteConfirmAction")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

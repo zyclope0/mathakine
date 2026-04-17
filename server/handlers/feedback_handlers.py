@@ -11,6 +11,7 @@ from app.core.user_roles import serialize_user_role
 from app.services.admin.admin_read_service import list_feedback_for_admin
 from app.services.feedback.feedback_service import (
     create_feedback_report_sync,
+    delete_feedback_sync,
     update_feedback_status_sync,
 )
 from app.utils.error_handler import api_error_response, get_safe_error_message
@@ -140,6 +141,35 @@ async def admin_patch_feedback_status(request: Request) -> JSONResponse:
         return JSONResponse(payload)
     except Exception as e:
         logger.error("Erreur admin_patch_feedback_status: %s", e, exc_info=True)
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_admin
+async def admin_delete_feedback(request: Request) -> JSONResponse:
+    """
+    Supprime un retour (admin, hard delete).
+    Route: DELETE /api/admin/feedback/{feedback_id}
+    """
+    try:
+        feedback_id_raw = request.path_params.get("feedback_id")
+        if feedback_id_raw is None:
+            return api_error_response(400, "Identifiant feedback manquant")
+        try:
+            feedback_id = int(feedback_id_raw)
+        except (TypeError, ValueError):
+            return api_error_response(400, "Identifiant feedback invalide")
+
+        ok, err = await run_db_bound(delete_feedback_sync, feedback_id=feedback_id)
+        if err == "not_found":
+            return api_error_response(404, "Retour introuvable")
+        if not ok:
+            logger.error("admin_delete_feedback: unexpected err=%s ok=%s", err, ok)
+            return api_error_response(500, "Erreur lors de la suppression")
+
+        return JSONResponse({"success": True, "id": feedback_id})
+    except Exception as e:
+        logger.error("Erreur admin_delete_feedback: %s", e, exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 

@@ -70,6 +70,15 @@ export function useAdminFeedback() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (feedbackId: number) => {
+      return api.delete<{ success: boolean; id: number }>(`/api/admin/feedback/${feedbackId}`);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["admin-feedback"] });
+    },
+  });
+
   return {
     feedback: data?.feedback ?? [],
     isLoading,
@@ -78,5 +87,8 @@ export function useAdminFeedback() {
     updateFeedbackStatus: updateMutation.mutateAsync,
     isUpdatingStatus: updateMutation.isPending,
     updateStatusError: updateMutation.error,
+    deleteFeedback: deleteMutation.mutateAsync,
+    isDeletingFeedback: deleteMutation.isPending,
+    deleteFeedbackError: deleteMutation.error,
   };
 }

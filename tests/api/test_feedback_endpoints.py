@@ -231,3 +231,42 @@ async def test_admin_patch_feedback_forbidden_apprenant(apprenant_client):
 
     resp = await learner.patch(f"/api/admin/feedback/{fid}", json={"status": "read"})
     assert resp.status_code == 403
+
+
+async def test_admin_delete_feedback(apprenant_client, admin_client):
+    """Admin peut supprimer un retour."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3d delete ok"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    admin = admin_client["client"]
+    resp = await admin.delete(f"/api/admin/feedback/{fid}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("success") is True
+    assert data.get("id") == fid
+
+
+async def test_admin_delete_feedback_not_found(admin_client):
+    """Suppression d'un retour inexistant -> 404."""
+    admin = admin_client["client"]
+    resp = await admin.delete("/api/admin/feedback/999999999")
+    assert resp.status_code == 404
+
+
+async def test_admin_delete_feedback_forbidden_apprenant(apprenant_client):
+    """DELETE admin feedback interdit pour un apprenant -> 403."""
+    learner = apprenant_client["client"]
+    r = await learner.post(
+        "/api/feedback",
+        json={"feedback_type": "other", "description": "A3d delete 403"},
+    )
+    assert r.status_code == 201
+    fid = r.json()["id"]
+
+    resp = await learner.delete(f"/api/admin/feedback/{fid}")
+    assert resp.status_code == 403

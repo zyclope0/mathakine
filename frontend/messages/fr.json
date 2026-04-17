@@ -2563,7 +2563,14 @@
       "markAsResolved": "Résolu",
       "reopen": "Réouvrir",
       "statusUpdateSuccess": "Statut mis à jour",
-      "statusUpdateError": "Impossible de mettre à jour le statut"
+      "statusUpdateError": "Impossible de mettre à jour le statut",
+      "delete": "Supprimer",
+      "deleteConfirmTitle": "Supprimer ce retour ?",
+      "deleteConfirmDescription": "Cette action est définitive et ne peut pas être annulée. Le signalement sera retiré de la liste.",
+      "deleteConfirmAction": "Supprimer définitivement",
+      "deleteSuccess": "Retour supprimé",
+      "deleteError": "Impossible de supprimer ce retour",
+      "cancel": "Annuler"
     },
     "moderation": {
       "title": "Modération IA",
