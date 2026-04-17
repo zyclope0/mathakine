@@ -23,6 +23,7 @@ coverage:
   round: down
   status:
     project:
+      default: false
       backend:
         target: 63%
         threshold: 0.5%

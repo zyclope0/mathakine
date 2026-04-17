@@ -40,10 +40,11 @@ type AuthMutationName = "login" | "register" | "forgot_password";
 
 /**
  * Auth mutations surface expected 4xx responses (invalid credentials, validation, etc.).
- * Sentry should only receive operational / unexpected failures: network (0) or server (5xx).
+ * Sentry should only receive operational / unexpected failures:
+ * network (0), auth rate limiting (429) or server (5xx).
  */
 function shouldCaptureAuthMutationError(error: ApiClientError): boolean {
-  return error.status === 0 || error.status >= 500;
+  return error.status === 0 || error.status === 429 || error.status >= 500;
 }
 
 function captureUnexpectedAuthMutationError(

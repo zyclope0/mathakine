@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   LOCALE_COOKIE_NAME,
   getLocaleFromDocumentCookie,
+  parseAcceptLanguageHeader,
   parseLocaleCookieValue,
+  resolveRequestLocale,
   resolveLocaleForHtml,
   setLocaleCookieClient,
 } from "@/lib/localeCookie";
@@ -24,6 +26,27 @@ describe("localeCookie", () => {
     expect(resolveLocaleForHtml(undefined)).toBe("fr");
     expect(resolveLocaleForHtml("")).toBe("fr");
     expect(resolveLocaleForHtml("en")).toBe("en");
+  });
+
+  it("parseAcceptLanguageHeader resolves the highest-priority supported locale", () => {
+    expect(parseAcceptLanguageHeader("en-US,en;q=0.9,fr;q=0.8")).toBe("en");
+    expect(parseAcceptLanguageHeader("de-DE,de;q=0.9,fr;q=0.7")).toBe("fr");
+    expect(parseAcceptLanguageHeader("es-ES,pt;q=0.8")).toBeNull();
+  });
+
+  it("resolveRequestLocale prefers cookie over Accept-Language", () => {
+    expect(
+      resolveRequestLocale({
+        cookieLocale: "fr",
+        acceptLanguage: "en-US,en;q=0.9",
+      })
+    ).toBe("fr");
+    expect(
+      resolveRequestLocale({
+        cookieLocale: undefined,
+        acceptLanguage: "en-US,en;q=0.9",
+      })
+    ).toBe("en");
   });
 
   it("setLocaleCookieClient and getLocaleFromDocumentCookie round-trip", () => {

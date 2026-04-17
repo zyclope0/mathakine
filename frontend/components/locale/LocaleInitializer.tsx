@@ -1,18 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
+import { getLocaleFromDocumentCookie } from "@/lib/localeCookie";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 
 /**
- * Composant pour initialiser la locale au chargement
- * Détecte la langue du navigateur et applique la locale appropriée
+ * Initializes locale on first visit.
+ * Browser language detection is only used when neither the persisted store nor
+ * the canonical locale cookie exists yet.
  */
 export function LocaleInitializer() {
   const { setLocale } = useLocaleStore();
 
-  // Première visite : détection navigateur (persist Zustand absent).
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("locale-preferences")) {
+    if (
+      typeof window !== "undefined" &&
+      !localStorage.getItem("locale-preferences") &&
+      !getLocaleFromDocumentCookie()
+    ) {
       const browserLang = navigator.language?.split("-")[0] || "fr";
       const supportedLocales: ("fr" | "en")[] = ["fr", "en"];
       const detectedLocale: "fr" | "en" = supportedLocales.includes(browserLang as "fr" | "en")

@@ -148,7 +148,10 @@ export default async function RootLayout({
   const headerList = await headers();
   const cspNonce = headerList.get(CSP_NONCE_REQUEST_HEADER) ?? undefined;
   const cookieStore = await cookies();
-  const htmlLang = resolveLocaleForHtml(cookieStore.get(LOCALE_COOKIE_NAME)?.value);
+  const htmlLang = resolveLocaleForHtml(
+    cookieStore.get(LOCALE_COOKIE_NAME)?.value,
+    headerList.get("accept-language")
+  );
 
   return (
     <html lang={htmlLang} suppressHydrationWarning nonce={cspNonce} data-scroll-behavior="smooth">

@@ -191,6 +191,30 @@ describe("useAuth", () => {
     );
   });
 
+  it("login error 429 captures Sentry with mutation tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("rate limited", 429));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.loginAsync({ username: "u", password: "p" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "login",
+          status: "429",
+        }),
+      })
+    );
+  });
+
   it("register error 400 shows toast and does not capture Sentry", async () => {
     mockPost.mockRejectedValueOnce(new ApiClientError("bad request", 400));
 
@@ -240,6 +264,34 @@ describe("useAuth", () => {
     );
   });
 
+  it("register error 429 captures Sentry with mutation tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("rate limited", 429));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.registerAsync({
+          username: "u",
+          email: "e@x.com",
+          password: "pw",
+        });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "register",
+          status: "429",
+        }),
+      })
+    );
+  });
+
   it("forgot password error status 0 captures Sentry with forgot_password tag", async () => {
     mockPost.mockRejectedValueOnce(new ApiClientError("network", 0));
 
@@ -283,6 +335,30 @@ describe("useAuth", () => {
         tags: expect.objectContaining({
           mutation: "forgot_password",
           status: "500",
+        }),
+      })
+    );
+  });
+
+  it("forgot password error 429 captures Sentry with forgot_password tag", async () => {
+    mockPost.mockRejectedValueOnce(new ApiClientError("rate limited", 429));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: queryWrapper() });
+
+    await act(async () => {
+      try {
+        await result.current.forgotPasswordAsync({ email: "a@b.com" });
+      } catch {
+        /* mutateAsync rethrows */
+      }
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.any(ApiClientError),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          mutation: "forgot_password",
+          status: "429",
         }),
       })
     );

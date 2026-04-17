@@ -1,13 +1,21 @@
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getRequestConfig } from "next-intl/server";
+import { LOCALE_COOKIE_NAME, SUPPORTED_LOCALES, resolveRequestLocale } from "@/lib/localeCookie";
 
-// Can be imported from a shared config
-export const locales = ["en", "fr"] as const;
+export const locales = SUPPORTED_LOCALES;
 export type Locale = (typeof locales)[number];
 
 export default getRequestConfig(async ({ locale }) => {
-  // Validate that the incoming `locale` parameter is valid
-  const validLocale = locale || "fr";
+  const cookieStore = await cookies();
+  const headerList = await headers();
+  const validLocale =
+    locale ||
+    resolveRequestLocale({
+      cookieLocale: cookieStore.get(LOCALE_COOKIE_NAME)?.value,
+      acceptLanguage: headerList.get("accept-language"),
+    });
+
   if (!locales.includes(validLocale as Locale)) notFound();
 
   return {

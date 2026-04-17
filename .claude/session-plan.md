@@ -130,6 +130,53 @@ En pratique, le produit est **proche d'une beta fermee publiable**, mais il rest
 
 ---
 
+## Analyse D4 — Social Login (OAuth2/OIDC) [POST-BETA]
+
+**Évaluée le 2026-04-17. Ne pas implémenter avant la beta.**
+
+### Mécanisme
+
+Flux standard OAuth2 + OIDC identique pour tous les fournisseurs :
+`clic "Connexion Google" → redirect Google → callback /api/auth/callback/google?code=X → échange code → JWT → même flux qu'un login classique`
+
+### Options évaluées
+
+| Option | Approche | Effort | Compatibilité Mathakine |
+|--------|----------|--------|------------------------|
+| **A — Auth.js v5 (NextAuth)** | Gestion session côté Next.js | 2-3 j | Couplage non trivial avec JWT Starlette — pont custom nécessaire |
+| **B — authlib côté Starlette** | 2 routes backend, JWT inchangé | 1-2 j | Architecture conservée intégralement — **recommandée** |
+| **C — Clerk / Auth0 / Supabase Auth** | Service tiers | 3-5 j refacto | Incompatible sans réécriture de la couche auth |
+
+### Recommandation : Option B — authlib + Google uniquement
+
+```python
+pip install authlib httpx
+# 2 nouvelles routes :
+# GET /api/auth/google/authorize
+# GET /api/auth/google/callback
+# Migration Alembic : colonne google_sub VARCHAR UNIQUE NULLABLE sur users
+```
+
+- Conserve JWT HTTP-only, rate-limiting, cookies existants
+- Extensible à Apple/Microsoft avec le même pattern
+
+### Fournisseurs à prioriser (post-beta v1)
+
+| Fournisseur | Priorité | Raison |
+|-------------|----------|--------|
+| **Google** | P1 | Universel familles + enseignants |
+| **Apple** | P2 | iOS, bonne image privacy |
+| Microsoft | P3 | Enseignants Teams/EDU |
+| Facebook | Éviter | Complexité RGPD élevée, audience limitée pour EdTech enfants |
+
+### Contraintes spécifiques Mathakine
+
+- **Mineurs RGPD Art.8** : Google bloque lui-même les <13 ans (Family Link). Consentement parental toujours requis pour 13-15 ans — le vecteur auth ne change pas l'obligation.
+- **Fusion compte** : stratégie de merge nécessaire (email = clé de raccordement + confirmation).
+- **Migration Alembic** : `google_sub VARCHAR UNIQUE NULLABLE` sur `users`, mot de passe nullable pour comptes social-only.
+
+---
+
 ## Verdict actuel
 
 ### Beta produit
