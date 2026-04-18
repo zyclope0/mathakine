@@ -63,6 +63,7 @@ Active references:
 - The admin academy stats section, badge creation modal, and badge category/difficulty options are now localized cleanly instead of leaving learner/admin-visible French or canonical internal labels hardcoded in the UI.
 - Exercise AI validation now performs conservative arithmetic verification for simple numeric exercise types, including the nominal LaTeX path (`\\times`, `\\div`), so mechanically wrong `correct_answer` values are rejected when they can be proven false.
 - Pattern challenge validation/autocorrection no longer misclassifies single-cell grids as multi-answer puzzles, numeric row/column progressions are resolved before mirror heuristics, and runtime answer checking now trusts the persisted `correct_answer` instead of overwriting it with an unstable heuristic guess.
+- Pattern prompt generation is now less over-explanatory for medium/hard grids: `description` and `question` must stay task-focused and avoid naming the exact rule (`carré latin`, `décalage cyclique`, explicit row transforms) before the learner solves it.
 - The challenge substitution renderer now displays keyword-based `partial_key` hints cleanly instead of leaking nested objects as `[object Object]`.
 - Challenge generation SSE messages now use clean French strings again instead of mojibake in learner-facing toasts.
 - Malformed LaTeX in challenge feedback explanations now degrades safely in the frontend instead of rendering aggressive red KaTeX error text.

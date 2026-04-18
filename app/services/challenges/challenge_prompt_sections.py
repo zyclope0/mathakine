@@ -110,7 +110,10 @@ TEXT_VISUAL_DATA_SEQUENCE = """VISUAL_DATA OBLIGATOIRE (type sequence) :
 TEXT_VISUAL_DATA_PATTERN = """VISUAL_DATA OBLIGATOIRE (type pattern) :
 - Exemple : {{"grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]], "size": 3}}
 - Pour 9-11 ans : formes (cercle, triangle, carré) au lieu de X/O si pertinent. Patterns : damier, Latin square, glissement cyclique, alternance.
-- Plusieurs "?" : correct_answer DOIT lister TOUS les symboles dans l'ordre (ligne par ligne). Format: "O, O, X, O"."""
+- Plusieurs "?" : correct_answer DOIT lister TOUS les symboles dans l'ordre (ligne par ligne). Format: "O, O, X, O".
+- DESCRIPTION / QUESTION : rester sobres et orientées tâche. Donner l'objectif, la taille de la grille et le format de réponse, mais NE PAS dévoiler directement la mécanique exacte du motif si la difficulté visée est moyenne ou élevée.
+- À éviter dans `description` / `question` si tu veux garder la règle à découvrir : "carré latin", "décalage cyclique", "symétrie horizontale", "chaque ligne est la précédente décalée", "on ajoute +1 à chaque pas", ou toute formulation qui donne la transformation complète.
+- Réserve l'explication détaillée de la règle à `solution_explanation` et garde `hints` comme simples pistes graduelles."""
 
 TEXT_VISUAL_DATA_PUZZLE = """VISUAL_DATA OBLIGATOIRE (type puzzle) :
 - {{"pieces": [...], "hints": ["...", "..."], "description": "..."}}
@@ -173,6 +176,8 @@ TEXT_VAL_INTRO = "VALIDATION LOGIQUE (obligatoire avant de retourner le JSON) :"
 TEXT_VAL_PATTERN = """1. PATTERN (grille) :
    - Déduis correct_answer depuis la grille (Latin square, damier, symétrie, alternance).
    - solution_explanation COHÉRENTE avec correct_answer (pas de contradiction).
+   - Si ``difficulty_rating >= 3.5`` ou ``rule_visibility`` vaut ``hidden`` / ``partial`` : ne révèle pas la règle exacte dans `description` ni dans `question`.
+   - Pour ces cas moyens / difficiles, le titre et l'énoncé peuvent annoncer une grille, un motif, une progression ou un ordre à retrouver, mais pas nommer explicitement la mécanique ("carré latin", "décalage cyclique", "chaque ligne est décalée d'une case", etc.).
    - Exemple : grille X-O-X / O-X-O / X-O-"?" → "?" = X si colonne droite X-O-X."""
 
 TEXT_VAL_SEQUENCE = """2. SEQUENCE :

@@ -53,6 +53,13 @@ def test_pattern_prompt_includes_pattern_examples() -> None:
     assert "1. PATTERN" in p
 
 
+def test_pattern_prompt_discourages_revealing_rule_for_harder_grids() -> None:
+    p = build_challenge_system_prompt("pattern", "15-17")
+    assert "NE PAS dévoiler directement la mécanique exacte du motif" in p
+    assert "ne révèle pas la règle exacte dans `description` ni dans `question`" in p
+    assert '"carré latin", "décalage cyclique"' in p
+
+
 def test_spatial_uses_same_tail_as_visual_after_type_lock() -> None:
     ps = build_challenge_system_prompt("spatial", "9-11")
     pv = build_challenge_system_prompt("visual", "9-11")
