@@ -376,7 +376,8 @@ class RecommendationService:
             # synchronize_session=False : évite de marquer des instances ORM déjà en session
             # comme « supprimées » (ObjectDeletedError) lors d’un 2e generate dans la même session.
             db.query(Recommendation).filter(
-                Recommendation.user_id == user_id, Recommendation.is_completed.is_(False)
+                Recommendation.user_id == user_id,
+                Recommendation.is_completed.is_(False),
             ).delete(synchronize_session=False)
             # Le DELETE bulk ne vide pas ``user.recommendations`` (relation ``delete-orphan``).
             # ``expire`` sur la relation a montré des effets de bord (FK user_id) ; on réaligne
@@ -1176,7 +1177,8 @@ class RecommendationService:
                 selectinload(Recommendation.challenge),
             )
             .filter(
-                Recommendation.user_id == user_id, Recommendation.is_completed.is_(False)
+                Recommendation.user_id == user_id,
+                Recommendation.is_completed.is_(False),
             )
             .order_by(Recommendation.priority.desc())
             .limit(limit + 10)

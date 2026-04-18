@@ -53,9 +53,15 @@ _ARITH_OP_MAP: Dict[str, Any] = {
 # Symboles opérateurs exacts uniquement (pas de lettres comme "x" pour éviter confusion).
 _ARITH_RE = re.compile(
     r"(\d[\d\s]{0,6}(?:[,\.]\d+)?)"  # opérande gauche
-    r"\s*([+\-−×÷/\*])\s*"            # opérateur
+    r"\s*([+\-−×÷/\*])\s*"  # opérateur
     r"(\d[\d\s]{0,6}(?:[,\.]\d+)?)",  # opérande droit
 )
+
+# Symboles reconnus comme opérateurs arithmétiques (post-normalisation LaTeX).
+# Sert uniquement au garde-fou « multi-étapes » : si plusieurs opérateurs apparaissent
+# dans la question (ex. "(3+4)×2"), on considère l'expression comme composée et on
+# refuse de l'évaluer côté regex mono-binaire → fail-open.
+_ARITH_OP_CHARS = frozenset("+-−×÷/*")
 
 # Format strict d'un nombre après nettoyage des séparateurs milliers et virgule décimale.
 _STRICT_NUMBER_RE = re.compile(r"^\d+(?:\.\d+)?$")
@@ -125,6 +131,14 @@ def _try_verify_arithmetic(question: str, correct_answer: str) -> Optional[str]:
     Ce message est destiné aux logs internes uniquement (non affiché à l'utilisateur).
     """
     normalized = _normalize_latex_operators(question)
+
+    # Garde-fou multi-étapes : si plus d'un symbole d'opérateur apparaît dans la
+    # question (ex. "(3+4)×2", "5+3-2"), on refuse d'évaluer — la regex mono-binaire
+    # capturerait uniquement la première paire et produirait un faux mismatch.
+    # Fail-open : on laisse passer le contenu, les autres contrôles restent actifs.
+    if sum(1 for c in normalized if c in _ARITH_OP_CHARS) > 1:
+        return None
+
     matches = _ARITH_RE.findall(normalized)
     if len(matches) != 1:
         # 0 = pas d'expression simple ; 2+ = ambiguïté → fail-open
@@ -155,6 +169,7 @@ def _try_verify_arithmetic(question: str, correct_answer: str) -> Optional[str]:
         )
 
     return None
+
 
 _MIN_TITLE_LEN = 3
 _MIN_QUESTION_LEN = 12

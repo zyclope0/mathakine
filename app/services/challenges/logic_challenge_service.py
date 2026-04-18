@@ -77,7 +77,9 @@ class LogicChallengeService:
             Liste des défis correspondants aux critères
         """
         try:
-            query = db.query(LogicChallenge).filter(LogicChallenge.is_archived.is_(False))
+            query = db.query(LogicChallenge).filter(
+                LogicChallenge.is_archived.is_(False)
+            )
 
             if challenge_type:
                 # Adapter le type de défi pour le moteur de base de données actuel

@@ -307,7 +307,9 @@ class UserService:
                 )
 
             total_attempts = attempts_query.count()
-            correct_attempts = attempts_query.filter(Attempt.is_correct.is_(True)).count()
+            correct_attempts = attempts_query.filter(
+                Attempt.is_correct.is_(True)
+            ).count()
 
             # Calculer le taux de réussite (éviter la division par zéro)
             success_rate = (

@@ -39,8 +39,18 @@ def test_validate_rejects_correct_answer_not_in_choices() -> None:
 
 
 def test_validate_numeric_equivalence_7_vs_7_0() -> None:
+    # L'intention de ce test est la comparaison numérique entre "7" et "7.0" dans
+    # les choix. On force donc une question dont l'arithmétique concorde avec la
+    # réponse (3+4=7) pour ne pas déclencher le contrôle GAP-4 sur un autre sujet.
     ok, reasons = validate_exercise_ai_output(
-        **_valid_base(correct_answer="7", choices=["7.0", "8", "9", "10"])
+        **_valid_base(
+            question="Calcule $3+4$ pour un enfant.",
+            explanation=(
+                "On additionne les deux termes : $3+4=7$. La reponse correcte est donc 7."
+            ),
+            correct_answer="7",
+            choices=["7.0", "8", "9", "10"],
+        )
     )
     assert ok is True
     assert reasons == []
@@ -268,5 +278,7 @@ class TestValidateExerciseArithmeticIntegration:
         assert "correct_answer_arithmetiquement_fausse" not in reasons
 
     def test_format_message_arithmetic_error(self) -> None:
-        msg = format_validation_error_message(["correct_answer_arithmetiquement_fausse"])
+        msg = format_validation_error_message(
+            ["correct_answer_arithmetiquement_fausse"]
+        )
         assert "exactitude" in msg.lower() or "calcul" in msg.lower()

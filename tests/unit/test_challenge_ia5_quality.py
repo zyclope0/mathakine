@@ -55,9 +55,13 @@ def test_validate_difficulty_sequence_short_single_unknown_vs_rating() -> None:
 
 
 def test_validate_difficulty_sequence_simple_arithmetic_vs_rating() -> None:
+    # Une suite arithmétique de 6 éléments avec une seule inconnue déclenche
+    # légitimement DEUX contrôles : « suite courte » et « progression simple ».
+    # L'ordre d'empilement n'est pas l'objet du test ; on valide que le contrôle
+    # « arithmétique » fait bien partie des erreurs remontées.
     vd = {"sequence": [5, 10, 15, 20, 25, "?"]}
     err = validate_difficulty_structural_coherence("SEQUENCE", vd, 4.2)
-    assert err and "arithm" in err[0].lower()
+    assert err and any("arithm" in e.lower() for e in err)
 
 
 def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:

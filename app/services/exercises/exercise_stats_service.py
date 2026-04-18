@@ -181,7 +181,9 @@ class ExerciseStatsService:
         # 5. Complétion globale
         total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
         correct_attempts = (
-            db.query(func.count(Attempt.id)).filter(Attempt.is_correct.is_(True)).scalar()
+            db.query(func.count(Attempt.id))
+            .filter(Attempt.is_correct.is_(True))
+            .scalar()
             or 0
         )
         global_success_rate = (
