@@ -15,9 +15,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import app.services.exercises.adaptive_difficulty_service as adaptive_difficulty_module
-from app.core.constants import AgeGroups, DifficultyLevels
+from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
+from app.models.progress import Progress
+from app.models.user import User
 from app.services.exercises.adaptive_difficulty_service import (
     COLD_START_PEDAGOGICAL_BAND,
+    IRT_SEEDED_TYPES,
     AdaptiveGenerationContext,
     _adjust_for_realtime_progress,
     _irt_ordinal_for_type,
@@ -56,6 +59,42 @@ def _make_user(
     user.grade_level = grade_level
     user.age_group = age_group
     return user
+
+
+class _ProfileUser:
+    """Profil minimal pour tests du prior seedé (évite MagicMock truthy sur age_group)."""
+
+    __slots__ = ("id", "preferred_difficulty", "grade_level", "age_group")
+
+    def __init__(
+        self,
+        user_id: int,
+        preferred_difficulty=None,
+        grade_level=None,
+        age_group=None,
+    ) -> None:
+        self.id = user_id
+        self.preferred_difficulty = preferred_difficulty
+        self.grade_level = grade_level
+        self.age_group = age_group
+
+
+def _make_db_with_user(user, progress=None):
+    """Session mock : ``query(User)`` → ``user`` ; ``query(Progress)`` → ``progress``."""
+    db = MagicMock()
+
+    def query_side_effect(model):
+        q = MagicMock()
+        if model is User:
+            q.filter.return_value.first.return_value = user
+        elif model is Progress:
+            q.filter.return_value.first.return_value = progress
+        else:
+            q.filter.return_value.first.return_value = None
+        return q
+
+    db.query.side_effect = query_side_effect
+    return db
 
 
 def _make_progress(
@@ -687,7 +726,8 @@ class TestResolveIrtLevel:
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result == DifficultyLevels.CHEVALIER
 
-    def test_returns_none_for_geometrie(self):
+    def test_returns_none_for_geometrie_without_seed_profile(self):
+        """IRT couvre les 4 types de base mais pas géométrie ; pas de profil seedable (mock)."""
         scores = _make_full_irt_scores()
         db, irt_data = self._make_db_with_irt(scores)
         with patch(
@@ -696,6 +736,79 @@ class TestResolveIrtLevel:
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="GEOMETRIE")
         assert result is None
+
+    def test_geometrie_seeded_prior_from_preferred_maitre(self):
+        scores = _make_full_irt_scores()
+        db, irt_data = self._make_db_with_irt(scores)
+        profile = _ProfileUser(
+            1, preferred_difficulty=DifficultyLevels.MAITRE, grade_level=None
+        )
+        db_user = _make_db_with_user(profile)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
+        ):
+            result = resolve_irt_level(db_user, user_id=1, exercise_type="GEOMETRIE")
+        assert result == DifficultyLevels.MAITRE
+
+    def test_texte_seeded_prior_from_grade_level_without_preferred(self):
+        scores = _make_full_irt_scores()
+        db, irt_data = self._make_db_with_irt(scores)
+        profile = _ProfileUser(
+            2, preferred_difficulty=None, grade_level=9, age_group=None
+        )
+        db_user = _make_db_with_user(profile)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
+        ):
+            result = resolve_irt_level(db_user, user_id=2, exercise_type="TEXTE")
+        assert result == DifficultyLevels.CHEVALIER
+
+    def test_texte_seeded_prior_clamps_grand_maitre_to_maitre(self):
+        scores = _make_full_irt_scores()
+        db, irt_data = self._make_db_with_irt(scores)
+        profile = _ProfileUser(3, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
+        db_user = _make_db_with_user(profile)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
+        ):
+            result = resolve_irt_level(db_user, user_id=3, exercise_type="TEXTE")
+        assert result == DifficultyLevels.MAITRE
+
+    def test_divers_no_user_signals_returns_none(self):
+        scores = _make_full_irt_scores()
+        db, irt_data = self._make_db_with_irt(scores)
+        profile = _ProfileUser(4)
+        db_user = _make_db_with_user(profile)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
+        ):
+            result = resolve_irt_level(db_user, user_id=4, exercise_type="DIVERS")
+        assert result is None
+
+    def test_addition_direct_irt_priority_over_profile(self):
+        scores = _make_full_irt_scores(addition="CHEVALIER")
+        db, irt_data = self._make_db_with_irt(scores)
+        profile = _ProfileUser(5, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
+        db_user = _make_db_with_user(profile)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
+        ):
+            result = resolve_irt_level(db_user, user_id=5, exercise_type="ADDITION")
+        assert result == DifficultyLevels.CHEVALIER
+
+    def test_irt_seeded_types_frozen_set(self):
+        assert IRT_SEEDED_TYPES == frozenset(
+            {
+                ExerciseTypes.GEOMETRIE.lower(),
+                ExerciseTypes.TEXTE.lower(),
+                ExerciseTypes.DIVERS.lower(),
+            }
+        )
 
     def test_returns_none_when_no_diagnostic(self):
         db = _make_db(progress=None)

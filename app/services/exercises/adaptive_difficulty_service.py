@@ -18,7 +18,9 @@ Types couverts par l'IRT (F03) :
   - ADDITION, SOUSTRACTION, MULTIPLICATION, DIVISION → score IRT direct
   - MIXTE → minimum des scores IRT des 4 types de base (protection surcharge)
   - FRACTIONS → moyenne IRT de MULTIPLICATION + DIVISION (proximité algébrique)
-  - GEOMETRIE, TEXTE, DIVERS → pas de proxy IRT → cascade profil/fallback
+  - GEOMETRIE, TEXTE, DIVERS → pas de score IRT par type ; **prior ordinal seedé**
+    (profil utilisateur, traçé ``source=seeded_prior`` — pas une calibration IRT réelle)
+    puis cascade habituelle si le seed ne s’applique pas
 
 La fonction publique resolve_irt_level() expose le niveau IRT résolu par type,
 utilisée par le frontend pour décider du mode de réponse (QCM vs saisie libre)
@@ -174,7 +176,21 @@ IRT_PROXY_TYPES: Dict[str, object] = {
         ExerciseTypes.DIVISION.lower()
     ],  # fractions → niveau division (plus conservateur)
 }
-# GEOMETRIE, TEXTE, DIVERS → pas de proxy → cascade profil/fallback
+# GEOMETRIE, TEXTE, DIVERS → pas de proxy IRT ; voir IRT_SEEDED_TYPES + _seeded_ordinal_for_type
+
+# Types sans score IRT par exercice : prior ordinal **seedé** depuis le profil (GAP 2 cold start).
+# Ce n’est pas un modèle IRT continu (pas de paramètres a/b/c) — uniquement un ordinal cohérent
+# avec la grille INITIE…GRAND_MAITRE pour éviter un ``resolve_irt_level`` systématiquement vide.
+IRT_SEEDED_TYPES = frozenset(
+    {
+        ExerciseTypes.GEOMETRIE.lower(),
+        ExerciseTypes.TEXTE.lower(),
+        ExerciseTypes.DIVERS.lower(),
+    }
+)
+
+# TEXTE / DIVERS : politique conservatrice — ne pas seed au-delà de MAITRE (ordinal 3) sans mesure IRT.
+_SEEDED_TEXTE_DIVERS_MAX_ORDINAL = 3
 
 # Mapping grade_level (1–12) → ordinal
 _GRADE_TO_ORDINAL = {
@@ -379,6 +395,98 @@ def _irt_ordinal_for_type(scores: Dict, type_key: str) -> Optional[int]:
     return None
 
 
+def _seeded_ordinal_for_type(db: Session, user_id: int, type_key: str) -> Optional[int]:
+    """
+    Prior ordinal **seedé** pour GEOMETRIE / TEXTE / DIVERS (cold start GAP 2).
+
+    N'est **pas** une mesure issue d'un diagnostic IRT calibré (pas de paramètres a/b/c).
+    Ordre de résolution (fail-open → None) :
+      1. ``preferred_difficulty`` (même table de mapping que le reste du service)
+      2. ``grade_level`` (1–12 → ordinal via ``_GRADE_TO_ORDINAL``)
+      3. ``age_group`` persisté (via ``normalized_age_group_from_user_profile``)
+
+    Pour TEXTE et DIVERS, l'ordinal est plafonné à MAITRE (ordinal 3) — pas de GRAND_MAITRE
+    depuis le seul seed profil (politique conservatrice documentée produit).
+    """
+    if type_key not in IRT_SEEDED_TYPES:
+        return None
+
+    try:
+        from app.models.user import User
+
+        user = db.query(User).filter(User.id == user_id).first()
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[AdaptiveDifficulty] seeded_prior user lookup failed user_id=%s: %s",
+            user_id,
+            e,
+        )
+        return None
+
+    if user is None:
+        return None
+
+    uid = getattr(user, "id", None)
+    if not isinstance(uid, int):
+        # Évite de traiter un MagicMock ou un stub de test comme un User réel.
+        return None
+
+    upstream: Optional[str] = None
+    ordinal: Optional[int] = None
+
+    try:
+        preferred = getattr(user, "preferred_difficulty", None)
+        if preferred:
+            key = str(preferred).strip()
+            if key in _PREF_DIFFICULTY_TO_ORDINAL:
+                ordinal = _PREF_DIFFICULTY_TO_ORDINAL[key]
+                upstream = "preferred_difficulty"
+
+        if ordinal is None:
+            grade = getattr(user, "grade_level", None)
+            if grade is not None and isinstance(grade, int):
+                gord = _GRADE_TO_ORDINAL.get(grade)
+                if gord is not None:
+                    ordinal = gord
+                    upstream = "grade_level"
+
+        if ordinal is None:
+            ag = normalized_age_group_from_user_profile(user)
+            if ag and ag in _PREF_DIFFICULTY_TO_ORDINAL:
+                ordinal = _PREF_DIFFICULTY_TO_ORDINAL[ag]
+                upstream = "age_group"
+
+        if ordinal is None:
+            return None
+
+        if type_key in (
+            ExerciseTypes.TEXTE.lower(),
+            ExerciseTypes.DIVERS.lower(),
+        ):
+            ordinal = min(ordinal, _SEEDED_TEXTE_DIVERS_MAX_ORDINAL)
+
+        ordinal = max(0, min(4, ordinal))
+
+        logger.info(
+            "[AdaptiveDifficulty] resolve_irt_level user_id={} exercise_type={} "
+            "source=seeded_prior ordinal={} upstream={} "
+            "(ordinal seed from profile — not a calibrated IRT score)",
+            user_id,
+            type_key,
+            ordinal,
+            upstream,
+        )
+        return ordinal
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[AdaptiveDifficulty] seeded_prior failed user_id=%s type=%s: %s",
+            user_id,
+            type_key,
+            e,
+        )
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Point d'entrée public — niveau IRT par type
 # ---------------------------------------------------------------------------
@@ -395,19 +503,25 @@ def resolve_irt_level(db: Session, user_id: int, exercise_type: str) -> Optional
         pour décider du mode de réponse QCM vs saisie libre)
 
     Types directs  : ADDITION, SOUSTRACTION, MULTIPLICATION, DIVISION
-    Types proxys   : MIXTE (min des 4), FRACTIONS (moy mult+div)
-    Types sans IRT : GEOMETRIE, TEXTE, DIVERS → retourne None
+    Types proxys   : MIXTE (min des 4), FRACTIONS (proxy division)
+    Types sans IRT par exercice : GEOMETRIE, TEXTE, DIVERS → prior **seedé** (profil,
+    ``source=seeded_prior`` dans les logs) si aucun ordinal IRT/proxy ; sinon None.
     """
-    scores = _get_irt_scores_if_valid(db, user_id)
-    if scores is None:
-        return None
-
     type_key = exercise_type.lower()
-    ordinal = _irt_ordinal_for_type(scores, type_key)
-    if ordinal is None:
-        return None
+    ordinal: Optional[int] = None
 
-    return _ORDINAL_TO_DIFFICULTY.get(ordinal)
+    scores = _get_irt_scores_if_valid(db, user_id)
+    if scores is not None:
+        ordinal = _irt_ordinal_for_type(scores, type_key)
+        if ordinal is not None:
+            return _ORDINAL_TO_DIFFICULTY.get(ordinal)
+
+    if type_key in IRT_SEEDED_TYPES:
+        seeded = _seeded_ordinal_for_type(db, user_id, type_key)
+        if seeded is not None:
+            return _ORDINAL_TO_DIFFICULTY.get(seeded)
+
+    return None
 
 
 # ---------------------------------------------------------------------------
