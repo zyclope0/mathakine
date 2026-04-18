@@ -46,6 +46,7 @@ Latest active frontend audit checkpoint:
 | [ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md](./ANALYSE_DEPENDANCES_ET_OPPORTUNITES_2026-04-13.md) | active dependency-upgrade analysis and opportunity notes                       |
 | [RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md](./RAPPORT_REVUE_DOCUMENTAIRE_2026-04-16.md)                 | exhaustive active-document truth review and archive decisions                  |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)                                   | policy for PII/secret log redaction                                            |
+| [PLAN_FEATURE_B_EXERCISE_SKILL_STATE_POST_BETA_2026-04-18.md](./PLAN_FEATURE_B_EXERCISE_SKILL_STATE_POST_BETA_2026-04-18.md) | post-beta plan for persistent adaptive exercise skill state foundation         |
 
 ## Archive Buckets
 
