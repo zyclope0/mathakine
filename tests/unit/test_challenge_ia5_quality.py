@@ -48,6 +48,18 @@ def test_validate_difficulty_sequence_pattern_vs_rating() -> None:
     assert err
 
 
+def test_validate_difficulty_sequence_short_single_unknown_vs_rating() -> None:
+    vd = {"sequence": [3, 8, 19, 40, 75, "?"]}
+    err = validate_difficulty_structural_coherence("SEQUENCE", vd, 4.0)
+    assert err and "suite courte" in err[0].lower()
+
+
+def test_validate_difficulty_sequence_simple_arithmetic_vs_rating() -> None:
+    vd = {"sequence": [5, 10, 15, 20, 25, "?"]}
+    err = validate_difficulty_structural_coherence("SEQUENCE", vd, 4.2)
+    assert err and "arithm" in err[0].lower()
+
+
 def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:
     vd = {
         "type": "binary",

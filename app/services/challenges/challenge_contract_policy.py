@@ -198,6 +198,12 @@ def validate_choices_policy(
                 "et utiliser l'interaction prévue (symétrie, ordre des pièces, etc.)."
             )
 
+    if _upper_type(challenge_type) == "SEQUENCE" and dr is not None and dr >= 4.0:
+        errors.append(
+            "SEQUENCE : omettre choices pour difficulty_rating >= 4.0. "
+            "À ce niveau, la réponse doit rester en production libre plutôt qu'en reconnaissance QCM."
+        )
+
     return errors
 
 

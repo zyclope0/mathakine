@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ChessRenderer } from "@/components/challenges/visualizations/ChessRenderer";
+import { ChallengeVisualRenderer } from "@/components/challenges/visualizations/ChallengeVisualRenderer";
 import { CodingRenderer } from "@/components/challenges/visualizations/CodingRenderer";
 import { GraphRenderer } from "@/components/challenges/visualizations/GraphRenderer";
 
@@ -79,5 +80,48 @@ describe("Visualization renderers", () => {
     expect(screen.getByText(/Indice thématique/i)).toBeInTheDocument();
     expect(screen.getByText("desert planet")).toBeInTheDocument();
     expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
+  });
+
+  it("n'affiche pas de champ inline sequence quand la modalité active est QCM", async () => {
+    render(
+      <ChallengeVisualRenderer
+        challenge={{
+          id: 1,
+          title: "Suite",
+          description: "Trouve le terme suivant.",
+          age_group: "15-17",
+          challenge_type: "sequence",
+          visual_data: { sequence: [3, 8, 19, 40, 75, "?"] },
+          response_mode: "single_choice",
+        }}
+        responseMode="single_choice"
+        showMcq={true}
+        onAnswerChange={() => {}}
+      />
+    );
+
+    expect(await screen.findByText("Séquence à analyser")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/entrez le prochain nombre/i)).not.toBeInTheDocument();
+  });
+
+  it("affiche le champ inline sequence quand la modalité active est la grille", async () => {
+    render(
+      <ChallengeVisualRenderer
+        challenge={{
+          id: 2,
+          title: "Suite",
+          description: "Trouve le terme suivant.",
+          age_group: "15-17",
+          challenge_type: "sequence",
+          visual_data: { sequence: [3, 8, 19, 40, 75, "?"] },
+          response_mode: "interactive_grid",
+        }}
+        responseMode="interactive_grid"
+        showMcq={false}
+        onAnswerChange={() => {}}
+      />
+    );
+
+    expect(await screen.findByPlaceholderText(/entrez le prochain nombre/i)).toBeInTheDocument();
   });
 });

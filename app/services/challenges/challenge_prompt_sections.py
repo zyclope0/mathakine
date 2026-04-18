@@ -72,7 +72,8 @@ TEXT_JSON_CONTRACT_TEMPLATE = """Retourne uniquement le défi au format JSON val
 CHOIX / QCM (politique par type — IA9) :
 - ``deduction``, ``chess`` : **ne jamais** inclure ``choices``.
 - ``visual``, ``puzzle`` : ``choices`` **uniquement** si ``difficulty_rating`` < 2.0 (défis très faciles) ; sinon omettre ``choices`` et utiliser l'interaction (symétrie, ordre des pièces).
-- ``sequence``, ``pattern``, ``graph``, ``riddle``, ``probability``, ``coding`` : QCM possible si vrai mini-QCM (sinon omettre ``choices``).
+- ``sequence`` : QCM possible pour les défis simples à moyens ; pour ``difficulty_rating >= 4.0`` omettre ``choices`` et laisser une réponse libre.
+- ``pattern``, ``graph``, ``riddle``, ``probability``, ``coding`` : QCM possible si vrai mini-QCM (sinon omettre ``choices``).
 - Si ``choices`` est présent : minimum 3 options **distinctes** ; ``correct_answer`` = l'une d'elles exactement ; distracteurs plausibles, longueurs comparables.
 
 DIFFICULTÉ / AXES (optionnel mais recommandé) :
@@ -98,6 +99,10 @@ Pour le groupe adulte, les défis visuels/spatiaux DOIVENT être plus complexes 
 TEXT_VISUAL_DATA_SEQUENCE = """VISUAL_DATA OBLIGATOIRE (type sequence) :
 - Exemple de forme : {{"sequence": [2, 4, 6, 8], "pattern": "n+2"}}
 - RÈGLE DIFFICULTÉ SEQUENCE : Pour difficulty_rating >= 4, NE PAS inclure "pattern" dans visual_data (le pattern suggère trop la solution).
+- Pour difficulty_rating >= 4, construire une vraie séquence difficile :
+  - au moins 7 éléments visibles OU plusieurs inconnues à compléter ;
+  - pas de simple progression arithmétique ou géométrique directe ;
+  - préférer une règle composite, alternée, quadratique discrète, ou une transformation en deux étapes.
 - VARIATION OBLIGATOIRE pour défis difficiles (adulte, difficulty >= 4) :
   - ÉVITER le pattern surutilisé "écarts qui doublent" (+3, +6, +12, +24).
   - Préférer : géométrique (×3, ×4), carrés, n×2+1, différences en progression arithmétique, alternance +3/×2, Fibonacci-like, etc."""
@@ -174,6 +179,8 @@ TEXT_VAL_SEQUENCE = """2. SEQUENCE :
    - Calcule différences entre termes consécutifs ; déduis le suivant.
    - Recalcule mentalement : correct_answer et solution_explanation alignés.
    - difficulty >= 4 : varier les familles de règles ; éviter systématiquement "écarts qui doublent".
+   - difficulty >= 4 : pas de QCM, pas de ``pattern`` explicite, pas de suite courte avec un seul ``?``.
+   - difficulty >= 4 : éviter les suites purement arithmétiques ou géométriques à lecture directe.
    - TITRE : ne pas révéler la règle (×3, +1, etc.) si tu veux viser une difficulté élevée."""
 
 TEXT_VAL_PUZZLE = """3. PUZZLE :

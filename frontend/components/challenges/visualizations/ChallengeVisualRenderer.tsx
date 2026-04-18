@@ -13,12 +13,15 @@ import { ProbabilityRenderer } from "./ProbabilityRenderer";
 import { CodingRenderer } from "./CodingRenderer";
 import { DefaultRenderer } from "./DefaultRenderer";
 import type { Challenge } from "@/types/api";
+import type { ChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 
 interface ChallengeVisualRendererProps {
   challenge: Challenge;
   className?: string | undefined;
   onPuzzleOrderChange?: ((order: string[]) => void) | undefined;
   onAnswerChange?: ((answer: string) => void) | undefined;
+  responseMode?: ChallengeResponseMode | undefined;
+  showMcq?: boolean | undefined;
 }
 
 /**
@@ -30,12 +33,15 @@ export function ChallengeVisualRenderer({
   className,
   onPuzzleOrderChange,
   onAnswerChange,
+  responseMode,
+  showMcq,
 }: ChallengeVisualRendererProps) {
   if (!challenge.visual_data) {
     return null;
   }
 
   const challengeType = challenge.challenge_type?.toLowerCase();
+  const allowInlineAnswerInput = onAnswerChange !== undefined && !showMcq;
 
   // Router vers le bon composant selon le type
   switch (challengeType) {
@@ -45,7 +51,9 @@ export function ChallengeVisualRenderer({
           visualData={challenge.visual_data}
           difficultyRating={challenge.difficulty_rating ?? null}
           {...(className !== undefined && { className })}
-          {...(onAnswerChange !== undefined && { onAnswerChange })}
+          {...(responseMode === "interactive_grid" && allowInlineAnswerInput
+            ? { onAnswerChange }
+            : {})}
         />
       );
 
@@ -54,7 +62,9 @@ export function ChallengeVisualRenderer({
         <PatternRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
-          {...(onAnswerChange !== undefined && { onAnswerChange })}
+          {...(responseMode === "interactive_grid" && allowInlineAnswerInput
+            ? { onAnswerChange }
+            : {})}
         />
       );
 
@@ -89,7 +99,9 @@ export function ChallengeVisualRenderer({
         <DeductionRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
-          {...(onAnswerChange !== undefined && { onAnswerChange })}
+          {...(responseMode === "interactive_grid" && allowInlineAnswerInput
+            ? { onAnswerChange }
+            : {})}
         />
       );
 

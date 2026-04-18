@@ -102,6 +102,44 @@ def _count_question_cells(grid: Any) -> int:
     return n
 
 
+def _count_sequence_unknowns(sequence: Any) -> int:
+    if not isinstance(sequence, list):
+        return 0
+    count = 0
+    for item in sequence:
+        if item == "?" or (isinstance(item, str) and "?" in item):
+            count += 1
+    return count
+
+
+def _extract_numeric_sequence_values(sequence: Any) -> List[float]:
+    if not isinstance(sequence, list):
+        return []
+    values: List[float] = []
+    for item in sequence:
+        if item == "?" or (isinstance(item, str) and "?" in item):
+            continue
+        try:
+            values.append(float(item))
+        except (TypeError, ValueError):
+            return []
+    return values
+
+
+def _is_simple_arithmetic_sequence(values: List[float]) -> bool:
+    if len(values) < 4:
+        return False
+    diffs = [round(values[i + 1] - values[i], 8) for i in range(len(values) - 1)]
+    return len(set(diffs)) == 1
+
+
+def _is_simple_geometric_sequence(values: List[float]) -> bool:
+    if len(values) < 4 or any(v == 0 for v in values[:-1]):
+        return False
+    ratios = [round(values[i + 1] / values[i], 8) for i in range(len(values) - 1)]
+    return len(set(ratios)) == 1
+
+
 def estimate_structure_signals(
     challenge_type: str,
     visual_data: Dict[str, Any],
@@ -257,6 +295,27 @@ def validate_difficulty_structural_coherence(
             errors.append(
                 "SEQUENCE : visual_data.pattern présent avec difficulty_rating >= 4.0 "
                 "(la règle est trop exposée pour une difficulté élevée)."
+            )
+        seq = vd.get("sequence", vd.get("items", []))
+        unknowns = _count_sequence_unknowns(seq)
+        seq_len = len(seq) if isinstance(seq, list) else 0
+        numeric_values = _extract_numeric_sequence_values(seq)
+        if difficulty_rating >= 4.0 and seq_len > 0 and unknowns <= 1 and seq_len <= 6:
+            errors.append(
+                "SEQUENCE : une suite courte (6 éléments ou moins) avec une seule case manquante "
+                "ne justifie pas difficulty_rating >= 4.0. Ajouter plus d'étapes visibles ou plusieurs inconnues."
+            )
+        if (
+            difficulty_rating >= 4.0
+            and unknowns <= 1
+            and (
+                _is_simple_arithmetic_sequence(numeric_values)
+                or _is_simple_geometric_sequence(numeric_values)
+            )
+        ):
+            errors.append(
+                "SEQUENCE : une progression arithmétique ou géométrique simple ne justifie pas difficulty_rating >= 4.0. "
+                "Introduire une règle composite, alternée ou moins directe."
             )
     if ct == "PUZZLE":
         pieces = vd.get("pieces", vd.get("items", []))

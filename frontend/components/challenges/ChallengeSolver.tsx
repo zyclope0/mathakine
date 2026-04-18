@@ -138,6 +138,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           retryKey={ctrl.retryKey}
           onPuzzleOrderChange={ctrl.handlePuzzleOrderChange}
           onAnswerChange={ctrl.handleAnswerChange}
+          visualResponseMode={visualModel.responseMode}
+          visualShowMcq={visualModel.showMcq}
         />
 
         <ChallengeSolverHintsPanel

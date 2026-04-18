@@ -33,6 +33,15 @@ def test_validate_choices_policy_coding_allows_valid_qcm_artifact() -> None:
     assert err == []
 
 
+def test_validate_choices_policy_sequence_high_difficulty_forbids_qcm() -> None:
+    err = validate_choices_policy(
+        "SEQUENCE",
+        4.0,
+        ["121", "127", "128", "133"],
+    )
+    assert err and "réponse" in err[0].lower()
+
+
 def test_validate_choices_policy_visual_qcm_only_below_difficulty_2() -> None:
     assert not validate_choices_policy(
         "VISUAL",
@@ -71,6 +80,15 @@ def test_compute_response_mode_single_choice_when_choices_allowed() -> None:
     )
 
 
+def test_compute_response_mode_sequence_high_difficulty_stays_grid_without_qcm() -> (
+    None
+):
+    assert (
+        compute_response_mode("SEQUENCE", {"sequence": [1, 2, 3, "?"]}, 4.0, None)
+        == "interactive_grid"
+    )
+
+
 def test_normalize_symmetry_sets_type_and_symmetry_line() -> None:
     vd = normalize_symmetry_visual_data(
         {
@@ -90,17 +108,29 @@ def test_normalize_symmetry_converts_row_based_layout() -> None:
             "type": "symmetry",
             "symmetry_line": "vertical",
             "layout": [
-                {"row": 1, "left": ["carré rouge", "triangle bleu"], "right": ["triangle vert", "carré vert"]},
-                {"row": 2, "left": ["pentagone vert", "cercle sable"], "right": ["cercle rouge", "?"]},
+                {
+                    "row": 1,
+                    "left": ["carré rouge", "triangle bleu"],
+                    "right": ["triangle vert", "carré vert"],
+                },
+                {
+                    "row": 2,
+                    "left": ["pentagone vert", "cercle sable"],
+                    "right": ["cercle rouge", "?"],
+                },
             ],
         }
     )
     layout = vd.get("layout", [])
     sides = {item.get("side") for item in layout if isinstance(item, dict)}
-    assert "left" in sides and "right" in sides, "les deux côtés doivent être présents après conversion"
+    assert (
+        "left" in sides and "right" in sides
+    ), "les deux côtés doivent être présents après conversion"
     shapes = [item.get("shape") for item in layout if isinstance(item, dict)]
     assert "?" in shapes, "la cellule question doit être présente après conversion"
-    question_items = [item for item in layout if isinstance(item, dict) and item.get("question")]
+    question_items = [
+        item for item in layout if isinstance(item, dict) and item.get("question")
+    ]
     assert question_items, "au moins un item doit avoir question=True"
 
 
@@ -176,6 +206,17 @@ def test_sanitize_choices_for_delivery_rejects_invalid_qcm() -> None:
 def test_sanitize_choices_for_delivery_keeps_valid_qcm() -> None:
     out = sanitize_choices_for_delivery("sequence", 3.0, ["8", "9", "10", "11"], "10")
     assert out == ["8", "9", "10", "11"]
+
+
+def test_sanitize_choices_for_delivery_strips_sequence_qcm_when_high_difficulty() -> (
+    None
+):
+    assert (
+        sanitize_choices_for_delivery(
+            "sequence", 4.0, ["121", "127", "128", "133"], "128"
+        )
+        == []
+    )
 
 
 def test_sanitize_choices_for_delivery_keeps_valid_coding_qcm_artifact() -> None:

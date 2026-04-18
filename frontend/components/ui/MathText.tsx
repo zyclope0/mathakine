@@ -16,6 +16,33 @@ function sanitizeLatexFractions(text: string): string {
   return text.replace(/(\\frac\{\d+\}\{\d+\})(\d+)/g, "$1 $2");
 }
 
+/**
+ * Dégrade proprement certains blocs LaTeX manifestement cassés générés par l'IA.
+ * Exemple fréquent : `$$ ... \end{cases}$$` sans `\begin{cases}`.
+ * Au lieu de laisser KaTeX afficher une erreur rouge, on repasse le contenu en texte lisible.
+ */
+function sanitizeBrokenLatexBlocks(text: string): string {
+  return text.replace(/\$\$([\s\S]*?)\$\$/g, (full, rawInner) => {
+    const inner = String(rawInner ?? "");
+    const hasBrokenCases = inner.includes("\\end{cases}") && !inner.includes("\\begin{cases}");
+
+    if (!hasBrokenCases) {
+      return full;
+    }
+
+    return inner
+      .replace(/\\text\{([^}]*)\}/g, "$1")
+      .replace(/\\boxed\{([^}]*)\}/g, "$1")
+      .replace(/\\times/g, "×")
+      .replace(/\\div/g, "÷")
+      .replace(/\\end\{cases\}/g, "")
+      .replace(/\\\\(\[[^\]]*\])?/g, "\n")
+      .replace(/\s*&\s*/g, " ")
+      .replace(/[ \t]+\n/g, "\n")
+      .trim();
+  });
+}
+
 interface MathTextProps {
   /** Texte à rendre — supporte Markdown et LaTeX ($...$ inline, $$...$$ bloc) */
   children: string;
@@ -46,7 +73,7 @@ const sizeClasses = {
 export function MathText({ children, className, size = "base" }: MathTextProps) {
   if (!children) return null;
 
-  const sanitized = sanitizeLatexFractions(children);
+  const sanitized = sanitizeBrokenLatexBlocks(sanitizeLatexFractions(children));
 
   return (
     <div
@@ -59,12 +86,17 @@ export function MathText({ children, className, size = "base" }: MathTextProps) 
         "[&_code]:bg-foreground/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-primary [&_code]:text-sm [&_code]:font-mono",
         // KaTeX display math centré
         "[&_.katex-display]:my-4 [&_.katex-display]:overflow-x-auto",
+        // Erreurs KaTeX : rester neutres et lisibles, jamais rouges agressives
+        "[&_.katex-error]:!text-inherit [&_.katex-error]:whitespace-pre-wrap [&_.katex-error]:break-words",
         // Taille
         sizeClasses[size],
         className
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[[rehypeKatex, { strict: "ignore", throwOnError: false }]]}
+      >
         {sanitized}
       </ReactMarkdown>
     </div>

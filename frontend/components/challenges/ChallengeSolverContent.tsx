@@ -5,12 +5,15 @@ import { MathText } from "@/components/ui/MathText";
 import { ChallengeVisualRenderer } from "@/components/challenges/visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
 import type { Challenge } from "@/types/api";
+import type { ChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 
 interface ChallengeSolverContentProps {
   challenge: Challenge;
   retryKey: number;
   onPuzzleOrderChange: (order: string[]) => void;
   onAnswerChange: (answer: string) => void;
+  visualResponseMode: ChallengeResponseMode;
+  visualShowMcq: boolean;
 }
 
 /**
@@ -23,6 +26,8 @@ export function ChallengeSolverContent({
   retryKey,
   onPuzzleOrderChange,
   onAnswerChange,
+  visualResponseMode,
+  visualShowMcq,
 }: ChallengeSolverContentProps) {
   const t = useTranslations("challenges.solver");
 
@@ -65,6 +70,8 @@ export function ChallengeSolverContent({
             challenge={challenge}
             onPuzzleOrderChange={onPuzzleOrderChange}
             onAnswerChange={onAnswerChange}
+            responseMode={visualResponseMode}
+            showMcq={visualShowMcq}
           />
         </div>
       )}
