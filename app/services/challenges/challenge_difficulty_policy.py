@@ -31,7 +31,29 @@ _TITLE_RULE_LEAK_PATTERNS: Tuple[re.Pattern[str], ...] = (
     ),
     re.compile(r"\bcycle\s+(×|x|\*)", re.I),
     re.compile(r"\b(n\^2|n²|carrés?\s+suivant)", re.I),
+    re.compile(
+        r"\b(bits?|binaire|octets?|ascii|césar|caesar|substitution|atbash|miroir)\b",
+        re.I,
+    ),
+    re.compile(r"\b(à|a)\s+l[' ]?envers\b", re.I),
+    re.compile(
+        r"\b(renversé|renversee|inverse|inversé|inversee|décalage|decalage)\b",
+        re.I,
+    ),
 )
+
+_SAFE_HIGH_DIFFICULTY_TITLES: Dict[str, str] = {
+    "SEQUENCE": "La suite cachée",
+    "PATTERN": "Le motif caché",
+    "PUZZLE": "L'ordre secret",
+    "GRAPH": "Le chemin discret",
+    "RIDDLE": "L'énigme cachée",
+    "DEDUCTION": "Les indices croisés",
+    "PROBABILITY": "Le tirage incertain",
+    "VISUAL": "La forme manquante",
+    "CODING": "Le message sous scellés",
+    "CHESS": "La position critique",
+}
 
 
 @dataclass(frozen=True)
@@ -51,6 +73,20 @@ def title_suggests_rule_leak(title: str) -> bool:
         return False
     t = str(title).strip()
     return any(p.search(t) for p in _TITLE_RULE_LEAK_PATTERNS)
+
+
+def sanitize_leaky_title(
+    challenge_type: str,
+    title: str,
+    difficulty_rating: Optional[float],
+) -> str:
+    """Neutralise un titre trop explicite quand on vise une difficulté élevée."""
+    if difficulty_rating is None or difficulty_rating < 4.0:
+        return str(title or "")
+    if not title_suggests_rule_leak(title):
+        return str(title or "")
+    key = (challenge_type or "").strip().upper()
+    return _SAFE_HIGH_DIFFICULTY_TITLES.get(key, "Le défi caché")
 
 
 def _count_question_cells(grid: Any) -> int:
@@ -136,6 +172,38 @@ def estimate_structure_signals(
         if isinstance(edges, list):
             constraint_count += len(edges)
         reasoning_steps_hint = min(5, 3 + constraint_count // 4)
+    elif ct == "coding":
+        coding_subtype = str(vd.get("type", "") or "").strip().lower()
+        encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
+        chunks = [part for part in encoded_message.split() if part.strip()]
+        full_key = vd.get("key")
+        partial_key = vd.get("partial_key")
+        has_shift = vd.get("shift") is not None
+        if coding_subtype == "binary":
+            elements_to_deduce = max(1, len(chunks))
+            constraint_count = len(chunks)
+            reasoning_steps_hint = 2 if len(chunks) <= 6 else 3
+        elif coding_subtype == "caesar":
+            constraint_count = 1 + (1 if has_shift else 0)
+            elements_to_deduce = max(1, len(chunks))
+            reasoning_steps_hint = 2 if has_shift else 3
+        elif coding_subtype == "substitution":
+            key_size = 0
+            if isinstance(full_key, dict):
+                key_size = len(full_key)
+            elif isinstance(partial_key, dict):
+                key_size = len(partial_key)
+            constraint_count = key_size
+            elements_to_deduce = max(1, len(chunks))
+            if isinstance(full_key, dict) and key_size >= 10:
+                reasoning_steps_hint = 2
+                rule_visibility = "partial"
+            else:
+                reasoning_steps_hint = 3 if len(chunks) <= 4 else 4
+        else:
+            constraint_count = len(chunks)
+            elements_to_deduce = max(1, len(chunks))
+            reasoning_steps_hint = 3
     else:
         notes.append("type_without_fine_signals")
 
@@ -207,6 +275,36 @@ def validate_difficulty_structural_coherence(
             errors.append(
                 "DEDUCTION : moins de 2 indices (clues) pour une grille multi-catégories "
                 "avec difficulty_rating >= 3.0 — insuffisant pour guider sans deviner."
+            )
+    if ct == "CODING":
+        coding_subtype = str(vd.get("type", "") or "").strip().lower()
+        encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
+        chunks = [part for part in encoded_message.split() if part.strip()]
+        full_key = vd.get("key")
+        has_shift = vd.get("shift") is not None
+        if (
+            coding_subtype == "binary"
+            and 0 < len(chunks) <= 6
+            and difficulty_rating >= 4.0
+        ):
+            errors.append(
+                "CODING binary : 6 octets ou moins ne justifient pas difficulty_rating >= 4.0 "
+                "si la transformation est unique ; ajouter une seconde étape ou baisser la difficulté."
+            )
+        if coding_subtype == "caesar" and has_shift and difficulty_rating >= 4.0:
+            errors.append(
+                "CODING Caesar : un décalage explicite ne justifie pas difficulty_rating >= 4.0. "
+                "Masquer la règle ou baisser la difficulté."
+            )
+        if (
+            coding_subtype == "substitution"
+            and isinstance(full_key, dict)
+            and len(full_key) >= 10
+            and difficulty_rating >= 4.0
+        ):
+            errors.append(
+                "CODING substitution : une clé quasi complète expose trop la règle pour difficulty_rating >= 4.0. "
+                "Réduire les exemples ou baisser la difficulté."
             )
     return errors
 
@@ -304,6 +402,27 @@ def calibrate_challenge_difficulty(
         if ncat >= 2 and nclues < 2 and final > 2.5:
             final = min(final, 2.5)
             caps_applied.append("deduction_insufficient_clues_cap_2_5")
+
+    if challenge_type.lower() == "coding":
+        coding_subtype = str(vd.get("type", "") or "").strip().lower()
+        encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
+        chunks = [part for part in encoded_message.split() if part.strip()]
+        full_key = vd.get("key")
+        has_shift = vd.get("shift") is not None
+        if coding_subtype == "binary" and 0 < len(chunks) <= 6 and final > 3.2:
+            final = min(final, 3.2)
+            caps_applied.append("coding_binary_short_payload_cap_3_2")
+        if coding_subtype == "caesar" and has_shift and final > 3.0:
+            final = min(final, 3.0)
+            caps_applied.append("coding_caesar_explicit_shift_cap_3_0")
+        if (
+            coding_subtype == "substitution"
+            and isinstance(full_key, dict)
+            and len(full_key) >= 10
+            and final > 3.2
+        ):
+            final = min(final, 3.2)
+            caps_applied.append("coding_substitution_full_key_cap_3_2")
 
     sig_dict = asdict(signals)
     sig_dict["notes"] = list(sig_dict["notes"])

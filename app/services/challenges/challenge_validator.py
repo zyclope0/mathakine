@@ -17,6 +17,7 @@ from app.services.challenges.challenge_contract_policy import (
     validate_symmetry_canonical,
 )
 from app.services.challenges.challenge_difficulty_policy import (
+    sanitize_leaky_title,
     validate_difficulty_structural_coherence,
     validate_title_difficulty_coherence,
 )
@@ -482,6 +483,23 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
     challenge_type = challenge_data.get("challenge_type", "").upper()
     visual_data = challenge_data.get("visual_data", {})
+    difficulty_raw = challenge_data.get("difficulty_rating")
+    difficulty_rating = (
+        float(difficulty_raw)
+        if isinstance(difficulty_raw, (int, float))
+        and 1.0 <= float(difficulty_raw) <= 5.0
+        else None
+    )
+
+    title = str(corrected.get("title", "") or "")
+    sanitized_title = sanitize_leaky_title(challenge_type, title, difficulty_rating)
+    if sanitized_title and sanitized_title != title:
+        logger.info(
+            "Correction automatique titre (fuite de règle): '%s' → '%s'",
+            title,
+            sanitized_title,
+        )
+        corrected["title"] = sanitized_title
 
     # Parser visual_data si nécessaire
     if isinstance(visual_data, str):

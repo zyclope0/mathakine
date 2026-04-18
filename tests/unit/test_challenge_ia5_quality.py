@@ -1,30 +1,38 @@
-"""IA5 — difficulté, distracteurs (choices), validateur DEDUCTION."""
+"""IA5 - difficulty, distractors, and deduction validator."""
 
 from __future__ import annotations
-
-import pytest
 
 from app.services.challenges.challenge_answer_quality import validate_challenge_choices
 from app.services.challenges.challenge_difficulty_policy import (
     calibrate_challenge_difficulty,
     estimate_structure_signals,
+    sanitize_leaky_title,
     title_suggests_rule_leak,
     validate_difficulty_structural_coherence,
     validate_title_difficulty_coherence,
 )
 from app.services.challenges.challenge_validator import (
+    auto_correct_challenge,
     validate_challenge_logic,
     validate_deduction_challenge,
 )
 
 
 def test_title_suggests_rule_leak_detects_explicit_pattern() -> None:
-    assert title_suggests_rule_leak("Le cycle ×3 puis +1")
-    assert not title_suggests_rule_leak("Le mystère des cases")
+    assert title_suggests_rule_leak("Le cycle x3 puis +1")
+    assert title_suggests_rule_leak("Bits a l'envers !")
+    assert not title_suggests_rule_leak("Le mystere des cases")
+
+
+def test_sanitize_leaky_title_for_high_difficulty_coding() -> None:
+    assert (
+        sanitize_leaky_title("coding", "Bits a l'envers !", 4.0)
+        == "Le message sous scellés"
+    )
 
 
 def test_validate_title_difficulty_coherence_errors_when_high_rating() -> None:
-    err = validate_title_difficulty_coherence("Suite ×2 à chaque pas", 4.5)
+    err = validate_title_difficulty_coherence("Suite x2 a chaque pas", 4.5)
     assert err and "titre" in err[0].lower()
 
 
@@ -38,6 +46,15 @@ def test_validate_difficulty_sequence_pattern_vs_rating() -> None:
     vd = {"sequence": [1, 2, 3], "pattern": "n+1"}
     err = validate_difficulty_structural_coherence("SEQUENCE", vd, 4.5)
     assert err
+
+
+def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:
+    vd = {
+        "type": "binary",
+        "encoded_message": "10100010 10101010 01001010 10100010 11010010 10000010",
+    }
+    err = validate_difficulty_structural_coherence("CODING", vd, 4.0)
+    assert err and "binary" in err[0].lower()
 
 
 def test_validate_challenge_choices_min_three_and_no_duplicates() -> None:
@@ -57,43 +74,41 @@ def test_validate_deduction_challenge_happy_path() -> None:
         "type": "logic_grid",
         "entities": {
             "personnes": ["Alice", "Bob"],
-            "boisson": ["thé", "café"],
+            "boisson": ["the", "cafe"],
         },
-        "clues": ["Alice ne boit pas le café", "Bob aime le thé"],
+        "clues": ["Alice ne boit pas le cafe", "Bob aime le the"],
         "description": "test",
     }
-    ca = "Alice:thé,Bob:café"
+    ca = "Alice:the,Bob:cafe"
     assert not validate_deduction_challenge(vd, ca, "explanation")
 
 
 def test_validate_deduction_challenge_rejects_duplicate_secondary_category() -> None:
-    """Même boisson pour deux personnes : bijection colonne 2 interdite."""
     vd = {
         "type": "logic_grid",
         "entities": {
             "personnes": ["Alice", "Bob"],
-            "boisson": ["thé", "café"],
+            "boisson": ["the", "cafe"],
         },
         "clues": ["c1", "c2"],
         "description": "test",
     }
-    err = validate_deduction_challenge(vd, "Alice:thé,Bob:thé", "")
+    err = validate_deduction_challenge(vd, "Alice:the,Bob:the", "")
     assert err and any("one-to-one" in e or "bijection" in e.lower() for e in err)
 
 
 def test_validate_deduction_challenge_rejects_duplicate_tertiary_category() -> None:
-    """Même ville pour deux personnes : bijection sur la 3e colonne interdite."""
     vd = {
         "type": "logic_grid",
         "entities": {
             "personnes": ["Alice", "Bob"],
-            "boisson": ["thé", "café"],
+            "boisson": ["the", "cafe"],
             "ville": ["Paris", "Lyon"],
         },
         "clues": ["c1", "c2"],
         "description": "test",
     }
-    err = validate_deduction_challenge(vd, "Alice:thé:Paris,Bob:café:Paris", "")
+    err = validate_deduction_challenge(vd, "Alice:the:Paris,Bob:cafe:Paris", "")
     assert err and any("one-to-one" in e for e in err)
 
 
@@ -132,16 +147,30 @@ def test_validate_challenge_logic_runs_deduction_validator() -> None:
 
 
 def test_calibrate_challenge_difficulty_caps_on_title_leak() -> None:
-    # Reste dans la bande autour de la baseline 9-11 (2.5) pour ne pas être écrasé avant les caps
     final, meta = calibrate_challenge_difficulty(
         challenge_type="sequence",
         age_group="9-11",
         visual_data={"sequence": [1, 2, 3]},
-        title="La suite ×2 magique",
+        title="La suite x2 magique",
         ai_difficulty=3.2,
     )
     assert final <= 3.0
     assert "title_rule_leak_cap_3_0" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_short_binary_coding() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="coding",
+        age_group="15-17",
+        visual_data={
+            "type": "binary",
+            "encoded_message": "10100010 10101010 01001010 10100010 11010010 10000010",
+        },
+        title="Le mot du laboratoire",
+        ai_difficulty=4.0,
+    )
+    assert final <= 3.2
+    assert "coding_binary_short_payload_cap_3_2" in meta.get("caps_applied", [])
 
 
 def test_estimate_structure_signals_includes_rule_visibility() -> None:
@@ -151,3 +180,18 @@ def test_estimate_structure_signals_includes_rule_visibility() -> None:
         "Sans indice",
     )
     assert sig.rule_visibility == "partial"
+
+
+def test_auto_correct_challenge_sanitizes_leaky_high_difficulty_title() -> None:
+    corrected = auto_correct_challenge(
+        {
+            "challenge_type": "CODING",
+            "title": "Bits a l'envers !",
+            "difficulty_rating": 4.0,
+            "visual_data": {
+                "type": "binary",
+                "encoded_message": "10100010 10101010 01001010 10100010 11010010 10000010",
+            },
+        }
+    )
+    assert corrected["title"] == "Le message sous scellés"
