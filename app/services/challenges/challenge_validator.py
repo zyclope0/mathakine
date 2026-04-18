@@ -22,6 +22,7 @@ from app.services.challenges.challenge_difficulty_policy import (
     validate_title_difficulty_coherence,
 )
 from app.services.challenges.challenge_pattern_sequence_validation import (
+    _looks_numeric_pattern_grid,
     validate_pattern_challenge,
     validate_sequence_challenge,
 )
@@ -521,23 +522,24 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
                         question_count += 1
             if question_count > 1:
-                expected_multi = compute_pattern_answers_multi(grid)
-                if expected_multi:
-                    logger.info(
-                        "Correction automatique PATTERN (multi): correct_answer = '{}'",
-                        expected_multi,
-                    )
-                    corrected["correct_answer"] = expected_multi
-                    explanation = corrected.get("solution_explanation", "")
-                    if (
-                        expected_multi[:20] not in explanation
-                        and expected_multi.split(",")[0].strip().upper()
-                        not in explanation.upper()
-                    ):
-                        corrected["solution_explanation"] = (
-                            f"Les symboles manquants, dans l'ordre des cases (ligne par ligne), sont : {expected_multi}. "
-                            f"{explanation}"
+                if not _looks_numeric_pattern_grid(grid):
+                    expected_multi = compute_pattern_answers_multi(grid)
+                    if expected_multi:
+                        logger.info(
+                            "Correction automatique PATTERN (multi): correct_answer = '{}'",
+                            expected_multi,
                         )
+                        corrected["correct_answer"] = expected_multi
+                        explanation = corrected.get("solution_explanation", "")
+                        if (
+                            expected_multi[:20] not in explanation
+                            and expected_multi.split(",")[0].strip().upper()
+                            not in explanation.upper()
+                        ):
+                            corrected["solution_explanation"] = (
+                                f"Les symboles manquants, dans l'ordre des cases (ligne par ligne), sont : {expected_multi}. "
+                                f"{explanation}"
+                            )
             else:
                 question_pos = find_question_position_in_grid(grid)
                 if question_pos:

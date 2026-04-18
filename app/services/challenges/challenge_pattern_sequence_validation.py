@@ -26,6 +26,25 @@ def _count_question_cells(grid: List[List[Any]]) -> int:
     return count
 
 
+def _looks_numeric_pattern_grid(grid: List[List[Any]]) -> bool:
+    numeric_count = 0
+    non_empty_count = 0
+    for row in grid:
+        if not isinstance(row, (list, tuple)):
+            continue
+        for cell in row:
+            text = str(cell).strip()
+            if not text or "?" in text:
+                continue
+            non_empty_count += 1
+            try:
+                float(text.replace(",", "."))
+            except ValueError:
+                continue
+            numeric_count += 1
+    return non_empty_count > 0 and numeric_count == non_empty_count
+
+
 def validate_pattern_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
@@ -49,6 +68,8 @@ def validate_pattern_challenge(
 
     # Plusieurs "?" -> format "O, O, X, O"
     if question_count > 1:
+        if _looks_numeric_pattern_grid(grid):
+            return errors
         expected_multi = compute_pattern_answers_multi(grid)
         if expected_multi:
             correct_parts = [
