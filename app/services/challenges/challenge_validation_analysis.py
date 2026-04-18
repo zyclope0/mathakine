@@ -51,6 +51,101 @@ def compute_pattern_answers_multi(grid: List[List[Any]]) -> Optional[str]:
     return ", ".join(symbols)
 
 
+def _parse_numeric_cell(cell: Any) -> Optional[float]:
+    if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
+        return None
+    text = str(cell).strip().replace(",", ".")
+    if not text:
+        return None
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def _format_numeric_answer(value: float) -> str:
+    rounded = round(value)
+    if abs(value - rounded) < 1e-9:
+        return str(int(rounded))
+    return str(round(value, 6)).rstrip("0").rstrip(".")
+
+
+def _infer_numeric_line_answer(
+    line: List[Any], missing_idx: int, *, tol: float = 1e-9
+) -> Optional[str]:
+    if len(line) < 3 or missing_idx >= len(line):
+        return None
+
+    numeric_values: List[Optional[float]] = [_parse_numeric_cell(cell) for cell in line]
+    if sum(1 for value in numeric_values if value is None) != 1:
+        return None
+
+    known_points = [
+        (idx, value) for idx, value in enumerate(numeric_values) if value is not None
+    ]
+    if len(known_points) < 2:
+        return None
+
+    arithmetic_step: Optional[float] = None
+    arithmetic_valid = True
+    for (left_idx, left_value), (right_idx, right_value) in zip(
+        known_points, known_points[1:]
+    ):
+        distance = right_idx - left_idx
+        if distance <= 0:
+            arithmetic_valid = False
+            break
+        current_step = (right_value - left_value) / distance
+        if arithmetic_step is None:
+            arithmetic_step = current_step
+        elif abs(current_step - arithmetic_step) > tol:
+            arithmetic_valid = False
+            break
+    if arithmetic_valid and arithmetic_step is not None:
+        base_idx, base_value = known_points[0]
+        candidate = base_value + arithmetic_step * (missing_idx - base_idx)
+        if all(
+            abs(candidate - (base_value + arithmetic_step * (missing_idx - base_idx)))
+            <= tol
+            for base_idx, base_value in known_points
+        ):
+            return _format_numeric_answer(candidate)
+
+    geometric_ratio: Optional[float] = None
+    geometric_valid = True
+    for (left_idx, left_value), (right_idx, right_value) in zip(
+        known_points, known_points[1:]
+    ):
+        distance = right_idx - left_idx
+        if distance != 1 or left_value == 0:
+            geometric_valid = False
+            break
+        current_ratio = right_value / left_value
+        if geometric_ratio is None:
+            geometric_ratio = current_ratio
+        elif abs(current_ratio - geometric_ratio) > tol:
+            geometric_valid = False
+            break
+    if geometric_valid and geometric_ratio is not None:
+        candidate = None
+        if missing_idx == 0:
+            next_value = numeric_values[1]
+            if next_value is not None and geometric_ratio != 0:
+                candidate = next_value / geometric_ratio
+        elif numeric_values[missing_idx - 1] is not None:
+            candidate = numeric_values[missing_idx - 1] * geometric_ratio
+        elif (
+            missing_idx + 1 < len(numeric_values)
+            and numeric_values[missing_idx + 1] is not None
+            and geometric_ratio != 0
+        ):
+            candidate = numeric_values[missing_idx + 1] / geometric_ratio
+        if candidate is not None:
+            return _format_numeric_answer(candidate)
+
+    return None
+
+
 def analyze_pattern(grid: List[List[Any]], row_idx: int, col_idx: int) -> Optional[str]:
     """
     Analyse un pattern dans une grille pour déterminer la réponse attendue.
@@ -77,6 +172,21 @@ def analyze_pattern(grid: List[List[Any]], row_idx: int, col_idx: int) -> Option
     latin_answer = analyze_latin_square_pattern(grid, row_idx, col_idx)
     if latin_answer:
         return latin_answer
+
+    # 1bis. Lignes/colonnes numériques simples : progression arithmétique ou géométrique.
+    row_answer = _infer_numeric_line_answer(grid[row_idx], col_idx)
+    column = [
+        grid[i][col_idx]
+        for i in range(len(grid))
+        if i < len(grid) and isinstance(grid[i], list) and col_idx < len(grid[i])
+    ]
+    col_answer = _infer_numeric_line_answer(column, row_idx)
+    if row_answer and col_answer and row_answer == col_answer:
+        return row_answer
+    if row_answer and not col_answer:
+        return row_answer
+    if col_answer and not row_answer:
+        return col_answer
 
     # 2. Damier (checkerboard) : lignes paires identiques (0=2), impaires (1=3)
     def _rows_match(r1: int, r2: int) -> bool:

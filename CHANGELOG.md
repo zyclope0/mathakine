@@ -40,6 +40,41 @@ Active references:
 
 ## [Unreleased]
 
+### Added
+
+- Route-level loading states now cover the heavier protected learner/admin surfaces: `/dashboard`, `/settings`, `/profile`, and `/admin`, with the admin fallback aligned to the existing layout shell instead of duplicating it.
+- Adaptive difficulty now seeds conservative ordinal priors for non-IRT exercise types (`GEOMETRIE`, `TEXTE`, `DIVERS`) when no diagnostic score is available, while keeping direct IRT and existing proxies (`MIXTE`, `FRACTIONS`) authoritative.
+
+### Changed
+
+- The frontend challenge solver no longer mixes open-input and multiple-choice modes on sequence challenges; the visualization input is now suppressed when a QCM response mode is active.
+- High-difficulty sequence generation is now structurally stricter: `4.0+` sequences must avoid short one-gap patterns, simple arithmetic/geometric progressions, and direct-rule formats that were inflating the visible rating.
+- Coding challenge policy was clarified without increasing generation cost: coding challenges may still carry `choices` as a quality/fallback artifact, but they now always start in `open_text` mode instead of exposing a QCM immediately.
+- Challenge generation hardening now neutralizes over-revealing coding titles and recalibrates too-simple `coding` payloads before the blocking validation phase, instead of rejecting recoverable generations too early.
+- Coverage governance is now explicit across CI and Codecov: backend and frontend uploads are separated, project targets are documented by scope, and the default blended Codecov status no longer obscures the real gates.
+- CI test database naming is now aligned end-to-end on `test_mathakine`, and the artifact actions in `tests.yml` were realigned to currently valid published versions.
+- The adaptive-difficulty documentation/comments now explicitly distinguish the seeded cold-start path from the legacy direct-IRT selection path so the scope of the fix is not misread later.
+
+### Fixed
+
+- `html[lang]` is now resolved from a server-readable locale source (cookie plus `Accept-Language` fallback), and `next-intl/server` now follows the same canonical locale path as the root layout.
+- Auth mutations (`login`, `register`, `forgotPassword`) now capture only unexpected operational failures in Sentry (`0`, `429`, `5xx`) instead of staying silent or flooding Sentry with expected product errors.
+- `framer-motion` is now included in Next.js `optimizePackageImports`, matching its broad use across the frontend bundle.
+- The admin academy stats section, badge creation modal, and badge category/difficulty options are now localized cleanly instead of leaving learner/admin-visible French or canonical internal labels hardcoded in the UI.
+- Exercise AI validation now performs conservative arithmetic verification for simple numeric exercise types, including the nominal LaTeX path (`\\times`, `\\div`), so mechanically wrong `correct_answer` values are rejected when they can be proven false.
+- Pattern challenge validation/autocorrection no longer misclassifies single-cell grids as multi-answer puzzles, numeric row/column progressions are resolved before mirror heuristics, and runtime answer checking now trusts the persisted `correct_answer` instead of overwriting it with an unstable heuristic guess.
+- The challenge substitution renderer now displays keyword-based `partial_key` hints cleanly instead of leaking nested objects as `[object Object]`.
+- Challenge generation SSE messages now use clean French strings again instead of mojibake in learner-facing toasts.
+- Malformed LaTeX in challenge feedback explanations now degrades safely in the frontend instead of rendering aggressive red KaTeX error text.
+
+### Refactored
+
+- SQLAlchemy boolean comparisons of the form `== True/False` were normalized across the backend service layer to explicit idiomatic forms (`.is_(...)`), reducing ORM ambiguity in filters, `case(...)`, and aggregate expressions.
+
+### Documentation
+
+- `docs/03-PROJECT/PLAN_FEATURE_B_EXERCISE_SKILL_STATE_POST_BETA_2026-04-18.md` now records the post-beta implementation plan for persistent adaptive exercise skill states, including the phased rollout and the full Cursor prompt for the foundation lot.
+
 ## [3.6.0-beta.2] - 2026-04-17
 
 ### Security

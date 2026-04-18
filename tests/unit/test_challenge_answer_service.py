@@ -200,6 +200,26 @@ class TestVisualPattern:
     def test_pattern_multi_csv_wrong(self):
         assert compare_visual_pattern("O, X, X, O", "O, O, X, O", "pattern") is False
 
+    def test_pattern_prefers_persisted_correct_answer_over_runtime_heuristic(self):
+        visual_data = {
+            "grid": [
+                ["3", "5", "8", "12", "17"],
+                ["4", "7", "11", "16", "?"],
+                ["6", "10", "15", "?", "?"],
+                ["9", "14", "?", "27", "35"],
+                ["?", "22", "29", "37", "46"],
+            ]
+        }
+        assert (
+            compare_visual_pattern(
+                "22, 21, 28, 20, 16",
+                "22, 21, 28, 20, 16",
+                "pattern",
+                visual_data,
+            )
+            is True
+        )
+
 
 # ── check_answer (dispatch) ──────────────────────────────────────────────
 

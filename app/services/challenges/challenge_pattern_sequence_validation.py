@@ -1,8 +1,8 @@
 """
 Validateurs PATTERN et SEQUENCE pour la validation des challenges.
-Extrait de challenge_validator.py (B3.7) — famille pattern/sequence.
+Extrait de challenge_validator.py (B3.7) - famille pattern/sequence.
 
-Réutilise les analyzers de challenge_validation_analysis (B3.6).
+Reutilise les analyzers de challenge_validation_analysis (B3.6).
 """
 
 from typing import Any, Dict, List
@@ -15,14 +15,26 @@ from app.services.challenges.challenge_validation_analysis import (
 )
 
 
+def _count_question_cells(grid: List[List[Any]]) -> int:
+    count = 0
+    for row in grid:
+        if not isinstance(row, (list, tuple)):
+            continue
+        for cell in row:
+            if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
+                count += 1
+    return count
+
+
 def validate_pattern_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
     """
     Valide un challenge de type PATTERN.
-    Vérifie que la réponse correspond au pattern dans la grille.
+    Verifie que la reponse correspond au pattern dans la grille.
     """
-    errors = []
+    del explanation  # interface partagee avec les autres validateurs
+    errors: List[str] = []
 
     if not visual_data or "grid" not in visual_data:
         errors.append("visual_data.grid manquant pour un challenge PATTERN")
@@ -30,23 +42,29 @@ def validate_pattern_challenge(
 
     grid = visual_data.get("grid", [])
     if not grid or not isinstance(grid, list):
-        errors.append("visual_data.grid doit être un tableau")
+        errors.append("visual_data.grid doit etre un tableau")
         return errors
 
-    # Plusieurs "?" → format "O, O, X, O"
-    expected_multi = compute_pattern_answers_multi(grid)
-    if expected_multi:
-        correct_parts = [
-            p.strip().upper() for p in str(correct_answer).split(",") if p.strip()
-        ]
-        expected_parts = [
-            p.strip().upper() for p in expected_multi.split(",") if p.strip()
-        ]
-        if len(correct_parts) != len(expected_parts) or correct_parts != expected_parts:
-            errors.append(
-                f"Pattern multi-cellules incohérent: attendu '{expected_multi}', "
-                f"correct_answer='{correct_answer}'"
-            )
+    question_count = _count_question_cells(grid)
+
+    # Plusieurs "?" -> format "O, O, X, O"
+    if question_count > 1:
+        expected_multi = compute_pattern_answers_multi(grid)
+        if expected_multi:
+            correct_parts = [
+                p.strip().upper() for p in str(correct_answer).split(",") if p.strip()
+            ]
+            expected_parts = [
+                p.strip().upper() for p in expected_multi.split(",") if p.strip()
+            ]
+            if (
+                len(correct_parts) != len(expected_parts)
+                or correct_parts != expected_parts
+            ):
+                errors.append(
+                    f"Pattern multi-cellules incoherent: attendu '{expected_multi}', "
+                    f"correct_answer='{correct_answer}'"
+                )
         return errors
 
     # Une seule "?"
@@ -60,7 +78,7 @@ def validate_pattern_challenge(
         expected_normalized = str(expected_answer).strip().upper()
         if correct_normalized != expected_normalized:
             errors.append(
-                f"Pattern incohérent: le pattern suggère '{expected_answer}', "
+                f"Pattern incoherent: le pattern suggere '{expected_answer}', "
                 f"mais correct_answer est '{correct_answer}'"
             )
 
@@ -72,19 +90,20 @@ def validate_sequence_challenge(
 ) -> List[str]:
     """
     Valide un challenge de type SEQUENCE.
-    Vérifie que la réponse correspond à la séquence logique.
+    Verifie que la reponse correspond a la sequence logique.
     """
-    errors = []
+    del explanation  # interface partagee avec les autres validateurs
+    errors: List[str] = []
 
     if not visual_data or "sequence" not in visual_data:
-        # Sequence peut être dans visual_data ou directement dans la question
+        # Sequence peut etre dans visual_data ou directement dans la question
         return errors
 
     sequence = visual_data.get("sequence", [])
     if not sequence or not isinstance(sequence, list):
         return errors
 
-    # Analyser la séquence pour déterminer le prochain élément
+    # Analyser la sequence pour determiner le prochain element
     expected = analyze_sequence(sequence)
 
     if expected is not None:
@@ -93,7 +112,7 @@ def validate_sequence_challenge(
 
         if correct_normalized != expected_normalized:
             errors.append(
-                f"Séquence incohérente: la séquence {sequence} suggère '{expected}', "
+                f"Sequence incoherente: la sequence {sequence} suggere '{expected}', "
                 f"mais correct_answer est '{correct_answer}'"
             )
 

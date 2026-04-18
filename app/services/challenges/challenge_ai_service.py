@@ -583,7 +583,7 @@ async def generate_challenge_stream(
 
         if not is_valid:
             logger.warning(
-                "Challenge généré avec erreurs de validation: %s", validation_errors
+                "Challenge généré avec erreurs de validation: {}", validation_errors
             )
             logger.info("Tentative de correction automatique...")
             corrected_challenge = auto_correct_challenge(challenge_data)
@@ -591,13 +591,13 @@ async def generate_challenge_stream(
                 corrected_challenge
             )
             if is_valid_after_correction:
-                logger.info("Correction automatique rÃ©ussie")
+                logger.info("Correction automatique réussie")
                 challenge_data = corrected_challenge
                 auto_corrected = True
                 validation_passed = True
             else:
                 logger.error(
-                    "Correction automatique impossible. Erreurs restantes: %s",
+                    "Correction automatique impossible. Erreurs restantes: {}",
                     remaining_errors,
                 )
                 validation_passed = False

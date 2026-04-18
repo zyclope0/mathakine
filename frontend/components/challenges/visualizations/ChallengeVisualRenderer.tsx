@@ -62,9 +62,6 @@ export function ChallengeVisualRenderer({
         <PatternRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
-          {...(responseMode === "interactive_grid" && allowInlineAnswerInput
-            ? { onAnswerChange }
-            : {})}
         />
       );
 

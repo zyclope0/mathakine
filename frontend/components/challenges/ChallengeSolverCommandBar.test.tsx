@@ -192,4 +192,23 @@ describe("ChallengeSolverCommandBar", () => {
       "true"
     );
   });
+
+  it("renders the pattern grid answer block even before any answer is typed", () => {
+    render(
+      <ChallengeSolverCommandBar
+        {...baseProps({
+          responseMode: "interactive_grid",
+          challengeType: "pattern",
+          hasVisualData: true,
+          isAnswerEmpty: true,
+          isDisabled: true,
+        })}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByLabelText(solver.patternAnswerLabel)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(solver.patternGridAnswerPlaceholder)).toBeInTheDocument();
+    expect(screen.getByText(solver.patternGridAnswerHelp)).toBeInTheDocument();
+  });
 });

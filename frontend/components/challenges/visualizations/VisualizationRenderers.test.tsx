@@ -124,4 +124,31 @@ describe("Visualization renderers", () => {
 
     expect(await screen.findByPlaceholderText(/entrez le prochain nombre/i)).toBeInTheDocument();
   });
+
+  it("n'affiche pas de champ inline pattern; la saisie reste dans la command bar", async () => {
+    render(
+      <ChallengeVisualRenderer
+        challenge={{
+          id: 3,
+          title: "Motif",
+          description: "Trouve les valeurs manquantes.",
+          age_group: "15-17",
+          challenge_type: "pattern",
+          visual_data: {
+            grid: [
+              ["3", "5", "8", "12", "17"],
+              ["4", "7", "11", "16", "?"],
+            ],
+          },
+          response_mode: "interactive_grid",
+        }}
+        responseMode="interactive_grid"
+        showMcq={false}
+        onAnswerChange={() => {}}
+      />
+    );
+
+    expect(await screen.findByText("Grille de pattern")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/22, 21, 28, 20, 16/i)).not.toBeInTheDocument();
+  });
 });

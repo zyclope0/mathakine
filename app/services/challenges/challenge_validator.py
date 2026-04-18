@@ -513,23 +513,31 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
         grid = visual_data.get("grid", [])
         if grid:
             # Plusieurs "?" → format "O, O, X, O"
-            expected_multi = compute_pattern_answers_multi(grid)
-            if expected_multi:
-                logger.info(
-                    "Correction automatique PATTERN (multi): correct_answer = '%s'",
-                    expected_multi,
-                )
-                corrected["correct_answer"] = expected_multi
-                explanation = corrected.get("solution_explanation", "")
-                if (
-                    expected_multi[:20] not in explanation
-                    and expected_multi.split(",")[0].strip().upper()
-                    not in explanation.upper()
-                ):
-                    corrected["solution_explanation"] = (
-                        f"Les symboles manquants, dans l'ordre des cases (ligne par ligne), sont : {expected_multi}. "
-                        f"{explanation}"
+            question_count = 0
+            for row in grid:
+                if not isinstance(row, (list, tuple)):
+                    continue
+                for cell in row:
+                    if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
+                        question_count += 1
+            if question_count > 1:
+                expected_multi = compute_pattern_answers_multi(grid)
+                if expected_multi:
+                    logger.info(
+                        "Correction automatique PATTERN (multi): correct_answer = '{}'",
+                        expected_multi,
                     )
+                    corrected["correct_answer"] = expected_multi
+                    explanation = corrected.get("solution_explanation", "")
+                    if (
+                        expected_multi[:20] not in explanation
+                        and expected_multi.split(",")[0].strip().upper()
+                        not in explanation.upper()
+                    ):
+                        corrected["solution_explanation"] = (
+                            f"Les symboles manquants, dans l'ordre des cases (ligne par ligne), sont : {expected_multi}. "
+                            f"{explanation}"
+                        )
             else:
                 question_pos = find_question_position_in_grid(grid)
                 if question_pos:
@@ -537,7 +545,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     expected_answer = analyze_pattern(grid, row_idx, col_idx)
                     if expected_answer:
                         logger.info(
-                            "Correction automatique PATTERN: correct_answer = '%s'",
+                            "Correction automatique PATTERN: correct_answer = '{}'",
                             expected_answer,
                         )
                         corrected["correct_answer"] = expected_answer

@@ -127,14 +127,20 @@ export function ChallengeSolverCommandBar({
           <ChallengeSolverGridAutoAnswerBlock
             variant="sequence"
             userAnswer={userAnswer}
+            hasSubmitted={hasSubmitted}
+            isSubmitting={isSubmitting}
             onUserAnswerChange={onUserAnswerChange}
+            onSubmit={onSubmit}
             t={t}
           />
         ) : isGridPattern ? (
           <ChallengeSolverGridAutoAnswerBlock
             variant="pattern"
             userAnswer={userAnswer}
+            hasSubmitted={hasSubmitted}
+            isSubmitting={isSubmitting}
             onUserAnswerChange={onUserAnswerChange}
+            onSubmit={onSubmit}
             t={t}
           />
         ) : isGridDeduction ? (

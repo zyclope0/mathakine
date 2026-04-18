@@ -33,10 +33,7 @@ export function getCommandBarInteractionModeFlags(input: CommandBarModeInput): C
       Boolean(input.userAnswer) &&
       input.hasVisualData,
     isGridPattern:
-      input.responseMode === "interactive_grid" &&
-      type === "pattern" &&
-      Boolean(input.userAnswer) &&
-      input.hasVisualData,
+      input.responseMode === "interactive_grid" && type === "pattern" && input.hasVisualData,
     isGridDeduction:
       input.responseMode === "interactive_grid" && type === "deduction" && input.hasVisualData,
   };

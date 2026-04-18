@@ -354,7 +354,11 @@ def compare_visual_pattern(
 ) -> bool:
     """Compare les réponses VISUAL/PATTERN avec tolérance formes et couleurs."""
     computed_pattern_answer = None
-    if "pattern" in challenge_type and visual_data:
+    if (
+        "pattern" in challenge_type
+        and visual_data
+        and not str(correct_answer or "").strip()
+    ):
         grid = visual_data.get("grid") if isinstance(visual_data, dict) else None
         if grid:
             from app.services.challenges.challenge_validation_analysis import (
@@ -376,7 +380,7 @@ def compare_visual_pattern(
                     if computed_pattern_answer is not None:
                         break
 
-    effective_correct = (computed_pattern_answer or correct_answer or "").strip()
+    effective_correct = (correct_answer or computed_pattern_answer or "").strip()
 
     is_pattern_multi_csv = (
         "pattern" in challenge_type

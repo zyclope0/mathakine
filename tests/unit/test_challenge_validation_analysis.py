@@ -274,3 +274,14 @@ def test_analyze_sequence_mixed_string_numbers():
 def test_analyze_sequence_second_order_before_geometric():
     """Sequence 1,2,4 : second ordre (diffs +1) prioritaire sur geometrique -> 7."""
     assert analyze_sequence([1, 2, 4]) == "7"
+
+
+def test_analyze_pattern_numeric_row_geometric_progression() -> None:
+    """Une ligne numérique simple doit être résolue avant les heuristiques de symétrie."""
+    grid = [
+        ["2", "4", "8", "16"],
+        ["3", "6", "12", "24"],
+        ["5", "10", "20", "40"],
+        ["7", "14", "28", "?"],
+    ]
+    assert analyze_pattern(grid, 3, 3) == "56"
