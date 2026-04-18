@@ -21,6 +21,76 @@ interface CodingRendererProps {
   className?: string;
 }
 
+interface KeyValueExample {
+  encoded: string;
+  decoded: string;
+}
+
+interface SubstitutionRuleHints {
+  keywordLength?: number;
+  themeClue?: string;
+  examples: KeyValueExample[];
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getPrimitiveStringExamples(source: Record<string, unknown>): KeyValueExample[] {
+  return Object.entries(source)
+    .filter(([, value]) => typeof value === "string" || typeof value === "number")
+    .map(([encoded, decoded]) => ({
+      encoded,
+      decoded: String(decoded),
+    }));
+}
+
+function getSubstitutionRuleHints(visualData: Record<string, unknown>): SubstitutionRuleHints {
+  const directKey = asRecord(visualData.key);
+  if (directKey) {
+    return {
+      examples: getPrimitiveStringExamples(directKey),
+    };
+  }
+
+  const partialKey = asRecord(visualData.partial_key);
+  if (!partialKey) {
+    return { examples: [] };
+  }
+
+  const mappingKnown = asRecord(partialKey.mapping_known);
+  const rawKeywordLength = partialKey.keyword_length;
+  const keywordLength =
+    typeof rawKeywordLength === "number"
+      ? rawKeywordLength
+      : rawKeywordLength != null
+        ? Number(rawKeywordLength)
+        : undefined;
+  const themeClue = typeof partialKey.theme_clue === "string" ? partialKey.theme_clue : undefined;
+
+  const examples = mappingKnown
+    ? getPrimitiveStringExamples(mappingKnown)
+    : getPrimitiveStringExamples(partialKey).filter(
+        (example) => !["keyword_length", "theme_clue", "mapping_known"].includes(example.encoded)
+      );
+
+  const ruleHints: SubstitutionRuleHints = {
+    examples,
+  };
+
+  if (keywordLength != null && Number.isFinite(keywordLength)) {
+    ruleHints.keywordLength = keywordLength;
+  }
+
+  if (themeClue) {
+    ruleHints.themeClue = themeClue;
+  }
+
+  return ruleHints;
+}
+
 /**
  * Renderer pour les défis de codage/cryptographie.
  * Gère : code César, substitution, binaire, symboles, algorithmes, labyrinthes.
@@ -57,6 +127,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
         : undefined;
   const alphabet: string = String(visualData.alphabet ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
   const cryptoKey = (visualData.key ?? visualData.partial_key ?? {}) as Record<string, unknown>;
+  const substitutionRuleHints = getSubstitutionRuleHints(visualData);
   const steps = Array.isArray(visualData.steps) ? visualData.steps : [];
   const cryptoInput = visualData.input;
   const description: string = String(visualData.description ?? "");
@@ -162,36 +233,60 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
         )}
 
         {/* Substitution - Table de correspondance */}
-        {codingType === "substitution" && Object.keys(cryptoKey).length > 0 && (
-          <div className="bg-card/50 border border-border rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Key className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Table de correspondance</span>
+        {codingType === "substitution" &&
+          (substitutionRuleHints.examples.length > 0 ||
+            substitutionRuleHints.keywordLength !== undefined ||
+            Boolean(substitutionRuleHints.themeClue)) && (
+            <div className="bg-card/50 border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Key className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-foreground">Table de correspondance</span>
+              </div>
+              {Boolean(visualData.rule_type || visualData.deducible_rule) && (
+                <p className="text-xs text-muted-foreground italic mb-3">
+                  Ces exemples te permettent de déduire la règle de codage.
+                </p>
+              )}
+              {(substitutionRuleHints.keywordLength !== undefined ||
+                substitutionRuleHints.themeClue) && (
+                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                  {substitutionRuleHints.keywordLength !== undefined && (
+                    <span className="bg-muted border border-primary/30 rounded-full px-3 py-1 text-xs text-muted-foreground">
+                      Longueur du mot-clé :{" "}
+                      <span className="font-semibold text-foreground">
+                        {substitutionRuleHints.keywordLength}
+                      </span>
+                    </span>
+                  )}
+                  {substitutionRuleHints.themeClue && (
+                    <span className="bg-muted border border-primary/30 rounded-full px-3 py-1 text-xs text-muted-foreground">
+                      Indice thématique :{" "}
+                      <span className="font-semibold text-foreground">
+                        {substitutionRuleHints.themeClue}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className="flex flex-wrap justify-center gap-2">
+                {substitutionRuleHints.examples.map(({ encoded, decoded }, index) => (
+                  <motion.div
+                    key={encoded}
+                    className="bg-muted border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <span className="text-primary font-mono font-bold">{encoded}</span>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-green-600 dark:text-green-400 font-mono font-bold">
+                      {decoded}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            {Boolean(visualData.rule_type || visualData.deducible_rule) && (
-              <p className="text-xs text-muted-foreground italic mb-3">
-                Ces exemples te permettent de déduire la règle de codage.
-              </p>
-            )}
-            <div className="flex flex-wrap justify-center gap-2">
-              {Object.entries(cryptoKey).map(([encoded, decoded], index) => (
-                <motion.div
-                  key={encoded}
-                  className="bg-muted border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <span className="text-primary font-mono font-bold">{encoded}</span>
-                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-green-600 dark:text-green-400 font-mono font-bold">
-                    {String(decoded)}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
         {/* Binaire - Affichage stylisé */}
         {codingType === "binary" && (

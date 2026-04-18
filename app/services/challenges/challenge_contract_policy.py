@@ -122,7 +122,7 @@ TYPE_CONTRACTS: Dict[str, ChallengeTypeContract] = {
     "CODING": ChallengeTypeContract(
         ChoicesDisposition.OPTIONAL,
         RESPONSE_MODE_OPEN_TEXT,
-        "sous-type crypto / maze selon validateur coding.",
+        "sous-type crypto / maze selon validateur coding ; choices possibles pour assistance diff\u00e9r\u00e9e, r\u00e9ponse libre par d\u00e9faut.",
         "CodingRenderer",
     ),
     "CHESS": ChallengeTypeContract(
@@ -266,10 +266,14 @@ def compute_response_mode(
 
     Priorité : QCM seulement si choices autorisés **et** liste non vide après policy.
     """
+    ct = _upper_type(challenge_type)
+
+    if ct == "CODING":
+        return RESPONSE_MODE_OPEN_TEXT
+
     if _has_nonempty_choices(choices_after_policy):
         return RESPONSE_MODE_SINGLE_CHOICE
 
-    ct = _upper_type(challenge_type)
     vd = visual_data if isinstance(visual_data, dict) else {}
 
     if ct == "PUZZLE" and (vd.get("pieces") or vd.get("items")):

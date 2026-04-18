@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ChessRenderer } from "@/components/challenges/visualizations/ChessRenderer";
+import { CodingRenderer } from "@/components/challenges/visualizations/CodingRenderer";
 import { GraphRenderer } from "@/components/challenges/visualizations/GraphRenderer";
 
 vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
@@ -50,5 +51,33 @@ describe("Visualization renderers", () => {
 
     expect(await screen.findByText("Graphe")).toBeInTheDocument();
     expect(screen.getByText(/2 nœuds/i)).toBeInTheDocument();
+  });
+
+  it("affiche les indices utiles d'une substitution sans [object Object]", async () => {
+    render(
+      <CodingRenderer
+        visualData={{
+          type: "substitution",
+          rule_type: "keyword",
+          encoded_message: "SFA ROGNA KTRS BJMW",
+          partial_key: {
+            keyword_length: 4,
+            theme_clue: "desert planet",
+            mapping_known: {
+              D: "A",
+              U: "B",
+              N: "C",
+              E: "D",
+            },
+          },
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Table de correspondance")).toBeInTheDocument();
+    expect(screen.getByText(/Longueur du mot-clé/i)).toBeInTheDocument();
+    expect(screen.getByText(/Indice thématique/i)).toBeInTheDocument();
+    expect(screen.getByText("desert planet")).toBeInTheDocument();
+    expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
   });
 });

@@ -24,6 +24,15 @@ def test_validate_choices_policy_deduction_forbids_qcm() -> None:
     assert err and "n'accepte pas" in err[0].lower()
 
 
+def test_validate_choices_policy_coding_allows_valid_qcm_artifact() -> None:
+    err = validate_choices_policy(
+        "CODING",
+        4.3,
+        ["THE SPICE MUST FLOW", "FEAR IS THE MIND KILLER", "DESERT POWER"],
+    )
+    assert err == []
+
+
 def test_validate_choices_policy_visual_qcm_only_below_difficulty_2() -> None:
     assert not validate_choices_policy(
         "VISUAL",
@@ -169,6 +178,26 @@ def test_sanitize_choices_for_delivery_keeps_valid_qcm() -> None:
     assert out == ["8", "9", "10", "11"]
 
 
+def test_sanitize_choices_for_delivery_keeps_valid_coding_qcm_artifact() -> None:
+    out = sanitize_choices_for_delivery(
+        "coding",
+        4.3,
+        [
+            "THE SPICE MUST FLOW",
+            "FEAR IS THE MIND KILLER",
+            "DESERT POWER AWAITS",
+            "LONG LIVE THE FIGHTERS",
+        ],
+        "THE SPICE MUST FLOW",
+    )
+    assert out == [
+        "THE SPICE MUST FLOW",
+        "FEAR IS THE MIND KILLER",
+        "DESERT POWER AWAITS",
+        "LONG LIVE THE FIGHTERS",
+    ]
+
+
 def test_resolve_overrides_stale_gp_single_choice_when_qcm_invalid() -> None:
     c = _FakeChallenge(
         challenge_type="sequence",
@@ -179,3 +208,23 @@ def test_resolve_overrides_stale_gp_single_choice_when_qcm_invalid() -> None:
         generation_parameters={"response_mode": "single_choice"},
     )
     assert resolve_challenge_response_mode(c) == "interactive_grid"
+
+
+def test_resolve_coding_keeps_open_text_even_when_valid_choices_exist() -> None:
+    c = _FakeChallenge(
+        challenge_type="coding",
+        difficulty_rating=4.3,
+        correct_answer="THE SPICE MUST FLOW",
+        visual_data={
+            "type": "substitution",
+            "encoded_message": "SFA ROGNA KTRS BJMW",
+            "rule_type": "keyword",
+        },
+        choices=[
+            "THE SPICE MUST FLOW",
+            "FEAR IS THE MIND KILLER",
+            "DESERT POWER AWAITS",
+        ],
+        generation_parameters={"response_mode": "single_choice"},
+    )
+    assert resolve_challenge_response_mode(c) == "open_text"

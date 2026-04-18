@@ -61,6 +61,8 @@ def resolve_challenge_response_mode(challenge: Any) -> str:
     gp = _generation_params_dict(challenge)
     rm = gp.get("response_mode")
     if isinstance(rm, str) and rm in RESPONSE_MODES:
+        if ct.upper() == "CODING":
+            return compute_response_mode(ct, vd, drf, sanitized)
         if rm == RESPONSE_MODE_SINGLE_CHOICE:
             if sanitized:
                 return RESPONSE_MODE_SINGLE_CHOICE
