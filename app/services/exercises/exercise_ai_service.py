@@ -69,27 +69,36 @@ def _exercise_ai_metrics_key(exercise_type: str) -> str:
     return f"{METRICS_EXERCISE_AI_PREFIX}:{t}"
 
 
+# Plages numériques injectées dans le prompt LLM via diff_info["desc"].
+# Contrainte de calibration : monotonie STRICTE — min_{i+1} == max_i et
+# max_{i+1} > max_i — pour éviter l'ancrage bas du LLM dans une plage
+# chevauchante qui aplatissait la gradation CHEVALIER/MAITRE/GRAND_MAITRE.
+# Les bornes sont cohérentes avec _TIER_CALIBRATION (difficulty_tier.py).
 DIFFICULTY_RANGES = {
     "INITIE": {
         "min": 1,
         "max": 20,
-        "desc": "nombres simples de 1 à 20",
+        "desc": "nombres 1-20, une opération directe",
     },
-    "PADAWAN": {"min": 1, "max": 100, "desc": "nombres jusqu'à 100"},
+    "PADAWAN": {
+        "min": 20,
+        "max": 100,
+        "desc": "nombres 20-100, procédure simple",
+    },
     "CHEVALIER": {
-        "min": 10,
+        "min": 100,
         "max": 500,
-        "desc": "nombres jusqu'à 500, calculs intermédiaires",
+        "desc": "nombres 100-500, 2 étapes minimum",
     },
     "MAITRE": {
-        "min": 50,
-        "max": 1000,
-        "desc": "nombres jusqu'à 1000, problèmes complexes",
+        "min": 500,
+        "max": 2000,
+        "desc": "nombres 500-2000, raisonnement non guidé",
     },
     "GRAND_MAITRE": {
-        "min": 100,
+        "min": 2000,
         "max": 10000,
-        "desc": "grands nombres, problèmes avancés",
+        "desc": "nombres 2000-10000, problème multi-étapes non routinier",
     },
 }
 
