@@ -283,11 +283,11 @@ async def generate_challenge_stream(
         try:
             from openai import AsyncOpenAI
         except ImportError:
-            yield sse_error_message("BibliothÃ¨que OpenAI non installÃ©e")
+            yield sse_error_message("Bibliothèque OpenAI non installée")
             return
 
         if not settings.OPENAI_API_KEY:
-            yield sse_error_message("OpenAI API key non configurÃ©e")
+            yield sse_error_message("OpenAI API key non configurée")
             return
 
         ai_params = AIConfig.get_openai_params(challenge_type)
@@ -315,7 +315,7 @@ async def generate_challenge_stream(
             yield sse_error_message(OPENAI_CIRCUIT_OPEN_USER_MESSAGE)
             return
 
-        yield sse_status_message("GÃ©nÃ©ration en cours...")
+        yield sse_status_message("Génération en cours...")
 
         @retry(
             stop=stop_after_attempt(AIConfig.MAX_RETRIES),
@@ -539,21 +539,46 @@ async def generate_challenge_stream(
             logger.error("Erreur de parsing JSON: %s", json_error)
             logger.debug("RÃ©ponse reÃ§ue: %s", full_response[:500])
             _record_generation_failure(error_type="json_decode_error")
-            yield sse_error_message("Erreur lors du parsing de la rÃ©ponse JSON")
+            yield sse_error_message("Erreur lors du parsing de la réponse JSON")
             return
 
         if not challenge_data.get("title") or not challenge_data.get("description"):
             logger.error("DonnÃ©es de challenge incomplÃ¨tes: %s", challenge_data)
             _record_generation_failure(error_type="incomplete_generated_challenge")
             yield sse_error_message(
-                "Les donnÃ©es gÃ©nÃ©rÃ©es sont incomplÃ¨tes (titre ou description manquant)"
+                "Les données générées sont incomplètes (titre ou description manquant)"
             )
             return
 
         challenge_data["challenge_type"] = challenge_type
-        if challenge_type.lower() in ("pattern", "visual"):
-            # Pre-correct avant validation : PATTERN (grille/multi-?) et VISUAL (symétrie, latin square)
-            challenge_data = auto_correct_challenge(challenge_data)
+        normalized_challenge = normalize_generated_challenge(
+            challenge_data,
+            challenge_type,
+            age_group,
+            f42_rating_hint=(
+                personalization.target_difficulty_rating_hint
+                if personalization is not None
+                else None
+            ),
+            difficulty_tier=(
+                personalization.resolved_target_tier
+                if personalization is not None
+                else None
+            ),
+        )
+
+        if not normalized_challenge.get("title") or not normalized_challenge.get(
+            "description"
+        ):
+            logger.error("Challenge normalisé invalide: %s", normalized_challenge)
+            _record_generation_failure(error_type="normalized_challenge_invalid")
+            yield sse_error_message("Erreur lors de la normalisation des données")
+            return
+
+        prevalidated_challenge = auto_correct_challenge(normalized_challenge)
+        if prevalidated_challenge != normalized_challenge:
+            auto_corrected = True
+        challenge_data = prevalidated_challenge
         is_valid, validation_errors = validate_challenge_logic(challenge_data)
 
         if not is_valid:
@@ -581,8 +606,8 @@ async def generate_challenge_stream(
                 )
                 errors_str = ", ".join(remaining_errors[:5])
                 yield sse_error_message(
-                    "Le dÃ©fi gÃ©nÃ©rÃ© ne passe pas la validation finale "
-                    f"(correction automatique impossible). DÃ©tail : {errors_str}"
+                    "Le défi généré ne passe pas la validation finale "
+                    f"(correction automatique impossible). Détail : {errors_str}"
                 )
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 return
@@ -590,29 +615,7 @@ async def generate_challenge_stream(
             logger.debug("Challenge validÃ© avec succÃ¨s")
             validation_passed = True
 
-        normalized_challenge = normalize_generated_challenge(
-            challenge_data,
-            challenge_type,
-            age_group,
-            f42_rating_hint=(
-                personalization.target_difficulty_rating_hint
-                if personalization is not None
-                else None
-            ),
-            difficulty_tier=(
-                personalization.resolved_target_tier
-                if personalization is not None
-                else None
-            ),
-        )
-
-        if not normalized_challenge.get("title") or not normalized_challenge.get(
-            "description"
-        ):
-            logger.error("Challenge normalisÃ© invalide: %s", normalized_challenge)
-            _record_generation_failure(error_type="normalized_challenge_invalid")
-            yield sse_error_message("Erreur lors de la normalisation des donnÃ©es")
-            return
+        normalized_challenge = challenge_data
 
         try:
             pers_dump = (
@@ -646,7 +649,7 @@ async def generate_challenge_stream(
                     validation_ok=validation_passed,
                     auto_corrected_flag=auto_corrected,
                 )
-                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardÃ© en base'})}\n\n"
+                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
         except Exception as db_error:
             logger.error("Erreur lors de la sauvegarde du challenge: %s", db_error)
             logger.debug(traceback.format_exc())
@@ -656,7 +659,7 @@ async def generate_challenge_stream(
                 auto_corrected_flag=auto_corrected,
             )
             if normalized_challenge.get("title"):
-                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardÃ© en base'})}\n\n"
+                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
             else:
                 yield sse_error_message(
                     "Erreur lors de la sauvegarde et challenge invalide"

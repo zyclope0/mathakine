@@ -140,3 +140,116 @@ async def test_generate_challenge_stream_unexpected_error_uses_safe_message():
     payloads = _parse_sse_payloads(events)
     error_payload = next(payload for payload in payloads if payload["type"] == "error")
     assert error_payload["message"] == CHALLENGE_AI_GENERIC_ERROR_MESSAGE
+
+
+@pytest.mark.asyncio
+async def test_generate_challenge_stream_normalizes_recoverable_difficulty_before_validation():
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(
+        return_value=_yield_chunks(
+            _build_stream_chunk(
+                json.dumps(
+                    {
+                        "title": "Code César facile",
+                        "description": "Décode ce message.",
+                        "question": "Quel est le mot ?",
+                        "correct_answer": "EUREKA",
+                        "difficulty_rating": 4.4,
+                        "visual_data": {
+                            "type": "caesar",
+                            "encoded_message": "HXUHPD",
+                            "shift": 3,
+                        },
+                    }
+                )
+            )
+        )
+    )
+
+    normalized_challenge = {
+        "challenge_type": "coding",
+        "age_group": "15-17",
+        "title": "Le message chiffré",
+        "description": "Décode ce message.",
+        "question": "Quel est le mot ?",
+        "correct_answer": "EUREKA",
+        "solution_explanation": "Décale les lettres dans le bon sens.",
+        "hints": ["Observe le décalage."],
+        "visual_data": {
+            "type": "caesar",
+            "encoded_message": "HXUHPD",
+            "shift": 3,
+        },
+        "difficulty_rating": 3.0,
+        "difficulty_tier": None,
+        "estimated_time_minutes": 10,
+        "tags": "ai,generated,mathélogique",
+        "choices": None,
+        "response_mode": "open_text",
+        "difficulty_calibration": {
+            "applied_rules": ["coding_caesar_explicit_shift_cap_3_0"]
+        },
+    }
+    persisted_payloads: list[dict] = []
+
+    def validate_side_effect(payload: dict):
+        if float(payload["difficulty_rating"]) >= 4.0:
+            return (
+                False,
+                [
+                    "CODING Caesar : un décalage explicite ne justifie pas difficulty_rating >= 4.0."
+                ],
+            )
+        return (True, [])
+
+    async def capture_run_db_bound(_fn, normalized_payload, *_args, **_kwargs):
+        persisted_payloads.append(normalized_payload)
+        return {"id": 123, **normalized_payload}
+
+    with (
+        patch.object(settings, "OPENAI_API_KEY", "sk-test-challenge-normalized"),
+        patch("openai.AsyncOpenAI", return_value=mock_client),
+        patch.object(
+            AIConfig,
+            "get_openai_params",
+            return_value={
+                "model": "gpt-4o-mini",
+                "max_tokens": 500,
+                "timeout": 30,
+                "temperature": 0.5,
+            },
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.normalize_generated_challenge",
+            return_value=normalized_challenge,
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.auto_correct_challenge",
+            side_effect=lambda payload: payload,
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.validate_challenge_logic",
+            side_effect=validate_side_effect,
+        ) as validate_mock,
+        patch(
+            "app.services.challenges.challenge_ai_service.run_db_bound",
+            side_effect=capture_run_db_bound,
+        ),
+    ):
+        events: list[str] = []
+        async for line in generate_challenge_stream(
+            challenge_type="coding",
+            age_group="15-17",
+            prompt="test",
+            user_id=1,
+            locale="fr",
+        ):
+            events.append(line)
+
+    joined = "\n".join(events)
+    assert '"type": "error"' not in joined
+    assert '"type": "challenge"' in joined
+    assert persisted_payloads
+    assert persisted_payloads[0]["difficulty_rating"] == 3.0
+    assert validate_mock.call_count >= 1
+    assert validate_mock.call_args_list[0].args[0]["difficulty_rating"] == 3.0
