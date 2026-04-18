@@ -560,6 +560,12 @@ def resolve_adaptive_difficulty(
     # ------------------------------------------------------------------
     # 1. Diagnostic IRT (direct + proxy MIXTE/FRACTIONS)
     # ------------------------------------------------------------------
+    # Note : _irt_ordinal_for_type retourne None pour GEOMETRIE / TEXTE / DIVERS.
+    # Le seed ordinal (IRT_SEEDED_TYPES) s'applique uniquement dans resolve_irt_level
+    # (endpoint /api/exercises/irt-level, décision QCM vs saisie libre côté frontend).
+    # La sélection de difficulté pour ces types est résolue via la cascade
+    # Progress → profil → fallback (étapes 2–4 ci-dessous), ce qui est intentionnel :
+    # éviter d'injecter un prior non calibré dans le chemin de sélection d'exercices.
     try:
         scores = _get_irt_scores_if_valid(db, user_id)
         if scores is not None:
