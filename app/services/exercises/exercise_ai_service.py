@@ -102,6 +102,35 @@ DIFFICULTY_RANGES = {
     },
 }
 
+# Types où une consigne « multi-étapes » est pédagogiquement défendable.
+_MULTI_STEP_COMPATIBLE_TYPES = frozenset(
+    {"texte", "mixte", "fractions", "geometrie", "divers"}
+)
+
+_HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP = {
+    "CHEVALIER": "au moins deux étapes de raisonnement distinctes",
+    "MAITRE": "raisonnement autonome, sans procédure soufflée",
+    "GRAND_MAITRE": (
+        "problème non routinier, données à trier et stratégie à construire"
+    ),
+}
+
+_HIGH_DIFFICULTY_DIRECTIVE_ATOMIC = (
+    "nombres dans la borne haute de la plage et réponse non immédiate par "
+    "calcul mental"
+)
+
+
+def _non_triviality_hint(exercise_type: str, derived_difficulty: str) -> str:
+    """Retourne une phrase de guidance pour CHEVALIER+ ou chaîne vide."""
+    key = (derived_difficulty or "").strip().upper()
+    et = (exercise_type or "").strip().lower()
+    if key not in _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP:
+        return ""
+    if et not in _MULTI_STEP_COMPATIBLE_TYPES:
+        return _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC
+    return _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP[key]
+
 
 def _persist_exercise_ai_sync(
     normalized_exercise: Dict[str, Any],
@@ -151,6 +180,8 @@ def build_exercise_system_prompt(
     cal_line = (
         f"- Calibrage pédagogique : {calibration_desc}" if calibration_desc else ""
     )
+    nontriv = _non_triviality_hint(exercise_type, derived_difficulty)
+    nontriv_line = f"- Exigence de difficulté : {nontriv}" if nontriv else ""
     return f"""Tu es un créateur d'exercices mathématiques pédagogiques.
 
 ## CONTRAINTES OBLIGATOIRES
@@ -158,6 +189,7 @@ def build_exercise_system_prompt(
 - Niveau : {derived_difficulty} ({diff_info['desc']})
 - Groupe d'âge cible : {age_group}
 {cal_line}
+{nontriv_line}
 {theme_line}
 
 ## GUIDE PAR TYPE

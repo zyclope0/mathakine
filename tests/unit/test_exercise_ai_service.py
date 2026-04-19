@@ -8,9 +8,27 @@ sur les plages chevauchantes précédentes.
 
 from __future__ import annotations
 
-from app.services.exercises.exercise_ai_service import DIFFICULTY_RANGES
+from app.services.exercises.exercise_ai_service import (
+    DIFFICULTY_RANGES,
+    _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC,
+    _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP,
+    _non_triviality_hint,
+    build_exercise_system_prompt,
+)
 
 _ORDERED_LEVELS = ("INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE")
+
+_EXERCISE_TYPES = (
+    "addition",
+    "soustraction",
+    "multiplication",
+    "division",
+    "fractions",
+    "geometrie",
+    "texte",
+    "mixte",
+    "divers",
+)
 
 
 def test_difficulty_ranges_five_levels_exact() -> None:
@@ -62,3 +80,60 @@ def test_difficulty_ranges_max_strictly_greater_than_min_per_level() -> None:
         assert (
             entry["max"] > entry["min"]
         ), f"{level} : max ({entry['max']}) doit être > min ({entry['min']})"
+
+
+# ---------------------------------------------------------------------------
+# Lot C — guidance non-trivialité conditionnelle au type
+# ---------------------------------------------------------------------------
+
+
+def test_non_triviality_empty_for_initie_and_padawan() -> None:
+    for et in _EXERCISE_TYPES:
+        for diff in ("INITIE", "PADAWAN", "initie", " padawan "):
+            assert _non_triviality_hint(et, diff) == ""
+
+
+def test_non_triviality_atomic_addition_grand_maitre() -> None:
+    assert (
+        _non_triviality_hint("addition", "GRAND_MAITRE")
+        == _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC
+    )
+
+
+def test_non_triviality_narrative_texte_chevalier() -> None:
+    assert (
+        _non_triviality_hint("texte", "CHEVALIER")
+        == _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP["CHEVALIER"]
+    )
+
+
+def test_non_triviality_narrative_mixte_maitre() -> None:
+    assert (
+        _non_triviality_hint("mixte", "MAITRE")
+        == _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP["MAITRE"]
+    )
+
+
+def test_system_prompt_includes_directive_when_chevalier_texte() -> None:
+    prompt = build_exercise_system_prompt(
+        "texte",
+        "CHEVALIER",
+        "9-11",
+        {"desc": "test desc"},
+        "",
+        calibration_desc="calibration test",
+    )
+    assert "- Exigence de difficulté :" in prompt
+    assert _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP["CHEVALIER"] in prompt
+
+
+def test_system_prompt_has_no_directive_for_initie() -> None:
+    prompt = build_exercise_system_prompt(
+        "texte",
+        "INITIE",
+        "9-11",
+        {"desc": "test desc"},
+        "",
+        calibration_desc="calibration test",
+    )
+    assert "Exigence de difficulté" not in prompt
