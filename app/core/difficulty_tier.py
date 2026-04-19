@@ -175,20 +175,24 @@ def assign_logic_challenge_difficulty_tier(challenge: Any) -> None:
 _PEDAGOGICAL_BAND_LABELS = ("discovery", "learning", "consolidation")
 
 # Tier-specific calibration: 12 cells (age_band 0-3 × ped_band 0-2 = tier 1-12).
-# Each entry gives a human-readable calibration hint for the OpenAI prompt.
+# Chaque entrée combine un descripteur quantitatif (plages numériques, opérations)
+# et un marqueur cognitif explicite pour ancrer le LLM au bon niveau :
+#   - DOK 1..4 : Webb's Depth of Knowledge (1997)
+#   - verbes Bloom : Bloom's revised taxonomy (Anderson & Krathwohl, 2001)
+# Le schéma F42 (12 cellules) reste inchangé ; seules les valeurs sont enrichies.
 _TIER_CALIBRATION: dict[int, str] = {
-    1: "6-8 ans – découverte : nombres 1-10, opérations très simples, énoncés courts",
-    2: "6-8 ans – apprentissage : nombres 1-20, une opération, vocabulaire simple",
-    3: "6-8 ans – consolidation : nombres 1-50, légère complexité, contexte concret",
-    4: "9-11 ans – découverte : nombres jusqu'à 100, opérations de base guidées",
-    5: "9-11 ans – apprentissage : nombres jusqu'à 200, raisonnement en deux temps",
-    6: "9-11 ans – consolidation : nombres jusqu'à 500, priorité opératoire, fractions simples",
-    7: "12-14 ans – découverte : grands nombres, fractions, introduction pourcentages",
-    8: "12-14 ans – apprentissage : calculs intermédiaires, problèmes multi-étapes",
-    9: "12-14 ans – consolidation : raisonnement autonome, problèmes complexes",
-    10: "15-17 ans – découverte : abstraction, algèbre introductive",
-    11: "15-17 ans – apprentissage : problèmes avancés, probabilités, logique",
-    12: "15-17 ans / adultes – consolidation : grands nombres, raisonnement avancé",
+    1: "6-8 ans – découverte : nombres 1-10, énoncés courts — DOK 1 (Remember/Understand)",
+    2: "6-8 ans – apprentissage : nombres 1-20, une opération, vocabulaire simple — DOK 1-2 (Understand/Apply)",
+    3: "6-8 ans – consolidation : nombres 1-50, contexte concret — DOK 2 (Apply)",
+    4: "9-11 ans – découverte : nombres jusqu'à 100, opérations de base guidées — DOK 1-2 (Understand/Apply)",
+    5: "9-11 ans – apprentissage : nombres jusqu'à 200, raisonnement en deux temps — DOK 2 (Apply)",
+    6: "9-11 ans – consolidation : nombres jusqu'à 500, priorité opératoire, fractions simples — DOK 2-3 (Apply/Analyze)",
+    7: "12-14 ans – découverte : grands nombres, fractions, introduction pourcentages — DOK 2 (Apply)",
+    8: "12-14 ans – apprentissage : calculs intermédiaires, problèmes multi-étapes — DOK 2-3 (Apply/Analyze)",
+    9: "12-14 ans – consolidation : raisonnement autonome, problèmes complexes — DOK 3 (Analyze/Evaluate)",
+    10: "15-17 ans – découverte : abstraction, algèbre introductive — DOK 2-3 (Apply/Analyze)",
+    11: "15-17 ans – apprentissage : problèmes avancés, probabilités, logique — DOK 3 (Analyze/Evaluate)",
+    12: "15-17 ans / adultes – consolidation : raisonnement avancé, preuves guidées — DOK 3-4 (Evaluate/Create)",
 }
 
 _BAND_FALLBACK_CALIBRATION = {
