@@ -22,7 +22,10 @@ from app.core.ai_generation_policy import (
 )
 from app.core.config import settings
 from app.core.db_boundary import sync_db_session
-from app.core.difficulty_tier import build_exercise_generation_profile
+from app.core.difficulty_tier import (
+    build_exercise_generation_profile,
+    cognitive_guidance_kind_for_exercise_type,
+)
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.core.enhanced_server_adapter import EnhancedServerAdapter
@@ -102,11 +105,6 @@ DIFFICULTY_RANGES = {
     },
 }
 
-# Types où une consigne « multi-étapes » est pédagogiquement défendable.
-_MULTI_STEP_COMPATIBLE_TYPES = frozenset(
-    {"texte", "mixte", "fractions", "geometrie", "divers"}
-)
-
 _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP = {
     "CHEVALIER": "au moins deux étapes de raisonnement distinctes",
     "MAITRE": "raisonnement autonome, sans procédure soufflée",
@@ -124,12 +122,14 @@ _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC = (
 def _non_triviality_hint(exercise_type: str, derived_difficulty: str) -> str:
     """Retourne une phrase de guidance pour CHEVALIER+ ou chaîne vide."""
     key = (derived_difficulty or "").strip().upper()
-    et = (exercise_type or "").strip().lower()
     if key not in _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP:
         return ""
-    if et not in _MULTI_STEP_COMPATIBLE_TYPES:
+    guidance_kind = cognitive_guidance_kind_for_exercise_type(exercise_type)
+    if guidance_kind == "atomic":
         return _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC
-    return _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP[key]
+    if guidance_kind == "multistep":
+        return _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP[key]
+    return ""
 
 
 def _persist_exercise_ai_sync(

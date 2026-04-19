@@ -26,6 +26,8 @@ from app.core.difficulty_tier import (
     DIFFICULTY_TIER_MIN,
     _TIER_CALIBRATION,
     build_exercise_generation_profile,
+    cognitive_guidance_kind_for_exercise_type,
+    cognitive_hint_for_exercise_type,
     cognitive_intensity_for_difficulty,
     compute_difficulty_tier_for_exercise_strings,
     compute_user_target_difficulty_tier,
@@ -94,6 +96,27 @@ def test_cognitive_intensity_returns_none_for_empty_or_unknown() -> None:
     assert cognitive_intensity_for_difficulty("NOT_A_JEDI_LEVEL") is None
 
 
+def test_cognitive_guidance_kind_is_type_aware() -> None:
+    assert cognitive_guidance_kind_for_exercise_type("addition") == "atomic"
+    assert cognitive_guidance_kind_for_exercise_type(" division ") == "atomic"
+    assert cognitive_guidance_kind_for_exercise_type("texte") == "multistep"
+    assert cognitive_guidance_kind_for_exercise_type("GEOMETRIE") == "multistep"
+    assert cognitive_guidance_kind_for_exercise_type("unknown") is None
+
+
+def test_cognitive_hint_for_atomic_type_never_requires_multistep_reasoning() -> None:
+    hint = cognitive_hint_for_exercise_type("addition", "CHEVALIER")
+    assert hint is not None
+    assert "étapes" not in hint
+    assert "données" not in hint
+    assert "opération" in hint
+
+
+def test_cognitive_hint_for_multistep_type_keeps_reasoning_depth() -> None:
+    hint = cognitive_hint_for_exercise_type("texte", "CHEVALIER")
+    assert hint == "consolidation : deux étapes minimum, pas de procédure soufflée"
+
+
 # ---------------------------------------------------------------------------
 # Section 2 — Tests d'enrichissement cognitif Lot B (DOK / Bloom)
 # ---------------------------------------------------------------------------
@@ -158,7 +181,8 @@ def test_generation_profile_exposes_cognitive_intensity_for_chevalier_group_9_11
     assert p["difficulty_tier"] == 6
     assert p["cognitive_intensity"] == 2
     assert p["cognitive_hint"] == (
-        "consolidation : deux étapes minimum, pas de procédure soufflée"
+        "consolidation : opération unique avec nombres moins immédiats, "
+        "regroupement ou retenue possible"
     )
 
 

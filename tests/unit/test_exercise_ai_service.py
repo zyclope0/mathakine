@@ -115,6 +115,10 @@ def test_non_triviality_narrative_mixte_maitre() -> None:
     )
 
 
+def test_non_triviality_unknown_type_returns_empty_hint() -> None:
+    assert _non_triviality_hint("unknown_future_type", "GRAND_MAITRE") == ""
+
+
 def test_system_prompt_includes_directive_when_chevalier_texte() -> None:
     prompt = build_exercise_system_prompt(
         "texte",
@@ -165,6 +169,38 @@ def test_chevalier_maitre_grand_maitre_produce_distinct_system_prompts_for_group
             )
         )
     assert len(set(prompts)) == 3
+
+
+def test_atomic_addition_prompt_does_not_receive_multistep_cognitive_hint() -> None:
+    profile = build_exercise_generation_profile("ADDITION", "9-11", "CHEVALIER")
+    prompt = build_exercise_system_prompt(
+        "ADDITION",
+        "CHEVALIER",
+        "9-11",
+        DIFFICULTY_RANGES["CHEVALIER"],
+        "",
+        calibration_desc=profile["calibration_desc"],
+        cognitive_hint=profile.get("cognitive_hint") or "",
+    )
+    assert "- Intensité cognitive attendue :" in prompt
+    assert "deux étapes minimum" not in prompt
+    assert "données à organiser" not in prompt
+    assert "opération unique" in prompt
+
+
+def test_multistep_texte_prompt_keeps_multistep_cognitive_hint() -> None:
+    profile = build_exercise_generation_profile("texte", "9-11", "CHEVALIER")
+    prompt = build_exercise_system_prompt(
+        "texte",
+        "CHEVALIER",
+        "9-11",
+        DIFFICULTY_RANGES["CHEVALIER"],
+        "",
+        calibration_desc=profile["calibration_desc"],
+        cognitive_hint=profile.get("cognitive_hint") or "",
+    )
+    assert "deux étapes minimum" in prompt
+    assert _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP["CHEVALIER"] in prompt
 
 
 def test_system_prompt_contains_cognitive_hint_line_when_intensity_set() -> None:

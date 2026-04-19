@@ -7,7 +7,7 @@ tier = age_band_index * 3 + pedagogical_band_index + 1  →  valeurs 1..12
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from app.core.constants import AgeGroups, normalize_age_group
 
@@ -201,6 +201,28 @@ _BAND_FALLBACK_CALIBRATION = {
     2: "consolidation : problèmes complexes, raisonnement autonome",
 }
 
+CognitiveGuidanceKind = Literal["atomic", "multistep"]
+
+_ATOMIC_COGNITIVE_EXERCISE_TYPES = frozenset(
+    {"addition", "soustraction", "multiplication", "division"}
+)
+_MULTISTEP_COGNITIVE_EXERCISE_TYPES = frozenset(
+    {"texte", "mixte", "fractions", "geometrie", "divers"}
+)
+
+
+def cognitive_guidance_kind_for_exercise_type(
+    exercise_type: Optional[str],
+) -> Optional[CognitiveGuidanceKind]:
+    """Famille de guidance cognitive pour le prompt IA, sans supposer les types inconnus."""
+    et = str(exercise_type or "").strip().lower()
+    if et in _ATOMIC_COGNITIVE_EXERCISE_TYPES:
+        return "atomic"
+    if et in _MULTISTEP_COGNITIVE_EXERCISE_TYPES:
+        return "multistep"
+    return None
+
+
 # Second axe cognitif (Lot E) : orthogonal à la matrice F42 — ne modifie ni tier 1..12
 # ni ``pedagogical_band_index_from_difficulty``.  Consumé uniquement par le prompt IA ;
 # ``ExerciseSkillState`` (Feature B) pourra surcharger ``cognitive_hint`` post-beta.
@@ -211,7 +233,7 @@ _COGNITIVE_INTENSITY_BY_DIFFICULTY: dict[str, int] = {
     "MAITRE": 3,
     "GRAND_MAITRE": 4,
 }
-_COGNITIVE_INTENSITY_HINTS: dict[int, str] = {
+_COGNITIVE_INTENSITY_HINTS_MULTISTEP: dict[int, str] = {
     0: "exploration : une règle unique, exemples guidés",
     1: "application directe : procédure standard, vocabulaire simple",
     2: "consolidation : deux étapes minimum, pas de procédure soufflée",
@@ -219,6 +241,22 @@ _COGNITIVE_INTENSITY_HINTS: dict[int, str] = {
     4: (
         "maîtrise : problème non routinier, stratégie à construire, "
         "données potentiellement superflues"
+    ),
+}
+_COGNITIVE_INTENSITY_HINTS_ATOMIC: dict[int, str] = {
+    0: "exploration : opération directe guidée",
+    1: "application directe : opération standard, calcul mental simple",
+    2: (
+        "consolidation : opération unique avec nombres moins immédiats, "
+        "regroupement ou retenue possible"
+    ),
+    3: (
+        "approfondissement : borne haute de la plage, calcul mental exigeant "
+        "mais une seule opération"
+    ),
+    4: (
+        "maîtrise : une opération unique avec grands nombres, calcul non "
+        "routinier sans données superflues"
     ),
 }
 
@@ -232,6 +270,23 @@ def cognitive_intensity_for_difficulty(
     return _COGNITIVE_INTENSITY_BY_DIFFICULTY.get(
         str(derived_difficulty).strip().upper()
     )
+
+
+def cognitive_hint_for_exercise_type(
+    exercise_type: Optional[str],
+    derived_difficulty: Optional[str],
+) -> Optional[str]:
+    """Phrase d'intensité cognitive compatible avec le type d'exercice."""
+    intensity = cognitive_intensity_for_difficulty(derived_difficulty)
+    if intensity is None:
+        return None
+
+    kind = cognitive_guidance_kind_for_exercise_type(exercise_type)
+    if kind == "atomic":
+        return _COGNITIVE_INTENSITY_HINTS_ATOMIC.get(intensity)
+    if kind == "multistep":
+        return _COGNITIVE_INTENSITY_HINTS_MULTISTEP.get(intensity)
+    return None
 
 
 def compute_tier_from_age_group_and_band(
@@ -306,10 +361,7 @@ def build_exercise_generation_profile(
         cal_desc = _BAND_FALLBACK_CALIBRATION[band_idx]
 
     cognitive_intensity = cognitive_intensity_for_difficulty(derived_difficulty)
-    if cognitive_intensity is None:
-        cognitive_hint = None
-    else:
-        cognitive_hint = _COGNITIVE_INTENSITY_HINTS.get(cognitive_intensity)
+    cognitive_hint = cognitive_hint_for_exercise_type(exercise_type, derived_difficulty)
 
     return {
         "exercise_type": exercise_type,
