@@ -246,3 +246,62 @@ def test_generate_exercise_sync_save_persists_runtime_difficulty_tier():
     assert captured["difficulty_tier"] == 4
     assert captured["difficulty"] == "PADAWAN"
     assert captured["age_group"] == "9-11"
+
+
+def test_generate_exercise_sync_local_path_applies_type_difficulty_clamp():
+    """Le chemin local doit clamper la difficultÃ© sans remapper l'age_group."""
+    captured = {}
+
+    def _fake_generate_simple_exercise(
+        exercise_type,
+        age_group,
+        *,
+        difficulty_override=None,
+        pedagogical_band_override=None,
+    ):
+        captured.update(
+            {
+                "exercise_type": exercise_type,
+                "age_group": age_group,
+                "difficulty_override": difficulty_override,
+                "pedagogical_band_override": pedagogical_band_override,
+            }
+        )
+        return {
+            "title": "Test",
+            "exercise_type": exercise_type,
+            "age_group": age_group,
+            "difficulty": difficulty_override,
+            "difficulty_tier": None,
+            "question": "123 + 456 ?",
+            "correct_answer": "579",
+            "choices": ["579", "578", "580"],
+            "explanation": "Test",
+        }
+
+    with (
+        patch(
+            "app.services.exercises.exercise_generation_service._resolve_adaptive_context_sync",
+            return_value=AdaptiveGenerationContext(
+                age_group="adulte",
+                pedagogical_band="learning",
+                mastery_source="test",
+            ),
+        ),
+        patch(
+            "app.services.exercises.exercise_generation_service.generate_simple_exercise",
+            side_effect=_fake_generate_simple_exercise,
+        ),
+    ):
+        result = generate_exercise_sync(
+            exercise_type_raw="addition",
+            age_group_raw=None,
+            adaptive=True,
+            save=False,
+            user_id=1,
+        )
+
+    assert captured["age_group"] == "adulte"
+    assert captured["difficulty_override"] == "CHEVALIER"
+    assert result.age_group == "adulte"
+    assert result.difficulty == "CHEVALIER"

@@ -7,7 +7,10 @@ Modèle runtime : sync, exécuté via run_db_bound() depuis les handlers.
 from typing import Any, Dict, Optional
 
 from app.core.db_boundary import sync_db_session
-from app.core.difficulty_tier import build_exercise_generation_profile
+from app.core.difficulty_tier import (
+    build_exercise_generation_profile,
+    clamp_difficulty_for_type,
+)
 from app.core.logging_config import get_logger
 from app.generators.exercise_generator import (
     ensure_explanation,
@@ -93,6 +96,30 @@ class AgeGroupRequiredError(Exception):
     pass
 
 
+def _resolve_effective_difficulty(
+    exercise_type: str,
+    derived_difficulty: str,
+    user_id: Optional[int],
+) -> str:
+    """Applique le clamp type x difficulte sans modifier l'axe age_group."""
+    effective_difficulty, reason = clamp_difficulty_for_type(
+        exercise_type, derived_difficulty
+    )
+    if reason is None:
+        return effective_difficulty
+
+    logger.info(
+        "[ExerciseGeneration] type_difficulty_clamp user_id={} exercise_type={} "
+        "requested={} effective={} reason={}",
+        user_id,
+        exercise_type,
+        derived_difficulty,
+        effective_difficulty,
+        reason,
+    )
+    return effective_difficulty
+
+
 def generate_exercise_sync(
     exercise_type_raw: str,
     age_group_raw: Optional[str],
@@ -128,6 +155,9 @@ def generate_exercise_sync(
     exercise_type, age_group, derived_difficulty = (
         normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
     )
+    effective_difficulty = _resolve_effective_difficulty(
+        exercise_type, derived_difficulty, user_id
+    )
 
     # Resolve the pedagogical band: use mastery-driven band when available,
     # otherwise fall back to the legacy derivation (age_group → difficulty → band).
@@ -139,7 +169,7 @@ def generate_exercise_sync(
     f42_profile = build_exercise_generation_profile(
         exercise_type,
         age_group,
-        derived_difficulty,
+        effective_difficulty,
         pedagogical_band_override=pedagogical_band_override,
     )
     logger.debug(
@@ -155,12 +185,14 @@ def generate_exercise_sync(
         exercise_dict = generate_ai_exercise(
             exercise_type,
             age_group,
+            difficulty_override=effective_difficulty,
             pedagogical_band_override=pedagogical_band_override,
         )
     else:
         exercise_dict = generate_simple_exercise(
             exercise_type,
             age_group,
+            difficulty_override=effective_difficulty,
             pedagogical_band_override=pedagogical_band_override,
         )
 

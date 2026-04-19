@@ -41,7 +41,13 @@ def _ai_prefix() -> str:
 
 
 # Fonctions de génération d'exercices
-def generate_ai_exercise(exercise_type, age_group, *, pedagogical_band_override=None):
+def generate_ai_exercise(
+    exercise_type,
+    age_group,
+    *,
+    difficulty_override=None,
+    pedagogical_band_override=None,
+):
     """
     Génère un exercice avec thème spatial neutre et calibrage F42.
     Le profil F42 (difficulty_tier, pedagogical_band, calibration_desc) est
@@ -59,7 +65,10 @@ def generate_ai_exercise(exercise_type, age_group, *, pedagogical_band_override=
         type_limits,
         f42_profile,
     ) = init_exercise_context(
-        exercise_type, age_group, pedagogical_band_override=pedagogical_band_override
+        exercise_type,
+        age_group,
+        difficulty_override=difficulty_override,
+        pedagogical_band_override=pedagogical_band_override,
     )
     exercise_data = build_base_exercise_data(
         normalized_type, normalized_age_group, derived_difficulty, ai_generated=True
@@ -918,7 +927,11 @@ def ensure_explanation(exercise_dict):
 
 
 def generate_simple_exercise(
-    exercise_type, age_group, *, pedagogical_band_override=None
+    exercise_type,
+    age_group,
+    *,
+    difficulty_override=None,
+    pedagogical_band_override=None,
 ):
     """Génère un exercice simple sans IA avec calibrage F42.
 
@@ -932,7 +945,10 @@ def generate_simple_exercise(
         type_limits,
         f42_profile,
     ) = init_exercise_context(
-        exercise_type, age_group, pedagogical_band_override=pedagogical_band_override
+        exercise_type,
+        age_group,
+        difficulty_override=difficulty_override,
+        pedagogical_band_override=pedagogical_band_override,
     )
     exercise_data = build_base_exercise_data(
         normalized_type, normalized_age_group, derived_difficulty, ai_generated=False

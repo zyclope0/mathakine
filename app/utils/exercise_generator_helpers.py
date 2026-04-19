@@ -77,6 +77,7 @@ def init_exercise_context(
     exercise_type: str,
     age_group: str,
     *,
+    difficulty_override: Optional[str] = None,
     pedagogical_band_override: Optional[str] = None,
 ) -> Tuple[str, str, str, Dict[str, Any], dict]:
     """Normalise les paramètres et récupère les limites de difficulté.
@@ -88,6 +89,9 @@ def init_exercise_context(
     so that the F42 pedagogical band drives the numeric bounds before generation.
     ``f42_profile`` is also returned for callers that need the full profile.
 
+    ``difficulty_override`` lets the orchestration layer enforce a runtime
+    difficulty clamp without remapping the learner's age group.
+
     ``pedagogical_band_override`` (keyword-only) injects a mastery-resolved band
     (from :func:`resolve_adaptive_context`) so that learners with the same
     ``age_group`` but different mastery levels receive different calibration bounds.
@@ -96,7 +100,9 @@ def init_exercise_context(
     """
     normalized_type = normalize_exercise_type(exercise_type)
     normalized_age_group = normalize_age_group(age_group)
-    derived_difficulty = get_difficulty_from_age_group(normalized_age_group)
+    derived_difficulty = difficulty_override or get_difficulty_from_age_group(
+        normalized_age_group
+    )
 
     difficulty_config = DIFFICULTY_LIMITS.get(
         derived_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN]

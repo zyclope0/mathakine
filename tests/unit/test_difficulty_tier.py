@@ -273,6 +273,12 @@ def test_clamp_texte_grand_maitre_respects_ceiling() -> None:
     assert reason is None
 
 
+def test_clamp_known_in_range_returns_canonical_difficulty() -> None:
+    eff, reason = clamp_difficulty_for_type("geometrie", "grand_maitre")
+    assert eff == "GRAND_MAITRE"
+    assert reason is None
+
+
 def test_clamp_is_case_insensitive_on_type_and_difficulty() -> None:
     # Garde-fou supplémentaire : l'API admin peut envoyer des casses variables.
     eff_up, reason_up = clamp_difficulty_for_type("ADDITION", "grand_maitre")

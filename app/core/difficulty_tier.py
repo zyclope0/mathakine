@@ -337,7 +337,7 @@ def clamp_difficulty_for_type(
             ceiling,
             f"difficulty_above_type_ceiling: {diff_key} > {ceiling} for {type_key}",
         )
-    return requested, None
+    return diff_key, None
 
 
 def cognitive_hint_for_exercise_type(
