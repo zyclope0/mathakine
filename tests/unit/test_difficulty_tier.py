@@ -26,6 +26,7 @@ from app.core.difficulty_tier import (
     DIFFICULTY_TIER_MIN,
     _TIER_CALIBRATION,
     build_exercise_generation_profile,
+    cognitive_intensity_for_difficulty,
     compute_difficulty_tier_for_exercise_strings,
     compute_user_target_difficulty_tier,
     exercise_tier_filter_expression,
@@ -75,6 +76,22 @@ def test_logic_challenge_age_group_mapping_import():
 
     t = compute_difficulty_tier_for_logic_challenge(ChAge.GROUP_10_12, "PADAWAN", 3.0)
     assert t == 5
+
+
+def test_cognitive_intensity_all_five_levels() -> None:
+    assert cognitive_intensity_for_difficulty("INITIE") == 0
+    assert cognitive_intensity_for_difficulty("PADAWAN") == 1
+    assert cognitive_intensity_for_difficulty("CHEVALIER") == 2
+    assert cognitive_intensity_for_difficulty("MAITRE") == 3
+    assert cognitive_intensity_for_difficulty("GRAND_MAITRE") == 4
+    assert cognitive_intensity_for_difficulty(" padawan ") == 1
+
+
+def test_cognitive_intensity_returns_none_for_empty_or_unknown() -> None:
+    assert cognitive_intensity_for_difficulty(None) is None
+    assert cognitive_intensity_for_difficulty("") is None
+    assert cognitive_intensity_for_difficulty("   ") is None
+    assert cognitive_intensity_for_difficulty("NOT_A_JEDI_LEVEL") is None
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +149,17 @@ def test_build_exercise_generation_profile_exposes_enriched_calibration() -> Non
     assert any(
         verb in cal for verb in _BLOOM_VERBS
     ), f"calibration_desc ne contient aucun verbe Bloom : {cal!r}"
+
+
+def test_generation_profile_exposes_cognitive_intensity_for_chevalier_group_9_11() -> (
+    None
+):
+    p = build_exercise_generation_profile("ADDITION", "9-11", "CHEVALIER")
+    assert p["difficulty_tier"] == 6
+    assert p["cognitive_intensity"] == 2
+    assert p["cognitive_hint"] == (
+        "consolidation : deux étapes minimum, pas de procédure soufflée"
+    )
 
 
 def test_build_exercise_generation_profile_preserves_age_and_band_keywords() -> None:

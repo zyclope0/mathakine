@@ -8,6 +8,7 @@ sur les plages chevauchantes précédentes.
 
 from __future__ import annotations
 
+from app.core.difficulty_tier import build_exercise_generation_profile
 from app.services.exercises.exercise_ai_service import (
     DIFFICULTY_RANGES,
     _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC,
@@ -137,3 +138,47 @@ def test_system_prompt_has_no_directive_for_initie() -> None:
         calibration_desc="calibration test",
     )
     assert "Exigence de difficulté" not in prompt
+
+
+# ---------------------------------------------------------------------------
+# Lot E — intensité cognitive (orthogonal au tier F42)
+# ---------------------------------------------------------------------------
+
+
+def test_chevalier_maitre_grand_maitre_produce_distinct_system_prompts_for_group_9_11() -> (
+    None
+):
+    """Même tranche d'âge et même bande F42 (consolidation) : prompts distincts."""
+    prompts: list[str] = []
+    for diff in ("CHEVALIER", "MAITRE", "GRAND_MAITRE"):
+        profile = build_exercise_generation_profile("ADDITION", "9-11", diff)
+        assert profile["difficulty_tier"] == 6
+        prompts.append(
+            build_exercise_system_prompt(
+                "ADDITION",
+                diff,
+                "9-11",
+                DIFFICULTY_RANGES[diff],
+                "",
+                calibration_desc=profile["calibration_desc"],
+                cognitive_hint=profile.get("cognitive_hint") or "",
+            )
+        )
+    assert len(set(prompts)) == 3
+
+
+def test_system_prompt_contains_cognitive_hint_line_when_intensity_set() -> None:
+    profile = build_exercise_generation_profile("ADDITION", "9-11", "PADAWAN")
+    hint = profile["cognitive_hint"]
+    assert hint
+    prompt = build_exercise_system_prompt(
+        "ADDITION",
+        "PADAWAN",
+        "9-11",
+        DIFFICULTY_RANGES["PADAWAN"],
+        "",
+        calibration_desc=profile["calibration_desc"],
+        cognitive_hint=hint or "",
+    )
+    assert "- Intensité cognitive attendue :" in prompt
+    assert hint in prompt

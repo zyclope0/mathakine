@@ -201,6 +201,38 @@ _BAND_FALLBACK_CALIBRATION = {
     2: "consolidation : problèmes complexes, raisonnement autonome",
 }
 
+# Second axe cognitif (Lot E) : orthogonal à la matrice F42 — ne modifie ni tier 1..12
+# ni ``pedagogical_band_index_from_difficulty``.  Consumé uniquement par le prompt IA ;
+# ``ExerciseSkillState`` (Feature B) pourra surcharger ``cognitive_hint`` post-beta.
+_COGNITIVE_INTENSITY_BY_DIFFICULTY: dict[str, int] = {
+    "INITIE": 0,
+    "PADAWAN": 1,
+    "CHEVALIER": 2,
+    "MAITRE": 3,
+    "GRAND_MAITRE": 4,
+}
+_COGNITIVE_INTENSITY_HINTS: dict[int, str] = {
+    0: "exploration : une règle unique, exemples guidés",
+    1: "application directe : procédure standard, vocabulaire simple",
+    2: "consolidation : deux étapes minimum, pas de procédure soufflée",
+    3: "approfondissement : raisonnement autonome, données à organiser",
+    4: (
+        "maîtrise : problème non routinier, stratégie à construire, "
+        "données potentiellement superflues"
+    ),
+}
+
+
+def cognitive_intensity_for_difficulty(
+    derived_difficulty: Optional[str],
+) -> Optional[int]:
+    """Intensité cognitive 0..4 selon la difficulté Jedi ; ``None`` si inconnue."""
+    if not derived_difficulty:
+        return None
+    return _COGNITIVE_INTENSITY_BY_DIFFICULTY.get(
+        str(derived_difficulty).strip().upper()
+    )
+
 
 def compute_tier_from_age_group_and_band(
     age_group_raw: Optional[str], pedagogical_band: str
@@ -238,6 +270,8 @@ def build_exercise_generation_profile(
       - difficulty_tier (1–12 or None)
       - pedagogical_band (str: discovery / learning / consolidation)
       - calibration_desc (tier-specific hint for prompts; two distinct tiers → two distinct descs)
+      - cognitive_intensity (0–4 or None) — second axe cognitif, indépendant du tier F42
+      - cognitive_hint (str or None) — ligne « intensité cognitive » pour le system prompt
 
     When ``pedagogical_band_override`` is supplied (mastery-resolved second axis):
       - the band label is replaced by the override,
@@ -270,6 +304,13 @@ def build_exercise_generation_profile(
         cal_desc = _TIER_CALIBRATION.get(tier, _BAND_FALLBACK_CALIBRATION[band_idx])
     else:
         cal_desc = _BAND_FALLBACK_CALIBRATION[band_idx]
+
+    cognitive_intensity = cognitive_intensity_for_difficulty(derived_difficulty)
+    if cognitive_intensity is None:
+        cognitive_hint = None
+    else:
+        cognitive_hint = _COGNITIVE_INTENSITY_HINTS.get(cognitive_intensity)
+
     return {
         "exercise_type": exercise_type,
         "age_group": age_group,
@@ -277,6 +318,8 @@ def build_exercise_generation_profile(
         "difficulty_tier": tier,
         "pedagogical_band": band_label,
         "calibration_desc": cal_desc,
+        "cognitive_intensity": cognitive_intensity,
+        "cognitive_hint": cognitive_hint,
     }
 
 

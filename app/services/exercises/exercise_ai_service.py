@@ -174,11 +174,15 @@ def build_exercise_system_prompt(
     diff_info: Dict[str, Any],
     default_theme: str,
     calibration_desc: str = "",
+    cognitive_hint: str = "",
 ) -> str:
     """Construit le prompt système pour la génération d'exercices."""
     theme_line = f"- Contexte par défaut : {default_theme}" if default_theme else ""
     cal_line = (
         f"- Calibrage pédagogique : {calibration_desc}" if calibration_desc else ""
+    )
+    cog_line = (
+        f"- Intensité cognitive attendue : {cognitive_hint}" if cognitive_hint else ""
     )
     nontriv = _non_triviality_hint(exercise_type, derived_difficulty)
     nontriv_line = f"- Exigence de difficulté : {nontriv}" if nontriv else ""
@@ -189,6 +193,7 @@ def build_exercise_system_prompt(
 - Niveau : {derived_difficulty} ({diff_info['desc']})
 - Groupe d'âge cible : {age_group}
 {cal_line}
+{cog_line}
 {nontriv_line}
 {theme_line}
 
@@ -314,6 +319,7 @@ async def generate_exercise_stream(
             diff_info,
             default_theme,
             calibration_desc=gen_profile["calibration_desc"],
+            cognitive_hint=gen_profile.get("cognitive_hint") or "",
         )
         user_prompt = build_exercise_user_prompt(
             prompt, exercise_type, derived_difficulty
