@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features Ã¢â‚¬â€ Mathakine
 
-> **Document vivant** - Derniere MAJ : 06/04/2026 (realignement verite terrain : parent priorise, F15/F36 recales, NI-03 partiel, NI-09 livre ; F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5, F44 backlog produit defis documente)  
+> **Document vivant** - Derniere MAJ : 19/04/2026 (addendum calibration IA exercices : non-trivialite prompt / types futurs ; dernier realignement terrain detaille : 06/04/2026 — parent priorise, F15/F36 recales, NI-03 partiel, NI-09 livre ; F42 clos, A44 clos, F43 migrations additives livrees, F04 exercice livre jusqu'a P5, F44 backlog produit defis documente)  
 > **RÃƒÂ´le** : Source de vÃƒÂ©ritÃƒÂ© unique pour toutes les features ÃƒÂ  implÃƒÂ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -81,6 +81,18 @@ Etat terrain au 06/04/2026 :
 - `NI-07` `[BACKLOG]`
 - `NI-08` `[BACKLOG]`
 - `NI-09` `[DONE]`
+
+---
+
+## Addendum - 2026-04-19 — Generation IA exercices : non-trivialite (prompt) et types futurs
+
+**Contexte** : train scenario B (beta.3) — lots calibration difficulte et prompts systeme (`DIFFICULTY_RANGES`, `_TIER_CALIBRATION`, directives de non-trivialite par type pour paliers eleves, voir `exercise_ai_service`).
+
+**Nuance produit (acceptee)** : pour certains types d'exercice, la contrainte du type « pas de calcul mental immediat » / borne haute impose surtout une **magnitude** (grands nombres) sans garantir une **richesse procedurale** (plusieurs etapes conceptuellement distinctes). Ce n'est pas un bug de logique : c'est la **limite d'un guidage uniquement par prompt** sur des operations intrinsequement « atomiques » (ex. addition / soustraction). Les pistes ulterieures (second axe cognitif, clamp type x difficulte, tuteur contextuel) restent du ressort des lots planifies (E–H), de **F23** (SR + IA) et **F24** plutot que d'un correctif court sur ce bloc seul.
+
+**P3 — Garde-fou maintenance (types)** : tout `exercise_type` **absent** de l'ensemble « multi-etapes compatible » est traite comme **atomique** pour les paliers concernes. C'est coherent avec les types livres aujourd'hui ; pour tout **nouveau** type, il faudra soit **classer explicitement** (atomique vs multi-etapes vs sans directive), soit introduire des ensembles explicites et un comportement **fail-closed** (ex. aucune directive si type inconnu) pour eviter une fausse hypothese par defaut.
+
+**Code** : `app/services/exercises/exercise_ai_service.py` (`_non_triviality_hint`, `build_exercise_system_prompt`).
 
 ---
 

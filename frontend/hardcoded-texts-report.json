@@ -1,0 +1,2190 @@
+{
+  "D:\\Mathakine\\frontend\\app\\about\\page.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\about\\page.test.tsx",
+      "line": 30,
+      "text": "n’expose pas de directive use client en tête de fichier",
+      "context": "it(\"n’expose pas de directive use client en tête de fichier\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\about\\page.test.tsx",
+      "line": 48,
+      "text": "conserve le lien contact avec libellé traduit",
+      "context": "it(\"conserve le lien contact avec libellé traduit\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\about\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\about\\page.tsx",
+      "line": 43,
+      "text": "Zéro Bruit",
+      "context": "{/* 3. Section 2 : La philosophie \"Zéro Bruit\" (Grille Bento) */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\AdminAiMonitoringPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminAiMonitoringPage.test.tsx",
+      "line": 193,
+      "text": "Lecture seule — runs persistés.",
+      "context": "disclaimer_fr: \"Lecture seule — runs persistés.\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\AdminAnalyticsPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminAnalyticsPage.test.tsx",
+      "line": 32,
+      "text": "Erreur de chargement. Vérifiez vos droits admin.",
+      "context": "screen.getByText(\"Erreur de chargement. Vérifiez vos droits admin.\")"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminAnalyticsPage.test.tsx",
+      "line": 57,
+      "text": "Aucune donnée.",
+      "context": "expect(screen.getByText(\"Aucune donnée.\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminAnalyticsPage.test.tsx",
+      "line": 60,
+      "text": "affiche le libellé ",
+      "context": "it(\"affiche le libellé 'depuis le clic Quick Start' pour la métrique temps moyen\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 68,
+      "text": "Défi Beta",
+      "context": "title: \"Défi Beta\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 140,
+      "text": "affiche la liste exercices sur l’onglet par défaut",
+      "context": "it(\"affiche la liste exercices sur l’onglet par défaut\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 142,
+      "text": "Créer un exercice",
+      "context": "expect(screen.getByText(\"Créer un exercice\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 147,
+      "text": "affiche le palier F42 quand difficulty_tier est présent sur la liste",
+      "context": "it(\"affiche le palier F42 quand difficulty_tier est présent sur la liste\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 161,
+      "text": "ouvre l’onglet défis depuis le query param tab=challenges",
+      "context": "it(\"ouvre l’onglet défis depuis le query param tab=challenges\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 164,
+      "text": "Créer un défi",
+      "context": "expect(screen.getByText(\"Créer un défi\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 168,
+      "text": "ouvre l’onglet badges depuis tab=badges",
+      "context": "it(\"ouvre l’onglet badges depuis tab=badges\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 171,
+      "text": "Créer un badge",
+      "context": "expect(screen.getByText(\"Créer un badge\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminContentPage.test.tsx",
+      "line": 175,
+      "text": "ouvre la modale exercice depuis edit= sur l’onglet exercices",
+      "context": "it(\"ouvre la modale exercice depuis edit= sur l’onglet exercices\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\AdminLayout.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\AdminLayout.test.tsx",
+      "line": 41,
+      "text": "Paramètres",
+      "context": "expect(screen.getByRole(\"link\", { name: \"Paramètres\" })).toHaveAttribute("
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\adminRoutePagesI18n.smoke.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\adminRoutePagesI18n.smoke.test.tsx",
+      "line": 104,
+      "text": "Paramètres globaux",
+      "context": "expect(screen.getByRole(\"heading\", { name: \"Paramètres globaux\" })).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\adminRoutePagesI18n.smoke.test.tsx",
+      "line": 114,
+      "text": "Modération IA",
+      "context": "expect(screen.getByRole(\"heading\", { name: \"Modération IA\" })).toBeInTheDocument();"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\config\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\config\\page.tsx",
+      "line": 22,
+      "text": "système",
+      "context": "const order = [\"système\", \"features\", \"limites\", \"autres\"];"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\admin\\content\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\admin\\content\\page.tsx",
+      "line": 41,
+      "text": "badges-${editId ?? ",
+      "context": "key={`badges-${editId ?? \"\"}`}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\badges\\BadgesPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\badges\\BadgesPage.test.tsx",
+      "line": 74,
+      "text": "Connexion echouee",
+      "context": "mockUseBadges.mockReturnValue(makeDefaultBadgesData({ error: new Error(\"Connexion echouee\") }));"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\badges\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\badges\\page.tsx",
+      "line": 18,
+      "text": "@/lib/badges/badgesPage",
+      "context": "} from \"@/lib/badges/badgesPage\";"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 131,
+      "text": "Rechercher un défi...",
+      "context": "searchPlaceholder: t(\"search.placeholder\", { default: \"Rechercher un défi...\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 132,
+      "text": "Rechercher un défi...",
+      "context": "searchAriaLabel: t(\"search.placeholder\", { default: \"Rechercher un défi...\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 191,
+      "text": "Impossible de charger les défis",
+      "context": ": t(\"list.error.description\", { default: \"Impossible de charger les défis\" })"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 200,
+      "text": "1 défi",
+      "context": "? t(\"list.count\", { count: total, default: \"1 défi\" })"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 201,
+      "text": "${total} défis",
+      "context": ": t(\"list.countPlural\", { count: total, default: `${total} défis` })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\challenges\\page.tsx",
+      "line": 209,
+      "text": "Aucun résultat pour ",
+      "context": "default: `Aucun résultat pour \"${searchQuery}\"`,"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\exercises\\ExercisesPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\exercises\\ExercisesPage.test.tsx",
+      "line": 126,
+      "text": "affiche le titre de la page quand la liste est chargée",
+      "context": "it(\"affiche le titre de la page quand la liste est chargée\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\exercises\\InterleavedPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\exercises\\InterleavedPage.test.tsx",
+      "line": 69,
+      "text": "erreur génération initiale → redirect /exercises sans sessionStorage",
+      "context": "it(\"erreur génération initiale → redirect /exercises sans sessionStorage\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\exercises\\InterleavedPage.test.tsx",
+      "line": 101,
+      "text": "succès → sessionStorage + redirect vers exercice",
+      "context": "it(\"succès → sessionStorage + redirect vers exercice\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\ForgotPasswordPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\ForgotPasswordPage.test.tsx",
+      "line": 29,
+      "text": "désactive la validation native du navigateur pour laisser la validation locale piloter le feedback",
+      "context": "it(\"désactive la validation native du navigateur pour laisser la validation locale piloter le feedback\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\layout.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 51,
+      "text": "Mathakine - Apprentissage Mathématique Adaptatif",
+      "context": "title: \"Mathakine - Apprentissage Mathématique Adaptatif\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 53,
+      "text": "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification pour progresser en mathématiques.",
+      "context": "\"Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification pour progresser en mathématiques.\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 57,
+      "text": "exercices mathématiques",
+      "context": "\"exercices mathématiques\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 58,
+      "text": "défis logiques",
+      "context": "\"défis logiques\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 59,
+      "text": "mathélogique",
+      "context": "\"mathélogique\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 64,
+      "text": "accessibilité",
+      "context": "\"accessibilité\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 68,
+      "text": "plateforme éducative",
+      "context": "\"plateforme éducative\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 91,
+      "text": "Mathakine - Apprentissage Mathématique Adaptatif",
+      "context": "title: \"Mathakine - Apprentissage Mathématique Adaptatif\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 93,
+      "text": "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.",
+      "context": "\"Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 99,
+      "text": "Mathakine - Apprentissage Mathématique Adaptatif",
+      "context": "title: \"Mathakine - Apprentissage Mathématique Adaptatif\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\layout.tsx",
+      "line": 100,
+      "text": "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans.",
+      "context": "description: \"Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans.\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\leaderboard\\LeaderboardPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\leaderboard\\LeaderboardPage.test.tsx",
+      "line": 121,
+      "text": "rend sans erreur avec serie et badges a zero",
+      "context": "it(\"rend sans erreur avec serie et badges a zero\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\login\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\login\\page.tsx",
+      "line": 106,
+      "text": "email non vérifié",
+      "context": "{/* Bannière \"email non vérifié\" - après 403 ou lien \"Pas reçu l'email ?\" */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\offline\\page.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\offline\\page.test.tsx",
+      "line": 26,
+      "text": "affiche le titre et le bouton réessayer (messages FR)",
+      "context": "it(\"affiche le titre et le bouton réessayer (messages FR)\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\offline\\page.test.tsx",
+      "line": 29,
+      "text": "Réessayer",
+      "context": "expect(screen.getByRole(\"button\", { name: \"Réessayer\" })).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\offline\\page.test.tsx",
+      "line": 36,
+      "text": "Réessayer",
+      "context": "fireEvent.click(screen.getByRole(\"button\", { name: \"Réessayer\" }));"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\onboarding\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\onboarding\\page.tsx",
+      "line": 66,
+      "text": "Sélectionne ta classe.",
+      "context": "setError(\"Sélectionne ta classe.\");"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\privacy\\page.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\privacy\\page.test.tsx",
+      "line": 30,
+      "text": "n’expose pas de directive use client en tête de fichier",
+      "context": "it(\"n’expose pas de directive use client en tête de fichier\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\privacy\\page.test.tsx",
+      "line": 36,
+      "text": "affiche le titre et la date de mise à jour traduits",
+      "context": "it(\"affiche le titre et la date de mise à jour traduits\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\profile\\ProfilePage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\profile\\ProfilePage.test.tsx",
+      "line": 224,
+      "text": "limits recent badges to 3 items",
+      "context": "it(\"limits recent badges to 3 items\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 99,
+      "text": "section générale: titre langue visible",
+      "context": "it(\"section générale: titre langue visible\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 104,
+      "text": "navigation mobile: Select présent",
+      "context": "it(\"navigation mobile: Select présent\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 116,
+      "text": "section sécurité: état chargement sessions affiche un spinner",
+      "context": "it(\"section sécurité: état chargement sessions affiche un spinner\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 124,
+      "text": "section données: bloc diagnostic visible",
+      "context": "it(\"section données: bloc diagnostic visible\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 147,
+      "text": "section sécurité: titre sessions visible",
+      "context": "it(\"section sécurité: titre sessions visible\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 153,
+      "text": "section sécurité: bloc confidentialité (titre privacy)",
+      "context": "it(\"section sécurité: bloc confidentialité (titre privacy)\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 159,
+      "text": "section données: lancement diagnostic appelle router.push",
+      "context": "it(\"section données: lancement diagnostic appelle router.push\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 173,
+      "text": "section données: bouton export déclenche handleExportData",
+      "context": "it(\"section données: bouton export déclenche handleExportData\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\settings\\SettingsPage.test.tsx",
+      "line": 189,
+      "text": "section données: bouton suppression visible hors confirmation",
+      "context": "it(\"section données: bouton suppression visible hors confirmation\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\app\\verify-email\\page.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\app\\verify-email\\page.tsx",
+      "line": 57,
+      "text": "expiré",
+      "context": "if (errorMessage.includes(\"expiré\") || errorMessage.includes(\"expired\")) {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\accessibility\\AccessibilityToolbar.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\accessibility\\AccessibilityToolbar.tsx",
+      "line": 63,
+      "text": "Contraste élevé",
+      "context": "label: \"Contraste élevé\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\accessibility\\AccessibilityToolbar.tsx",
+      "line": 79,
+      "text": "Réduire animations",
+      "context": "label: \"Réduire animations\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\accessibility\\AccessibilityToolbar.tsx",
+      "line": 254,
+      "text": "Réinitialiser toutes les options d",
+      "context": "aria-label=\"Réinitialiser toutes les options d'accessibilité\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\AdminStatePanel.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\AdminStatePanel.tsx",
+      "line": 28,
+      "text": "Aucune donnée.",
+      "context": "emptyMessage = \"Aucune donnée.\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 30,
+      "text": "Taux réussite (ex: 50 tentatives, 80%)",
+      "context": "label: \"Taux réussite (ex: 50 tentatives, 80%)\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 33,
+      "text": "Jours consécutifs (ex: 7)",
+      "context": "{ label: \"Jours consécutifs (ex: 7)\", value: '{\"consecutive_days\": 7}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 35,
+      "text": "Défis logiques (ex: 10) — B5",
+      "context": "{ label: \"Défis logiques (ex: 10) — B5\", value: '{\"logic_attempts_count\": 10}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 37,
+      "text": "Mixte (ex: 20 exercices + 5 défis) — B5",
+      "context": "label: \"Mixte (ex: 20 exercices + 5 défis) — B5\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 40,
+      "text": "Comeback (7j sans activité)",
+      "context": "{ label: \"Comeback (7j sans activité)\", value: '{\"comeback_days\": 7}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 82,
+      "text": "requirements doit contenir un schéma valide (ex: attempts_count)",
+      "context": "e.requirements = \"requirements doit contenir un schéma valide (ex: attempts_count)\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 92,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 117,
+      "text": "Badge créé",
+      "context": "toast.success(\"Badge créé\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 122,
+      "text": "Échec de la création",
+      "context": "const msg = err instanceof Error ? err.message : \"Échec de la création\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 217,
+      "text": "Résous ton premier exercice",
+      "context": "placeholder=\"Résous ton premier exercice\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 282,
+      "text": "ex. Première mission réussie",
+      "context": "placeholder=\"ex. Première mission réussie\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeCreateModal.tsx",
+      "line": 336,
+      "text": "Création...",
+      "context": "{saving ? \"Création...\" : \"Créer\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 30,
+      "text": "Taux réussite",
+      "context": "{ label: \"Taux réussite\", value: '{\"min_attempts\": 50, \"success_rate\": 80}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 31,
+      "text": "Jours consécutifs",
+      "context": "{ label: \"Jours consécutifs\", value: '{\"consecutive_days\": 7}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 33,
+      "text": "Défis logiques (B5)",
+      "context": "{ label: \"Défis logiques (B5)\", value: '{\"logic_attempts_count\": 10}' },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 35,
+      "text": "Mixte exercices+défis (B5)",
+      "context": "label: \"Mixte exercices+défis (B5)\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 91,
+      "text": "requirements doit contenir un schéma valide",
+      "context": "e.requirements = \"requirements doit contenir un schéma valide\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 102,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 130,
+      "text": "Badge mis à jour",
+      "context": "toast.success(\"Badge mis à jour\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 135,
+      "text": "Échec de la sauvegarde",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la sauvegarde\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 143,
+      "text": "Désactiver le badge « ${data.name} » ? (soft delete)",
+      "context": "if (!data || !confirm(`Désactiver le badge « ${data.name} » ? (soft delete)`)) return;"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 147,
+      "text": "Badge désactivé",
+      "context": "toast.success(\"Badge désactivé\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 153,
+      "text": "Échec de la suppression",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la suppression\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 165,
+      "text": "Badge réactivé",
+      "context": "toast.success(\"Badge réactivé\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 170,
+      "text": "Échec de la réactivation",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la réactivation\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 340,
+      "text": "ex. Première mission réussie",
+      "context": "placeholder=\"ex. Première mission réussie\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 412,
+      "text": "Désactivation...",
+      "context": "{deleting ? \"Désactivation...\" : \"Désactiver\"}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\BadgeEditModal.tsx",
+      "line": 417,
+      "text": "Réactivation...",
+      "context": "{saving ? \"Réactivation...\" : \"Réactiver\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 77,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 93,
+      "text": "Défi créé",
+      "context": "toast.success(\"Défi créé\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 99,
+      "text": "Échec de la création",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la création\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 120,
+      "text": "Titre du défi",
+      "context": "placeholder=\"Titre du défi\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 186,
+      "text": "Description du défi",
+      "context": "placeholder=\"Description du défi\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 205,
+      "text": "Réponse attendue",
+      "context": "placeholder=\"Réponse attendue\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 214,
+      "text": "Explication détaillée",
+      "context": "placeholder=\"Explication détaillée\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeCreateModal.tsx",
+      "line": 233,
+      "text": "Création...",
+      "context": "{saving ? \"Création...\" : \"Créer\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 110,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 132,
+      "text": "Défi mis à jour",
+      "context": "toast.success(\"Défi mis à jour\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 137,
+      "text": "Échec de la sauvegarde",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la sauvegarde\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 194,
+      "text": "Défi dupliqué",
+      "context": "toast.success(\"Défi dupliqué\", { description: `Créé : ${copy.title}` });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 194,
+      "text": "Créé : ${copy.title}",
+      "context": "toast.success(\"Défi dupliqué\", { description: `Créé : ${copy.title}` });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 199,
+      "text": "Échec de la duplication",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la duplication\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 223,
+      "text": "Titre du défi",
+      "context": "placeholder=\"Titre du défi\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 289,
+      "text": "Description du défi",
+      "context": "placeholder=\"Description du défi\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 318,
+      "text": "Réponse attendue",
+      "context": "placeholder=\"Réponse attendue\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 327,
+      "text": "Explication détaillée",
+      "context": "placeholder=\"Explication détaillée\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ChallengeEditModal.tsx",
+      "line": 400,
+      "text": "Défi archivé",
+      "context": "aria-label=\"Défi archivé\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminBadgesSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminBadgesSection.tsx",
+      "line": 46,
+      "text": "Catégorie",
+      "context": "<SelectValue placeholder=\"Catégorie\" />"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminBadgesSection.tsx",
+      "line": 77,
+      "text": "Chargement des badges...",
+      "context": "<LoadingState message=\"Chargement des badges...\" />"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 71,
+      "text": "Défi réactivé",
+      "context": "toast.success(ch.is_archived ? \"Défi réactivé\" : \"Défi archivé\", {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 71,
+      "text": "Défi archivé",
+      "context": "toast.success(ch.is_archived ? \"Défi réactivé\" : \"Défi archivé\", {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 72,
+      "text": "${ch.title} a été ${ch.is_archived ? ",
+      "context": "description: `${ch.title} a été ${ch.is_archived ? \"réactivé\" : \"archivé\"}.`,"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 76,
+      "text": "Erreur lors de la mise à jour",
+      "context": "description: err instanceof Error ? err.message : \"Erreur lors de la mise à jour\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 151,
+      "text": "Chargement des défis...",
+      "context": "<LoadingState message=\"Chargement des défis...\" />"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 223,
+      "text": "Archivé",
+      "context": "{ch.is_archived ? \"Archivé\" : \"Actif\"}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 235,
+      "text": "Réactiver le défi",
+      "context": "title={ch.is_archived ? \"Réactiver le défi\" : \"Archiver le défi\"}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminChallengesSection.tsx",
+      "line": 235,
+      "text": "Archiver le défi",
+      "context": "title={ch.is_archived ? \"Réactiver le défi\" : \"Archiver le défi\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 75,
+      "text": "Exercice réactivé",
+      "context": "toast.success(ex.is_archived ? \"Exercice réactivé\" : \"Exercice archivé\", {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 75,
+      "text": "Exercice archivé",
+      "context": "toast.success(ex.is_archived ? \"Exercice réactivé\" : \"Exercice archivé\", {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 76,
+      "text": "${ex.title} a été ${ex.is_archived ? ",
+      "context": "description: `${ex.title} a été ${ex.is_archived ? \"réactivé\" : \"archivé\"}.`,"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 80,
+      "text": "Erreur lors de la mise à jour",
+      "context": "description: err instanceof Error ? err.message : \"Erreur lors de la mise à jour\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 155,
+      "text": "Chargement des exercices...",
+      "context": "<LoadingState message=\"Chargement des exercices...\" />"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 246,
+      "text": "Archivé",
+      "context": "{ex.is_archived ? \"Archivé\" : \"Actif\"}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\content\\AdminExercisesSection.tsx",
+      "line": 258,
+      "text": "Réactiver l",
+      "context": "title={ex.is_archived ? \"Réactiver l'exercice\" : \"Archiver l'exercice\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 63,
+      "text": "La réponse correcte est obligatoire",
+      "context": "if (!data.correct_answer.trim()) e.correct_answer = \"La réponse correcte est obligatoire\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 70,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 86,
+      "text": "Exercice créé",
+      "context": "toast.success(\"Exercice créé\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 92,
+      "text": "Échec de la création",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la création\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 193,
+      "text": "Énoncé de l",
+      "context": "placeholder=\"Énoncé de l'exercice\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 205,
+      "text": "Réponse attendue",
+      "context": "placeholder=\"Réponse attendue\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 228,
+      "text": "Option ${idx + 1} est la bonne réponse",
+      "context": "aria-label={`Option ${idx + 1} est la bonne réponse`}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseCreateModal.tsx",
+      "line": 272,
+      "text": "Création...",
+      "context": "{saving ? \"Création...\" : \"Créer\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 88,
+      "text": "La réponse correcte est obligatoire",
+      "context": "if (!data?.correct_answer?.trim()) e.correct_answer = \"La réponse correcte est obligatoire\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 96,
+      "text": "Vérifiez les champs obligatoires.",
+      "context": "toast.error(\"Champs incomplets\", { description: \"Vérifiez les champs obligatoires.\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 113,
+      "text": "Exercice mis à jour",
+      "context": "toast.success(\"Exercice mis à jour\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 118,
+      "text": "Échec de la sauvegarde",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la sauvegarde\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 138,
+      "text": "${v} (hérité)",
+      "context": "return [...base, { value: v, label: `${v} (hérité)` }];"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 168,
+      "text": "Exercice dupliqué",
+      "context": "toast.success(\"Exercice dupliqué\", { description: `Créé : ${copy.title}` });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 173,
+      "text": "Échec de la duplication",
+      "context": "description: err instanceof Error ? err.message : \"Échec de la duplication\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 260,
+      "text": "Énoncé de l",
+      "context": "placeholder=\"Énoncé de l'exercice\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 272,
+      "text": "Réponse attendue",
+      "context": "placeholder=\"Réponse attendue\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 295,
+      "text": "Option ${idx + 1} est la bonne réponse",
+      "context": "aria-label={`Option ${idx + 1} est la bonne réponse`}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\admin\\ExerciseEditModal.tsx",
+      "line": 340,
+      "text": "Exercice archivé",
+      "context": "aria-label=\"Exercice archivé\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\auth\\ProtectedRoute.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\auth\\ProtectedRoute.tsx",
+      "line": 93,
+      "text": "[ProtectedRoute] Onboarding non complété → redirection vers /onboarding",
+      "context": "console.log(\"[ProtectedRoute] Onboarding non complété → redirection vers /onboarding\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\auth\\ProtectedRoute.tsx",
+      "line": 95,
+      "text": "[ProtectedRoute] Accès limité → redirection vers /exercises",
+      "context": "console.log(\"[ProtectedRoute] Accès limité → redirection vers /exercises\");"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\badgeCard\\BadgeCardStandardHeader.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\badgeCard\\BadgeCardStandardHeader.tsx",
+      "line": 136,
+      "text": "Difficulté: ${badge.difficulty}",
+      "context": "aria-label={`Difficulté: ${badge.difficulty}`}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx",
+      "line": 29,
+      "text": "Compléter votre premier exercice",
+      "context": "description: \"Compléter votre premier exercice\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx",
+      "line": 33,
+      "text": "Éveil de la Force",
+      "context": "star_wars_title: \"Éveil de la Force\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx",
+      "line": 43,
+      "text": "affiche le titre thématique (legacy star_wars_title) si disponible",
+      "context": "it(\"affiche le titre thématique (legacy star_wars_title) si disponible\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx",
+      "line": 81,
+      "text": "affiche les points de récompense",
+      "context": "it(\"affiche les points de récompense\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.test.tsx",
+      "line": 115,
+      "text": "affiche le nom du badge même si le nom est absent (fallback sur le code)",
+      "context": "it(\"affiche le nom du badge même si le nom est absent (fallback sur le code)\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeCard.tsx",
+      "line": 11,
+      "text": "@/lib/badges/badgePresentation",
+      "context": "} from \"@/lib/badges/badgePresentation\";"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\BadgeGrid.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeGrid.tsx",
+      "line": 14,
+      "text": "@/lib/badges/badgePresentation",
+      "context": "} from \"@/lib/badges/badgePresentation\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgeGrid.tsx",
+      "line": 87,
+      "text": "Collection de badges",
+      "context": "aria-label=\"Collection de badges\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx",
+      "line": 8,
+      "text": "@/components/badges/BadgeGrid",
+      "context": "vi.mock(\"@/components/badges/BadgeGrid\", () => ({"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx",
+      "line": 13,
+      "text": "Tabs badges",
+      "context": "tabsAriaLabel: \"Tabs badges\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx",
+      "line": 15,
+      "text": "À débloquer (${count})",
+      "context": "formatTabToUnlock: (count: number) => `À débloquer (${count})`,"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx",
+      "line": 17,
+      "text": "Rien à débloquer",
+      "context": "noToUnlock: \"Rien à débloquer\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.test.tsx",
+      "line": 23,
+      "text": "Encore ${c} bonnes réponses",
+      "context": "formatPlusQueCorrect: (c: number) => `Encore ${c} bonnes réponses`,"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\badges\\BadgesProgressTabsSection.tsx",
+      "line": 25,
+      "text": "@/lib/badges/badgePresentation",
+      "context": "} from \"@/lib/badges/badgePresentation\";"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx",
+      "line": 42,
+      "text": "Résolu",
+      "context": "completedLabel={t(\"card.completed\", { default: \"Résolu\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx",
+      "line": 43,
+      "text": "Défi résolu",
+      "context": "completedAriaLabel={t(\"card.completed\", { default: \"Défi résolu\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx",
+      "line": 55,
+      "text": "Généré par intelligence artificielle",
+      "context": "aria-label=\"Généré par intelligence artificielle\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx",
+      "line": 96,
+      "text": "Informations sur le défi",
+      "context": "aria-label={t(\"card.challengeInfo\", { default: \"Informations sur le défi\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeCard.tsx",
+      "line": 131,
+      "text": "Résoudre",
+      "context": "{t(\"card.solve\", { default: \"Résoudre\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverCommandBar.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverCommandBar.test.tsx",
+      "line": 81,
+      "text": "carré",
+      "context": "visualChoices: [\"rond\", \"carré\"],"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverCommandBar.test.tsx",
+      "line": 111,
+      "text": "renders order puzzle badges and disabled answer field",
+      "context": "it(\"renders order puzzle badges and disabled answer field\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverGridDeductionBlock.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverGridDeductionBlock.tsx",
+      "line": 46,
+      "text": "Complétez vos associations dans la grille ci-dessus",
+      "context": "\"Complétez vos associations dans la grille ci-dessus\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverHint.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverHint.test.tsx",
+      "line": 68,
+      "text": "masque le hint et écrit la clé au clic sur le bouton dismiss",
+      "context": "it(\"masque le hint et écrit la clé au clic sur le bouton dismiss\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverMcqGrid.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\ChallengeSolverMcqGrid.tsx",
+      "line": 25,
+      "text": "Choix de réponses pour le défi logique",
+      "context": "aria-label=\"Choix de réponses pour le défi logique\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx",
+      "line": 247,
+      "text": "Gain de matériel",
+      "context": "gain_materiel: \"Gain de matériel\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx",
+      "line": 284,
+      "text": "Exemple pièce blanche",
+      "context": "aria-label=\"Exemple pièce blanche\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx",
+      "line": 293,
+      "text": "Exemple pièce noire",
+      "context": "aria-label=\"Exemple pièce noire\""
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx",
+      "line": 314,
+      "text": "Pièces clés / cases importantes",
+      "context": "{hasBoard ? \"Pièces clés / cases importantes\" : \"Positions spéciales\"}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ChessRenderer.tsx",
+      "line": 314,
+      "text": "Positions spéciales",
+      "context": "{hasBoard ? \"Pièces clés / cases importantes\" : \"Positions spéciales\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\DefaultRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\DefaultRenderer.tsx",
+      "line": 67,
+      "text": "Vue structurée",
+      "context": "{showRaw ? \"Vue structurée\" : \"Vue JSON\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\GraphRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\GraphRenderer.tsx",
+      "line": 209,
+      "text": "Graphe avec ${nodes.length} nœuds et ${edges.length} arêtes",
+      "context": "aria-label={`Graphe avec ${nodes.length} nœuds et ${edges.length} arêtes`}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\PatternRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\PatternRenderer.tsx",
+      "line": 74,
+      "text": "carré",
+      "context": "return [\"cercle\", \"circle\", \"triangle\", \"carré\", \"square\"].includes(String(v).toLowerCase());"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\PatternRenderer.tsx",
+      "line": 77,
+      "text": "Ex : cercle, triangle ou carré",
+      "context": "? \"Ex : cercle, triangle ou carré\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ProbabilityRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\ProbabilityRenderer.tsx",
+      "line": 43,
+      "text": "pièce",
+      "context": "else if (keyLower.includes(\"pièce\") || keyLower.includes(\"coin\")) itemType = t(\"coins\");"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualizationRenderers.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualizationRenderers.test.tsx",
+      "line": 37,
+      "text": "Échiquier",
+      "context": "expect(await screen.findByText(\"Échiquier\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualizationRenderers.test.tsx",
+      "line": 41,
+      "text": "affiche le graphe même sans ResizeObserver",
+      "context": "it(\"affiche le graphe même sans ResizeObserver\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.symmetry.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.symmetry.test.tsx",
+      "line": 8,
+      "text": "partitionne N cellules par côté (plus de plafond 5/5)",
+      "context": "it(\"partitionne N cellules par côté (plus de plafond 5/5)\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx",
+      "line": 39,
+      "text": "carré",
+      "context": "carré: \"carré\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx",
+      "line": 41,
+      "text": "carré",
+      "context": "square: \"carré\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx",
+      "line": 44,
+      "text": "étoile",
+      "context": "étoile: \"étoile\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx",
+      "line": 46,
+      "text": "étoile",
+      "context": "star: \"étoile\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\challenges\\visualizations\\VisualRenderer.tsx",
+      "line": 325,
+      "text": "Zoom arrière",
+      "context": "title=\"Zoom arrière\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\chat\\ChatbotFloating.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\chat\\ChatbotFloating.test.tsx",
+      "line": 54,
+      "text": "affiche l’appel à connexion pour un invité (CHAT-AUTH-01)",
+      "context": "it(\"affiche l’appel à connexion pour un invité (CHAT-AUTH-01)\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\chat\\ChatbotFloating.test.tsx",
+      "line": 70,
+      "text": "ne déclenche pas streamChat pour un invité (composer et envoi bloqués)",
+      "context": "it(\"ne déclenche pas streamChat pour un invité (composer et envoi bloqués)\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\chat\\ChatMessagesView.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\chat\\ChatMessagesView.test.tsx",
+      "line": 112,
+      "text": "Droïde A : $12\\\\ \\\\text{u/s}$",
+      "context": "content: \"Droïde A : $12\\\\ \\\\text{u/s}$\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\chat\\ChatMessagesView.test.tsx",
+      "line": 121,
+      "text": "Droïde A",
+      "context": "expect(container.textContent).toContain(\"Droïde A\");"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\chat\\ChatMessagesView.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\chat\\ChatMessagesView.tsx",
+      "line": 82,
+      "text": "Illustration générée par l",
+      "context": "alt=\"Illustration générée par l'assistant\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\AverageTimeWidget.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\AverageTimeWidget.tsx",
+      "line": 88,
+      "text": "exercices analysés",
+      "context": "{totalAttempts.toLocaleString()} {t(\"exercises\", { default: \"exercices analysés\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\AverageTimeWidget.tsx",
+      "line": 95,
+      "text": "Fais des exercices pour voir ton tempo.",
+      "context": "{t(\"emptyHint\", { default: \"Fais des exercices pour voir ton tempo.\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\CategoryAccuracyChart.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\CategoryAccuracyChart.test.tsx",
+      "line": 93,
+      "text": "Géométrie",
+      "context": "expect(screen.getByText(\"Géométrie\")).toBeInTheDocument();"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\ChallengesProgressWidget.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\ChallengesProgressWidget.test.tsx",
+      "line": 70,
+      "text": "avec items detailed-progress : affiche maîtrise, taux 0–100 et tentatives",
+      "context": "it(\"avec items detailed-progress : affiche maîtrise, taux 0–100 et tentatives\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\ChallengesProgressWidget.test.tsx",
+      "line": 95,
+      "text": "0 défi complété mais tentatives par type : pas de message noChallengesYet contradictoire",
+      "context": "it(\"0 défi complété mais tentatives par type : pas de message noChallengesYet contradictoire\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\DailyExercisesChart.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DailyExercisesChart.tsx",
+      "line": 36,
+      "text": "Exercices par jour",
+      "context": "const DEFAULT_DAILY_EXERCISES_SERIES_LABEL = \"Exercices par jour\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DailyExercisesChart.tsx",
+      "line": 154,
+      "text": "Exercices par jour (30 derniers jours)",
+      "context": "{t(\"title\", { default: \"Exercices par jour (30 derniers jours)\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.test.tsx",
+      "line": 29,
+      "text": "ignore le focusMode et garde les animations actives par défaut sur le dashboard",
+      "context": "it(\"ignore le focusMode et garde les animations actives par défaut sur le dashboard\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.test.tsx",
+      "line": 44,
+      "text": "désactive les animations si reduced motion est réellement actif",
+      "context": "it(\"désactive les animations si reduced motion est réellement actif\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.test.tsx",
+      "line": 49,
+      "text": "Algèbre",
+      "context": "rows={[{ category: \"Algèbre\", accuracy: 85 }]}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardCategoryRadarChart.tsx",
+      "line": 45,
+      "text": "accessibilité est portée par le div[role=",
+      "context": "{/* aria-hidden : l'accessibilité est portée par le div[role=\"img\"] parent */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardTabsNav.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\DashboardTabsNav.tsx",
+      "line": 14,
+      "text": "Sections du tableau de bord",
+      "context": "aria-label={t(\"tabs.tabsLabel\", { default: \"Sections du tableau de bord\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\LevelIndicator.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\LevelIndicator.test.tsx",
+      "line": 57,
+      "text": "Éclaireur",
+      "context": "title: \"Éclaireur\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\LevelIndicator.test.tsx",
+      "line": 66,
+      "text": "Éclaireur",
+      "context": "expect(screen.queryByText(\"Éclaireur\")).not.toBeInTheDocument();"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\PerformanceByType.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\PerformanceByType.tsx",
+      "line": 162,
+      "text": "réussis",
+      "context": "{t(\"performanceByType.completed\", { default: \"réussis\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\PerformanceByType.tsx",
+      "line": 169,
+      "text": "Aucune donnée de performance disponible",
+      "context": "{t(\"performanceByType.empty\", { default: \"Aucune donnée de performance disponible\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\ProgressChart.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\ProgressChart.tsx",
+      "line": 26,
+      "text": "Exercices resolus",
+      "context": "const DEFAULT_PROGRESS_SERIES_LABEL = \"Exercices resolus\";"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\ProgressTimelineWidget.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\ProgressTimelineWidget.tsx",
+      "line": 153,
+      "text": "accessibilité est portée par le div[role=",
+      "context": "{/* aria-hidden : l'accessibilité est portée par le div[role=\"img\"] parent */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx",
+      "line": 33,
+      "text": "À l",
+      "context": "if (diffMins < 1) return locale === \"en\" ? \"Just now\" : \"À l'instant\";"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx",
+      "line": 44,
+      "text": "Hier à ${t}",
+      "context": "return locale === \"en\" ? `Yesterday at ${t}` : `Hier à ${t}`;"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx",
+      "line": 157,
+      "text": "Voir ${remaining} entrée(s) de plus",
+      "context": "default: `Voir ${remaining} entrée(s) de plus`,"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx",
+      "line": 165,
+      "text": "Aucune activité récente.",
+      "context": "<p>{t(\"empty\", { default: \"Aucune activité récente.\" })}</p>"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\RecentActivity.tsx",
+      "line": 168,
+      "text": "Commencez à résoudre des exercices pour voir votre progression !",
+      "context": "default: \"Commencez à résoudre des exercices pour voir votre progression !\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.test.tsx",
+      "line": 78,
+      "text": "n’affiche que 6 cartes tant que la liste dépasse le seuil et show more n’a pas été activé",
+      "context": "it(\"n’affiche que 6 cartes tant que la liste dépasse le seuil et show more n’a pas été activé\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.test.tsx",
+      "line": 85,
+      "text": "affiche toutes les cartes après Voir plus puis revient à 6 après Voir moins",
+      "context": "it(\"affiche toutes les cartes après Voir plus puis revient à 6 après Voir moins\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.tsx",
+      "line": 72,
+      "text": "Défi logique",
+      "context": "? t(\"challenge\", { default: \"Défi logique\" })"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.tsx",
+      "line": 84,
+      "text": "Relever le défi",
+      "context": "? t(\"startChallenge\", { default: \"Relever le défi\" })"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\Recommendations.tsx",
+      "line": 218,
+      "text": "Continuez votre entraînement !",
+      "context": "{t(\"emptyHint\", { default: \"Continuez votre entraînement !\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.reviewCta.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.reviewCta.test.tsx",
+      "line": 53,
+      "text": "SpacedRepetitionSummaryWidget — CTA Réviser maintenant",
+      "context": "describe(\"SpacedRepetitionSummaryWidget — CTA Réviser maintenant\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.reviewCta.test.tsx",
+      "line": 84,
+      "text": "n’affiche pas le CTA sans révision due",
+      "context": "it(\"n’affiche pas le CTA sans révision due\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.reviewCta.test.tsx",
+      "line": 98,
+      "text": "désactive le bouton pendant le chargement",
+      "context": "it(\"désactive le bouton pendant le chargement\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.reviewCta.test.tsx",
+      "line": 164,
+      "text": "affiche un message neutre si le résumé annonce des dues mais l’API n’en a pas",
+      "context": "it(\"affiche un message neutre si le résumé annonce des dues mais l’API n’en a pas\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx",
+      "line": 44,
+      "text": "Révisions du jour",
+      "context": "expect(screen.getByText(\"Révisions du jour\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx",
+      "line": 46,
+      "text": "Tes révisions apparaîtront ici après quelques exercices.",
+      "context": "screen.getByText(\"Tes révisions apparaîtront ici après quelques exercices.\")"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx",
+      "line": 62,
+      "text": "Tout est à jour ! Aucune révision prévue aujourd",
+      "context": "screen.getByText(\"Tout est à jour ! Aucune révision prévue aujourd'hui.\")"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx",
+      "line": 64,
+      "text": "4 exercices dans le suivi",
+      "context": "expect(screen.getByText(\"4 exercices dans le suivi\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\SpacedRepetitionSummaryWidget.test.tsx",
+      "line": 77,
+      "text": "2 exercices à réviser aujourd",
+      "context": "expect(screen.getByText(\"2 exercices à réviser aujourd'hui\")).toBeInTheDocument();"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\dashboard\\VolumeByTypeChart.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\dashboard\\VolumeByTypeChart.tsx",
+      "line": 76,
+      "text": "accessibilité est portée par le div[role=",
+      "context": "{/* aria-hidden : l'accessibilité est portée par le div[role=\"img\"] parent */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 25,
+      "text": "Un plus un égale deux.",
+      "context": "explanation: \"Un plus un égale deux.\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 73,
+      "text": "phase idle : titre, sous-titre et CTA démarrer",
+      "context": "it(\"phase idle : titre, sous-titre et CTA démarrer\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 82,
+      "text": "phase error : titre erreur, message, réessayer et retour accueil",
+      "context": "it(\"phase error : titre erreur, message, réessayer et retour accueil\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 83,
+      "text": "Réseau indisponible",
+      "context": "mockHook({ phase: \"error\", error: \"Réseau indisponible\" });"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 87,
+      "text": "Réseau indisponible",
+      "context": "expect(screen.getByText(\"Réseau indisponible\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 93,
+      "text": "phase results : bilan, score par type et CTA tableau de bord / exercices",
+      "context": "it(\"phase results : bilan, score par type et CTA tableau de bord / exercices\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 110,
+      "text": "phase results avec onComplete : CTA dashboard déclenche le callback",
+      "context": "it(\"phase results avec onComplete : CTA dashboard déclenche le callback\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 122,
+      "text": "phase question : radiogroup et validation désactivée sans choix",
+      "context": "it(\"phase question : radiogroup et validation désactivée sans choix\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\diagnostic\\DiagnosticSolver.test.tsx",
+      "line": 138,
+      "text": "phase feedback : affiche bonne réponse et bouton question suivante",
+      "context": "it(\"phase feedback : affiche bonne réponse et bouton question suivante\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.test.tsx",
+      "line": 61,
+      "text": "icône Sparkles est présente (distill P2)",
+      "context": "it(\"n'affiche pas de badge IA textuel — seule l'icône Sparkles est présente (distill P2)\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.test.tsx",
+      "line": 70,
+      "text": "affiche le CTA Résoudre (pill discret, carte entière cliquable)",
+      "context": "it(\"affiche le CTA Résoudre (pill discret, carte entière cliquable)\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.test.tsx",
+      "line": 97,
+      "text": "affiche le badge Résolu quand completed est true",
+      "context": "it(\"affiche le badge Résolu quand completed est true\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.tsx",
+      "line": 42,
+      "text": "Résolu",
+      "context": "completedLabel={t(\"card.completed\", { default: \"Résolu\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseCard.tsx",
+      "line": 43,
+      "text": "Exercice résolu",
+      "context": "completedAriaLabel={t(\"card.completed\", { default: \"Exercice résolu\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.test.tsx",
+      "line": 71,
+      "text": "réinitialise la réponse sélectionnée quand la modal est fermée puis rouverte",
+      "context": "it(\"réinitialise la réponse sélectionnée quand la modal est fermée puis rouverte\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.test.tsx",
+      "line": 91,
+      "text": "affiche une explication lisible quand la réponse est correcte",
+      "context": "it(\"affiche une explication lisible quand la réponse est correcte\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.test.tsx",
+      "line": 98,
+      "text": "Pour soustraire 4 de 11, il faut calculer leur différence.",
+      "context": "explanation: \"Pour soustraire 4 de 11, il faut calculer leur différence.\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.test.tsx",
+      "line": 110,
+      "text": "Pour soustraire 4 de 11, il faut calculer leur différence.",
+      "context": "\"Pour soustraire 4 de 11, il faut calculer leur différence.\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx",
+      "line": 220,
+      "text": "Votre réponse",
+      "context": "{t(\"openAnswerLabel\", { default: \"Votre réponse\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx",
+      "line": 245,
+      "text": "Entrez votre réponse…",
+      "context": "placeholder={t(\"openAnswerPlaceholder\", { default: \"Entrez votre réponse…\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx",
+      "line": 246,
+      "text": "Votre réponse",
+      "context": "aria-label={t(\"openAnswerLabel\", { default: \"Votre réponse\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx",
+      "line": 353,
+      "text": "Écris ta réponse pour continuer",
+      "context": "? t(\"validateHintOpen\", { default: \"Écris ta réponse pour continuer\" })"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseModal.tsx",
+      "line": 354,
+      "text": "Choisis une réponse pour continuer",
+      "context": ": t(\"validateHintMcq\", { default: \"Choisis une réponse pour continuer\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolver.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolver.tsx",
+      "line": 165,
+      "text": "Votre réponse",
+      "context": "openAnswerLabel: t(\"openAnswerLabel\", { default: \"Votre réponse\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolver.tsx",
+      "line": 166,
+      "text": "Entrez votre réponse…",
+      "context": "openAnswerPlaceholder: t(\"openAnswerPlaceholder\", { default: \"Entrez votre réponse…\" }),"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolverChoices.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolverChoices.tsx",
+      "line": 81,
+      "text": "Choix de réponses pour l",
+      "context": "aria-label=\"Choix de réponses pour l'exercice\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolverHint.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExerciseSolverHint.test.tsx",
+      "line": 71,
+      "text": "masque le hint et écrit la clé au clic sur le bouton dismiss",
+      "context": "it(\"masque le hint et écrit la clé au clic sur le bouton dismiss\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\ExercisesResultsView.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\ExercisesResultsView.tsx",
+      "line": 62,
+      "text": "Impossible de charger les exercices",
+      "context": ": t(\"list.error.description\", { default: \"Impossible de charger les exercices\" })"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\exercises\\UnifiedExerciseGenerator.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\UnifiedExerciseGenerator.test.tsx",
+      "line": 71,
+      "text": "après succès génération rapide, affiche la CTA Voir l",
+      "context": "it(\"après succès génération rapide, affiche la CTA Voir l'exercice et navigue au clic\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\exercises\\UnifiedExerciseGenerator.test.tsx",
+      "line": 97,
+      "text": "sans id persisté, pas de bouton Voir l",
+      "context": "it(\"sans id persisté, pas de bouton Voir l'exercice\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 77,
+      "text": "Défi incorrect",
+      "context": "challenge: t(\"typeChallenge\", { default: \"Défi incorrect\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 111,
+      "text": "Exercice incorrect ou incohérent",
+      "context": "exercise: t(\"exerciseSubject\", { default: \"Exercice incorrect ou incohérent\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 112,
+      "text": "Défi incorrect ou incohérent",
+      "context": "challenge: t(\"challengeSubject\", { default: \"Défi incorrect ou incohérent\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 120,
+      "text": "Défi ID: ${context.challengeId}",
+      "context": "...(context?.challengeId ? [`Défi ID: ${context.challengeId}`] : []),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 122,
+      "text": "Décrivez le problème ici :",
+      "context": "description.trim() || t(\"bodyPlaceholder\", { default: \"Décrivez le problème ici :\" }),"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 161,
+      "text": "Signaler un problème",
+      "context": "aria-label={t(\"buttonLabel\", { default: \"Signaler un problème\" })}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 176,
+      "text": "Décrivez le problème. Votre retour sera visible dans l",
+      "context": "default: \"Décrivez le problème. Votre retour sera visible dans l'admin.\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\feedback\\FeedbackFab.tsx",
+      "line": 181,
+      "text": "Décrivez le problème ici...",
+      "context": "placeholder={t(\"bodyPlaceholder\", { default: \"Décrivez le problème ici...\" })}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\home\\Chatbot.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\home\\Chatbot.tsx",
+      "line": 45,
+      "text": "Crée un exercice sur les fractions",
+      "context": "\"Crée un exercice sur les fractions\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\layout\\AlphaBanner.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\AlphaBanner.test.tsx",
+      "line": 10,
+      "text": "affiche la bannière si elle n",
+      "context": "it(\"affiche la bannière si elle n'a pas été fermée\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\AlphaBanner.test.tsx",
+      "line": 19,
+      "text": "masque la bannière si elle a déjà été fermée",
+      "context": "it(\"masque la bannière si elle a déjà été fermée\", async () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\layout\\Header.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\Header.test.tsx",
+      "line": 79,
+      "text": "Tableau de bord",
+      "context": "dashboard: \"Tableau de bord\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\Header.test.tsx",
+      "line": 129,
+      "text": "invité : pas de bouton Assistant dans le header (accès via le FAB global)",
+      "context": "it(\"invité : pas de bouton Assistant dans le header (accès via le FAB global)\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\Header.test.tsx",
+      "line": 159,
+      "text": "Tableau de bord",
+      "context": "expect(screen.getAllByText(\"Tableau de bord\")).toHaveLength(1);"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\Header.test.tsx",
+      "line": 177,
+      "text": "Tableau de bord",
+      "context": "expect(screen.getByText(\"Tableau de bord\")).toBeInTheDocument();"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\layout\\Header.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\layout\\Header.tsx",
+      "line": 77,
+      "text": "Retour à l",
+      "context": "aria-label=\"Retour à l'accueil — Mathakine\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\learner\\HomeLearnerActionsSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\learner\\HomeLearnerActionsSection.tsx",
+      "line": 96,
+      "text": "actions.badges",
+      "context": "aria-label={t(\"actions.badges\")}"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\learner\\HomeLearnerActionsSection.tsx",
+      "line": 103,
+      "text": "actions.badges",
+      "context": "<span className=\"text-base font-medium\">{t(\"actions.badges\")}</span>"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\locale\\LanguageSelector.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\locale\\LanguageSelector.tsx",
+      "line": 17,
+      "text": "Français",
+      "context": "fr: \"Français\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\profile\\ProfileLearningPreferencesEditPedagogyBlock.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\profile\\ProfileLearningPreferencesEditPedagogyBlock.tsx",
+      "line": 54,
+      "text": "kinesthésique",
+      "context": "<SelectItem value=\"kinesthésique\">"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\profile\\ProfileLearningPreferencesEditPedagogyBlock.tsx",
+      "line": 55,
+      "text": "learningStyles.kinesthésique",
+      "context": "{tProfile(\"learningStyles.kinesthésique\")}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\profile\\ProfileSecuritySection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\profile\\ProfileSecuritySection.tsx",
+      "line": 222,
+      "text": "Masquer le mot de passe",
+      "context": "aria-label={show ? \"Masquer le mot de passe\" : \"Afficher le mot de passe\"}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\profile\\ProfileStatisticsSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\profile\\ProfileStatisticsSection.tsx",
+      "line": 63,
+      "text": "profile.badges",
+      "context": "const tBadges = useTranslations(\"profile.badges\");"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 9,
+      "text": "Débutant",
+      "context": "{ id: \"a\", state: \"completed\", label: \"Débutant\" },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 10,
+      "text": "Intermédiaire",
+      "context": "{ id: \"b\", state: \"completed\", label: \"Intermédiaire\" },"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 16,
+      "text": "expose role=img avec aria-label et liste sr-only décrite",
+      "context": "it(\"expose role=img avec aria-label et liste sr-only décrite\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 28,
+      "text": "Débutant: completed",
+      "context": "expect(screen.getByText(\"Débutant: completed\")).toBeInTheDocument();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 33,
+      "text": "Résumé progression",
+      "context": "render(<ProgressionConstellation nodes={fourNodes} ariaLabel=\"Résumé progression\" />);"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\progression\\ProgressionConstellation.test.tsx",
+      "line": 37,
+      "text": "aligne les labels sur une grille à colonnes explicites (4 paliers)",
+      "context": "it(\"aligne les labels sur une grille à colonnes explicites (4 paliers)\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\settings\\SettingsGeneralSection.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\settings\\SettingsGeneralSection.tsx",
+      "line": 24,
+      "text": "Français",
+      "context": "{ value: \"fr\", label: \"Français\" },"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\settings\\SettingsSecuritySection.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\settings\\SettingsSecuritySection.test.tsx",
+      "line": 92,
+      "text": "relie chaque Switch à sa description via aria-describedby",
+      "context": "it(\"relie chaque Switch à sa description via aria-describedby\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.generationCta.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.generationCta.test.tsx",
+      "line": 17,
+      "text": "Générer",
+      "context": "generateLabel: \"Générer\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.generationCta.test.tsx",
+      "line": 21,
+      "text": "Succès",
+      "context": "successLabel: \"Succès\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.generationCta.test.tsx",
+      "line": 41,
+      "text": "AIGeneratorBase — CTA fin de génération",
+      "context": "describe(\"AIGeneratorBase — CTA fin de génération\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.generationCta.test.tsx",
+      "line": 44,
+      "text": "Exo créé",
+      "context": "generatedItem: { id: 12, title: \"Exo créé\" },"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\AIGeneratorBase.tsx",
+      "line": 35,
+      "text": "Mission secrète 🕵️",
+      "context": "\"Mission secrète 🕵️\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\ContentCardBase.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentCardBase.tsx",
+      "line": 58,
+      "text": "élément interactif lui-même pour lecteurs d",
+      "context": "aria-labelledby sur l'élément interactif lui-même pour lecteurs d'écran. */"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentCardBase.tsx",
+      "line": 83,
+      "text": "Résolu",
+      "context": "{/* Badge \"Résolu\" — fond teinté discret */}"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 17,
+      "text": "Afficher filtres avancés",
+      "context": "filterButtonAriaExpand: \"Afficher filtres avancés\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 19,
+      "text": "Filtres avancés",
+      "context": "advancedRegionLabel: \"Filtres avancés\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 27,
+      "text": "Aléatoire",
+      "context": "orderRandom: \"Aléatoire\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 28,
+      "text": "Plus récents",
+      "context": "orderRecent: \"Plus récents\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 29,
+      "text": "Masquer les réussis",
+      "context": "hideCompleted: \"Masquer les réussis\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 32,
+      "text": "Critères actifs",
+      "context": "activeFiltersSummary: \"Critères actifs\","
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 100,
+      "text": "affiche le tri et masquer-réussis dans le panneau avancé (pas sur la ligne principale)",
+      "context": "it(\"affiche le tri et masquer-réussis dans le panneau avancé (pas sur la ligne principale)\", async () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 112,
+      "text": "Masquer les réussis",
+      "context": "expect(screen.getByLabelText(\"Masquer les réussis\")).toBeVisible();"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 130,
+      "text": "affiche le résumé état ",
+      "context": "it(\"affiche le résumé état 'Plus récents' dans le <p> quand panneau fermé et ordre=recent\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 130,
+      "text": " dans le <p> quand panneau fermé et ordre=recent",
+      "context": "it(\"affiche le résumé état 'Plus récents' dans le <p> quand panneau fermé et ordre=recent\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 134,
+      "text": "Plus récents",
+      "context": "expect(summary).toHaveTextContent(\"Plus récents\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 137,
+      "text": "affiche le résumé état dans le <p> quand hideCompleted=true",
+      "context": "it(\"affiche le résumé état dans le <p> quand hideCompleted=true\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 141,
+      "text": "Masquer les réussis",
+      "context": "expect(summary).toHaveTextContent(\"Masquer les réussis\");"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 153,
+      "text": "retourne 0 quand tout est à l",
+      "context": "it(\"retourne 0 quand tout est à l'état par défaut\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 171,
+      "text": "compte le tri non-aléatoire comme filtre actif",
+      "context": "it(\"compte le tri non-aléatoire comme filtre actif\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 183,
+      "text": "cumule tous les filtres actifs simultanément",
+      "context": "it(\"cumule tous les filtres actifs simultanément\", () => {"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListProgressiveFilterToolbar.test.tsx",
+      "line": 189,
+      "text": "retourne 0 quand orderFilter est undefined (compatibilité ancienne signature)",
+      "context": "it(\"retourne 0 quand orderFilter est undefined (compatibilité ancienne signature)\", () => {"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\ContentListResultsSection.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListResultsSection.test.tsx",
+      "line": 23,
+      "text": "3 éléments",
+      "context": "listHeaderTitle: \"3 éléments\","
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\shared\\ContentListSkeleton.test.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListSkeleton.test.tsx",
+      "line": 8,
+      "text": "Chargement des exercices",
+      "context": "<ContentListSkeleton variant=\"grid\" loadingLabel=\"Chargement des exercices\" count={3} />"
+    },
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\shared\\ContentListSkeleton.test.tsx",
+      "line": 10,
+      "text": "Chargement des exercices",
+      "context": "const region = screen.getByRole(\"status\", { name: \"Chargement des exercices\" });"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\theme\\DarkModeToggle.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\theme\\DarkModeToggle.tsx",
+      "line": 49,
+      "text": "Changer le thème clair/sombre",
+      "context": "aria-label=\"Changer le thème clair/sombre\""
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\theme\\ThemeSelectorCompact.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\theme\\ThemeSelectorCompact.tsx",
+      "line": 33,
+      "text": "Changer le thème",
+      "context": "<Button variant=\"ghost\" size=\"sm\" aria-label=\"Changer le thème\" title=\"Changer le thème\">"
+    }
+  ],
+  "D:\\Mathakine\\frontend\\components\\ui\\dialog.tsx": [
+    {
+      "file": "D:\\Mathakine\\frontend\\components\\ui\\dialog.tsx",
+      "line": 65,
+      "text": "Fermer la boîte de dialogue",
+      "context": "aria-label=\"Fermer la boîte de dialogue\""
+    }
+  ]
+}
