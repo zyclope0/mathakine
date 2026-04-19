@@ -8,7 +8,10 @@ sur les plages chevauchantes précédentes.
 
 from __future__ import annotations
 
-from app.core.difficulty_tier import build_exercise_generation_profile
+from app.core.difficulty_tier import (
+    build_exercise_generation_profile,
+    clamp_difficulty_for_type,
+)
 from app.services.exercises.exercise_ai_service import (
     DIFFICULTY_RANGES,
     _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC,
@@ -218,3 +221,60 @@ def test_system_prompt_contains_cognitive_hint_line_when_intensity_set() -> None
     )
     assert "- Intensité cognitive attendue :" in prompt
     assert hint in prompt
+
+
+# ---------------------------------------------------------------------------
+# Lot F — clamp runtime utilisé dans generate_exercise_stream
+# ---------------------------------------------------------------------------
+
+
+def test_addition_grand_maitre_prompt_built_on_effective_chevalier() -> None:
+    """Le prompt addition+GRAND_MAITRE doit être construit sur CHEVALIER (clamp)."""
+    effective, reason = clamp_difficulty_for_type("addition", "GRAND_MAITRE")
+    assert effective == "CHEVALIER"
+    assert reason is not None
+
+    profile = build_exercise_generation_profile("addition", "9-11", effective)
+    prompt = build_exercise_system_prompt(
+        "addition",
+        effective,
+        "9-11",
+        DIFFICULTY_RANGES[effective],
+        "",
+        calibration_desc=profile["calibration_desc"],
+        cognitive_hint=profile.get("cognitive_hint") or "",
+    )
+    assert "Niveau : CHEVALIER" in prompt
+    assert "nombres 100-500" in prompt
+    assert "GRAND_MAITRE" not in prompt
+
+
+def test_geometrie_grand_maitre_prompt_stays_grand_maitre() -> None:
+    """geometrie + GRAND_MAITRE reste GRAND_MAITRE (plafond = GRAND_MAITRE)."""
+    effective, reason = clamp_difficulty_for_type("geometrie", "GRAND_MAITRE")
+    assert effective == "GRAND_MAITRE"
+    assert reason is None
+
+    profile = build_exercise_generation_profile("geometrie", "15-17", effective)
+    prompt = build_exercise_system_prompt(
+        "geometrie",
+        effective,
+        "15-17",
+        DIFFICULTY_RANGES[effective],
+        "",
+        calibration_desc=profile["calibration_desc"],
+        cognitive_hint=profile.get("cognitive_hint") or "",
+    )
+    assert "Niveau : GRAND_MAITRE" in prompt
+    assert "nombres 2000-10000" in prompt
+
+
+def test_persisted_difficulty_uses_effective_after_clamp() -> None:
+    """La difficulté persistée reflète le clamp (parité avec le prompt)."""
+    effective, _ = clamp_difficulty_for_type("addition", "GRAND_MAITRE")
+    persisted = {
+        "exercise_type": "addition",
+        "age_group": "9-11",
+        "difficulty": effective,
+    }
+    assert persisted["difficulty"] == "CHEVALIER"

@@ -24,6 +24,7 @@ from app.core.config import settings
 from app.core.db_boundary import sync_db_session
 from app.core.difficulty_tier import (
     build_exercise_generation_profile,
+    clamp_difficulty_for_type,
     cognitive_guidance_kind_for_exercise_type,
 )
 from app.core.logging_config import get_logger
@@ -299,8 +300,26 @@ async def generate_exercise_stream(
             api_key=settings.OPENAI_API_KEY,
             timeout=AIConfig.DEFAULT_TIMEOUT,
         )
+
+        # Lot F — clamp runtime type × difficulté avant toute dérivation
+        # (plages, profil, prompts, persistance). Fail-open pour types inconnus.
+        requested_difficulty = derived_difficulty
+        effective_difficulty, clamp_reason = clamp_difficulty_for_type(
+            exercise_type, requested_difficulty
+        )
+        if clamp_reason is not None:
+            logger.info(
+                "[ExerciseAI] type_difficulty_clamp user_id={} exercise_type={} "
+                "requested={} effective={} reason={}",
+                user_id,
+                exercise_type,
+                requested_difficulty,
+                effective_difficulty,
+                clamp_reason,
+            )
+
         diff_info = DIFFICULTY_RANGES.get(
-            derived_difficulty, DIFFICULTY_RANGES["PADAWAN"]
+            effective_difficulty, DIFFICULTY_RANGES["PADAWAN"]
         )
         default_theme = (
             "spatial/galactique (vaisseaux, planètes, étoiles)"
@@ -309,12 +328,12 @@ async def generate_exercise_stream(
         )
 
         gen_profile = build_exercise_generation_profile(
-            exercise_type, age_group, derived_difficulty
+            exercise_type, age_group, effective_difficulty
         )
 
         system_prompt = build_exercise_system_prompt(
             exercise_type,
-            derived_difficulty,
+            effective_difficulty,
             age_group,
             diff_info,
             default_theme,
@@ -322,7 +341,7 @@ async def generate_exercise_stream(
             cognitive_hint=gen_profile.get("cognitive_hint") or "",
         )
         user_prompt = build_exercise_user_prompt(
-            prompt, exercise_type, derived_difficulty
+            prompt, exercise_type, effective_difficulty
         )
 
         try:
@@ -555,7 +574,7 @@ async def generate_exercise_stream(
         normalized_exercise = {
             "exercise_type": exercise_type,
             "age_group": age_group,
-            "difficulty": derived_difficulty,
+            "difficulty": effective_difficulty,
             "title": title_clean,
             "question": q,
             "correct_answer": str(exercise_data.get("correct_answer", "")).strip(),

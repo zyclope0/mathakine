@@ -26,6 +26,7 @@ from app.core.difficulty_tier import (
     DIFFICULTY_TIER_MIN,
     _TIER_CALIBRATION,
     build_exercise_generation_profile,
+    clamp_difficulty_for_type,
     cognitive_guidance_kind_for_exercise_type,
     cognitive_hint_for_exercise_type,
     cognitive_intensity_for_difficulty,
@@ -198,3 +199,82 @@ def test_build_exercise_generation_profile_preserves_age_and_band_keywords() -> 
     )
     assert "découverte" in p_disc["calibration_desc"].lower()
     assert "consolidation" in p_cons["calibration_desc"].lower()
+
+
+# ---------------------------------------------------------------------------
+# Section 3 — Lot F : clamp runtime type × difficulté
+# ---------------------------------------------------------------------------
+
+
+def test_clamp_unknown_type_noop() -> None:
+    eff, reason = clamp_difficulty_for_type("unknown_type_xyz", "GRAND_MAITRE")
+    assert eff == "GRAND_MAITRE"
+    assert reason is None
+
+
+def test_clamp_unknown_difficulty_noop() -> None:
+    eff, reason = clamp_difficulty_for_type("addition", "JEDI_SUPREME")
+    assert eff == "JEDI_SUPREME"
+    assert reason is None
+
+
+def test_clamp_empty_type_or_difficulty_noop() -> None:
+    assert clamp_difficulty_for_type("", "GRAND_MAITRE") == ("GRAND_MAITRE", None)
+    assert clamp_difficulty_for_type("addition", "") == ("", None)
+    assert clamp_difficulty_for_type("", "") == ("", None)
+
+
+def test_clamp_addition_grand_maitre_to_chevalier_with_reason() -> None:
+    eff, reason = clamp_difficulty_for_type("addition", "GRAND_MAITRE")
+    assert eff == "CHEVALIER"
+    assert reason is not None
+    assert "difficulty_above_type_ceiling" in reason
+    assert "GRAND_MAITRE" in reason and "CHEVALIER" in reason and "addition" in reason
+
+
+def test_clamp_soustraction_maitre_to_chevalier_with_reason() -> None:
+    eff, reason = clamp_difficulty_for_type("soustraction", "MAITRE")
+    assert eff == "CHEVALIER"
+    assert reason is not None
+    assert "difficulty_above_type_ceiling" in reason
+
+
+def test_clamp_multiplication_initie_to_padawan_with_reason() -> None:
+    eff, reason = clamp_difficulty_for_type("multiplication", "INITIE")
+    assert eff == "PADAWAN"
+    assert reason is not None
+    assert "difficulty_below_type_floor" in reason
+
+
+def test_clamp_division_grand_maitre_to_maitre_with_reason() -> None:
+    eff, reason = clamp_difficulty_for_type("division", "GRAND_MAITRE")
+    assert eff == "MAITRE"
+    assert reason is not None
+    assert "difficulty_above_type_ceiling" in reason
+
+
+def test_clamp_mixte_initie_to_chevalier_with_reason() -> None:
+    eff, reason = clamp_difficulty_for_type("mixte", "INITIE")
+    assert eff == "CHEVALIER"
+    assert reason is not None
+    assert "difficulty_below_type_floor" in reason
+
+
+def test_clamp_geometrie_grand_maitre_respects_ceiling() -> None:
+    # GAP-2 Feature A : geometrie seedé GRAND_MAITRE reste autorisé.
+    eff, reason = clamp_difficulty_for_type("geometrie", "GRAND_MAITRE")
+    assert eff == "GRAND_MAITRE"
+    assert reason is None
+
+
+def test_clamp_texte_grand_maitre_respects_ceiling() -> None:
+    eff, reason = clamp_difficulty_for_type("texte", "GRAND_MAITRE")
+    assert eff == "GRAND_MAITRE"
+    assert reason is None
+
+
+def test_clamp_is_case_insensitive_on_type_and_difficulty() -> None:
+    # Garde-fou supplémentaire : l'API admin peut envoyer des casses variables.
+    eff_up, reason_up = clamp_difficulty_for_type("ADDITION", "grand_maitre")
+    assert eff_up == "CHEVALIER"
+    assert reason_up is not None

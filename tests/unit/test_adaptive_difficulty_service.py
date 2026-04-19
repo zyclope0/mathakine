@@ -380,7 +380,8 @@ class TestResolveAdaptiveDifficulty:
             "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
-            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+            # TEXTE : plafond GRAND_MAITRE → cascade non clampée (Lot F).
+            result = resolve_adaptive_difficulty(db, user, "TEXTE")
 
         assert result == AgeGroups.GROUP_15_17
 
@@ -545,7 +546,8 @@ class TestPrefDifficultyToOrdinal:
             "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
-            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+            # TEXTE : plafond GRAND_MAITRE → pas de clamp (Lot F).
+            result = resolve_adaptive_difficulty(db, user, "TEXTE")
         assert result == AgeGroups.ADULT
 
     def test_age_group_9_11_resolves_to_group_9_11(self):
@@ -575,7 +577,8 @@ class TestPrefDifficultyToOrdinal:
             "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
-            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+            # TEXTE : plafond GRAND_MAITRE → pas de clamp (Lot F).
+            result = resolve_adaptive_difficulty(db, user, "TEXTE")
         assert result == AgeGroups.GROUP_15_17
 
     def test_difficulty_level_grand_maitre_still_works(self):
@@ -585,7 +588,8 @@ class TestPrefDifficultyToOrdinal:
             "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
-            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+            # TEXTE : plafond GRAND_MAITRE → mapping GRAND_MAITRE→ADULT préservé (Lot F).
+            result = resolve_adaptive_difficulty(db, user, "TEXTE")
         assert result == AgeGroups.ADULT
 
 
@@ -1027,3 +1031,88 @@ class TestF43A1AdaptiveObservabilityLogs:
         assert f43_calls[0].args[2] == "addition"
         assert f43_calls[0].args[3] == "fallback"
         assert f43_calls[0].args[4] == "learning"
+
+
+# ---------------------------------------------------------------------------
+# Lot F — clamp type × difficulté runtime (cascade adaptative)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveAdaptiveDifficultyTypeClamp:
+    """Le clamp type-aware est appliqué avant chaque retour de la cascade."""
+
+    def test_clamp_geometrie_seed_grand_maitre_still_returns_grand_maitre(self):
+        """GAP-2 Feature A : geometrie + seed GRAND_MAITRE non clampé."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            result = resolve_adaptive_difficulty(db, user, "GEOMETRIE")
+        # GRAND_MAITRE → ordinal 4 → ADULT (plafond geometrie = GRAND_MAITRE)
+        assert result == AgeGroups.ADULT
+
+    def test_clamp_addition_seed_grand_maitre_returns_chevalier(self):
+        """addition + seed GRAND_MAITRE est clampé à CHEVALIER (plafond addition)."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
+        with patch(
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
+        ):
+            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+        # GRAND_MAITRE (ordinal 4) clampé → CHEVALIER (ordinal 2) → GROUP_12_14
+        assert result == AgeGroups.GROUP_12_14
+
+    def test_resolve_adaptive_difficulty_emits_clamp_log_on_effect(self):
+        """Un clamp effectif produit un log ``type_difficulty_clamp``."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service.logger"
+            ) as mock_log,
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+        ):
+            resolve_adaptive_difficulty(db, user, "ADDITION")
+
+        clamp_calls = [
+            c
+            for c in mock_log.info.call_args_list
+            if c.args and "type_difficulty_clamp" in c.args[0]
+        ]
+        assert (
+            len(clamp_calls) == 1
+        ), f"attendu 1 log clamp, obtenu {len(clamp_calls)} : {clamp_calls!r}"
+        args = clamp_calls[0].args
+        assert args[1] == 1  # user_id
+        assert args[2] == "ADDITION"  # exercise_type
+        assert args[3] == DifficultyLevels.GRAND_MAITRE
+        assert args[4] == DifficultyLevels.CHEVALIER
+        assert "difficulty_above_type_ceiling" in args[5]
+
+    def test_no_clamp_log_when_within_bounds(self):
+        """Aucun log clamp si la cascade est déjà dans la plage autorisée."""
+        db = _make_db(progress=None)
+        user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.CHEVALIER)
+        with (
+            patch(
+                "app.services.exercises.adaptive_difficulty_service.logger"
+            ) as mock_log,
+            patch(
+                "app.services.diagnostic.diagnostic_service.get_latest_score",
+                return_value=None,
+            ),
+        ):
+            result = resolve_adaptive_difficulty(db, user, "ADDITION")
+        assert result == AgeGroups.GROUP_12_14
+        clamp_calls = [
+            c
+            for c in mock_log.info.call_args_list
+            if c.args and "type_difficulty_clamp" in c.args[0]
+        ]
+        assert clamp_calls == []

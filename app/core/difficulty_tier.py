@@ -272,6 +272,74 @@ def cognitive_intensity_for_difficulty(
     )
 
 
+# ---------------------------------------------------------------------------
+# Lot F — clamp runtime type-aware (pedagogical floor/ceiling per exercise_type)
+# ---------------------------------------------------------------------------
+# Matrice : pour chaque type d'exercice, bornes pédagogiques (plancher, plafond)
+# sur l'échelle Jedi INITIE..GRAND_MAITRE. Évite les combinaisons faiblement
+# pédagogiques (ex. ``addition + GRAND_MAITRE``) tout en restant fail-open pour
+# les types/difficultés inconnus. La matrice doit rester LA source unique —
+# tout flux de génération (cascade adaptative ou appel IA direct) lit ici.
+_TYPE_DIFFICULTY_BOUNDS: dict[str, tuple[str, str]] = {
+    "addition": ("INITIE", "CHEVALIER"),
+    "soustraction": ("INITIE", "CHEVALIER"),
+    "multiplication": ("PADAWAN", "MAITRE"),
+    "division": ("PADAWAN", "MAITRE"),
+    "fractions": ("PADAWAN", "GRAND_MAITRE"),
+    "geometrie": ("PADAWAN", "GRAND_MAITRE"),
+    "texte": ("INITIE", "GRAND_MAITRE"),
+    "mixte": ("CHEVALIER", "GRAND_MAITRE"),
+    "divers": ("PADAWAN", "GRAND_MAITRE"),
+}
+
+_DIFFICULTY_ORDER: tuple[str, ...] = (
+    "INITIE",
+    "PADAWAN",
+    "CHEVALIER",
+    "MAITRE",
+    "GRAND_MAITRE",
+)
+_DIFFICULTY_RANK: dict[str, int] = {d: i for i, d in enumerate(_DIFFICULTY_ORDER)}
+
+
+def clamp_difficulty_for_type(
+    exercise_type: str,
+    requested: str,
+) -> tuple[str, Optional[str]]:
+    """Clamp la difficulté demandée dans la plage autorisée pour ce type.
+
+    Retourne le couple ``(difficulté_effective, raison)`` où ``raison`` vaut
+    ``None`` si aucun clamp n'a été appliqué. Fail-open : type ou difficulté
+    inconnus/vides → retour de ``requested`` sans clamp ni raison.
+
+    La raison est une string stable, lisible et non traduite (log interne).
+    """
+    if not exercise_type or not requested:
+        return requested, None
+    type_key = str(exercise_type).strip().lower()
+    diff_key = str(requested).strip().upper()
+    bounds = _TYPE_DIFFICULTY_BOUNDS.get(type_key)
+    if bounds is None:
+        return requested, None
+    rank = _DIFFICULTY_RANK.get(diff_key)
+    if rank is None:
+        return requested, None
+    floor, ceiling = bounds
+    floor_rank = _DIFFICULTY_RANK[floor]
+    ceiling_rank = _DIFFICULTY_RANK[ceiling]
+    if rank < floor_rank:
+        return (
+            floor,
+            f"difficulty_below_type_floor: {diff_key} < {floor} for {type_key}",
+        )
+    if rank > ceiling_rank:
+        return (
+            ceiling,
+            f"difficulty_above_type_ceiling: {diff_key} > {ceiling} for {type_key}",
+        )
+    return requested, None
+
+
 def cognitive_hint_for_exercise_type(
     exercise_type: Optional[str],
     derived_difficulty: Optional[str],

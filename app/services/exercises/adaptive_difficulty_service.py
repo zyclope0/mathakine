@@ -46,7 +46,10 @@ from typing import Dict, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
-from app.core.difficulty_tier import pedagogical_band_index_from_difficulty
+from app.core.difficulty_tier import (
+    clamp_difficulty_for_type,
+    pedagogical_band_index_from_difficulty,
+)
 from app.core.logging_config import get_logger
 from app.core.mastery_tier_bridge import mastery_level_int_to_pedagogical_band
 from app.core.user_age_group import normalized_age_group_from_user_profile
@@ -132,6 +135,8 @@ _ORDINAL_TO_AGE_GROUP = {
     3: AgeGroups.GROUP_15_17,
     4: AgeGroups.ADULT,
 }
+
+_AGE_GROUP_TO_ORDINAL = {v: k for k, v in _ORDINAL_TO_AGE_GROUP.items()}
 
 # Mapping preferred_difficulty string → ordinal.
 # Couvre à la fois les DifficultyLevels ("GRAND_MAITRE") ET les age_group
@@ -529,6 +534,36 @@ def resolve_irt_level(db: Session, user_id: int, exercise_type: str) -> Optional
 # ---------------------------------------------------------------------------
 
 
+def _maybe_clamp_age_group_for_type(age_group: str, exercise_type: str, user_id) -> str:
+    """Applique le clamp type × difficulté sur un age_group sortant.
+
+    Conversion via l'ordinal (GROUP_6_8..ADULT ↔ INITIE..GRAND_MAITRE) puis
+    ``clamp_difficulty_for_type``. Fail-open : toute résolution impossible
+    (age_group inconnu, difficulté inconnue, type/difficulté vides) laisse la
+    valeur d'entrée intacte sans log.
+    """
+    ordinal = _AGE_GROUP_TO_ORDINAL.get(age_group)
+    if ordinal is None:
+        return age_group
+    requested = _ORDINAL_TO_DIFFICULTY.get(ordinal)
+    if requested is None:
+        return age_group
+    effective, reason = clamp_difficulty_for_type(exercise_type, requested)
+    if reason is None:
+        return age_group
+    logger.info(
+        "[AdaptiveDifficulty] type_difficulty_clamp user_id={} exercise_type={} "
+        "requested={} effective={} reason={}",
+        user_id,
+        exercise_type,
+        requested,
+        effective,
+        reason,
+    )
+    effective_ordinal = _DIFFICULTY_TO_ORDINAL.get(effective, ordinal)
+    return _ORDINAL_TO_AGE_GROUP.get(effective_ordinal, age_group)
+
+
 def resolve_adaptive_difficulty(
     db: Session,
     user,
@@ -553,7 +588,9 @@ def resolve_adaptive_difficulty(
     """
     user_id = getattr(user, "id", None)
     if user_id is None:
-        return AgeGroups.GROUP_9_11
+        return _maybe_clamp_age_group_for_type(
+            AgeGroups.GROUP_9_11, exercise_type, user_id
+        )
 
     type_key = exercise_type.lower()
 
@@ -582,7 +619,9 @@ def resolve_adaptive_difficulty(
                     ordinal,
                     age_group,
                 )
-                return age_group
+                return _maybe_clamp_age_group_for_type(
+                    age_group, exercise_type, user_id
+                )
     except Exception as e:
         logger.warning(
             "[AdaptiveDifficulty] Erreur lecture diagnostic IRT user=%s: %s", user_id, e
@@ -616,7 +655,7 @@ def resolve_adaptive_difficulty(
                 ordinal,
                 age_group,
             )
-            return age_group
+            return _maybe_clamp_age_group_for_type(age_group, exercise_type, user_id)
     except Exception as e:
         logger.warning(
             "[AdaptiveDifficulty] Erreur lecture progression user=%s: %s", user_id, e
@@ -634,7 +673,7 @@ def resolve_adaptive_difficulty(
                 exercise_type,
                 persisted_ag,
             )
-            return persisted_ag
+            return _maybe_clamp_age_group_for_type(persisted_ag, exercise_type, user_id)
 
         preferred = getattr(user, "preferred_difficulty", None)
         if preferred:
@@ -648,7 +687,9 @@ def resolve_adaptive_difficulty(
                     preferred,
                     age_group,
                 )
-                return age_group
+                return _maybe_clamp_age_group_for_type(
+                    age_group, exercise_type, user_id
+                )
 
         grade = getattr(user, "grade_level", None)
         if grade and isinstance(grade, int):
@@ -661,7 +702,7 @@ def resolve_adaptive_difficulty(
                 grade,
                 age_group,
             )
-            return age_group
+            return _maybe_clamp_age_group_for_type(age_group, exercise_type, user_id)
     except Exception as e:
         logger.warning(
             "[AdaptiveDifficulty] Erreur lecture profil user=%s: %s", user_id, e
@@ -675,7 +716,7 @@ def resolve_adaptive_difficulty(
         user_id,
         exercise_type,
     )
-    return AgeGroups.GROUP_9_11
+    return _maybe_clamp_age_group_for_type(AgeGroups.GROUP_9_11, exercise_type, user_id)
 
 
 # ---------------------------------------------------------------------------
