@@ -71,7 +71,7 @@ REASONING_EFFORT_BY_EXERCISE_TYPE: Final[Dict[str, str]] = {
     "soustraction": "low",
     "multiplication": "low",
     "division": "low",
-    "geometrie": "low",
+    "geometrie": "medium",
     "fractions": "medium",
     "texte": "medium",
     "mixte": "high",

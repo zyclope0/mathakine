@@ -125,11 +125,24 @@ def test_resolve_exercise_ai_model_for_user_delegates(
 
 def test_reasoning_effort_and_max_tokens_by_type() -> None:
     assert reasoning_effort_for_exercise_type("addition") == "low"
+    assert reasoning_effort_for_exercise_type("geometrie") == "medium"
     assert reasoning_effort_for_exercise_type("mixte") == "high"
     assert reasoning_effort_for_exercise_type("unknown_type") == "medium"
     assert max_completion_tokens_for_exercise_type("addition") == 2800
+    assert max_completion_tokens_for_exercise_type("geometrie") == 3200
     assert max_completion_tokens_for_exercise_type("mixte") == 5000
     assert max_completion_tokens_for_exercise_type("unknown") == 4000
+
+
+def test_build_stream_kwargs_o3_geometrie_uses_medium_reasoning_effort() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="o3",
+        exercise_type="geometrie",
+        system_content="sys",
+        user_content="user",
+    )
+    assert kw["reasoning_effort"] == "medium"
+    assert kw["max_completion_tokens"] == 3200
 
 
 def test_build_stream_kwargs_o3_family() -> None:
