@@ -41,12 +41,12 @@ from app.utils.circuit_breaker import (
     openai_workload_circuit_breaker,
 )
 from app.utils.error_handler import get_safe_error_message
+from app.utils.exercise_generator_validators import normalize_exercise_type
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
 from app.utils.latex_utils import sanitize_exercise_text_fields
 from app.utils.sse_utils import sse_error_message, sse_status_message
 from app.utils.token_tracker import token_tracker
-from app.utils.exercise_generator_validators import normalize_exercise_type
 
 logger = get_logger(__name__)
 
