@@ -17,6 +17,16 @@ function sanitizeLatexFractions(text: string): string {
 }
 
 /**
+ * Normalise les délimiteurs LaTeX que l'IA produit parfois (`\(...\)`, `\[...\]`).
+ * `remark-math` parse de façon fiable `$...$` et `$$...$$`, mais pas ces variantes.
+ */
+function normalizeLatexDelimiters(text: string): string {
+  return text
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_match, inner: string) => `\n\n$$\n${inner.trim()}\n$$\n\n`)
+    .replace(/\\\(([^\n]*?)\\\)/g, (_match, inner: string) => `$${inner}$`);
+}
+
+/**
  * Dégrade proprement certains blocs LaTeX manifestement cassés générés par l'IA.
  * Exemple fréquent : `$$ ... \end{cases}$$` sans `\begin{cases}`.
  * Au lieu de laisser KaTeX afficher une erreur rouge, on repasse le contenu en texte lisible.
@@ -73,7 +83,9 @@ const sizeClasses = {
 export function MathText({ children, className, size = "base" }: MathTextProps) {
   if (!children) return null;
 
-  const sanitized = sanitizeBrokenLatexBlocks(sanitizeLatexFractions(children));
+  const sanitized = sanitizeBrokenLatexBlocks(
+    sanitizeLatexFractions(normalizeLatexDelimiters(children))
+  );
 
   return (
     <div
