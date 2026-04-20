@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from app.core.constants import calculate_difficulty_for_age_group, normalize_age_group
 
@@ -138,6 +138,209 @@ def _is_simple_geometric_sequence(values: List[float]) -> bool:
         return False
     ratios = [round(values[i + 1] / values[i], 8) for i in range(len(values) - 1)]
     return len(set(ratios)) == 1
+
+
+def _grid_dimensions(grid: Any) -> Tuple[int, int]:
+    if not isinstance(grid, list):
+        return 0, 0
+    rows = [row for row in grid if isinstance(row, (list, tuple))]
+    if not rows:
+        return 0, 0
+    return len(rows), max(len(row) for row in rows)
+
+
+def _list_len(value: Any) -> int:
+    return len(value) if isinstance(value, list) else 0
+
+
+def _count_numeric_leaf_values(value: Any) -> int:
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, (int, float)):
+        return 1
+    if isinstance(value, dict):
+        return sum(_count_numeric_leaf_values(v) for v in value.values())
+    if isinstance(value, list):
+        return sum(_count_numeric_leaf_values(v) for v in value)
+    return 0
+
+
+def _probability_has_complex_marker(visual_data: Dict[str, Any]) -> bool:
+    marker_text = " ".join(str(k).lower() for k in visual_data.keys())
+    marker_text += " " + str(visual_data.get("question", "")).lower()
+    marker_text += " " + str(visual_data.get("description", "")).lower()
+    if any(
+        marker in marker_text
+        for marker in (
+            "sans remise",
+            "without replacement",
+            "condition",
+            "conditional",
+            "au moins",
+            "at least",
+            "exactement",
+            "exactly",
+            "tirages",
+            "draws",
+        )
+    ):
+        return True
+    events = visual_data.get("events") or visual_data.get("evenements")
+    return isinstance(events, list) and len(events) >= 2
+
+
+def _highest_floor(
+    floors: List[Tuple[float, str]],
+) -> Tuple[Optional[float], List[str]]:
+    if not floors:
+        return None, []
+    max_floor = max(value for value, _reason in floors)
+    reasons = [reason for value, reason in floors if value == max_floor]
+    return max_floor, reasons
+
+
+def _pattern_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    grid = vd.get("grid", [])
+    question_count = _count_question_cells(grid)
+    rows, cols = _grid_dimensions(grid)
+    if question_count >= 5 and rows >= 5 and cols >= 5:
+        return [(4.0, "pattern_large_multi_unknown_floor_4_0")]
+    if question_count >= 3 and rows >= 4 and cols >= 4:
+        return [(3.5, "pattern_multi_unknown_floor_3_5")]
+    return []
+
+
+def _sequence_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    seq = vd.get("sequence", vd.get("items", []))
+    seq_len = len(seq) if isinstance(seq, list) else 0
+    unknowns = _count_sequence_unknowns(seq)
+    numeric_values = _extract_numeric_sequence_values(seq)
+    is_simple = _is_simple_arithmetic_sequence(
+        numeric_values
+    ) or _is_simple_geometric_sequence(numeric_values)
+    if seq_len >= 8 and unknowns >= 2 and not is_simple:
+        return [(4.0, "sequence_long_multi_unknown_floor_4_0")]
+    if seq_len >= 7 and (unknowns >= 2 or not is_simple):
+        return [(3.5, "sequence_long_or_composite_floor_3_5")]
+    return []
+
+
+def _puzzle_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    pieces = vd.get("pieces", vd.get("items", []))
+    clues = vd.get("hints", vd.get("rules", vd.get("clues", [])))
+    piece_count = _list_len(pieces)
+    clue_count = _list_len(clues)
+    if piece_count >= 7 and clue_count >= 5:
+        return [(4.0, "puzzle_large_indirect_constraints_floor_4_0")]
+    if piece_count >= 6 and clue_count >= 3:
+        return [(3.5, "puzzle_six_piece_constraint_floor_3_5")]
+    return []
+
+
+def _visual_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    floors: List[Tuple[float, str]] = []
+    grid = vd.get("grid", vd.get("matrix", vd.get("pattern", [])))
+    if isinstance(grid, list):
+        question_count = _count_question_cells(grid)
+        rows, cols = _grid_dimensions(grid)
+        if question_count >= 5 and rows >= 5 and cols >= 5:
+            floors.append((4.0, "visual_grid_large_multi_unknown_floor_4_0"))
+        elif question_count >= 3 and rows >= 4 and cols >= 4:
+            floors.append((3.5, "visual_grid_multi_unknown_floor_3_5"))
+    if vd.get("type") == "symmetry":
+        layout_count = _list_len(vd.get("layout"))
+        if layout_count >= 14:
+            floors.append((4.0, "visual_symmetry_large_layout_floor_4_0"))
+        elif layout_count >= 10:
+            floors.append((3.5, "visual_symmetry_large_layout_floor_3_5"))
+    return floors
+
+
+def _coding_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    coding_subtype = str(vd.get("type", "") or "").strip().lower()
+    encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
+    chunks = [part for part in encoded_message.split() if part.strip()]
+    if coding_subtype == "binary":
+        if len(chunks) >= 14:
+            return [(4.0, "coding_binary_long_payload_floor_4_0")]
+        if len(chunks) >= 10:
+            return [(3.5, "coding_binary_long_payload_floor_3_5")]
+    if coding_subtype == "caesar" and vd.get("shift") is None and len(chunks) >= 6:
+        return [(3.5, "coding_caesar_hidden_shift_floor_3_5")]
+    if coding_subtype != "substitution":
+        return []
+
+    full_key = vd.get("key")
+    partial_key = vd.get("partial_key")
+    key_size = len(full_key) if isinstance(full_key, dict) else 0
+    partial_size = len(partial_key) if isinstance(partial_key, dict) else 0
+    has_exposed_key = key_size >= 10
+    key_is_sparse = not has_exposed_key and (partial_size == 0 or partial_size <= 6)
+    if key_is_sparse and len(chunks) >= 7:
+        return [(4.0, "coding_substitution_sparse_key_floor_4_0")]
+    if key_is_sparse and len(chunks) >= 4:
+        return [(3.5, "coding_substitution_sparse_key_floor_3_5")]
+    return []
+
+
+def _graph_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    node_count = _list_len(vd.get("nodes", []))
+    edge_count = _list_len(vd.get("edges", []))
+    if node_count >= 10 and edge_count >= 15:
+        return [(4.0, "graph_dense_network_floor_4_0")]
+    if node_count >= 8 and edge_count >= 10:
+        return [(3.5, "graph_medium_network_floor_3_5")]
+    return []
+
+
+def _riddle_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    clues = vd.get("clues", vd.get("indices", []))
+    key_elements = vd.get("key_elements", vd.get("elements_cles", []))
+    if _list_len(clues) >= 4 and _list_len(key_elements) >= 3:
+        return [(3.5, "riddle_multi_clue_floor_3_5")]
+    return []
+
+
+def _probability_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
+    numeric_count = _count_numeric_leaf_values(vd)
+    has_complex_marker = _probability_has_complex_marker(vd)
+    if numeric_count >= 6 and has_complex_marker:
+        return [(4.0, "probability_multi_event_floor_4_0")]
+    if numeric_count >= 4 and has_complex_marker:
+        return [(3.5, "probability_multi_quantity_floor_3_5")]
+    return []
+
+
+_STRUCTURAL_FLOOR_RESOLVERS: Dict[
+    str, Callable[[Dict[str, Any]], List[Tuple[float, str]]]
+] = {
+    "pattern": _pattern_rating_floors,
+    "sequence": _sequence_rating_floors,
+    "puzzle": _puzzle_rating_floors,
+    "visual": _visual_rating_floors,
+    "coding": _coding_rating_floors,
+    "graph": _graph_rating_floors,
+    "riddle": _riddle_rating_floors,
+    "probability": _probability_rating_floors,
+}
+
+
+def _structural_rating_floor(
+    challenge_type: str,
+    visual_data: Dict[str, Any],
+) -> Tuple[Optional[float], List[str]]:
+    """
+    Retourne un plancher de difficulte prouvable par la structure.
+
+    Cette fonction est volontairement conservative : elle ne rehausse pas un rating
+    sur du texte libre, et ne touche pas DEDUCTION dont l'unicite logique n'est pas
+    prouvee par nos validateurs actuels.
+    """
+    ct = (challenge_type or "").strip().lower()
+    resolver = _STRUCTURAL_FLOOR_RESOLVERS.get(ct)
+    if resolver is None:
+        return None, []
+    return _highest_floor(resolver(visual_data or {}))
 
 
 def estimate_structure_signals(
@@ -439,6 +642,14 @@ def calibrate_challenge_difficulty(
             final = min(final, 3.0)
             pre_adjust = f"{pre_adjust}+pattern_single_cell_cap"
 
+    floors_applied: List[str] = []
+    structural_floor, structural_floor_reasons = _structural_rating_floor(
+        challenge_type, vd
+    )
+    if structural_floor is not None and final < structural_floor:
+        final = structural_floor
+        floors_applied.extend(structural_floor_reasons)
+
     signals = estimate_structure_signals(challenge_type, vd, title)
     caps_applied: List[str] = []
 
@@ -490,6 +701,7 @@ def calibrate_challenge_difficulty(
         "pre_adjustment": pre_adjust,
         "age_baseline": baseline,
         "signals": sig_dict,
+        "floors_applied": floors_applied,
         "caps_applied": caps_applied,
         "final_rating": round(final, 2),
     }

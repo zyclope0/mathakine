@@ -53,7 +53,8 @@ CALIBRATION STRICTE — Ne PAS surévaluer la difficulté :
 - UNE SEULE case vide ("?") dans la grille → max 2.5-3.0.
 - PUZZLE avec 4 pièces et indices directs → max 3.0. Pour 4+ : minimum 6 pièces, indices indirects.
 - Difficile (4+) = plusieurs "?" OU pattern non évident OU piège. La règle doit être DÉCOUVERTE.
-- Pas de piège, règle explicite, 1 seul manquant → difficulté BASSE."""
+- Pas de piège, règle explicite, 1 seul manquant → difficulté BASSE.
+- Ne PAS sous-évaluer : plusieurs inconnues, 6+ pièces avec contraintes, message codé long, graphe dense ou probabilité multi-événements doivent rester au moins moyen-difficiles (3.5+), sauf si la règle est explicitement donnée."""
 
 TEXT_JSON_CONTRACT_TEMPLATE = """Retourne uniquement le défi au format JSON valide avec ces champs:
 {{

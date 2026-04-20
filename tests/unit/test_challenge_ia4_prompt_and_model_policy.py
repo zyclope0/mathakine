@@ -60,6 +60,13 @@ def test_pattern_prompt_discourages_revealing_rule_for_harder_grids() -> None:
     assert '"carré latin", "décalage cyclique"' in p
 
 
+def test_prompt_discourages_under_rating_structurally_complex_challenges() -> None:
+    p = build_challenge_system_prompt("sequence", "15-17")
+    assert "Ne PAS sous-évaluer" in p
+    assert "plusieurs inconnues" in p
+    assert "3.5+" in p
+
+
 def test_spatial_uses_same_tail_as_visual_after_type_lock() -> None:
     ps = build_challenge_system_prompt("spatial", "9-11")
     pv = build_challenge_system_prompt("visual", "9-11")

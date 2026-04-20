@@ -189,6 +189,82 @@ def test_calibrate_challenge_difficulty_caps_short_binary_coding() -> None:
     assert "coding_binary_short_payload_cap_3_2" in meta.get("caps_applied", [])
 
 
+def test_calibrate_challenge_difficulty_raises_complex_pattern_floor() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="pattern",
+        age_group="9-11",
+        visual_data={
+            "grid": [
+                ["A", "B", "C", "D", "E"],
+                ["B", "C", "D", "E", "?"],
+                ["C", "D", "E", "?", "?"],
+                ["D", "E", "?", "B", "C"],
+                ["?", "?", "B", "C", "D"],
+            ],
+            "size": 5,
+        },
+        title="Le motif caché",
+        ai_difficulty=2.6,
+    )
+    assert final == 4.0
+    assert "pattern_large_multi_unknown_floor_4_0" in meta.get("floors_applied", [])
+
+
+def test_calibrate_challenge_difficulty_raises_long_sequence_floor() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="sequence",
+        age_group="9-11",
+        visual_data={"sequence": [3, 4, 8, 12, 36, 45, "?", "?"]},
+        title="La suite cachée",
+        ai_difficulty=2.6,
+    )
+    assert final == 4.0
+    assert "sequence_long_multi_unknown_floor_4_0" in meta.get("floors_applied", [])
+
+
+def test_calibrate_challenge_difficulty_does_not_floor_deduction() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="deduction",
+        age_group="9-11",
+        visual_data={
+            "type": "logic_grid",
+            "entities": {
+                "personnes": ["A", "B", "C", "D"],
+                "villes": ["Lyon", "Paris", "Rome", "Oslo"],
+                "metiers": ["Pilote", "Chef", "Juge", "Mage"],
+                "objets": ["Cle", "Carte", "Livre", "Bague"],
+            },
+            "clues": ["c1", "c2", "c3", "c4", "c5", "c6"],
+        },
+        title="Les indices croisés",
+        ai_difficulty=2.6,
+    )
+    assert final == 2.6
+    assert meta.get("floors_applied") == []
+
+
+def test_calibrate_challenge_difficulty_title_cap_overrides_structure_floor() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="pattern",
+        age_group="9-11",
+        visual_data={
+            "grid": [
+                ["A", "B", "C", "D", "E"],
+                ["B", "C", "D", "E", "?"],
+                ["C", "D", "E", "?", "?"],
+                ["D", "E", "?", "B", "C"],
+                ["?", "?", "B", "C", "D"],
+            ],
+            "size": 5,
+        },
+        title="Décalage cyclique caché",
+        ai_difficulty=2.6,
+    )
+    assert final == 3.0
+    assert "pattern_large_multi_unknown_floor_4_0" in meta.get("floors_applied", [])
+    assert "title_rule_leak_cap_3_0" in meta.get("caps_applied", [])
+
+
 def test_estimate_structure_signals_includes_rule_visibility() -> None:
     sig = estimate_structure_signals(
         "sequence",
