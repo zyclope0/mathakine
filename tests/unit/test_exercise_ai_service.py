@@ -17,6 +17,7 @@ from app.services.exercises.exercise_ai_service import (
     _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC,
     _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP,
     _non_triviality_hint,
+    build_exercise_difficulty_info,
     build_exercise_system_prompt,
 )
 
@@ -84,6 +85,18 @@ def test_difficulty_ranges_max_strictly_greater_than_min_per_level() -> None:
         assert (
             entry["max"] > entry["min"]
         ), f"{level} : max ({entry['max']}) doit être > min ({entry['min']})"
+
+
+def test_openai_prompt_difficulty_info_uses_type_specific_local_limits() -> None:
+    addition_info = build_exercise_difficulty_info("addition", "CHEVALIER")
+    division_info = build_exercise_difficulty_info("division", "CHEVALIER")
+
+    assert addition_info["min"] == 50
+    assert addition_info["max"] == 200
+    assert addition_info["desc"] == "nombres 50-200"
+    assert division_info["min_divisor"] == 5
+    assert division_info["max_divisor"] == 15
+    assert division_info["desc"] == "diviseur 5-15, quotient attendu 8-20"
 
 
 # ---------------------------------------------------------------------------
@@ -239,13 +252,13 @@ def test_addition_grand_maitre_prompt_built_on_effective_chevalier() -> None:
         "addition",
         effective,
         "9-11",
-        DIFFICULTY_RANGES[effective],
+        build_exercise_difficulty_info("addition", effective),
         "",
         calibration_desc=profile["calibration_desc"],
         cognitive_hint=profile.get("cognitive_hint") or "",
     )
     assert "Niveau : CHEVALIER" in prompt
-    assert "nombres 100-500" in prompt
+    assert "nombres 50-200" in prompt
     assert "GRAND_MAITRE" not in prompt
 
 
@@ -260,13 +273,13 @@ def test_geometrie_grand_maitre_prompt_stays_grand_maitre() -> None:
         "geometrie",
         effective,
         "15-17",
-        DIFFICULTY_RANGES[effective],
+        build_exercise_difficulty_info("geometrie", effective),
         "",
         calibration_desc=profile["calibration_desc"],
         cognitive_hint=profile.get("cognitive_hint") or "",
     )
     assert "Niveau : GRAND_MAITRE" in prompt
-    assert "nombres 2000-10000" in prompt
+    assert "nombres 1000-10000" in prompt
 
 
 def test_persisted_difficulty_uses_effective_after_clamp() -> None:

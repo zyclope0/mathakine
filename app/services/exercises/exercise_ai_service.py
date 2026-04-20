@@ -21,6 +21,7 @@ from app.core.ai_generation_policy import (
     resolve_exercise_ai_model,
 )
 from app.core.config import settings
+from app.core.constants import DIFFICULTY_LIMITS, DifficultyLevels
 from app.core.db_boundary import sync_db_session
 from app.core.difficulty_tier import (
     build_exercise_generation_profile,
@@ -45,6 +46,7 @@ from app.utils.json_utils import extract_json_from_text
 from app.utils.latex_utils import sanitize_exercise_text_fields
 from app.utils.sse_utils import sse_error_message, sse_status_message
 from app.utils.token_tracker import token_tracker
+from app.utils.exercise_generator_validators import normalize_exercise_type
 
 logger = get_logger(__name__)
 
@@ -73,11 +75,9 @@ def _exercise_ai_metrics_key(exercise_type: str) -> str:
     return f"{METRICS_EXERCISE_AI_PREFIX}:{t}"
 
 
-# Plages numériques injectées dans le prompt LLM via diff_info["desc"].
-# Contrainte de calibration : monotonie STRICTE — min_{i+1} == max_i et
-# max_{i+1} > max_i — pour éviter l'ancrage bas du LLM dans une plage
-# chevauchante qui aplatissait la gradation CHEVALIER/MAITRE/GRAND_MAITRE.
-# Les bornes sont cohérentes avec _TIER_CALIBRATION (difficulty_tier.py).
+# Fallback générique si ``DIFFICULTY_LIMITS`` ne couvre pas un futur type/niveau.
+# Le runtime nominal du prompt OpenAI passe par ``build_exercise_difficulty_info``
+# afin de lire les mêmes bornes par type que les générateurs locaux.
 DIFFICULTY_RANGES = {
     "INITIE": {
         "min": 1,
@@ -105,6 +105,53 @@ DIFFICULTY_RANGES = {
         "desc": "nombres 2000-10000, problème multi-étapes non routinier",
     },
 }
+
+
+def _format_limit_desc(type_limits: Dict[str, Any], fallback_desc: str) -> str:
+    """Formate les limites ``DIFFICULTY_LIMITS`` pour le prompt OpenAI."""
+    if {"min", "max"}.issubset(type_limits):
+        desc = f"nombres {type_limits['min']}-{type_limits['max']}"
+        operations = type_limits.get("operations")
+        if isinstance(operations, int):
+            desc = f"{desc}, {operations} opérations"
+        return desc
+    if {"min1", "max1", "min2", "max2"}.issubset(type_limits):
+        return (
+            f"premier nombre {type_limits['min1']}-{type_limits['max1']}, "
+            f"second nombre {type_limits['min2']}-{type_limits['max2']}"
+        )
+    if {
+        "min_divisor",
+        "max_divisor",
+        "min_result",
+        "max_result",
+    }.issubset(type_limits):
+        return (
+            f"diviseur {type_limits['min_divisor']}-{type_limits['max_divisor']}, "
+            f"quotient attendu {type_limits['min_result']}-{type_limits['max_result']}"
+        )
+    return fallback_desc
+
+
+def build_exercise_difficulty_info(
+    exercise_type: str,
+    derived_difficulty: str,
+) -> Dict[str, Any]:
+    """Construit les infos de difficulté du prompt depuis ``DIFFICULTY_LIMITS``."""
+    diff_key = str(derived_difficulty or "").strip().upper()
+    fallback = DIFFICULTY_RANGES.get(diff_key, DIFFICULTY_RANGES["PADAWAN"])
+    difficulty_config = DIFFICULTY_LIMITS.get(
+        diff_key, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN]
+    )
+    normalized_type = normalize_exercise_type(exercise_type)
+    type_limits = difficulty_config.get(
+        normalized_type,
+        difficulty_config.get("default", {}),
+    )
+    info = dict(type_limits) if isinstance(type_limits, dict) else {}
+    info["desc"] = _format_limit_desc(info, fallback["desc"])
+    return info
+
 
 _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP = {
     "CHEVALIER": "au moins deux étapes de raisonnement distinctes",
@@ -258,6 +305,8 @@ async def generate_exercise_stream(
     age_group: str,
     derived_difficulty: str,
     prompt: str,
+    *,
+    pedagogical_band_override: Optional[str] = None,
     locale: str = "fr",
     user_id: Optional[int] = None,
 ) -> AsyncGenerator[str, None]:
@@ -318,9 +367,7 @@ async def generate_exercise_stream(
                 clamp_reason,
             )
 
-        diff_info = DIFFICULTY_RANGES.get(
-            effective_difficulty, DIFFICULTY_RANGES["PADAWAN"]
-        )
+        diff_info = build_exercise_difficulty_info(exercise_type, effective_difficulty)
         default_theme = (
             "spatial/galactique (vaisseaux, planètes, étoiles)"
             if not _has_custom_theme(prompt)
@@ -328,7 +375,10 @@ async def generate_exercise_stream(
         )
 
         gen_profile = build_exercise_generation_profile(
-            exercise_type, age_group, effective_difficulty
+            exercise_type,
+            age_group,
+            effective_difficulty,
+            pedagogical_band_override=pedagogical_band_override,
         )
 
         system_prompt = build_exercise_system_prompt(

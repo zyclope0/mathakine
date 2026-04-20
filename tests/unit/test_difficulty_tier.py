@@ -115,7 +115,9 @@ def test_cognitive_hint_for_atomic_type_never_requires_multistep_reasoning() -> 
 
 def test_cognitive_hint_for_multistep_type_keeps_reasoning_depth() -> None:
     hint = cognitive_hint_for_exercise_type("texte", "CHEVALIER")
-    assert hint == "consolidation : deux étapes minimum, pas de procédure soufflée"
+    assert (
+        hint == "intensité cognitive 2 : deux étapes minimum, pas de procédure soufflée"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +184,7 @@ def test_generation_profile_exposes_cognitive_intensity_for_chevalier_group_9_11
     assert p["difficulty_tier"] == 6
     assert p["cognitive_intensity"] == 2
     assert p["cognitive_hint"] == (
-        "consolidation : opération unique avec nombres moins immédiats, "
+        "intensité cognitive 2 : opération unique avec nombres moins immédiats, "
         "regroupement ou retenue possible"
     )
 

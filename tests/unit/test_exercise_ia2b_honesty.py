@@ -10,6 +10,7 @@ import pytest
 
 from app.core.config import settings
 from app.schemas.exercise import GenerateExerciseStreamQuery
+from app.services.exercises.adaptive_difficulty_service import AdaptiveGenerationContext
 from app.services.exercises.exercise_ai_service import generate_exercise_stream
 from app.services.exercises.exercise_stream_service import prepare_stream_context
 
@@ -44,6 +45,42 @@ def test_prepare_stream_context_rate_limit_returns_error_no_exception(
     )
     assert ctx is None
     assert err == "Limite horaire exercices IA (test)."
+
+
+def test_prepare_stream_context_uses_adaptive_context_when_age_group_omitted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "OPENAI_API_KEY", "sk-test")
+    monkeypatch.setattr(
+        "app.services.exercises.exercise_stream_service.check_exercise_ai_generation_rate_limit",
+        lambda _uid: (True, None),
+    )
+    monkeypatch.setattr(
+        "app.services.exercises.exercise_stream_service._resolve_stream_adaptive_context",
+        lambda _exercise_type, _user_id: AdaptiveGenerationContext(
+            age_group="adulte",
+            pedagogical_band="learning",
+            mastery_source="test",
+        ),
+    )
+
+    ctx, err = prepare_stream_context(
+        GenerateExerciseStreamQuery(
+            exercise_type="geometrie",
+            age_group=None,
+            prompt="Géométrie adaptée au profil",
+        ),
+        user_id=42,
+        accept_language="fr",
+    )
+
+    assert err is None
+    assert ctx is not None
+    assert ctx.exercise_type == "GEOMETRIE"
+    assert ctx.age_group == "adulte"
+    assert ctx.derived_difficulty == "GRAND_MAITRE"
+    assert ctx.pedagogical_band == "learning"
+    assert ctx.mastery_source == "test"
 
 
 def _patch_openai_stream(monkeypatch: pytest.MonkeyPatch, json_payload: str) -> None:

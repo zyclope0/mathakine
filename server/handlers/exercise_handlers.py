@@ -364,7 +364,9 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
         user_id = current_user.get("id") if current_user else None
         accept_language = request.headers.get("Accept-Language")
 
-        context, error = prepare_stream_context(query, user_id, accept_language)
+        context, error = await run_db_bound(
+            prepare_stream_context, query, user_id, accept_language
+        )
         if error:
             logger.warning("Préparation stream rejetée: %s", error)
             return sse_error_response(error)
@@ -374,6 +376,7 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
                 exercise_type=context.exercise_type,
                 age_group=context.age_group,
                 derived_difficulty=context.derived_difficulty,
+                pedagogical_band_override=context.pedagogical_band,
                 prompt=context.prompt,
                 locale=context.locale,
                 user_id=context.user_id,

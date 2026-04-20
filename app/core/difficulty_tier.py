@@ -234,28 +234,28 @@ _COGNITIVE_INTENSITY_BY_DIFFICULTY: dict[str, int] = {
     "GRAND_MAITRE": 4,
 }
 _COGNITIVE_INTENSITY_HINTS_MULTISTEP: dict[int, str] = {
-    0: "exploration : une règle unique, exemples guidés",
-    1: "application directe : procédure standard, vocabulaire simple",
-    2: "consolidation : deux étapes minimum, pas de procédure soufflée",
-    3: "approfondissement : raisonnement autonome, données à organiser",
+    0: "intensité cognitive 0 : une règle unique, exemples guidés",
+    1: "intensité cognitive 1 : procédure standard, vocabulaire simple",
+    2: "intensité cognitive 2 : deux étapes minimum, pas de procédure soufflée",
+    3: "intensité cognitive 3 : raisonnement autonome, données à organiser",
     4: (
-        "maîtrise : problème non routinier, stratégie à construire, "
+        "intensité cognitive 4 : problème non routinier, stratégie à construire, "
         "données potentiellement superflues"
     ),
 }
 _COGNITIVE_INTENSITY_HINTS_ATOMIC: dict[int, str] = {
-    0: "exploration : opération directe guidée",
-    1: "application directe : opération standard, calcul mental simple",
+    0: "intensité cognitive 0 : opération directe guidée",
+    1: "intensité cognitive 1 : opération standard, calcul mental simple",
     2: (
-        "consolidation : opération unique avec nombres moins immédiats, "
+        "intensité cognitive 2 : opération unique avec nombres moins immédiats, "
         "regroupement ou retenue possible"
     ),
     3: (
-        "approfondissement : borne haute de la plage, calcul mental exigeant "
+        "intensité cognitive 3 : borne haute de la plage, calcul mental exigeant "
         "mais une seule opération"
     ),
     4: (
-        "maîtrise : une opération unique avec grands nombres, calcul non "
+        "intensité cognitive 4 : une opération unique avec grands nombres, calcul non "
         "routinier sans données superflues"
     ),
 }

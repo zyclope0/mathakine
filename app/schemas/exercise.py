@@ -308,6 +308,8 @@ class GenerateExerciseStreamContext(BaseModel):
     exercise_type: str
     age_group: str
     derived_difficulty: str
+    pedagogical_band: Optional[str] = None
+    mastery_source: Optional[str] = None
     prompt: str
     locale: str
     user_id: Optional[int] = None
