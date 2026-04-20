@@ -40,6 +40,8 @@ Active references:
 
 ## [Unreleased]
 
+## [3.6.0-beta.3] - 2026-04-20
+
 ### Added
 
 - Route-level loading states now cover the heavier protected learner/admin surfaces: `/dashboard`, `/settings`, `/profile`, and `/admin`, with the admin fallback aligned to the existing layout shell instead of duplicating it.
@@ -47,6 +49,11 @@ Active references:
 
 ### Changed
 
+- Exercise generation numeric ranges are now strictly monotonic across difficulty levels.
+- Exercise generation tier calibration now embeds DOK and Bloom cognitive markers.
+- High-difficulty exercise generation now receives a type-aware non-triviality directive.
+- Exercise generation exposes a second cognitive intensity axis orthogonal to the F42 tier matrix, resolving `CHEVALIER` / `MAITRE` / `GRAND_MAITRE` compression in the prompt.
+- Adaptive difficulty cascade now enforces a type-aware difficulty floor and ceiling at runtime.
 - The frontend challenge solver no longer mixes open-input and multiple-choice modes on sequence challenges; the visualization input is now suppressed when a QCM response mode is active.
 - High-difficulty sequence generation is now structurally stricter: `4.0+` sequences must avoid short one-gap patterns, simple arithmetic/geometric progressions, and direct-rule formats that were inflating the visible rating.
 - Coding challenge policy was clarified without increasing generation cost: coding challenges may still carry `choices` as a quality/fallback artifact, but they now always start in `open_text` mode instead of exposing a QCM immediately.
@@ -75,6 +82,12 @@ Active references:
 ### Documentation
 
 - `docs/03-PROJECT/PLAN_FEATURE_B_EXERCISE_SKILL_STATE_POST_BETA_2026-04-18.md` now records the post-beta implementation plan for persistent adaptive exercise skill states, including the phased rollout and the full Cursor prompt for the foundation lot.
+
+### Internal
+
+- Added a generation calibration audit script producing a versioned pre-invitations baseline.
+- Documented AI model routing policy per exercise type and difficulty.
+- Documented challenge difficulty downward calibration coverage.
 
 ## [3.6.0-beta.2] - 2026-04-17
 
