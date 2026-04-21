@@ -16,6 +16,9 @@ from app.services.challenges.challenge_contract_policy import (
     validate_choices_policy,
     validate_symmetry_canonical,
 )
+from app.services.challenges.challenge_deduction_solver import (
+    analyze_deduction_uniqueness,
+)
 from app.services.challenges.challenge_difficulty_policy import (
     sanitize_leaky_title,
     validate_difficulty_structural_coherence,
@@ -908,6 +911,24 @@ def validate_deduction_challenge(
                         f"doit apparaître exactement une fois sur les {expected_n} lignes "
                         f"(bijection) ; obtenu {sorted(col_set)}, attendu {sorted(allowed_set)}"
                     )
+
+    uniqueness = analyze_deduction_uniqueness(visual_data, correct_answer)
+    if uniqueness.checked:
+        if uniqueness.solution_count == 0:
+            errors.append(
+                "DEDUCTION: les indices reconnus ne permettent aucune solution cohérente "
+                "(contraintes contradictoires)."
+            )
+        elif uniqueness.solution_count > 1:
+            errors.append(
+                "DEDUCTION: les indices reconnus ne mènent pas à une solution unique "
+                "(plusieurs plannings restent possibles). Ajouter un indice discriminant."
+            )
+        elif uniqueness.expected_answer_matches is False:
+            errors.append(
+                "DEDUCTION: correct_answer ne correspond pas à l'unique solution "
+                "déduite des indices reconnus."
+            )
 
     return errors
 

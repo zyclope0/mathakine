@@ -187,6 +187,78 @@ def test_validate_deduction_challenge_bad_association_count() -> None:
     assert err
 
 
+def _terminal_schedule_deduction_data() -> dict:
+    return {
+        "type": "logic_grid",
+        "entities": {
+            "Étudiants": ["Camille", "Damien", "Lise", "Marc"],
+            "Thèmes": [
+                "Énergie solaire",
+                "Robotique",
+                "Cryptographie",
+                "Intelligence artificielle",
+            ],
+            "Jours": ["Lundi", "Mardi", "Jeudi", "Vendredi"],
+        },
+        "clues": [
+            "Le sujet de Cryptographie est programmé le Mardi.",
+            "Camille présente exactement un créneau avant Lise "
+            "(dans l'ordre Lundi → Mardi → Jeudi → Vendredi).",
+            "Marc n'intervient ni le jour immédiatement avant ni le jour "
+            "immédiatement après la Cryptographie.",
+            "Le sujet d'Énergie solaire est programmé avant celui de Robotique "
+            "dans la semaine.",
+            "Damien ne travaille pas sur la Robotique.",
+            "L'exposé sur l'Intelligence artificielle a lieu le même jour que "
+            "l'intervention de Damien.",
+        ],
+    }
+
+
+def test_validate_deduction_challenge_rejects_non_unique_schedule() -> None:
+    vd = _terminal_schedule_deduction_data()
+    ca = (
+        "Camille:Énergie solaire:Lundi,"
+        "Lise:Cryptographie:Mardi,"
+        "Damien:Intelligence artificielle:Jeudi,"
+        "Marc:Robotique:Vendredi"
+    )
+
+    err = validate_deduction_challenge(vd, ca, "explication")
+
+    assert err and any("solution unique" in e.lower() for e in err)
+
+
+def test_validate_deduction_challenge_accepts_discriminated_schedule() -> None:
+    vd = _terminal_schedule_deduction_data()
+    vd["clues"] = [*vd["clues"], "Damien présente après Lise."]
+    ca = (
+        "Camille:Énergie solaire:Lundi,"
+        "Lise:Cryptographie:Mardi,"
+        "Damien:Intelligence artificielle:Jeudi,"
+        "Marc:Robotique:Vendredi"
+    )
+
+    assert not validate_deduction_challenge(vd, ca, "explication")
+
+
+def test_validate_deduction_challenge_rejects_wrong_answer_for_unique_schedule() -> (
+    None
+):
+    vd = _terminal_schedule_deduction_data()
+    vd["clues"] = [*vd["clues"], "Damien présente après Lise."]
+    wrong = (
+        "Camille:Énergie solaire:Lundi,"
+        "Lise:Cryptographie:Mardi,"
+        "Damien:Robotique:Jeudi,"
+        "Marc:Intelligence artificielle:Vendredi"
+    )
+
+    err = validate_deduction_challenge(vd, wrong, "explication")
+
+    assert err and any("correct_answer" in e for e in err)
+
+
 def test_validate_challenge_logic_runs_deduction_validator() -> None:
     data = {
         "challenge_type": "DEDUCTION",
