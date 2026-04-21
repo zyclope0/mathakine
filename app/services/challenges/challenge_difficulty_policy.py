@@ -203,6 +203,34 @@ _PROBABILITY_ADVANCED_REASONING_MARKERS: Tuple[str, ...] = (
     "etant donne",
 )
 
+_PROBABILITY_DIRECT_DRAW_MARKERS: Tuple[str, ...] = (
+    "couleurs differentes",
+    "different colors",
+    "meme couleur",
+    "same color",
+    "tirage",
+    "drawn",
+    "sans remise",
+    "without replacement",
+)
+
+_PROBABILITY_POPULATION_META_MARKERS: Tuple[str, ...] = (
+    "total",
+    "draw",
+    "tirage",
+    "question",
+    "description",
+    "favorable",
+    "probabil",
+    "selection",
+    "replacement",
+    "remise",
+    "event",
+    "evenement",
+    "outcome",
+    "issue",
+)
+
 
 def _probability_is_direct_urn_total_probability(vd: Dict[str, Any]) -> bool:
     """
@@ -241,6 +269,99 @@ def _probability_is_direct_urn_total_probability(vd: Dict[str, Any]) -> bool:
         or "meme probabilite" in text
     )
     return has_equiprobable_selection and 1 <= draws <= 2
+
+
+def _probability_has_advanced_reasoning_marker(vd: Dict[str, Any]) -> bool:
+    text = _signal_text(
+        " ".join(
+            [
+                " ".join(str(k) for k in vd.keys()),
+                str(vd.get("question", "")),
+                str(vd.get("description", "")),
+                str(vd.get("context", "")),
+                str(vd.get("scenario", "")),
+            ]
+        )
+    )
+    return any(marker in text for marker in _PROBABILITY_ADVANCED_REASONING_MARKERS)
+
+
+def _probability_population_leaf_count(value: Any, key_path: str = "") -> int:
+    key_text = _signal_text(key_path)
+    if key_text and any(
+        marker in key_text for marker in _PROBABILITY_POPULATION_META_MARKERS
+    ):
+        return 0
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, (int, float)):
+        return 1
+    if isinstance(value, dict):
+        return sum(
+            _probability_population_leaf_count(nested, f"{key_path} {key}")
+            for key, nested in value.items()
+        )
+    if isinstance(value, list):
+        return sum(
+            _probability_population_leaf_count(nested, key_path) for nested in value
+        )
+    return 0
+
+
+def _probability_direct_draw_count(vd: Dict[str, Any]) -> int:
+    raw = vd.get("draws_without_replacement", vd.get("draws", 0))
+    try:
+        return int(raw or 0)
+    except (TypeError, ValueError):
+        match = re.search(r"\d+", str(raw or ""))
+        return int(match.group(0)) if match else 0
+
+
+def _probability_is_direct_flat_draw_probability(vd: Dict[str, Any]) -> bool:
+    """
+    Detecte un sac/ensemble unique avec populations explicites et 1-2 tirages.
+
+    Meme avec trois couleurs, ce format reste une application directe
+    (souvent par complement) ; il ne justifie pas 4+ sans couche conditionnelle,
+    inverse ou multi-evenements.
+    """
+    if isinstance(vd.get("urns"), dict):
+        return False
+    if any(
+        isinstance(value, dict)
+        and str(key).lower().replace("-", "_").startswith(("box_", "urn_", "urne_"))
+        for key, value in vd.items()
+    ):
+        return False
+    if _probability_has_advanced_reasoning_marker(vd):
+        return False
+
+    draws = _probability_direct_draw_count(vd)
+    if draws < 1 or draws > 2:
+        return False
+
+    text = _signal_text(
+        " ".join(
+            [
+                str(vd.get("question", "")),
+                str(vd.get("description", "")),
+                str(vd.get("context", "")),
+                str(vd.get("scenario", "")),
+                str(vd.get("event", "")),
+                str(vd.get("draws", "")),
+            ]
+        )
+    )
+    if not any(marker in text for marker in _PROBABILITY_DIRECT_DRAW_MARKERS):
+        return False
+
+    return _probability_population_leaf_count(vd) >= 2
+
+
+def _probability_is_direct_total_probability(vd: Dict[str, Any]) -> bool:
+    return _probability_is_direct_urn_total_probability(
+        vd
+    ) or _probability_is_direct_flat_draw_probability(vd)
 
 
 _RIDDLE_DIRECT_CLUE_PATTERNS: Tuple[re.Pattern[str], ...] = (
@@ -688,9 +809,9 @@ def validate_difficulty_structural_coherence(
                 "Rendre les contraintes plus indirectes ou baisser la difficulté."
             )
     if ct == "PROBABILITY" and difficulty_rating >= 4.0:
-        if _probability_is_direct_urn_total_probability(vd):
+        if _probability_is_direct_total_probability(vd):
             errors.append(
-                "PROBABILITY : un tirage direct dans des urnes equiprobables, sans question inverse "
+                "PROBABILITY : un tirage direct a 1-2 etapes, sans question inverse "
                 "ou conditionnelle type Bayes, ne justifie pas difficulty_rating >= 4.0."
             )
     return errors
@@ -825,9 +946,9 @@ def calibrate_challenge_difficulty(
             caps_applied.append("riddle_direct_numeric_clues_cap_3_0")
 
     if challenge_type.lower() == "probability":
-        if _probability_is_direct_urn_total_probability(vd) and final > 3.8:
+        if _probability_is_direct_total_probability(vd) and final > 3.8:
             final = min(final, 3.8)
-            caps_applied.append("probability_direct_urn_total_cap_3_8")
+            caps_applied.append("probability_direct_total_cap_3_8")
 
     sig_dict = asdict(signals)
     sig_dict["notes"] = list(sig_dict["notes"])

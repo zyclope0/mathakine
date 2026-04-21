@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+from app.models.logic_challenge import LogicChallengeType
 from app.services.challenges.challenge_ai_service import normalize_generated_challenge
-from app.services.challenges.challenge_api_mapper import resolve_challenge_response_mode
+from app.services.challenges.challenge_api_mapper import (
+    challenge_to_detail_dict,
+    challenge_to_list_item,
+    resolve_challenge_response_mode,
+)
 from app.services.challenges.challenge_contract_policy import (
     EASY_QCM_MAX_DIFFICULTY_EXCLUSIVE,
     compute_response_mode,
@@ -223,6 +228,35 @@ class _FakeChallenge:
     def __init__(self, **kw: object) -> None:
         for k, v in kw.items():
             setattr(self, k, v)
+
+
+def test_challenge_api_mapper_serializes_challenge_type_as_string() -> None:
+    c = _FakeChallenge(
+        id=4049,
+        title="Le tirage incertain",
+        description="d",
+        challenge_type=LogicChallengeType.PROBABILITY,
+        age_group="ADULT",
+        difficulty=None,
+        tags=None,
+        difficulty_rating=3.8,
+        estimated_time_minutes=10,
+        success_rate=0.0,
+        view_count=0,
+        is_active=True,
+        is_archived=False,
+        difficulty_tier=11,
+        question="q",
+        correct_answer="10/27",
+        choices=None,
+        solution_explanation="s",
+        visual_data={"urns": {"A": {"red": 5, "blue": 5}}},
+        hints=[],
+        generation_parameters={"response_mode": "open_text"},
+    )
+
+    assert challenge_to_list_item(c)["challenge_type"] == "probability"
+    assert challenge_to_detail_dict(c)["challenge_type"] == "probability"
 
 
 def test_resolve_challenge_response_mode_from_generation_parameters() -> None:

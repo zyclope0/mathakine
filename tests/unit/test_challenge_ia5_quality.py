@@ -15,6 +15,8 @@ from app.services.challenges.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
     validate_deduction_challenge,
+    validate_graph_challenge,
+    validate_probability_challenge,
     validate_puzzle_challenge,
 )
 
@@ -153,7 +155,131 @@ def test_validate_difficulty_probability_direct_urn_vs_high_rating() -> None:
 
     err = validate_difficulty_structural_coherence("PROBABILITY", vd, 4.4)
 
-    assert err and any("urnes equiprobables" in e.lower() for e in err)
+    assert err and any("tirage direct" in e.lower() for e in err)
+
+
+def test_validate_difficulty_probability_direct_flat_draw_vs_high_rating() -> None:
+    vd = {
+        "red_marbles": 15,
+        "blue_marbles": 10,
+        "green_marbles": 5,
+        "total_marbles": 30,
+        "draws_without_replacement": 2,
+        "question": "Probability that two marbles drawn without replacement are of different colors",
+    }
+
+    err = validate_difficulty_structural_coherence("PROBABILITY", vd, 4.0)
+
+    assert err and any("tirage direct" in e.lower() for e in err)
+
+
+def test_calibrate_probability_direct_flat_draw_caps_rating() -> None:
+    rating, meta = calibrate_challenge_difficulty(
+        challenge_type="probability",
+        age_group="15-17",
+        visual_data={
+            "red_marbles": 15,
+            "blue_marbles": 10,
+            "green_marbles": 5,
+            "total_marbles": 30,
+            "draws_without_replacement": 2,
+            "question": "probabilite que deux billes soient de couleurs differentes",
+        },
+        title="Tirages colores",
+        ai_difficulty=4.0,
+    )
+
+    assert rating == 3.8
+    assert "probability_direct_total_cap_3_8" in meta["caps_applied"]
+
+
+def test_validate_probability_rejects_wrong_weighted_urn_answer() -> None:
+    vd = {
+        "box_A": {
+            "red": 40,
+            "blue": 60,
+            "total": 100,
+            "selection_probability": 0.7,
+        },
+        "box_B": {
+            "red": 30,
+            "blue": 20,
+            "total": 50,
+            "selection_probability": 0.3,
+        },
+        "draws": "2 marbles without replacement",
+        "event": "two marbles of different colors",
+    }
+
+    err = validate_probability_challenge(vd, "48.67%", "")
+
+    assert err and any("48.63%" in e for e in err)
+
+
+def test_validate_probability_accepts_weighted_urn_answer_rounded_to_centième() -> None:
+    vd = {
+        "box_A": {
+            "red": 40,
+            "blue": 60,
+            "total": 100,
+            "selection_probability": 0.7,
+        },
+        "box_B": {
+            "red": 30,
+            "blue": 20,
+            "total": 50,
+            "selection_probability": 0.3,
+        },
+        "draws": "2 marbles without replacement",
+        "event": "two marbles of different colors",
+    }
+
+    err = validate_probability_challenge(vd, "48.63%", "")
+
+    assert not err
+
+
+def _mst_graph_visual_data() -> dict:
+    return {
+        "nodes": ["A", "B", "C", "D", "E", "F", "G", "H"],
+        "edges": [
+            ["F", "G", 1],
+            ["F", "D", 3],
+            ["A", "B", 4],
+            ["B", "C", 5],
+            ["A", "C", 6],
+            ["E", "F", 7],
+            ["C", "D", 8],
+            ["B", "E", 9],
+            ["H", "E", 10],
+            ["H", "G", 11],
+            ["C", "F", 12],
+            ["H", "F", 13],
+            ["G", "D", 14],
+            ["A", "D", 16],
+        ],
+        "objective": "minimum_spanning_tree",
+    }
+
+
+def test_validate_graph_challenge_accepts_minimum_spanning_tree_total() -> None:
+    err = validate_graph_challenge(
+        _mst_graph_visual_data(),
+        "38",
+        "On trie les arêtes par coût puis on évite les cycles.",
+    )
+
+    assert not err
+
+
+def test_validate_graph_challenge_rejects_wrong_minimum_spanning_tree_total() -> None:
+    err = validate_graph_challenge(
+        _mst_graph_visual_data(),
+        "36",
+        "On trie les arêtes par coût puis on évite les cycles.",
+    )
+
+    assert err and any("Attendu 38" in e for e in err)
 
 
 def test_validate_deduction_challenge_happy_path() -> None:
@@ -448,7 +574,7 @@ def test_calibrate_challenge_difficulty_caps_direct_urn_probability() -> None:
     )
 
     assert final == 3.8
-    assert "probability_direct_urn_total_cap_3_8" in meta.get("caps_applied", [])
+    assert "probability_direct_total_cap_3_8" in meta.get("caps_applied", [])
 
 
 def test_estimate_structure_signals_includes_rule_visibility() -> None:

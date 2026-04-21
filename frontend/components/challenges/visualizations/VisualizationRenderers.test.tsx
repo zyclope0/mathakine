@@ -56,6 +56,8 @@ describe("Visualization renderers", () => {
 
     expect(await screen.findByText("Graphe")).toBeInTheDocument();
     expect(screen.getByText(/2 nœuds/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 arête/i)).toBeInTheDocument();
+    expect(screen.getByText(/pondéré/i)).toBeInTheDocument();
   });
 
   it("affiche les indices utiles d'une substitution sans [object Object]", async () => {
@@ -198,5 +200,54 @@ describe("Visualization renderers", () => {
     expect(screen.getAllByText("Bleu")).toHaveLength(3);
     expect(screen.getByText("2 tirage(s) sans remise")).toBeInTheDocument();
     expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
+  });
+
+  it("localise les couleurs d'une composition et masque une question auxiliaire anglaise", async () => {
+    render(
+      <NextIntlClientProvider locale="fr" messages={fr}>
+        <ProbabilityRenderer
+          visualData={{
+            red_marbles: 15,
+            blue_marbles: 10,
+            green_marbles: 5,
+            total_marbles: 30,
+            draws_without_replacement: 2,
+            question:
+              "Probability that two marbles drawn without replacement are of different colors",
+          }}
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(await screen.findByText("Composition (30 billes)")).toBeInTheDocument();
+    expect(screen.getByText("Rouge")).toBeInTheDocument();
+    expect(screen.getByText("Bleu")).toBeInTheDocument();
+    expect(screen.getByText("Vert")).toBeInTheDocument();
+    expect(screen.queryByText(/Probability that two marbles/i)).not.toBeInTheDocument();
+  });
+
+  it("rend les urnes pondérées sans compter total ni probabilité de sélection comme des billes", async () => {
+    render(
+      <NextIntlClientProvider locale="fr" messages={fr}>
+        <ProbabilityRenderer
+          visualData={{
+            box_A: { red: 40, blue: 60, total: 100, selection_probability: 0.7 },
+            box_B: { red: 30, blue: 20, total: 50, selection_probability: 0.3 },
+            draws: "2 marbles without replacement",
+            event: "two marbles of different colors",
+          }}
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(await screen.findByText("Urne A")).toBeInTheDocument();
+    expect(screen.getByText("Urne B")).toBeInTheDocument();
+    expect(screen.getByText("P(sélection) 70%")).toBeInTheDocument();
+    expect(screen.getByText("P(sélection) 30%")).toBeInTheDocument();
+    expect(screen.getByText("2 tirage(s) sans remise")).toBeInTheDocument();
+    expect(screen.getAllByText("Rouge")).toHaveLength(2);
+    expect(screen.getAllByText("Bleu")).toHaveLength(2);
+    expect(screen.queryByText("Selection_probability")).not.toBeInTheDocument();
+    expect(screen.queryByText("Composition (301 éléments)")).not.toBeInTheDocument();
   });
 });

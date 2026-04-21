@@ -128,6 +128,8 @@ TEXT_VISUAL_DATA_PUZZLE = """VISUAL_DATA OBLIGATOIRE (type puzzle) :
 TEXT_VISUAL_DATA_GRAPH = """VISUAL_DATA OBLIGATOIRE (type graph) :
 - {{"nodes": ["A", "B", ...], "edges": [["A", "B"], ...]}}
 - Tous les noms dans edges DOIVENT exister dans nodes.
+- Si la question demande un arbre couvrant minimal : chaque arête DOIT inclure un poids numérique (ex. ["A", "B", 4]) et visual_data doit inclure "objective": "minimum_spanning_tree".
+- Pour un arbre couvrant minimal, correct_answer = somme minimale recalculée des arêtes choisies, pas une arête isolée ni une estimation.
 - Optionnel : "positions" pour placement explicite (x,y)."""
 
 TEXT_VISUAL_DATA_DEDUCTION = """VISUAL_DATA OBLIGATOIRE (type deduction) :
@@ -167,8 +169,10 @@ TEXT_VISUAL_DATA_RIDDLE = """VISUAL_DATA OBLIGATOIRE (type riddle) :
 TEXT_VISUAL_DATA_PROBABILITY = """VISUAL_DATA OBLIGATOIRE (type probability) :
 - Exemple simple : {{"rouge_bonbons": 10, "bleu_bonbons": 5, "total_bonbons": 15, "question": "...", "description": "..."}} (adapter le contexte : billes, cartes, dés).
 - Urnes : {{"urns": {{"A": {{"red": 5, "blue": 5}}, "B": {{"red": 8, "blue": 2}}}}, "total_per_urn": 10, "urn_selection": "equiprobable", "draws_without_replacement": 2, "question": "..."}}
-- Pour ``difficulty_rating >= 4.0`` : un tirage direct avec urne équiprobable ne suffit pas ; demander une question inverse/conditionnelle (Bayes, probabilité a posteriori, observation partielle) ou une structure multi-événements plus cachée.
-- Si tu fournis ``choices`` : les fractions doivent être distinctes mathématiquement ; ne mets jamais à la fois une fraction simplifiée et sa forme non simplifiée."""
+- Urnes pondérées : utilise le même format `urns`, avec `selection_probability` dans chaque urne (ex. {{"urns": {{"A": {{"red": 40, "blue": 60, "selection_probability": 0.7}}, "B": {{"red": 30, "blue": 20, "selection_probability": 0.3}}}}, "draws_without_replacement": 2, "event": "couleurs différentes"}}). Évite `box_A` / `box_B` si possible.
+- Tous les textes narratifs dans `visual_data.question` et `visual_data.description` doivent rester en FRANÇAIS. Les clés techniques peuvent rester simples (`red`, `blue`, `green`), mais pas de phrase anglaise visible.
+- Pour ``difficulty_rating >= 4.0`` : un tirage direct dans un seul sac/une urne, même avec 3 couleurs et sans remise, ne suffit pas. Ajouter au moins une vraie couche de complexité : 3+ tirages, observation partielle, question inverse/conditionnelle (Bayes, probabilité a posteriori), urne choisie aléatoirement, ou plusieurs événements combinés.
+- Si tu fournis ``choices`` : les fractions doivent être distinctes mathématiquement ; ne mets jamais à la fois une fraction simplifiée et sa forme non simplifiée. Pour un défi 4+, les distracteurs doivent correspondre à des erreurs de raisonnement plausibles, pas à des fractions arbitraires."""
 
 TEXT_VISUAL_DATA_CHESS = """VISUAL_DATA OBLIGATOIRE (type chess) :
 - INTERDIT : position de départ complète pour mat en X coups.
@@ -235,11 +239,13 @@ TEXT_VAL_RIDDLE = """8. RIDDLE :
 TEXT_VAL_PROBABILITY = """9. PROBABILITY :
    - correct_answer cohérent avec favorable/total ; fractions ou % acceptés selon consignes.
    - Somme des sous-populations = total.
+   - visual_data.question et visual_data.description doivent rester dans la même langue que l'énoncé (français ici), sans phrase anglaise visible.
    - Si choices est présent : correct_answer doit être une option exacte et aucune autre option ne doit être équivalente mathématiquement.
-   - difficulty >= 4 : éviter les problèmes directs de loi totale trop explicites ; utiliser conditionnel/inverse/Bayes ou omettre le QCM."""
+   - difficulty >= 4 : éviter les problèmes directs de tirage en 1-2 étapes ; utiliser conditionnel/inverse/Bayes, 3+ tirages, urne aléatoire ou omettre le QCM."""
 
 TEXT_VAL_GRAPH = """10. GRAPH :
-   - edges référencent uniquement des nodes existants ; explication alignée avec la question (chemin, distance, liste, etc.)."""
+   - edges référencent uniquement des nodes existants ; explication alignée avec la question (chemin, distance, liste, etc.).
+   - Arbre couvrant minimal : recalcule Kruskal/Prim, vérifie que correct_answer est bien la somme minimale."""
 
 TEXT_VAL_FINAL = """11. FINAL :
    - solution_explanation explique pourquoi correct_answer est correct, sans contradiction avec visual_data."""

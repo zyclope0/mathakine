@@ -15,6 +15,22 @@ interface GraphRendererProps {
 const NODE_RADIUS = 20;
 const PADDING = NODE_RADIUS + 8; // marge minimale pour que les nœuds ne soient pas coupés
 
+type GraphNode = Record<string, unknown> | string | number;
+type GraphEdge = Record<string, unknown> | unknown[];
+
+function getNodeLabel(node: GraphNode, fallbackIndex: number): string {
+  if (typeof node === "object" && node !== null) {
+    const record = node as Record<string, unknown>;
+    return String(record.label ?? record.value ?? record.id ?? fallbackIndex);
+  }
+
+  return String(node);
+}
+
+function formatGraphCount(count: number, singular: string, plural: string): string {
+  return `${count} ${count > 1 ? plural : singular}`;
+}
+
 /**
  * Renderer pour les défis de type GRAPH.
  *
@@ -48,14 +64,14 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
   // Parser les données de graphe
   const nodes = Array.isArray(visualData?.nodes)
-    ? (visualData!.nodes as Array<Record<string, unknown> | string | number>)
+    ? (visualData!.nodes as GraphNode[])
     : Array.isArray(visualData?.vertices)
-      ? (visualData!.vertices as Array<Record<string, unknown> | string | number>)
+      ? (visualData!.vertices as GraphNode[])
       : [];
   const edges = Array.isArray(visualData?.edges)
-    ? (visualData!.edges as Array<Record<string, unknown> | unknown[]>)
+    ? (visualData!.edges as GraphEdge[])
     : Array.isArray(visualData?.links)
-      ? (visualData!.links as Array<Record<string, unknown> | unknown[]>)
+      ? (visualData!.links as GraphEdge[])
       : [];
 
   if (nodes.length === 0) {
@@ -71,16 +87,12 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   // Mapping label → index
   const nodeMap = new Map<string, number>();
   nodes.forEach((node, index) => {
-    const key = String(
-      typeof node === "object" && node !== null
-        ? ((node as Record<string, unknown>).label ??
-            (node as Record<string, unknown>).value ??
-            (node as Record<string, unknown>).id ??
-            index)
-        : node
-    );
+    const key = getNodeLabel(node, index);
     nodeMap.set(key.toUpperCase(), index);
   });
+
+  const nodeCountLabel = formatGraphCount(nodes.length, "nœud", "nœuds");
+  const edgeCountLabel = formatGraphCount(edges.length, "arête", "arêtes");
 
   // ─── Layout en coordonnées logiques ───────────────────────────────────────
   // On travaille dans un espace logique indépendant de la taille d'affichage.
@@ -100,14 +112,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     | undefined;
 
   const nodePositions = nodes.map((node, index) => {
-    const key = String(
-      typeof node === "object" && node !== null
-        ? ((node as Record<string, unknown>).label ??
-            (node as Record<string, unknown>).value ??
-            (node as Record<string, unknown>).id ??
-            index)
-        : node
-    );
+    const key = getNodeLabel(node, index);
 
     if (
       explicitPositions &&
@@ -145,7 +150,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   });
 
   // ─── Résoudre une arête en indices from/to + poids ────────────────────────
-  function resolveEdge(edge: Record<string, unknown> | unknown[]): {
+  function resolveEdge(edge: GraphEdge): {
     fromIndex: number | undefined;
     toIndex: number | undefined;
     weight: string | number | undefined;
@@ -187,7 +192,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   }
 
   const isWeighted = edges.some((edge) => {
-    const { weight } = resolveEdge(edge as Record<string, unknown> | unknown[]);
+    const { weight } = resolveEdge(edge);
     return weight !== undefined;
   });
 
@@ -206,16 +211,14 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               viewBox={`0 0 ${logicalW} ${logicalH}`}
               preserveAspectRatio="xMidYMid meet"
               width="100%"
-              aria-label={`Graphe avec ${nodes.length} nœuds et ${edges.length} arêtes`}
+              aria-label={`Graphe avec ${nodeCountLabel} et ${edgeCountLabel}`}
               role="img"
               className="border border-border/50 rounded"
               style={{ display: "block", maxHeight: "420px" }}
             >
               {/* Arêtes */}
               {edges.map((edge, index) => {
-                const { fromIndex, toIndex, weight } = resolveEdge(
-                  edge as Record<string, unknown> | unknown[]
-                );
+                const { fromIndex, toIndex, weight } = resolveEdge(edge);
 
                 if (fromIndex === undefined || toIndex === undefined) return null;
 
@@ -232,10 +235,11 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 const len = Math.sqrt(dx * dx + dy * dy);
                 const offsetX = len > 0 ? (-dy / len) * 14 : 0;
                 const offsetY = len > 0 ? (dx / len) * 14 : 0;
+                const edgeKey = `${fromIndex}-${toIndex}-${String(weight ?? "edge")}-${index}`;
 
                 return (
                   <motion.g
-                    key={index}
+                    key={edgeKey}
                     initial={shouldReduceMotion ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
@@ -284,18 +288,11 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 const pos = nodePositions[index];
                 if (!pos) return null;
 
-                const label = String(
-                  typeof node === "object" && node !== null
-                    ? ((node as Record<string, unknown>).label ??
-                        (node as Record<string, unknown>).value ??
-                        (node as Record<string, unknown>).id ??
-                        index)
-                    : node
-                );
+                const label = getNodeLabel(node, index);
 
                 return (
                   <motion.g
-                    key={index}
+                    key={`${label}-${index}`}
                     initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.06, duration: 0.3, ease: "easeOut" }}
@@ -320,9 +317,19 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
           </div>
 
           <div className="text-xs text-center text-muted-foreground">
-            {nodes.length} nœud{nodes.length > 1 ? "s" : ""} • {edges.length} arête
-            {edges.length > 1 ? "s" : ""}
-            {isWeighted && <span className="ml-2 text-primary">• pondéré</span>}
+            <span>{nodeCountLabel}</span>
+            <span aria-hidden="true" className="mx-2">
+              •
+            </span>
+            <span>{edgeCountLabel}</span>
+            {isWeighted && (
+              <>
+                <span aria-hidden="true" className="mx-2">
+                  •
+                </span>
+                <span className="text-primary">pondéré</span>
+              </>
+            )}
           </div>
         </div>
       </CardContent>

@@ -60,6 +60,20 @@ def test_pattern_prompt_discourages_revealing_rule_for_harder_grids() -> None:
     assert '"carré latin", "décalage cyclique"' in p
 
 
+def test_probability_prompt_requires_french_visual_text_and_real_4_plus_layer() -> None:
+    p = build_challenge_system_prompt("probability", "15-17")
+    assert "doivent rester en FRANÇAIS" in p
+    assert "un tirage direct dans un seul sac/une urne" in p
+    assert "3+ tirages" in p
+
+
+def test_graph_prompt_requires_weighted_mst_contract() -> None:
+    p = build_challenge_system_prompt("graph", "15-17")
+    assert '"objective": "minimum_spanning_tree"' in p
+    assert "chaque arête DOIT inclure un poids numérique" in p
+    assert "recalcule Kruskal/Prim" in p
+
+
 def test_prompt_discourages_under_rating_structurally_complex_challenges() -> None:
     p = build_challenge_system_prompt("sequence", "15-17")
     assert "Ne PAS sous-évaluer" in p

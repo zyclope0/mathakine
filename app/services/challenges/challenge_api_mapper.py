@@ -77,11 +77,12 @@ def challenge_to_list_item(challenge) -> Dict[str, Any]:
     """
     Convertit un LogicChallenge en dict pour l'API liste (GET /api/challenges).
     """
+    ct = _challenge_type_api_value(challenge)
     return {
         "id": challenge.id,
         "title": challenge.title,
         "description": challenge.description,
-        "challenge_type": challenge.challenge_type,
+        "challenge_type": ct,
         "age_group": normalize_age_group_for_frontend(challenge.age_group),
         "difficulty": challenge.difficulty,
         "tags": challenge.tags,
@@ -116,7 +117,7 @@ def challenge_to_detail_dict(challenge) -> Dict[str, Any]:
         "id": challenge.id,
         "title": challenge.title,
         "description": challenge.description,
-        "challenge_type": challenge.challenge_type,
+        "challenge_type": ct,
         "age_group": normalize_age_group_for_frontend(challenge.age_group),
         "difficulty": challenge.difficulty,
         "question": challenge.question,

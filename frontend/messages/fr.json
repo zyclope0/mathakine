@@ -753,6 +753,7 @@
         "total": "Total",
         "urns": "Urnes",
         "urn": "Urne",
+        "selectionProbability": "P(sélection) {value}",
         "drawsWithoutReplacement": "{count} tirage(s) sans remise"
       },
       "puzzle": {

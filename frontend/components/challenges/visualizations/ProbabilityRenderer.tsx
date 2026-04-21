@@ -25,6 +25,7 @@ interface ProbabilityUrn {
   label: string;
   items: ProbabilityItem[];
   total: number;
+  selectionProbability?: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -41,34 +42,112 @@ function formatProbabilityLabel(value: string): string {
     vert: "Vert",
     yellow: "Jaune",
     jaune: "Jaune",
+    purple: "Violet",
+    violet: "Violet",
+    orange: "Orange",
+    pink: "Rose",
+    rose: "Rose",
+    white: "Blanc",
+    blanc: "Blanc",
+    black: "Noir",
+    noir: "Noir",
+    brown: "Marron",
+    marron: "Marron",
+    gray: "Gris",
+    gris: "Gris",
   };
   const normalized = value.toLowerCase().trim();
   return labels[normalized] ?? value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+const ENGLISH_PROBABILITY_TEXT_RE =
+  /\b(probability|marbles?|drawn|without replacement|different colors|same color|bag|balls?)\b/i;
+
+function shouldDisplayAuxiliaryText(value: string): boolean {
+  const text = value.trim();
+  return text.length > 0 && !ENGLISH_PROBABILITY_TEXT_RE.test(text);
+}
+
+const PROBABILITY_CONTAINER_META_KEYS = new Set([
+  "total",
+  "selection_probability",
+  "selectionprobability",
+  "probability",
+  "weight",
+]);
+
+function isPopulationCountKey(key: string): boolean {
+  return !PROBABILITY_CONTAINER_META_KEYS.has(key.toLowerCase().replace(/_/g, ""));
+}
+
+function extractCompositionItems(composition: Record<string, unknown>): ProbabilityItem[] {
+  return Object.entries(composition)
+    .filter(([key, value]) => isPopulationCountKey(key) && typeof value === "number" && value > 0)
+    .map(([key, value]) => ({
+      name: formatProbabilityLabel(key),
+      count: Number(value),
+      color: resolveVisualizationColor(key) ?? "#6b7280",
+    }));
+}
+
+function extractSelectionProbability(composition: Record<string, unknown>): number | undefined {
+  const raw =
+    composition.selection_probability ??
+    composition.selectionProbability ??
+    composition.probability ??
+    composition.weight;
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function formatContainerLabel(raw: string): string {
+  return raw.replace(/^(box|urn|urne)[_-]?/i, "").toUpperCase();
+}
+
+function formatSelectionProbability(value: number): string {
+  const percent = value <= 1 ? value * 100 : value;
+  return Number.isInteger(percent) ? `${percent}%` : `${percent.toFixed(1)}%`;
+}
+
+function extractDrawsWithoutReplacement(visualData: Record<string, unknown>): string | null {
+  const explicit = visualData.draws_without_replacement;
+  if (explicit !== undefined && explicit !== null && String(explicit).trim()) {
+    return String(explicit);
+  }
+  const rawDraws = visualData.draws;
+  const match = rawDraws === undefined || rawDraws === null ? null : String(rawDraws).match(/\d+/);
+  return match ? match[0] : null;
+}
+
 function extractUrnData(visualData: Record<string, unknown>): ProbabilityUrn[] {
   const urnsRaw = visualData.urns;
-  if (!isRecord(urnsRaw)) return [];
+  const source = isRecord(urnsRaw)
+    ? urnsRaw
+    : Object.fromEntries(
+        Object.entries(visualData).filter(
+          ([key, value]) =>
+            isRecord(value) &&
+            /^(box|urn|urne)[_-]/i.test(key) &&
+            extractCompositionItems(value).length > 0
+        )
+      );
+  if (!isRecord(source)) return [];
 
   const declaredTotal = Number(visualData.total_per_urn ?? 0);
-  return Object.entries(urnsRaw)
+  return Object.entries(source)
     .map(([label, composition]) => {
       if (!isRecord(composition)) return null;
-      const items = Object.entries(composition)
-        .filter(([key, value]) => !key.toLowerCase().includes("total") && typeof value === "number")
-        .map(([key, value]) => ({
-          name: formatProbabilityLabel(key),
-          count: Number(value),
-          color: resolveVisualizationColor(key) ?? "#6b7280",
-        }))
-        .filter((item) => Number.isFinite(item.count) && item.count > 0);
+      const items = extractCompositionItems(composition);
 
       if (items.length === 0) return null;
       const computedTotal = items.reduce((sum, item) => sum + item.count, 0);
+      const containerTotal = Number(composition.total ?? 0);
       return {
-        label,
+        label: formatContainerLabel(label),
         items,
-        total: declaredTotal > 0 ? declaredTotal : computedTotal,
+        total:
+          containerTotal > 0 ? containerTotal : declaredTotal > 0 ? declaredTotal : computedTotal,
+        selectionProbability: extractSelectionProbability(composition),
       };
     })
     .filter((urn): urn is ProbabilityUrn => urn !== null);
@@ -90,6 +169,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
   // Détecter et extraire les items avec quantités (bonbons, billes, cartes, etc.)
   const itemsData = useMemo(() => {
     if (!visualData) return null;
+    if (urnData.length > 0) return null;
 
     const items: Array<{ name: string; count: number; color?: string }> = [];
     let total = 0;
@@ -100,9 +180,9 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
       const keyLower = key.toLowerCase();
 
       // Détecter le type d'item (bonbons, billes, cartes, etc.)
-      if (keyLower.includes("bonbon")) itemType = t("candies");
-      else if (keyLower.includes("bille")) itemType = t("marbles");
-      else if (keyLower.includes("carte")) itemType = t("cards");
+      if (keyLower.includes("bonbon") || keyLower.includes("candy")) itemType = t("candies");
+      else if (keyLower.includes("bille") || keyLower.includes("marble")) itemType = t("marbles");
+      else if (keyLower.includes("carte") || keyLower.includes("card")) itemType = t("cards");
       else if (keyLower.includes("dé") || keyLower.includes("dice")) itemType = t("dice");
       else if (keyLower.includes("pièce") || keyLower.includes("coin")) itemType = t("coins");
 
@@ -118,7 +198,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
         ) {
           const colorName = colorMatch ?? keyLower.split("_")[0] ?? keyLower;
           items.push({
-            name: colorName.charAt(0).toUpperCase() + colorName.slice(1),
+            name: formatProbabilityLabel(colorName),
             count: value as number,
             color: resolveVisualizationColor(colorName) ?? colorName.toLowerCase(),
           });
@@ -131,7 +211,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
           if (typeof subValue === "number") {
             const colorName = subKey.toLowerCase();
             items.push({
-              name: subKey.charAt(0).toUpperCase() + subKey.slice(1),
+              name: formatProbabilityLabel(colorName),
               count: subValue,
               color: resolveVisualizationColor(colorName) ?? "#6b7280",
             });
@@ -151,7 +231,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
     }
 
     return items.length > 0 ? { items, total, itemType } : null;
-  }, [visualData, t]);
+  }, [visualData, t, urnData.length]);
 
   if (!isHydrated || !visualData) {
     return null;
@@ -169,7 +249,9 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
   const favorableOutcomes: number =
     Number(visualData.favorable_outcomes ?? visualData.favorable ?? 0) || 0;
   const question: string = String(visualData.question ?? "");
+  const questionToDisplay = shouldDisplayAuxiliaryText(question) ? question : "";
   const context: string = String(visualData.context ?? "");
+  const drawsWithoutReplacement = extractDrawsWithoutReplacement(visualData);
 
   // Calculer la probabilité si on a les données
   const calculatedProbability =
@@ -185,9 +267,9 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
       )}
 
       {/* Question */}
-      {question && (
+      {questionToDisplay && (
         <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-          <p className="text-foreground font-medium">{question}</p>
+          <p className="text-foreground font-medium">{questionToDisplay}</p>
         </div>
       )}
 
@@ -304,24 +386,42 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
       {/* Urnes structurées */}
       {urnData.length > 0 && (
         <div className="rounded-xl border border-border bg-card/50 p-4">
-          <div className="mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <h4 className="font-semibold text-foreground">{t("urns")}</h4>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              <h4 className="font-semibold text-foreground">{t("urns")}</h4>
+            </div>
+            {drawsWithoutReplacement && (
+              <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                {t("drawsWithoutReplacement", {
+                  count: drawsWithoutReplacement,
+                })}
+              </span>
+            )}
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {urnData.map((urn) => (
               <section
                 key={urn.label}
-                className="rounded-lg border border-border bg-background/70 p-3"
+                className="rounded-lg border border-border bg-background/70 p-3 shadow-sm"
                 aria-label={`${t("urn")} ${urn.label}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="mb-3 flex items-start justify-between gap-3">
                   <span className="font-semibold text-foreground">
                     {t("urn")} {urn.label}
                   </span>
-                  <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    {t("total")} {urn.total}
-                  </span>
+                  <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                    {urn.selectionProbability !== undefined && (
+                      <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+                        {t("selectionProbability", {
+                          value: formatSelectionProbability(urn.selectionProbability),
+                        })}
+                      </span>
+                    )}
+                    <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                      {t("total")} {urn.total}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -360,13 +460,6 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
               </section>
             ))}
           </div>
-          {visualData.draws_without_replacement != null && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              {t("drawsWithoutReplacement", {
-                count: String(visualData.draws_without_replacement),
-              })}
-            </p>
-          )}
         </div>
       )}
 
@@ -424,7 +517,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
 
               return (
                 <motion.div
-                  key={item.name}
+                  key={`${item.name}-${item.count}-${index}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -472,7 +565,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
 
       {/* Fallback : afficher toutes les données structurées */}
       {!context &&
-        !question &&
+        !questionToDisplay &&
         events.length === 0 &&
         probabilities.length === 0 &&
         outcomes.length === 0 &&

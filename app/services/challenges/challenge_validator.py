@@ -4,7 +4,10 @@ Vérifie la cohérence entre visual_data, correct_answer et solution_explanation
 """
 
 import json
-from typing import Any, Dict, List, Tuple
+import math
+import re
+from fractions import Fraction
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.logging_config import get_logger
 from app.services.challenges.challenge_answer_quality import validate_challenge_choices
@@ -44,6 +47,21 @@ from app.services.challenges.challenge_validation_analysis import (
 from app.services.challenges.maze_validator import solve_maze_bfs, validate_maze_path
 
 logger = get_logger(__name__)
+
+_GRAPH_WEIGHT_KEYS = (
+    "weight",
+    "cost",
+    "time",
+    "distance",
+    "label",
+    "value",
+    "poids",
+    "prix",
+)
+_GRAPH_ENDPOINT_FROM_KEYS = ("from", "source", "u", "start")
+_GRAPH_ENDPOINT_TO_KEYS = ("to", "target", "v", "end")
+_GRAPH_OBJECTIVE_KEYS = ("objective", "task", "question", "description")
+_GRAPH_NUMBER_RE = re.compile(r"[-+]?\d+(?:[.,]\d+)?")
 
 
 class ChallengeValidationError(Exception):
@@ -228,6 +246,153 @@ def validate_puzzle_challenge(
     return errors
 
 
+def _graph_node_key(node: Any, index: int) -> str:
+    if isinstance(node, dict):
+        value = node.get("label", node.get("value", node.get("id", index)))
+    else:
+        value = node
+    return str(value).strip().upper()
+
+
+def _first_present(data: Dict[str, Any], keys: Tuple[str, ...]) -> Any:
+    for key in keys:
+        if key in data and data[key] is not None:
+            return data[key]
+    return None
+
+
+def _parse_graph_number(value: Any, *, allow_embedded: bool = False) -> Optional[float]:
+    if value is None or isinstance(value, bool):
+        return None
+
+    if isinstance(value, (int, float)):
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) else None
+
+    text = str(value).strip().replace(" ", "").replace("\u202f", "")
+    if not text:
+        return None
+
+    match = (
+        _GRAPH_NUMBER_RE.search(text)
+        if allow_embedded
+        else _GRAPH_NUMBER_RE.fullmatch(text)
+    )
+    if not match:
+        return None
+
+    try:
+        return float(match.group(0).replace(",", "."))
+    except ValueError:
+        return None
+
+
+def _graph_text_mentions_mst(visual_data: Dict[str, Any], explanation: str) -> bool:
+    texts = [str(explanation or "")]
+    texts.extend(str(visual_data.get(key) or "") for key in _GRAPH_OBJECTIVE_KEYS)
+    joined = " ".join(texts).lower()
+
+    return (
+        "mst" in joined
+        or "minimum_spanning_tree" in joined
+        or "minimum spanning" in joined
+        or (
+            "arbre" in joined
+            and "couvrant" in joined
+            and ("minimal" in joined or "minimum" in joined)
+        )
+    )
+
+
+def _graph_endpoint_index(
+    raw_value: Any,
+    node_index_by_key: Dict[str, int],
+    node_count: int,
+) -> Optional[int]:
+    if isinstance(raw_value, bool) or raw_value is None:
+        return None
+
+    if isinstance(raw_value, int) and 0 <= raw_value < node_count:
+        return raw_value
+
+    key = str(raw_value).strip().upper()
+    return node_index_by_key.get(key)
+
+
+def _weighted_graph_edges(
+    edges: List[Any],
+    node_index_by_key: Dict[str, int],
+    node_count: int,
+) -> Optional[List[Tuple[int, int, float]]]:
+    weighted_edges: List[Tuple[int, int, float]] = []
+
+    for edge in edges:
+        from_raw: Any
+        to_raw: Any
+        weight_raw: Any
+
+        if isinstance(edge, dict):
+            from_raw = _first_present(edge, _GRAPH_ENDPOINT_FROM_KEYS)
+            to_raw = _first_present(edge, _GRAPH_ENDPOINT_TO_KEYS)
+            weight_raw = _first_present(edge, _GRAPH_WEIGHT_KEYS)
+        elif isinstance(edge, (list, tuple)) and len(edge) >= 3:
+            from_raw, to_raw, weight_raw = edge[0], edge[1], edge[2]
+        else:
+            return None
+
+        from_index = _graph_endpoint_index(from_raw, node_index_by_key, node_count)
+        to_index = _graph_endpoint_index(to_raw, node_index_by_key, node_count)
+        weight = _parse_graph_number(weight_raw)
+        if from_index is None or to_index is None or weight is None:
+            return None
+
+        weighted_edges.append((from_index, to_index, weight))
+
+    return weighted_edges
+
+
+def _minimum_spanning_tree_total(
+    node_count: int, weighted_edges: List[Tuple[int, int, float]]
+) -> Optional[float]:
+    parent = list(range(node_count))
+    rank = [0] * node_count
+
+    def find(node: int) -> int:
+        while parent[node] != node:
+            parent[node] = parent[parent[node]]
+            node = parent[node]
+        return node
+
+    def union(left: int, right: int) -> bool:
+        left_root = find(left)
+        right_root = find(right)
+        if left_root == right_root:
+            return False
+        if rank[left_root] < rank[right_root]:
+            parent[left_root] = right_root
+        elif rank[left_root] > rank[right_root]:
+            parent[right_root] = left_root
+        else:
+            parent[right_root] = left_root
+            rank[left_root] += 1
+        return True
+
+    total = 0.0
+    selected_edges = 0
+    for from_index, to_index, weight in sorted(
+        weighted_edges, key=lambda item: item[2]
+    ):
+        if union(from_index, to_index):
+            total += weight
+            selected_edges += 1
+            if selected_edges == node_count - 1:
+                break
+
+    if selected_edges != node_count - 1:
+        return None
+    return total
+
+
 def validate_graph_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
@@ -248,14 +413,9 @@ def validate_graph_challenge(
         return errors
 
     # Créer un set des noms de nœuds pour vérification
-    node_names = set()
-    for node in nodes:
-        if isinstance(node, dict):
-            node_names.add(
-                str(node.get("label", node.get("value", node.get("id", "")))).upper()
-            )
-        else:
-            node_names.add(str(node).upper())
+    node_keys = [_graph_node_key(node, index) for index, node in enumerate(nodes)]
+    node_names = set(node_keys)
+    node_index_by_key = {key: index for index, key in enumerate(node_keys)}
 
     # Vérifier que toutes les arêtes référencent des nœuds existants
     if edges and isinstance(edges, list):
@@ -276,6 +436,40 @@ def validate_graph_challenge(
             if to_node and to_node not in node_names and not to_node.isdigit():
                 errors.append(
                     f"Arête référence un nœud inexistant: '{edge[1] if isinstance(edge, list) else edge.get('to')}'"
+                )
+
+    if (
+        edges
+        and isinstance(edges, list)
+        and _graph_text_mentions_mst(visual_data, explanation)
+    ):
+        weighted_edges = _weighted_graph_edges(edges, node_index_by_key, len(nodes))
+        answer_total = _parse_graph_number(correct_answer, allow_embedded=True)
+        if weighted_edges is None:
+            errors.append(
+                "GRAPH arbre couvrant minimal: chaque arête doit avoir deux nœuds valides et un poids numérique."
+            )
+        elif answer_total is None:
+            errors.append(
+                "GRAPH arbre couvrant minimal: correct_answer doit contenir le coût total numérique."
+            )
+        else:
+            expected_total = _minimum_spanning_tree_total(len(nodes), weighted_edges)
+            if expected_total is None:
+                errors.append(
+                    "GRAPH arbre couvrant minimal: le graphe pondéré doit être connecté."
+                )
+            elif not math.isclose(
+                expected_total, answer_total, rel_tol=1e-9, abs_tol=1e-9
+            ):
+                expected_display = (
+                    int(expected_total)
+                    if expected_total.is_integer()
+                    else round(expected_total, 6)
+                )
+                errors.append(
+                    "GRAPH arbre couvrant minimal: correct_answer incohérent. "
+                    f"Attendu {expected_display}, reçu {correct_answer}."
                 )
 
     return errors
@@ -784,7 +978,185 @@ def validate_probability_challenge(
             "PROBABILITY: visual_data doit contenir des quantités numériques "
             "(ex: rouge_bonbons: 10, bleu_bonbons: 5)"
         )
+    expected = _compute_weighted_two_draw_different_color_probability(visual_data)
+    provided = _parse_probability_answer_fraction(correct_answer)
+    if expected is not None and provided is not None:
+        tolerance = (
+            Fraction(5, 100000) if "%" in str(correct_answer) else Fraction(1, 1000000)
+        )
+        if abs(expected - provided) > tolerance:
+            errors.append(
+                "PROBABILITY: correct_answer incohérent avec visual_data. "
+                f"Attendu environ {_format_probability_percent(expected)}, reçu {correct_answer}."
+            )
     return errors
+
+
+_PROBABILITY_CONTAINER_META_KEYS = {
+    "total",
+    "selection_probability",
+    "selectionprobability",
+    "probability",
+    "weight",
+}
+
+
+def _parse_probability_answer_fraction(raw: Any) -> Optional[Fraction]:
+    if raw is None:
+        return None
+    text = str(raw).strip().strip("$").replace(" ", "").replace(",", ".")
+    if not text:
+        return None
+    text = text.replace("\\left", "").replace("\\right", "")
+    latex_match = re.fullmatch(
+        r"\\(?:dfrac|frac|tfrac)\{([+-]?\d+(?:\.\d+)?)\}\{([+-]?\d+(?:\.\d+)?)\}",
+        text,
+    )
+    if latex_match:
+        try:
+            denominator = Fraction(latex_match.group(2))
+            return (
+                Fraction(latex_match.group(1)) / denominator
+                if denominator != 0
+                else None
+            )
+        except (ValueError, ZeroDivisionError):
+            return None
+
+    is_percent = text.endswith("%")
+    if is_percent:
+        text = text[:-1]
+    try:
+        if "/" in text:
+            numerator, denominator = text.split("/", 1)
+            den = Fraction(denominator)
+            value = Fraction(numerator) / den if den != 0 else None
+        else:
+            value = Fraction(text)
+    except (ValueError, ZeroDivisionError):
+        return None
+    if value is None:
+        return None
+    return value / 100 if is_percent else value
+
+
+def _parse_draw_count(raw: Any) -> int:
+    if isinstance(raw, bool) or raw is None:
+        return 0
+    if isinstance(raw, (int, float)):
+        return int(raw)
+    match = re.search(r"\d+", str(raw))
+    return int(match.group(0)) if match else 0
+
+
+def _format_probability_percent(value: Fraction) -> str:
+    return f"{float(value * 100):.2f}%"
+
+
+def _numeric_fraction(raw: Any) -> Optional[Fraction]:
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        return Fraction(str(raw))
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _probability_population_counts(composition: Dict[str, Any]) -> List[int]:
+    counts: List[int] = []
+    for key, value in composition.items():
+        normalized_key = str(key).lower().replace("_", "")
+        if normalized_key in _PROBABILITY_CONTAINER_META_KEYS:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if value > 0:
+            counts.append(int(value))
+    return counts
+
+
+def _iter_probability_containers(
+    visual_data: Dict[str, Any],
+) -> List[Tuple[str, List[int], Optional[Fraction]]]:
+    containers: List[Tuple[str, List[int], Optional[Fraction]]] = []
+    urns = visual_data.get("urns")
+    if isinstance(urns, dict):
+        source = urns
+    else:
+        source = {
+            key: value
+            for key, value in visual_data.items()
+            if isinstance(value, dict)
+            and str(key).lower().replace("-", "_").startswith(("box_", "urn_", "urne_"))
+        }
+
+    for label, composition in source.items():
+        if not isinstance(composition, dict):
+            continue
+        counts = _probability_population_counts(composition)
+        if len(counts) < 2:
+            continue
+        declared_total = _numeric_fraction(composition.get("total"))
+        if declared_total is not None and declared_total != sum(counts):
+            return []
+        weight = _numeric_fraction(
+            composition.get("selection_probability")
+            or composition.get("selectionProbability")
+            or composition.get("probability")
+            or composition.get("weight")
+        )
+        containers.append((str(label), counts, weight))
+    return containers
+
+
+def _event_targets_different_colors(visual_data: Dict[str, Any]) -> bool:
+    text = " ".join(
+        str(visual_data.get(key, ""))
+        for key in ("event", "question", "description", "draws")
+    ).lower()
+    return (
+        "different colors" in text
+        or "couleurs differentes" in text
+        or "couleurs différentes" in text
+    )
+
+
+def _compute_weighted_two_draw_different_color_probability(
+    visual_data: Dict[str, Any],
+) -> Optional[Fraction]:
+    draws = _parse_draw_count(
+        visual_data.get("draws_without_replacement", visual_data.get("draws"))
+    )
+    if draws != 2 or not _event_targets_different_colors(visual_data):
+        return None
+
+    containers = _iter_probability_containers(visual_data)
+    if len(containers) < 1:
+        return None
+
+    raw_weights = [weight for _label, _counts, weight in containers]
+    if all(weight is None for weight in raw_weights):
+        weights = [Fraction(1, len(containers)) for _ in containers]
+    elif all(weight is not None for weight in raw_weights):
+        weights = [weight for weight in raw_weights if weight is not None]
+        total_weight = sum(weights, Fraction(0, 1))
+        if total_weight <= 0:
+            return None
+        if total_weight > 1:
+            weights = [weight / total_weight for weight in weights]
+    else:
+        return None
+
+    expected = Fraction(0, 1)
+    for (_label, counts, _weight), weight in zip(containers, weights):
+        total = sum(counts)
+        if total < 2:
+            return None
+        same_color = sum(
+            Fraction(count * (count - 1), total * (total - 1)) for count in counts
+        )
+        expected += weight * (1 - same_color)
+    return expected
 
 
 def validate_deduction_challenge(
