@@ -42,6 +42,15 @@ def test_validate_choices_policy_sequence_high_difficulty_forbids_qcm() -> None:
     assert err and "réponse" in err[0].lower()
 
 
+def test_validate_choices_policy_riddle_high_difficulty_forbids_qcm() -> None:
+    err = validate_choices_policy(
+        "RIDDLE",
+        4.0,
+        ["324", "432", "423", "342"],
+    )
+    assert err and "riddle" in err[0].lower()
+
+
 def test_validate_choices_policy_visual_qcm_only_below_difficulty_2() -> None:
     assert not validate_choices_policy(
         "VISUAL",
@@ -256,6 +265,15 @@ def test_sanitize_choices_for_delivery_strips_sequence_qcm_when_high_difficulty(
     assert (
         sanitize_choices_for_delivery(
             "sequence", 4.0, ["121", "127", "128", "133"], "128"
+        )
+        == []
+    )
+
+
+def test_sanitize_choices_for_delivery_strips_riddle_qcm_when_high_difficulty() -> None:
+    assert (
+        sanitize_choices_for_delivery(
+            "riddle", 4.0, ["324", "432", "423", "342"], "432"
         )
         == []
     )

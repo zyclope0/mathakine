@@ -22,6 +22,7 @@ from app.services.challenges.challenge_validator import (
 def test_title_suggests_rule_leak_detects_explicit_pattern() -> None:
     assert title_suggests_rule_leak("Le cycle x3 puis +1")
     assert title_suggests_rule_leak("Bits a l'envers !")
+    assert title_suggests_rule_leak("Le nombre qui descend en rythme")
     assert not title_suggests_rule_leak("Le mystere des cases")
 
 
@@ -72,6 +73,20 @@ def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:
     }
     err = validate_difficulty_structural_coherence("CODING", vd, 4.0)
     assert err and "binary" in err[0].lower()
+
+
+def test_validate_difficulty_riddle_direct_numeric_clues_vs_rating() -> None:
+    vd = {
+        "clues": [
+            "Je suis divisible par 9.",
+            "Le produit de mes trois chiffres vaut $2^3 \\times 3$.",
+            "Mes chiffres forment une suite arithmetique decroissante.",
+            "Mon chiffre des centaines est egal au nombre de lettres du mot math.",
+        ],
+        "key_elements": ["suite arithmetique", "divisibilite par 9", "produit"],
+    }
+    err = validate_difficulty_structural_coherence("RIDDLE", vd, 4.0)
+    assert err and "riddle" in err[0].lower()
 
 
 def test_validate_puzzle_rejects_numeric_ascending_sort_solution() -> None:
@@ -291,6 +306,26 @@ def test_calibrate_challenge_difficulty_title_cap_overrides_structure_floor() ->
     assert final == 3.0
     assert "pattern_large_multi_unknown_floor_4_0" in meta.get("floors_applied", [])
     assert "title_rule_leak_cap_3_0" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_direct_numeric_riddle() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="riddle",
+        age_group="15-17",
+        visual_data={
+            "clues": [
+                "Je suis divisible par 9.",
+                "Le produit de mes trois chiffres vaut $2^3 \\times 3$.",
+                "Mes chiffres forment une suite arithmetique decroissante.",
+                "Mon chiffre des centaines est egal au nombre de lettres du mot math.",
+            ],
+            "key_elements": ["suite arithmetique", "divisibilite par 9", "produit"],
+        },
+        title="Le nombre cache",
+        ai_difficulty=4.0,
+    )
+    assert final == 3.0
+    assert "riddle_direct_numeric_clues_cap_3_0" in meta.get("caps_applied", [])
 
 
 def test_estimate_structure_signals_includes_rule_visibility() -> None:

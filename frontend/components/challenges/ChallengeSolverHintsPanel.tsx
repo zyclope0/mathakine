@@ -2,6 +2,7 @@
 
 import { Lightbulb } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { MathText } from "@/components/ui/MathText";
 
 interface ChallengeSolverHintsPanelProps {
   hintsUsed: number[];
@@ -37,7 +38,9 @@ export function ChallengeSolverHintsPanel({
           return (
             <li key={hintIndex} className="flex items-start gap-2">
               <span className="text-amber-400 font-bold">{hintIndex}.</span>
-              <span className="text-foreground">{hintText}</span>
+              <MathText size="sm" className="text-foreground">
+                {hintText}
+              </MathText>
             </li>
           );
         })}

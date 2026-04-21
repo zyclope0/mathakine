@@ -1,12 +1,20 @@
 "use client";
 
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { MathText } from "@/components/ui/MathText";
 import { Lightbulb, Key, HelpCircle, Grid3x3, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface RiddleRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
+}
+
+function textFromRiddleItem(item: string | Record<string, unknown>): string {
+  if (typeof item === "string") {
+    return item;
+  }
+  return String(item.text ?? item.description ?? item.value ?? JSON.stringify(item));
 }
 
 /**
@@ -100,7 +108,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <Info className="h-5 w-5 text-primary" />
             <h4 className="font-semibold text-foreground">Description</h4>
           </div>
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
+          <MathText size="sm" className="text-muted-foreground">
+            {description}
+          </MathText>
         </div>
       )}
 
@@ -111,14 +121,18 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <HelpCircle className="h-5 w-5 text-primary" />
             <h4 className="font-semibold text-foreground">Contexte</h4>
           </div>
-          <p className="text-muted-foreground leading-relaxed">{context}</p>
+          <MathText size="sm" className="text-muted-foreground">
+            {context}
+          </MathText>
         </div>
       )}
 
       {/* Énigme principale (si différente de la question) */}
       {riddle && (
         <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
-          <p className="text-foreground font-medium italic">{riddle}</p>
+          <MathText size="sm" className="text-foreground font-medium italic">
+            {riddle}
+          </MathText>
         </div>
       )}
 
@@ -191,7 +205,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                 className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
               >
                 {typeof clue === "string" ? (
-                  <p className="text-foreground">{clue}</p>
+                  <MathText size="sm" className="text-foreground">
+                    {clue}
+                  </MathText>
                 ) : (
                   <div>
                     {(clue as Record<string, unknown>).title != null && (
@@ -200,14 +216,14 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                       </p>
                     )}
                     {(clue as Record<string, unknown>).description != null && (
-                      <p className="text-muted-foreground text-sm">
+                      <MathText size="sm" className="text-muted-foreground">
                         {String((clue as Record<string, unknown>).description)}
-                      </p>
+                      </MathText>
                     )}
                     {(clue as Record<string, unknown>).value != null && (
-                      <p className="text-foreground mt-1">
+                      <MathText size="sm" className="text-foreground mt-1">
                         {String((clue as Record<string, unknown>).value)}
-                      </p>
+                      </MathText>
                     )}
                   </div>
                 )}
@@ -239,7 +255,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                   {cluesList.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1 text-foreground text-sm">
                       {cluesList.map((c: string, i: number) => (
-                        <li key={i}>{typeof c === "string" ? c : String(c)}</li>
+                        <li key={i}>
+                          <MathText size="sm">{typeof c === "string" ? c : String(c)}</MathText>
+                        </li>
                       ))}
                     </ul>
                   ) : null}
@@ -261,7 +279,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             {plaqueLines.map((line: unknown, index: number) => (
               <li key={index} className="flex items-center gap-2">
                 <span className="text-primary">—</span>
-                {typeof line === "string" ? line : String(line)}
+                <MathText size="sm">{typeof line === "string" ? line : String(line)}</MathText>
               </li>
             ))}
           </ul>
@@ -291,9 +309,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                 className="bg-background/50 border border-border rounded-md p-3 text-sm text-muted-foreground"
               >
                 <span className="font-semibold text-amber-500">#{index + 1}</span>{" "}
-                {typeof hint === "string"
-                  ? hint
-                  : String((hint as Record<string, unknown>).text ?? JSON.stringify(hint))}
+                <MathText size="sm" className="inline-block">
+                  {textFromRiddleItem(hint)}
+                </MathText>
               </div>
             ))}
           </div>

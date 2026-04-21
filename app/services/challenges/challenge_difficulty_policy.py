@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -40,6 +41,7 @@ _TITLE_RULE_LEAK_PATTERNS: Tuple[re.Pattern[str], ...] = (
         r"\b(renversé|renversee|inverse|inversé|inversee|décalage|decalage)\b",
         re.I,
     ),
+    re.compile(r"\b(descend|descente|décroissant|decroissant)\b", re.I),
 )
 
 _SAFE_HIGH_DIFFICULTY_TITLES: Dict[str, str] = {
@@ -187,6 +189,65 @@ def _probability_has_complex_marker(visual_data: Dict[str, Any]) -> bool:
         return True
     events = visual_data.get("events") or visual_data.get("evenements")
     return isinstance(events, list) and len(events) >= 2
+
+
+_RIDDLE_DIRECT_CLUE_PATTERNS: Tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(chiffre|centaine|dizaine|unite)s?\b", re.I),
+    re.compile(r"\bsuite\s+(arithmetique|geometrique)\b", re.I),
+    re.compile(r"\b(croissant|decroissant|descend)\b", re.I),
+    re.compile(
+        r"\b(produit|somme)\s+(de\s+)?(mes|des)?\s*(trois\s+)?chiffres?\b", re.I
+    ),
+    re.compile(r"\bdivisible\s+par\b", re.I),
+    re.compile(r"\bnombre\s+de\s+lettres?\b", re.I),
+)
+
+
+def _signal_text(value: Any) -> str:
+    normalized = unicodedata.normalize("NFKD", str(value or ""))
+    return "".join(
+        char for char in normalized if not unicodedata.combining(char)
+    ).lower()
+
+
+def _append_riddle_texts(value: Any, out: List[str]) -> None:
+    if value is None:
+        return
+    if isinstance(value, (str, int, float)):
+        out.append(str(value))
+        return
+    if isinstance(value, dict):
+        for nested in value.values():
+            _append_riddle_texts(nested, out)
+        return
+    if isinstance(value, list):
+        for nested in value:
+            _append_riddle_texts(nested, out)
+
+
+def _riddle_direct_clue_score(visual_data: Dict[str, Any]) -> int:
+    texts: List[str] = []
+    for key in (
+        "clues",
+        "indices",
+        "hints",
+        "riddle",
+        "question",
+        "description",
+        "key_elements",
+        "elements_cles",
+    ):
+        _append_riddle_texts(visual_data.get(key), texts)
+    joined = _signal_text(" ".join(texts))
+    return sum(1 for pattern in _RIDDLE_DIRECT_CLUE_PATTERNS if pattern.search(joined))
+
+
+def _riddle_has_over_direct_numeric_clues(visual_data: Dict[str, Any]) -> bool:
+    clues = visual_data.get("clues", visual_data.get("indices", []))
+    clue_count = _list_len(clues)
+    if clue_count == 0 or clue_count > 5:
+        return False
+    return _riddle_direct_clue_score(visual_data) >= 3
 
 
 def _highest_floor(
@@ -568,6 +629,12 @@ def validate_difficulty_structural_coherence(
                 "CODING substitution : une clé quasi complète expose trop la règle pour difficulty_rating >= 4.0. "
                 "Réduire les exemples ou baisser la difficulté."
             )
+    if ct == "RIDDLE" and difficulty_rating >= 4.0:
+        if _riddle_has_over_direct_numeric_clues(vd):
+            errors.append(
+                "RIDDLE : des indices numériques trop directs ne justifient pas difficulty_rating >= 4.0. "
+                "Rendre les contraintes plus indirectes ou baisser la difficulté."
+            )
     return errors
 
 
@@ -693,6 +760,11 @@ def calibrate_challenge_difficulty(
         ):
             final = min(final, 3.2)
             caps_applied.append("coding_substitution_full_key_cap_3_2")
+
+    if challenge_type.lower() == "riddle":
+        if _riddle_has_over_direct_numeric_clues(vd) and final > 3.0:
+            final = min(final, 3.0)
+            caps_applied.append("riddle_direct_numeric_clues_cap_3_0")
 
     sig_dict = asdict(signals)
     sig_dict["notes"] = list(sig_dict["notes"])

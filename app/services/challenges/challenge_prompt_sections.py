@@ -74,7 +74,8 @@ CHOIX / QCM (politique par type — IA9) :
 - ``deduction``, ``chess`` : **ne jamais** inclure ``choices``.
 - ``visual``, ``puzzle`` : ``choices`` **uniquement** si ``difficulty_rating`` < 2.0 (défis très faciles) ; sinon omettre ``choices`` et utiliser l'interaction (symétrie, ordre des pièces).
 - ``sequence`` : QCM possible pour les défis simples à moyens ; pour ``difficulty_rating >= 4.0`` omettre ``choices`` et laisser une réponse libre.
-- ``pattern``, ``graph``, ``riddle``, ``probability``, ``coding`` : QCM possible si vrai mini-QCM (sinon omettre ``choices``).
+- ``pattern``, ``graph``, ``probability``, ``coding`` : QCM possible si vrai mini-QCM (sinon omettre ``choices``).
+- ``riddle`` : QCM possible seulement pour les énigmes simples à moyennes ; pour ``difficulty_rating >= 4.0`` omettre ``choices`` et garder une réponse libre.
 - Si ``choices`` est présent : minimum 3 options **distinctes** ; ``correct_answer`` = l'une d'elles exactement ; distracteurs plausibles, longueurs comparables.
 
 DIFFICULTÉ / AXES (optionnel mais recommandé) :
@@ -154,7 +155,9 @@ TEXT_VISUAL_DATA_CODING = """VISUAL_DATA OBLIGATOIRE (type coding = cryptographi
 - Rappel : CODING = décoder un message secret (lettres/symboles), pas naviguer dans une liste de nombres."""
 
 TEXT_VISUAL_DATA_RIDDLE = """VISUAL_DATA OBLIGATOIRE (type riddle) :
-- {{"clues": [...], "context": "...", "riddle": "...", "description": "...", "key_elements": [...]}}"""
+- {{"clues": [...], "context": "...", "riddle": "...", "description": "...", "key_elements": [...]}}
+- Pour difficulty_rating >= 4.0 : titre neutre, pas de QCM, au moins 5 indices ou contraintes, et pas de formulation qui donne directement la mécanique ("suite décroissante", "chiffre des centaines", "nombre de lettres", "produit des chiffres") si ces éléments suffisent presque seuls à trouver la réponse.
+- Une énigme difficile doit demander une combinaison de contraintes indirectes, pas seulement reconnaître la bonne réponse parmi 4 choix."""
 
 TEXT_VISUAL_DATA_PROBABILITY = """VISUAL_DATA OBLIGATOIRE (type probability) :
 - Exemple : {{"rouge_bonbons": 10, "bleu_bonbons": 5, "total_bonbons": 15, "question": "...", "description": "..."}} (adapter le contexte : billes, cartes, dés)."""
@@ -216,7 +219,8 @@ TEXT_VAL_CHESS = """7. CHESS :
    - highlight_positions : cases occupées uniquement."""
 
 TEXT_VAL_RIDDLE = """8. RIDDLE :
-   - clues → réponse unique ; solution_explanation étape par étape ; key_elements utiles."""
+   - clues → réponse unique ; solution_explanation étape par étape ; key_elements utiles.
+   - difficulty >= 4 : pas de QCM, pas de règle révélée dans le titre, et pas d'indices numériques tous directs (position des chiffres + ordre + produit/somme/divisibilité) qui rendent la réponse quasi immédiate."""
 
 TEXT_VAL_PROBABILITY = """9. PROBABILITY :
    - correct_answer cohérent avec favorable/total ; fractions ou % acceptés selon consignes.

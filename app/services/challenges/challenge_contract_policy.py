@@ -242,6 +242,12 @@ def validate_choices_policy(
             "À ce niveau, la réponse doit rester en production libre plutôt qu'en reconnaissance QCM."
         )
 
+    if _upper_type(challenge_type) == "RIDDLE" and dr is not None and dr >= 4.0:
+        errors.append(
+            "RIDDLE : omettre choices pour difficulty_rating >= 4.0. "
+            "À ce niveau, l'énigme doit se résoudre en production libre plutôt qu'en reconnaissance QCM."
+        )
+
     return errors
 
 

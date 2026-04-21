@@ -4,6 +4,7 @@ import { ChessRenderer } from "@/components/challenges/visualizations/ChessRende
 import { ChallengeVisualRenderer } from "@/components/challenges/visualizations/ChallengeVisualRenderer";
 import { CodingRenderer } from "@/components/challenges/visualizations/CodingRenderer";
 import { GraphRenderer } from "@/components/challenges/visualizations/GraphRenderer";
+import { RiddleRenderer } from "@/components/challenges/visualizations/RiddleRenderer";
 
 vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
   useAccessibleAnimation: () => ({
@@ -80,6 +81,21 @@ describe("Visualization renderers", () => {
     expect(screen.getByText(/Indice thématique/i)).toBeInTheDocument();
     expect(screen.getByText("desert planet")).toBeInTheDocument();
     expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
+  });
+
+  it("rend le LaTeX dans les indices d'énigme sans afficher les commandes brutes", async () => {
+    const { container } = render(
+      <RiddleRenderer
+        visualData={{
+          clues: ["Le produit de mes chiffres vaut $2^3 \\times 3$."],
+          key_elements: ["produit de chiffres"],
+        }}
+      />
+    );
+
+    expect(await screen.findByText(/Le produit de mes chiffres vaut/i)).toBeInTheDocument();
+    expect(container.querySelector(".katex")).not.toBeNull();
+    expect(container.querySelector(".katex-error")).toBeNull();
   });
 
   it("n'affiche pas de champ inline sequence quand la modalité active est QCM", async () => {
