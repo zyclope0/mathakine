@@ -128,6 +128,34 @@ def test_validate_challenge_choices_correct_must_match() -> None:
     assert validate_challenge_choices("PROBABILITY", "1/2", ["1/3", "1/4", "2/3"])
 
 
+def test_validate_challenge_choices_rejects_equivalent_probability_options() -> None:
+    err = validate_challenge_choices(
+        "PROBABILITY",
+        "10/27",
+        ["5/18", "16/45", "10/27", "50/135"],
+    )
+
+    assert err and any("equivalentes" in e.lower() for e in err)
+
+
+def test_validate_difficulty_probability_direct_urn_vs_high_rating() -> None:
+    vd = {
+        "urns": {
+            "A": {"red": 5, "blue": 5},
+            "B": {"red": 8, "blue": 2},
+            "C": {"red": 1, "blue": 9},
+        },
+        "total_per_urn": 10,
+        "urn_selection": "equiprobable",
+        "draws_without_replacement": 2,
+        "question": "Probabilite d'obtenir deux couleurs differentes.",
+    }
+
+    err = validate_difficulty_structural_coherence("PROBABILITY", vd, 4.4)
+
+    assert err and any("urnes equiprobables" in e.lower() for e in err)
+
+
 def test_validate_deduction_challenge_happy_path() -> None:
     vd = {
         "type": "logic_grid",
@@ -398,6 +426,29 @@ def test_calibrate_challenge_difficulty_caps_direct_numeric_riddle() -> None:
     )
     assert final == 3.0
     assert "riddle_direct_numeric_clues_cap_3_0" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_direct_urn_probability() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="probability",
+        age_group="adulte",
+        visual_data={
+            "urns": {
+                "A": {"red": 5, "blue": 5},
+                "B": {"red": 8, "blue": 2},
+                "C": {"red": 1, "blue": 9},
+            },
+            "total_per_urn": 10,
+            "urn_selection": "equiprobable",
+            "draws_without_replacement": 2,
+            "question": "Probabilite d'obtenir deux couleurs differentes.",
+        },
+        title="Le tirage incertain",
+        ai_difficulty=4.4,
+    )
+
+    assert final == 3.8
+    assert "probability_direct_urn_total_cap_3_8" in meta.get("caps_applied", [])
 
 
 def test_estimate_structure_signals_includes_rule_visibility() -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.services.challenges.challenge_ai_service import normalize_generated_challenge
 from app.services.challenges.challenge_api_mapper import resolve_challenge_response_mode
 from app.services.challenges.challenge_contract_policy import (
     EASY_QCM_MAX_DIFFICULTY_EXCLUSIVE,
@@ -257,6 +258,58 @@ def test_sanitize_choices_for_delivery_rejects_invalid_qcm() -> None:
 def test_sanitize_choices_for_delivery_keeps_valid_qcm() -> None:
     out = sanitize_choices_for_delivery("sequence", 3.0, ["8", "9", "10", "11"], "10")
     assert out == ["8", "9", "10", "11"]
+
+
+def test_sanitize_choices_for_delivery_strips_equivalent_probability_qcm() -> None:
+    assert (
+        sanitize_choices_for_delivery(
+            "probability",
+            3.8,
+            ["5/18", "16/45", "10/27", "50/135"],
+            "10/27",
+        )
+        == []
+    )
+
+
+def test_sanitize_choices_for_delivery_keeps_distinct_probability_qcm() -> None:
+    assert sanitize_choices_for_delivery(
+        "probability",
+        3.8,
+        ["5/18", "16/45", "10/27", "11/27"],
+        "10/27",
+    ) == ["5/18", "16/45", "10/27", "11/27"]
+
+
+def test_normalize_generated_probability_strips_invalid_qcm_and_uses_text() -> None:
+    normalized = normalize_generated_challenge(
+        {
+            "title": "Le tirage incertain",
+            "description": "Trois urnes sont choisies au hasard.",
+            "question": "Probabilite d'obtenir deux couleurs differentes.",
+            "correct_answer": "10/27",
+            "solution_explanation": "Calcul par probabilites totales.",
+            "difficulty_rating": 4.4,
+            "visual_data": {
+                "urns": {
+                    "A": {"red": 5, "blue": 5},
+                    "B": {"red": 8, "blue": 2},
+                    "C": {"red": 1, "blue": 9},
+                },
+                "total_per_urn": 10,
+                "urn_selection": "equiprobable",
+                "draws_without_replacement": 2,
+                "question": "Probabilite d'obtenir deux couleurs differentes.",
+            },
+            "choices": ["5/18", "16/45", "10/27", "50/135"],
+        },
+        "probability",
+        "adulte",
+    )
+
+    assert normalized["difficulty_rating"] == 3.8
+    assert normalized["choices"] == []
+    assert normalized["response_mode"] == "open_text"
 
 
 def test_sanitize_choices_for_delivery_strips_sequence_qcm_when_high_difficulty() -> (

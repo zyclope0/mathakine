@@ -191,6 +191,58 @@ def _probability_has_complex_marker(visual_data: Dict[str, Any]) -> bool:
     return isinstance(events, list) and len(events) >= 2
 
 
+_PROBABILITY_ADVANCED_REASONING_MARKERS: Tuple[str, ...] = (
+    "bayes",
+    "posterieur",
+    "posterior",
+    "sachant que",
+    "conditionnelle inverse",
+    "probabilite inverse",
+    "a posteriori",
+    "apres observation",
+    "etant donne",
+)
+
+
+def _probability_is_direct_urn_total_probability(vd: Dict[str, Any]) -> bool:
+    """
+    Detecte le cas direct urnes -> tirage -> probabilite totale.
+
+    Ce format demande plusieurs calculs mais reste une application explicite de la
+    loi totale ; il ne justifie pas un rating 4+ si aucune inversion/Bayes n'est
+    demandee.
+    """
+    urns = vd.get("urns")
+    if not isinstance(urns, dict) or len(urns) < 2:
+        return False
+
+    text = _signal_text(
+        " ".join(
+            [
+                str(vd.get("question", "")),
+                str(vd.get("description", "")),
+                str(vd.get("urn_selection", "")),
+            ]
+        )
+    )
+    if any(marker in text for marker in _PROBABILITY_ADVANCED_REASONING_MARKERS):
+        return False
+
+    try:
+        draws = int(vd.get("draws_without_replacement", vd.get("draws", 0)) or 0)
+    except (TypeError, ValueError):
+        draws = 0
+
+    selection = str(vd.get("urn_selection", "")).lower()
+    has_equiprobable_selection = (
+        "equiprobable" in selection
+        or "equal" in selection
+        or "hasard" in text
+        or "meme probabilite" in text
+    )
+    return has_equiprobable_selection and 1 <= draws <= 2
+
+
 _RIDDLE_DIRECT_CLUE_PATTERNS: Tuple[re.Pattern[str], ...] = (
     re.compile(r"\b(chiffre|centaine|dizaine|unite)s?\b", re.I),
     re.compile(r"\bsuite\s+(arithmetique|geometrique)\b", re.I),
@@ -635,6 +687,12 @@ def validate_difficulty_structural_coherence(
                 "RIDDLE : des indices numériques trop directs ne justifient pas difficulty_rating >= 4.0. "
                 "Rendre les contraintes plus indirectes ou baisser la difficulté."
             )
+    if ct == "PROBABILITY" and difficulty_rating >= 4.0:
+        if _probability_is_direct_urn_total_probability(vd):
+            errors.append(
+                "PROBABILITY : un tirage direct dans des urnes equiprobables, sans question inverse "
+                "ou conditionnelle type Bayes, ne justifie pas difficulty_rating >= 4.0."
+            )
     return errors
 
 
@@ -765,6 +823,11 @@ def calibrate_challenge_difficulty(
         if _riddle_has_over_direct_numeric_clues(vd) and final > 3.0:
             final = min(final, 3.0)
             caps_applied.append("riddle_direct_numeric_clues_cap_3_0")
+
+    if challenge_type.lower() == "probability":
+        if _probability_is_direct_urn_total_probability(vd) and final > 3.8:
+            final = min(final, 3.8)
+            caps_applied.append("probability_direct_urn_total_cap_3_8")
 
     sig_dict = asdict(signals)
     sig_dict["notes"] = list(sig_dict["notes"])

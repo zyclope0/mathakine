@@ -30,6 +30,7 @@ from app.services.challenges.challenge_contract_policy import (
     apply_visual_contract_normalization,
     compute_response_mode,
     filter_choices_for_persistence,
+    sanitize_choices_for_delivery,
 )
 from app.services.challenges.challenge_difficulty_policy import (
     calibrate_challenge_difficulty,
@@ -114,9 +115,21 @@ def normalize_generated_challenge(
     )
 
     raw_choices = challenge_data.get("choices")
-    choices_out = filter_choices_for_persistence(
+    policy_choices = filter_choices_for_persistence(
         challenge_type, final_difficulty, raw_choices
     )
+    choices_out = sanitize_choices_for_delivery(
+        challenge_type,
+        final_difficulty,
+        policy_choices,
+        str(challenge_data.get("correct_answer", "")),
+    )
+    if policy_choices and not choices_out:
+        logger.info(
+            "[ChallengeAI] choices_stripped_after_quality_check challenge_type={} difficulty_rating={}",
+            challenge_type,
+            final_difficulty,
+        )
     response_mode = compute_response_mode(
         challenge_type, vd, final_difficulty, choices_out
     )

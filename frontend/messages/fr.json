@@ -750,7 +750,10 @@
         "possibleCases": "Cas possibles :",
         "probability": "Probabilité :",
         "composition": "Composition ({total} {itemType})",
-        "total": "Total"
+        "total": "Total",
+        "urns": "Urnes",
+        "urn": "Urne",
+        "drawsWithoutReplacement": "{count} tirage(s) sans remise"
       },
       "puzzle": {
         "title": "Puzzle à classer",

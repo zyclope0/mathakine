@@ -750,7 +750,10 @@
         "possibleCases": "Possible cases:",
         "probability": "Probability:",
         "composition": "Composition ({total} {itemType})",
-        "total": "Total"
+        "total": "Total",
+        "urns": "Urns",
+        "urn": "Urn",
+        "drawsWithoutReplacement": "{count} draw(s) without replacement"
       },
       "puzzle": {
         "title": "Sorting puzzle",

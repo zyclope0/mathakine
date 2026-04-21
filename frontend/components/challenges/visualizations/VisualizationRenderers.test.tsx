@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { ChessRenderer } from "@/components/challenges/visualizations/ChessRenderer";
 import { ChallengeVisualRenderer } from "@/components/challenges/visualizations/ChallengeVisualRenderer";
 import { CodingRenderer } from "@/components/challenges/visualizations/CodingRenderer";
 import { GraphRenderer } from "@/components/challenges/visualizations/GraphRenderer";
+import { ProbabilityRenderer } from "@/components/challenges/visualizations/ProbabilityRenderer";
 import { RiddleRenderer } from "@/components/challenges/visualizations/RiddleRenderer";
+import fr from "@/messages/fr.json";
 
 vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
   useAccessibleAnimation: () => ({
@@ -166,5 +169,34 @@ describe("Visualization renderers", () => {
 
     expect(await screen.findByText("Grille de pattern")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/22, 21, 28, 20, 16/i)).not.toBeInTheDocument();
+  });
+
+  it("affiche les urnes structurées d'un défi de probabilité", async () => {
+    render(
+      <NextIntlClientProvider locale="fr" messages={fr}>
+        <ProbabilityRenderer
+          visualData={{
+            urns: {
+              A: { red: 5, blue: 5 },
+              B: { red: 8, blue: 2 },
+              C: { red: 1, blue: 9 },
+            },
+            total_per_urn: 10,
+            urn_selection: "equiprobable",
+            draws_without_replacement: 2,
+            question: "Probabilité d'obtenir deux couleurs différentes.",
+          }}
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(await screen.findByText("Urnes")).toBeInTheDocument();
+    expect(screen.getByText("Urne A")).toBeInTheDocument();
+    expect(screen.getByText("Urne B")).toBeInTheDocument();
+    expect(screen.getByText("Urne C")).toBeInTheDocument();
+    expect(screen.getAllByText("Rouge")).toHaveLength(3);
+    expect(screen.getAllByText("Bleu")).toHaveLength(3);
+    expect(screen.getByText("2 tirage(s) sans remise")).toBeInTheDocument();
+    expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
   });
 });

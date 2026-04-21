@@ -15,6 +15,65 @@ interface ProbabilityRendererProps {
   className?: string;
 }
 
+interface ProbabilityItem {
+  name: string;
+  count: number;
+  color?: string;
+}
+
+interface ProbabilityUrn {
+  label: string;
+  items: ProbabilityItem[];
+  total: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function formatProbabilityLabel(value: string): string {
+  const labels: Record<string, string> = {
+    red: "Rouge",
+    rouge: "Rouge",
+    blue: "Bleu",
+    bleu: "Bleu",
+    green: "Vert",
+    vert: "Vert",
+    yellow: "Jaune",
+    jaune: "Jaune",
+  };
+  const normalized = value.toLowerCase().trim();
+  return labels[normalized] ?? value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function extractUrnData(visualData: Record<string, unknown>): ProbabilityUrn[] {
+  const urnsRaw = visualData.urns;
+  if (!isRecord(urnsRaw)) return [];
+
+  const declaredTotal = Number(visualData.total_per_urn ?? 0);
+  return Object.entries(urnsRaw)
+    .map(([label, composition]) => {
+      if (!isRecord(composition)) return null;
+      const items = Object.entries(composition)
+        .filter(([key, value]) => !key.toLowerCase().includes("total") && typeof value === "number")
+        .map(([key, value]) => ({
+          name: formatProbabilityLabel(key),
+          count: Number(value),
+          color: resolveVisualizationColor(key) ?? "#6b7280",
+        }))
+        .filter((item) => Number.isFinite(item.count) && item.count > 0);
+
+      if (items.length === 0) return null;
+      const computedTotal = items.reduce((sum, item) => sum + item.count, 0);
+      return {
+        label,
+        items,
+        total: declaredTotal > 0 ? declaredTotal : computedTotal,
+      };
+    })
+    .filter((urn): urn is ProbabilityUrn => urn !== null);
+}
+
 /**
  * Renderer pour les défis de probabilités.
  * Affiche des événements, probabilités, et diagrammes de chances.
@@ -22,6 +81,11 @@ interface ProbabilityRendererProps {
 export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityRendererProps) {
   const t = useTranslations("challenges.visualizations.probability");
   const isHydrated = useHydrated();
+
+  const urnData = useMemo(() => {
+    if (!visualData) return [];
+    return extractUrnData(visualData);
+  }, [visualData]);
 
   // Détecter et extraire les items avec quantités (bonbons, billes, cartes, etc.)
   const itemsData = useMemo(() => {
@@ -237,6 +301,75 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
         </div>
       )}
 
+      {/* Urnes structurées */}
+      {urnData.length > 0 && (
+        <div className="rounded-xl border border-border bg-card/50 p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            <h4 className="font-semibold text-foreground">{t("urns")}</h4>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {urnData.map((urn) => (
+              <section
+                key={urn.label}
+                className="rounded-lg border border-border bg-background/70 p-3"
+                aria-label={`${t("urn")} ${urn.label}`}
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span className="font-semibold text-foreground">
+                    {t("urn")} {urn.label}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                    {t("total")} {urn.total}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {urn.items.map((item) => {
+                    const percentage =
+                      urn.total > 0 ? Math.round((item.count / urn.total) * 100) : 0;
+                    return (
+                      <div key={`${urn.label}-${item.name}`} className="space-y-1">
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+                            <Circle
+                              className="h-4 w-4 shrink-0"
+                              style={{
+                                fill: item.color ?? "#6b7280",
+                                color: item.color ?? "#6b7280",
+                              }}
+                              aria-hidden="true"
+                            />
+                            <span className="truncate">{item.name}</span>
+                          </span>
+                          <span className="tabular-nums text-muted-foreground">{item.count}</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor: item.color ?? "#6b7280",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+          {visualData.draws_without_replacement != null && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {t("drawsWithoutReplacement", {
+                count: String(visualData.draws_without_replacement),
+              })}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Calcul de probabilité */}
       {(totalOutcomes > 0 || favorableOutcomes > 0) && (
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-lg p-4">
@@ -344,6 +477,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
         probabilities.length === 0 &&
         outcomes.length === 0 &&
         totalOutcomes === 0 &&
+        urnData.length === 0 &&
         !itemsData && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="space-y-2">

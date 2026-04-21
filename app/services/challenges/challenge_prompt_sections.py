@@ -75,6 +75,7 @@ CHOIX / QCM (politique par type — IA9) :
 - ``visual``, ``puzzle`` : ``choices`` **uniquement** si ``difficulty_rating`` < 2.0 (défis très faciles) ; sinon omettre ``choices`` et utiliser l'interaction (symétrie, ordre des pièces).
 - ``sequence`` : QCM possible pour les défis simples à moyens ; pour ``difficulty_rating >= 4.0`` omettre ``choices`` et laisser une réponse libre.
 - ``pattern``, ``graph``, ``probability``, ``coding`` : QCM possible si vrai mini-QCM (sinon omettre ``choices``).
+- ``probability`` : si ``choices`` est présent, aucune option ne doit être mathématiquement équivalente à une autre (ex. ``10/27`` et ``50/135`` interdits dans le même QCM).
 - ``riddle`` : QCM possible seulement pour les énigmes simples à moyennes ; pour ``difficulty_rating >= 4.0`` omettre ``choices`` et garder une réponse libre.
 - Si ``choices`` est présent : minimum 3 options **distinctes** ; ``correct_answer`` = l'une d'elles exactement ; distracteurs plausibles, longueurs comparables.
 
@@ -164,7 +165,10 @@ TEXT_VISUAL_DATA_RIDDLE = """VISUAL_DATA OBLIGATOIRE (type riddle) :
 - Une énigme difficile doit demander une combinaison de contraintes indirectes, pas seulement reconnaître la bonne réponse parmi 4 choix."""
 
 TEXT_VISUAL_DATA_PROBABILITY = """VISUAL_DATA OBLIGATOIRE (type probability) :
-- Exemple : {{"rouge_bonbons": 10, "bleu_bonbons": 5, "total_bonbons": 15, "question": "...", "description": "..."}} (adapter le contexte : billes, cartes, dés)."""
+- Exemple simple : {{"rouge_bonbons": 10, "bleu_bonbons": 5, "total_bonbons": 15, "question": "...", "description": "..."}} (adapter le contexte : billes, cartes, dés).
+- Urnes : {{"urns": {{"A": {{"red": 5, "blue": 5}}, "B": {{"red": 8, "blue": 2}}}}, "total_per_urn": 10, "urn_selection": "equiprobable", "draws_without_replacement": 2, "question": "..."}}
+- Pour ``difficulty_rating >= 4.0`` : un tirage direct avec urne équiprobable ne suffit pas ; demander une question inverse/conditionnelle (Bayes, probabilité a posteriori, observation partielle) ou une structure multi-événements plus cachée.
+- Si tu fournis ``choices`` : les fractions doivent être distinctes mathématiquement ; ne mets jamais à la fois une fraction simplifiée et sa forme non simplifiée."""
 
 TEXT_VISUAL_DATA_CHESS = """VISUAL_DATA OBLIGATOIRE (type chess) :
 - INTERDIT : position de départ complète pour mat en X coups.
@@ -230,7 +234,9 @@ TEXT_VAL_RIDDLE = """8. RIDDLE :
 
 TEXT_VAL_PROBABILITY = """9. PROBABILITY :
    - correct_answer cohérent avec favorable/total ; fractions ou % acceptés selon consignes.
-   - Somme des sous-populations = total."""
+   - Somme des sous-populations = total.
+   - Si choices est présent : correct_answer doit être une option exacte et aucune autre option ne doit être équivalente mathématiquement.
+   - difficulty >= 4 : éviter les problèmes directs de loi totale trop explicites ; utiliser conditionnel/inverse/Bayes ou omettre le QCM."""
 
 TEXT_VAL_GRAPH = """10. GRAPH :
    - edges référencent uniquement des nodes existants ; explication alignée avec la question (chemin, distance, liste, etc.)."""
