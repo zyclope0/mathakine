@@ -26,9 +26,11 @@ export function ChallengeSolverFreeTextAnswerBlock({
   const placeholder =
     textInputKind === "chess"
       ? t("chessAnswerPlaceholder")
-      : textInputKind === "visual"
-        ? t("visualAnswerPlaceholder")
-        : t("enterAnswer");
+      : textInputKind === "visualOrderedCsv"
+        ? t("visualOrderedAnswerPlaceholder")
+        : textInputKind === "visual"
+          ? t("visualAnswerPlaceholder")
+          : t("enterAnswer");
 
   return (
     <div className="space-y-1.5">
@@ -52,6 +54,9 @@ export function ChallengeSolverFreeTextAnswerBlock({
       )}
       {textInputKind === "visual" && (
         <p className="text-xs text-muted-foreground">{t("visualAnswerFormat")}</p>
+      )}
+      {textInputKind === "visualOrderedCsv" && (
+        <p className="text-xs text-muted-foreground">{t("visualOrderedAnswerFormat")}</p>
       )}
     </div>
   );

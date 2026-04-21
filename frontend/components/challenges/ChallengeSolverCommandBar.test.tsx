@@ -136,6 +136,21 @@ describe("ChallengeSolverCommandBar", () => {
     expect(screen.getByText(solver.validateHint)).toBeInTheDocument();
   });
 
+  it("uses ordered visual copy when the answer is a top-to-bottom list", () => {
+    render(
+      <ChallengeSolverCommandBar
+        {...baseProps({
+          challengeType: "visual",
+          textInputKind: "visualOrderedCsv",
+        })}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByPlaceholderText(/heptagone bleu/)).toBeInTheDocument();
+    expect(screen.getByText(solver.visualOrderedAnswerFormat)).toBeInTheDocument();
+  });
+
   it("calls onSubmit when validate clicked and not disabled", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

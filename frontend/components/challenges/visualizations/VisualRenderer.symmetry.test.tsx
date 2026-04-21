@@ -71,7 +71,7 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
   });
 
   it("rend les colonnes groupées ligne par ligne au lieu de deux grands blocs", () => {
-    render(
+    const { container } = render(
       <VisualRenderer
         visualData={{
           type: "symmetry",
@@ -110,5 +110,7 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     expect(screen.getByText("nonagone rouge")).toBeInTheDocument();
     expect(screen.getByText("heptagone gris")).toBeInTheDocument();
     expect(screen.getAllByLabelText("Forme manquante")).toHaveLength(3);
+    expect(container.querySelectorAll('polygon[fill="#ef4444"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('polygon[fill="#3b82f6"]').length).toBeGreaterThan(0);
   });
 });

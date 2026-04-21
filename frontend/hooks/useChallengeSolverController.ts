@@ -171,7 +171,10 @@ export function useChallengeSolverController({
   });
 
   const isDisabled = isSubmitting || hasSubmitted || isAnswerEmpty;
-  const textInputKind = getChallengeTextInputKind(challenge?.challenge_type);
+  const textInputKind = getChallengeTextInputKind(
+    challenge?.challenge_type,
+    visualModel?.usesOrderedCsvVisualAnswer ?? false
+  );
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 

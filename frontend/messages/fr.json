@@ -670,6 +670,8 @@
       "chessAnswerFormat": "Écris les coups en notation échecs, séparés par des virgules (ex. : Dd7+, Rf8, Df7#)",
       "visualAnswerPlaceholder": "Ex. : carré bleu — ou : Position 6 carré bleu, Position 9 triangle vert",
       "visualAnswerFormat": "Note la forme et la couleur. Plusieurs réponses : écris « Position N forme couleur » pour chaque, séparées par des virgules.",
+      "visualOrderedAnswerPlaceholder": "Ex. : heptagone bleu, hexagone jaune, carré orange",
+      "visualOrderedAnswerFormat": "Note les formes manquantes dans l’ordre demandé, séparées par des virgules.",
       "positionLabel": "Position {position}",
       "visualSelectHint": "Choisissez la forme et la couleur qui complète(nt) le défi. Toutes les options du défi sont affichées.",
       "answerFieldLabel": "Champ de réponse pour le défi logique",

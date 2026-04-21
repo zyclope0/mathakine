@@ -30,6 +30,7 @@ export interface ChallengeVisualAnswerModel {
   visualPositions: number[];
   hasVisualButtons: boolean;
   isVisualMultiComplete: boolean;
+  usesOrderedCsvVisualAnswer: boolean;
   /** Réponse synthétisée depuis visualSelections pour le mode multi-position. */
   derivedUserAnswerFromSelections: string;
 }
@@ -41,7 +42,7 @@ export interface IsChallengeAnswerEmptyArgs {
   userAnswer: string;
 }
 
-export type ChallengeTextInputKind = "default" | "visual" | "chess";
+export type ChallengeTextInputKind = "default" | "visual" | "visualOrderedCsv" | "chess";
 
 // ─── Normalisation des choices ────────────────────────────────────────────────
 
@@ -149,6 +150,7 @@ export function getChallengeVisualAnswerModel(
     visualPositions,
     hasVisualButtons,
     isVisualMultiComplete,
+    usesOrderedCsvVisualAnswer,
     derivedUserAnswerFromSelections,
   };
 }
@@ -185,10 +187,12 @@ export function isChallengeAnswerEmpty({
  * Usage dans ChallengeSolver : t(`${getChallengeTextInputKind(type)}AnswerPlaceholder`)
  */
 export function getChallengeTextInputKind(
-  challengeType: string | null | undefined
+  challengeType: string | null | undefined,
+  usesOrderedCsvVisualAnswer = false
 ): ChallengeTextInputKind {
   const lower = challengeType?.toLowerCase() ?? "";
   if (lower === "chess") return "chess";
+  if (lower === "visual" && usesOrderedCsvVisualAnswer) return "visualOrderedCsv";
   if (lower === "visual") return "visual";
   return "default";
 }

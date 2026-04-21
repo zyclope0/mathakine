@@ -217,6 +217,7 @@ describe("getChallengeVisualAnswerModel", () => {
       expect(model.visualPositions).toEqual([3, 4]);
       expect(model.visualChoices).toEqual([]);
       expect(model.hasVisualButtons).toBe(false);
+      expect(model.usesOrderedCsvVisualAnswer).toBe(true);
     });
 
     it("garde une réponse texte après normalisation flat si la réponse attendue est une liste CSV", () => {
@@ -241,6 +242,7 @@ describe("getChallengeVisualAnswerModel", () => {
 
       expect(model.visualPositions).toEqual([3, 4]);
       expect(model.hasVisualButtons).toBe(false);
+      expect(model.usesOrderedCsvVisualAnswer).toBe(true);
     });
   });
 
@@ -349,6 +351,10 @@ describe("getChallengeTextInputKind", () => {
   it("retourne 'visual' pour challenge_type='visual'", () => {
     expect(getChallengeTextInputKind("visual")).toBe("visual");
     expect(getChallengeTextInputKind("Visual")).toBe("visual");
+  });
+
+  it("retourne 'visualOrderedCsv' pour les visuels avec liste ordonnee", () => {
+    expect(getChallengeTextInputKind("visual", true)).toBe("visualOrderedCsv");
   });
 
   it("retourne 'default' pour les autres types", () => {

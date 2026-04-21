@@ -670,6 +670,8 @@
       "chessAnswerFormat": "Write the moves in chess notation, separated by commas (e.g.: Qd7+, Kf8, Qf7#)",
       "visualAnswerPlaceholder": "E.g.: blue square — or: Position 6 blue square, Position 9 green triangle",
       "visualAnswerFormat": "Write the shape and colour. Multiple answers: write “Position N shape colour” for each, separated by commas.",
+      "visualOrderedAnswerPlaceholder": "E.g.: blue heptagon, yellow hexagon, orange square",
+      "visualOrderedAnswerFormat": "Write the missing shapes in the requested order, separated by commas.",
       "positionLabel": "Position {position}",
       "visualSelectHint": "Choose the shape and color that complete the challenge. All options from the challenge are displayed.",
       "answerFieldLabel": "Answer field for the logic challenge",

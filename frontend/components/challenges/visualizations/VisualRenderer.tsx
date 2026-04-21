@@ -92,6 +92,80 @@ function getShapeIcon(shape: string): string {
   return shapeIconMap[baseShape] || shape.charAt(0).toUpperCase();
 }
 
+const POLYGON_SIDE_COUNTS: Readonly<Record<string, number>> = {
+  triangle: 3,
+  rectangle: 4,
+  carré: 4,
+  pentagone: 5,
+  hexagone: 6,
+  heptagone: 7,
+  octogone: 8,
+  nonagone: 9,
+};
+
+function getRegularPolygonPoints(sides: number): string {
+  const center = 16;
+  const radius = 11;
+  return Array.from({ length: sides }, (_, index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / sides;
+    const x = center + radius * Math.cos(angle);
+    const y = center + radius * Math.sin(angle);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(" ");
+}
+
+function ShapeGlyph({
+  shapeText,
+  color,
+  className = "h-5 w-5",
+}: {
+  shapeText: string;
+  color?: string | undefined;
+  className?: string | undefined;
+}) {
+  const { shape } = parseShapeWithColor(shapeText);
+  const fill = color ?? "currentColor";
+  const stroke = color ? "rgba(15, 23, 42, 0.35)" : "currentColor";
+
+  if (shape === "cercle") {
+    return (
+      <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+        <circle cx="16" cy="16" r="10" fill={fill} stroke={stroke} strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  if (shape === "losange") {
+    return (
+      <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+        <polygon points="16,4 28,16 16,28 4,16" fill={fill} stroke={stroke} strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  const sides = POLYGON_SIDE_COUNTS[shape];
+  if (sides) {
+    return (
+      <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+        <polygon
+          points={getRegularPolygonPoints(sides)}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth="1.5"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <span
+      className={`${className} inline-flex items-center justify-center text-base font-semibold`}
+    >
+      {getShapeIcon(shapeText)}
+    </span>
+  );
+}
+
 type SymmetryCell = Record<string, unknown>;
 type SymmetryPair = {
   left: SymmetryCell;
@@ -231,8 +305,11 @@ function SymmetryMirrorCell({
   side: "left" | "right";
   idx: number;
 }) {
-  const color = resolveVisualizationColor(typeof item.color === "string" ? item.color : undefined);
-  const isQuestion = Boolean(item.question) || String(item.shape ?? "").includes("?");
+  const shapeText = shapeTextFromCell(item);
+  const parsed = parseShapeWithColor(shapeText);
+  const color =
+    (typeof item.color === "string" ? resolveVisualizationColor(item.color) : null) ?? parsed.color;
+  const isQuestion = Boolean(item.question) || shapeText.includes("?");
   const fromLeft = side === "left";
   return (
     <motion.div
@@ -250,7 +327,7 @@ function SymmetryMirrorCell({
       {isQuestion ? (
         <span className="text-xl sm:text-2xl font-bold text-primary">?</span>
       ) : (
-        <span style={color ? { color } : undefined}>{getShapeIcon(String(item.shape ?? ""))}</span>
+        <ShapeGlyph shapeText={shapeText} color={color ?? undefined} className="h-7 w-7" />
       )}
     </motion.div>
   );
@@ -267,7 +344,8 @@ function SymmetryPairCell({
 }) {
   const shapeText = shapeTextFromCell(item);
   const parsed = parseShapeWithColor(shapeText);
-  const color = resolveVisualizationColor(parsed.color ?? undefined);
+  const color =
+    (typeof item.color === "string" ? resolveVisualizationColor(item.color) : null) ?? parsed.color;
   const isQuestion = isQuestionCell(item);
   const fromLeft = side === "left";
 
@@ -286,9 +364,7 @@ function SymmetryPairCell({
         <span className="text-xl font-bold text-primary">?</span>
       ) : (
         <>
-          <span className="text-lg font-semibold" style={color ? { color } : undefined}>
-            {getShapeIcon(shapeText)}
-          </span>
+          <ShapeGlyph shapeText={shapeText} color={color ?? undefined} className="h-5 w-5" />
           <span className="min-w-0 truncate text-xs sm:text-sm text-foreground">{shapeText}</span>
         </>
       )}
@@ -615,7 +691,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                         {isQuestion ? (
                           <span className="text-2xl font-bold text-primary">?</span>
                         ) : (
-                          <span className="text-xl">{getShapeIcon(cellValue)}</span>
+                          <ShapeGlyph
+                            shapeText={cellValue}
+                            color={parseShapeWithColor(cellValue).color ?? undefined}
+                            className="h-7 w-7"
+                          />
                         )}
                       </motion.div>
                     );
@@ -627,7 +707,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                     .slice(0, 5)
                     .map((shape: unknown, idx: number) => (
                       <div key={idx} className="flex items-center gap-1">
-                        <span className="text-base">{getShapeIcon(String(shape))}</span>
+                        <ShapeGlyph
+                          shapeText={String(shape)}
+                          color={parseShapeWithColor(String(shape)).color ?? undefined}
+                          className="h-4 w-4"
+                        />
                         <span>= {String(shape)}</span>
                       </div>
                     ))}
@@ -665,7 +749,6 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                             index + 1
                         );
                   const { color, isQuestion } = parseShapeWithColor(shapeText);
-                  const icon = getShapeIcon(shapeText);
 
                   return (
                     <motion.div
@@ -684,9 +767,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                         <span className="text-3xl font-bold text-primary">?</span>
                       ) : (
                         <>
-                          <span className="text-4xl" style={{ color: color || "currentColor" }}>
-                            {icon}
-                          </span>
+                          <ShapeGlyph
+                            shapeText={shapeText}
+                            color={color ?? undefined}
+                            className="h-10 w-10"
+                          />
                           {color && (
                             <span className="text-[10px] text-muted-foreground mt-1 capitalize">
                               {shapeText.split(" ").pop()}
