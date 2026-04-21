@@ -21,6 +21,11 @@ _DEDUCIBLE_SUBSTITUTION_RULES = {
 
 def _known_key_symbols(raw_key: Any) -> Set[str]:
     if isinstance(raw_key, dict):
+        mapping_known = raw_key.get("mapping_known")
+        if isinstance(mapping_known, dict):
+            return {
+                str(key).upper() for key in mapping_known.keys() if str(key).strip()
+            }
         return {str(key).upper() for key in raw_key.keys() if str(key).strip()}
 
     if isinstance(raw_key, str):

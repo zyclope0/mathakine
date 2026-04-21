@@ -35,6 +35,28 @@ def test_sanitize_leaky_title_for_high_difficulty_coding() -> None:
     )
 
 
+def test_sanitize_leaky_title_for_coding_even_when_rating_is_medium() -> None:
+    assert (
+        sanitize_leaky_title("coding", "Le cadenas César du professeur distrait", 3.0)
+        == "Le message sous scellés"
+    )
+
+
+def test_sanitize_leaky_title_for_coding_keyword_in_title() -> None:
+    assert (
+        sanitize_leaky_title(
+            "coding",
+            "Cryptogramme « Galileo » : citation masquée",
+            3.2,
+            {
+                "type": "substitution",
+                "partial_key": {"keyword_length": 7},
+            },
+        )
+        == "Le message sous scellés"
+    )
+
+
 def test_validate_title_difficulty_coherence_errors_when_high_rating() -> None:
     err = validate_title_difficulty_coherence("Suite x2 a chaque pas", 4.5)
     assert err and "titre" in err[0].lower()

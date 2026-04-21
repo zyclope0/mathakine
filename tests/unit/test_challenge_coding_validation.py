@@ -54,6 +54,25 @@ def test_coding_substitution_accepts_deducible_string_partial_key():
     assert err == []
 
 
+def test_coding_substitution_accepts_deducible_object_partial_key_mapping_known():
+    err = validate_coding_challenge(
+        {
+            "type": "substitution",
+            "rule_type": "keyword",
+            "encoded_message": "KGTCEKGTDLGJ JNBDL DS OUM",
+            "partial_key": {
+                "keyword_length": 7,
+                "theme_clue": "astronomie",
+                "mapping_known": {"G": "A", "A": "B"},
+            },
+        },
+        "MATHEMATICAL LOGIC IS FUN",
+        "keyword cipher",
+    )
+
+    assert err == []
+
+
 def test_coding_substitution_string_partial_key_requires_enough_signal():
     err = validate_coding_challenge(
         {

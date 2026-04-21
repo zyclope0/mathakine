@@ -859,8 +859,20 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
         else None
     )
 
+    # Parser visual_data si nécessaire
+    if isinstance(visual_data, str):
+        try:
+            visual_data = json.loads(visual_data)
+        except json.JSONDecodeError:
+            return corrected
+
     title = str(corrected.get("title", "") or "")
-    sanitized_title = sanitize_leaky_title(challenge_type, title, difficulty_rating)
+    sanitized_title = sanitize_leaky_title(
+        challenge_type,
+        title,
+        difficulty_rating,
+        visual_data if isinstance(visual_data, dict) else {},
+    )
     if sanitized_title and sanitized_title != title:
         logger.info(
             "Correction automatique titre (fuite de règle): '%s' → '%s'",
@@ -868,13 +880,6 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
             sanitized_title,
         )
         corrected["title"] = sanitized_title
-
-    # Parser visual_data si nécessaire
-    if isinstance(visual_data, str):
-        try:
-            visual_data = json.loads(visual_data)
-        except json.JSONDecodeError:
-            return corrected
 
     # Correction pour PATTERN
     if challenge_type == "PATTERN" and visual_data and "grid" in visual_data:

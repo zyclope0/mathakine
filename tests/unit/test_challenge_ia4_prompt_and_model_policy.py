@@ -18,6 +18,7 @@ from app.services.challenges.challenge_ai_model_policy import (
 )
 from app.services.challenges.challenge_prompt_composition import (
     build_challenge_system_prompt,
+    build_challenge_user_prompt,
     challenge_system_prompt_stats,
 )
 
@@ -38,6 +39,9 @@ def test_coding_prompt_includes_crypto_contract() -> None:
     assert "VISUAL_DATA OBLIGATOIRE (type coding" in p
     assert "caesar" in p.lower()
     assert "pas une chaîne masquée" in p
+    assert (
+        "Ne mets pas `keyword_length`, `theme_clue` ni `mapping_known` à la racine" in p
+    )
     assert "6. CODING" in p
 
 
@@ -49,6 +53,19 @@ def test_coding_prompt_requires_hidden_rule_for_high_difficulty() -> None:
     assert "pas de clé complète/quasi complète" in p
     assert "le mot-clé supposé" in p
     assert "nombre de caractères" in p
+
+
+def test_user_prompt_uses_interface_locale_for_output_language() -> None:
+    p = build_challenge_user_prompt("coding", "15-17", "", locale="en-US")
+    assert "Langue de l'interface : en-US" in p
+    assert "rédige les champs visibles en anglais" in p
+    assert "`correct_answer` doit être en anglais" in p
+
+
+def test_user_prompt_falls_back_to_french_for_unknown_locale() -> None:
+    p = build_challenge_user_prompt("coding", "15-17", "", locale="zz-ZZ")
+    assert "Langue de l'interface : zz-ZZ" in p
+    assert "rédige les champs visibles en français" in p
 
 
 def test_visual_adult_injects_complexity_rule() -> None:

@@ -318,7 +318,12 @@ async def generate_challenge_stream(
             system_prompt += "\n\n" + build_personalization_prompt_section_from_meta(
                 personalization
             )
-        user_prompt = build_challenge_user_prompt(challenge_type, age_group, prompt)
+        user_prompt = build_challenge_user_prompt(
+            challenge_type,
+            age_group,
+            prompt,
+            locale=locale,
+        )
 
         if AIConfig.is_o1_model(ai_params["model"]):
             system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/aprÃ¨s. Aucune explication hors du JSON."

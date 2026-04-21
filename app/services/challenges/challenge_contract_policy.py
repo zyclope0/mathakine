@@ -442,6 +442,12 @@ _CODING_ENCODED_MESSAGE_ALIASES = (
     "coded_message",
     "encrypted_message",
 )
+_CODING_PARTIAL_KEY_ROOT_FIELDS = (
+    "keyword_length",
+    "theme_clue",
+    "mapping_known",
+    "rule_type",
+)
 
 
 def normalize_coding_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -465,6 +471,23 @@ def normalize_coding_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
 
     for alias in _CODING_ENCODED_MESSAGE_ALIASES:
         out.pop(alias, None)
+
+    if str(out.get("type", "")).strip().lower() == "substitution":
+        partial_key = out.get("partial_key")
+        canonical_partial_key = (
+            dict(partial_key) if isinstance(partial_key, dict) else {}
+        )
+        for field in _CODING_PARTIAL_KEY_ROOT_FIELDS:
+            if field not in canonical_partial_key and out.get(field) is not None:
+                canonical_partial_key[field] = out[field]
+
+        if canonical_partial_key:
+            out["partial_key"] = canonical_partial_key
+            if not out.get("rule_type") and canonical_partial_key.get("rule_type"):
+                out["rule_type"] = canonical_partial_key["rule_type"]
+
+        for field in ("keyword_length", "theme_clue", "mapping_known"):
+            out.pop(field, None)
 
     return out
 

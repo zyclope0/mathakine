@@ -75,6 +75,15 @@ AGE_GROUP_PARAMS = {
     },
 }
 
+_SUPPORTED_OUTPUT_LANGUAGES = {
+    "fr": "français",
+    "en": "anglais",
+    "es": "espagnol",
+    "de": "allemand",
+    "it": "italien",
+    "pt": "portugais",
+}
+
 
 def canonical_challenge_type_for_prompt(challenge_type: str) -> str:
     """Normalise le type pour lookup des sections (ex. spatial → visual)."""
@@ -130,12 +139,18 @@ def build_challenge_system_prompt(challenge_type: str, age_group: str) -> str:
     return "\n\n".join(parts)
 
 
+def _output_language_from_locale(locale: str) -> str:
+    lang = str(locale or "fr").split("-", 1)[0].split("_", 1)[0].lower()
+    return _SUPPORTED_OUTPUT_LANGUAGES.get(lang, "français")
+
+
 def build_challenge_user_prompt(
-    challenge_type: str, age_group: str, prompt: str
+    challenge_type: str, age_group: str, prompt: str, locale: str = "fr"
 ) -> str:
     """Construit le prompt utilisateur pour la génération de défis."""
     params = AGE_GROUP_PARAMS.get(age_group, AGE_GROUP_PARAMS["9-11"])
     age_display = params["display"]
+    output_language = _output_language_from_locale(locale)
     age_target_phrase = (
         "pour des adultes"
         if age_group == "adulte"
@@ -152,7 +167,12 @@ CONTRAINTES OBLIGATOIRES :
 - Type de défi : {challenge_type} (pas un autre type !)
 - Groupe d'âge : {age_display} (adapter la complexité et le vocabulaire)
 - Le visual_data DOIT correspondre au type {challenge_type}
-- La difficulté doit être adaptée à {age_display}"""
+- La difficulté doit être adaptée à {age_display}
+
+LANGUE DE SORTIE :
+- Langue de l'interface : {locale or "fr"} → rédige les champs visibles en {output_language}.
+- `correct_answer` doit être en {output_language} quand la réponse est un mot, une phrase ou un message décodé ; garde seulement les notations mathématiques/coordonnées/codes dans leur forme standard.
+- Si la locale est ambiguë ou non prise en charge, utilise le français."""
 
     if prompt:
         user_prompt += f"""

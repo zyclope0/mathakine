@@ -157,8 +157,8 @@ IMPORTANT pour VISUAL :
 
 TEXT_VISUAL_DATA_CODING = """VISUAL_DATA OBLIGATOIRE (type coding = cryptographie / décodage) :
 - César : {{"type": "caesar", "encoded_message": "...", "shift": N, ...}} ; utiliser EXACTEMENT la clé `encoded_message`, pas `cipher_text`.
-- Substitution : clé complète (26 lettres) OU partial_key seulement si règle DÉDUCTIBLE + "rule_type": "caesar"|"atbash"|"keyword".
-- Pour substitution avec partial_key : utiliser un OBJET JSON (ex. {{"keyword_length": 6, "theme_clue": "astronome", "mapping_known": {{"G": "A", "A": "B"}}}}), pas une chaîne masquée comme "GALIEO????".
+- Substitution : clé complète (26 lettres) OU `partial_key` seulement si règle DÉDUCTIBLE + `rule_type`: "caesar"|"atbash"|"keyword".
+- Pour substitution avec partial_key : utiliser un OBJET JSON dans la clé `partial_key`, ex. {{"partial_key": {{"keyword_length": 6, "theme_clue": "astronome", "mapping_known": {{"G": "A", "A": "B"}}}}, "rule_type": "keyword"}}. Ne mets pas `keyword_length`, `theme_clue` ni `mapping_known` à la racine de `visual_data`, et n'utilise pas une chaîne masquée comme "GALIEO????".
 - Binaire, symboles, algorithme simple, labyrinthe : voir formats standards du projet.
 - RÈGLE DIFFICULTÉ CODING : pour difficulty_rating >= 4.0, le décodage doit demander une vraie inférence : décalage César non fourni, mot-clé à déduire, clé partielle courte, message long, ou double transformation explicable.
 - Pour difficulty_rating >= 4.0 : ne pas afficher de décalage César, ne pas donner de clé complète/quasi complète, et ne pas mettre dans le titre le nom du chiffrement, la transformation, le mot-clé supposé ou un mot important du texte clair.

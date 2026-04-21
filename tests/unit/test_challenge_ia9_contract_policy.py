@@ -206,6 +206,56 @@ def test_normalize_coding_visual_data_canonicalizes_cipher_text_alias() -> None:
     assert "cipher_text" not in vd
 
 
+def test_normalize_coding_visual_data_nests_root_substitution_partial_key() -> None:
+    vd = apply_visual_contract_normalization(
+        "coding",
+        {
+            "type": "substitution",
+            "rule_type": "keyword",
+            "keyword_length": 7,
+            "theme_clue": "astronomie",
+            "mapping_known": {"G": "A", "A": "B"},
+            "encoded_message": "KGTCEKGTDLGJ JNBDL DS OUM",
+        },
+    )
+
+    assert vd["partial_key"] == {
+        "keyword_length": 7,
+        "theme_clue": "astronomie",
+        "mapping_known": {"G": "A", "A": "B"},
+        "rule_type": "keyword",
+    }
+    assert "keyword_length" not in vd
+    assert "theme_clue" not in vd
+    assert "mapping_known" not in vd
+
+
+def test_validate_challenge_logic_accepts_root_substitution_partial_key_aliases() -> (
+    None
+):
+    ok, errors = validate_challenge_logic(
+        {
+            "challenge_type": "CODING",
+            "title": "Le mot-clé perdu de l'astronome",
+            "description": "d" * 12,
+            "question": "Décode le message.",
+            "correct_answer": "MATHEMATICAL LOGIC IS FUN",
+            "solution_explanation": "e" * 12,
+            "difficulty_rating": 4.1,
+            "visual_data": {
+                "type": "substitution",
+                "rule_type": "keyword",
+                "keyword_length": 7,
+                "theme_clue": "astronomie",
+                "mapping_known": {"G": "A", "A": "B"},
+                "encoded_message": "KGTCEKGTDLGJ JNBDL DS OUM",
+            },
+        }
+    )
+
+    assert ok, errors
+
+
 def test_validate_symmetry_canonical_rejects_bad_side_values() -> None:
     vd = {
         "type": "symmetry",

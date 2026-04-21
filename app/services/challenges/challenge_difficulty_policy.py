@@ -82,13 +82,26 @@ def sanitize_leaky_title(
     challenge_type: str,
     title: str,
     difficulty_rating: Optional[float],
+    visual_data: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """Neutralise un titre trop explicite quand on vise une difficulté élevée."""
-    if difficulty_rating is None or difficulty_rating < 4.0:
-        return str(title or "")
-    if not title_suggests_rule_leak(title):
-        return str(title or "")
     key = (challenge_type or "").strip().upper()
+    raw_title = str(title or "")
+    vd = visual_data if isinstance(visual_data, dict) else {}
+
+    # CODING est sensible aux titres : le badge indique déjà le type, donc
+    # répéter "César", "binaire" ou le mot-clé dans le titre casse l'enquête.
+    if key == "CODING" and (
+        title_suggests_rule_leak(raw_title)
+        or _coding_title_exposes_keyword_hint(raw_title, vd)
+    ):
+        return _SAFE_HIGH_DIFFICULTY_TITLES[key]
+
+    # Pour les autres types, on conserve le comportement historique :
+    # neutralisation seulement quand le rating prétend être élevé.
+    if difficulty_rating is None or difficulty_rating < 4.0:
+        return raw_title
+    if not title_suggests_rule_leak(raw_title):
+        return raw_title
     return _SAFE_HIGH_DIFFICULTY_TITLES.get(key, "Le défi caché")
 
 
