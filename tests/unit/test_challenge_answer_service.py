@@ -48,6 +48,11 @@ class TestNormalizeShapeAnswer:
     def test_color_first(self):
         assert normalize_shape_answer("bleu carré") == "carre bleu"
 
+    def test_extended_polygon_color_first(self):
+        assert normalize_shape_answer("bleu heptagone") == "heptagone bleu"
+        assert normalize_shape_answer("jaune octogone") == "octogone jaune"
+        assert normalize_shape_answer("violet nonagone") == "nonagone violet"
+
     def test_empty(self):
         assert normalize_shape_answer("") == ""
 
@@ -220,8 +225,40 @@ class TestVisualPattern:
             is True
         )
 
+    # ── check_answer (dispatch) ──────────────────────────────────────────────
 
-# ── check_answer (dispatch) ──────────────────────────────────────────────
+    def test_visual_ordered_csv_requires_all_items_in_order(self):
+        correct = "heptagone bleu, hexagone jaune, carré orange"
+
+        assert (
+            compare_visual_pattern(
+                "heptagone bleu, hexagone jaune, carre orange",
+                correct,
+                "visual",
+            )
+            is True
+        )
+        assert compare_visual_pattern("heptagone bleu", correct, "visual") is False
+        assert (
+            compare_visual_pattern(
+                "hexagone jaune, heptagone bleu, carre orange",
+                correct,
+                "visual",
+            )
+            is False
+        )
+
+    def test_visual_ordered_csv_accepts_color_first_and_semicolon_separator(self):
+        correct = "heptagone bleu, hexagone jaune, carré orange"
+
+        assert (
+            compare_visual_pattern(
+                "bleu heptagone; jaune hexagone; orange carre",
+                correct,
+                "visual",
+            )
+            is True
+        )
 
 
 class TestCheckAnswer:

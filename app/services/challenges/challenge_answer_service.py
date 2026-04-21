@@ -75,6 +75,9 @@ _SHAPES = frozenset(
         "etoile",
         "hexagone",
         "pentagone",
+        "heptagone",
+        "octogone",
+        "nonagone",
     }
 )
 
@@ -94,6 +97,12 @@ _COLORS = frozenset(
         "blue",
         "green",
         "yellow",
+        "purple",
+        "gray",
+        "grey",
+        "pink",
+        "black",
+        "white",
     }
 )
 
@@ -103,7 +112,12 @@ _SHAPE_SYNONYMS: List[Tuple[str, str]] = [
     ("circle", "cercle"),
     ("carré", "carre"),
     ("étoile", "etoile"),
+    ("heptagon", "heptagone"),
+    ("octagon", "octogone"),
+    ("nonagon", "nonagone"),
 ]
+
+_ANSWER_LIST_SEPARATOR_RE = re.compile(r"\s*(?:,|;|\n)\s*")
 
 
 # ---------------------------------------------------------------------------
@@ -126,8 +140,7 @@ def normalize_shape_answer(text: str) -> str:
         return ""
     t = text.lower().strip()
     for old, new in _SHAPE_SYNONYMS:
-        if old in t:
-            t = t.replace(old, new)
+        t = re.sub(rf"\b{re.escape(old)}\b", new, t)
     t = normalize_accents(t)
     mots = t.split()
     f, c = None, None
@@ -151,7 +164,7 @@ def parse_multi_visual_answer(text: str) -> List[Tuple[int, str]]:
     if not text or not text.strip():
         return []
     parts: List[Tuple[int, str]] = []
-    for segment in text.replace(",", " , ").split(","):
+    for segment in _ANSWER_LIST_SEPARATOR_RE.split(text.strip()):
         segment = segment.strip()
         if not segment:
             continue
@@ -190,8 +203,12 @@ def parse_answer_to_list(answer: str) -> List[str]:
                 items.append(item)
         return items
 
-    if "," in answer:
-        return [item.strip().lower() for item in answer.split(",") if item.strip()]
+    if _ANSWER_LIST_SEPARATOR_RE.search(answer):
+        return [
+            item.strip().lower()
+            for item in _ANSWER_LIST_SEPARATOR_RE.split(answer)
+            if item.strip()
+        ]
 
     parts = [p.strip().lower() for p in answer.split() if p.strip()]
     if len(parts) > 1:
@@ -382,14 +399,14 @@ def compare_visual_pattern(
 
     effective_correct = (correct_answer or computed_pattern_answer or "").strip()
 
-    is_pattern_multi_csv = (
-        "pattern" in challenge_type
+    is_ordered_multi_answer = (
+        ("pattern" in challenge_type or "visual" in challenge_type)
         and effective_correct
-        and "," in effective_correct
+        and _ANSWER_LIST_SEPARATOR_RE.search(effective_correct)
         and "position" not in effective_correct.lower()
     )
 
-    if is_pattern_multi_csv:
+    if is_ordered_multi_answer:
         user_list = parse_answer_to_list(user_answer)
         correct_list = parse_answer_to_list(effective_correct)
         user_norm = [normalize_shape_answer(u) for u in user_list]
