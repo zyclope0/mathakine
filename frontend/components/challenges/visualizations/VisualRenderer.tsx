@@ -48,6 +48,12 @@ function parseShapeWithColor(shapeText: string): {
     hexagon: "hexagone",
     pentagone: "pentagone",
     pentagon: "pentagone",
+    heptagone: "heptagone",
+    heptagon: "heptagone",
+    octogone: "octogone",
+    octagon: "octogone",
+    nonagone: "nonagone",
+    nonagon: "nonagone",
   };
 
   // Trouver la forme dans le texte
@@ -87,6 +93,11 @@ function getShapeIcon(shape: string): string {
 }
 
 type SymmetryCell = Record<string, unknown>;
+type SymmetryPair = {
+  left: SymmetryCell;
+  right: SymmetryCell;
+  rowIndex: number;
+};
 
 /**
  * Ordre stable : ``position`` numérique si présent, sinon ordre d'origine dans le tableau.
@@ -123,6 +134,67 @@ export function partitionSymmetryLayoutBySide(layout: SymmetryCell[]): {
   return { left, right };
 }
 
+function shapeTextFromCell(item: SymmetryCell): string {
+  return String(item.shape ?? item.label ?? item.value ?? "").trim();
+}
+
+function isQuestionCell(item: SymmetryCell): boolean {
+  return Boolean(item.question) || shapeTextFromCell(item).includes("?");
+}
+
+function symmetryCellFromElement(
+  side: "left" | "right",
+  rawElement: unknown,
+  rowIndex: number
+): SymmetryCell {
+  const shape = String(rawElement ?? "").trim();
+  return {
+    side,
+    shape,
+    position: rowIndex + 1,
+    question: shape.includes("?"),
+  };
+}
+
+function groupedElementsForSide(layout: SymmetryCell[], side: "left" | "right"): unknown[] {
+  const group = layout.find(
+    (item) => String(item.side ?? "").toLowerCase() === side && Array.isArray(item.elements)
+  );
+  return group && Array.isArray(group.elements) ? group.elements : [];
+}
+
+/**
+ * OpenAI produit parfois `layout: [{ side: "left", elements: [...] }, ...]`.
+ * Le rendu attendu est une matrice de paires ligne par ligne, pas deux gros blocs.
+ */
+export function buildGroupedSymmetryLayoutPairs(layout: SymmetryCell[]): SymmetryPair[] {
+  const leftElements = groupedElementsForSide(layout, "left");
+  const rightElements = groupedElementsForSide(layout, "right");
+  const rowCount = Math.max(leftElements.length, rightElements.length);
+  if (rowCount === 0) return [];
+
+  return Array.from({ length: rowCount }, (_, rowIndex) => ({
+    left: symmetryCellFromElement("left", leftElements[rowIndex] ?? "", rowIndex),
+    right: symmetryCellFromElement("right", rightElements[rowIndex] ?? "", rowIndex),
+    rowIndex,
+  }));
+}
+
+export function buildPositionedSymmetryLayoutPairs(layout: SymmetryCell[]): SymmetryPair[] {
+  const hasPositions = layout.some((item) => typeof item.position === "number");
+  if (!hasPositions) return [];
+
+  const { left, right } = partitionSymmetryLayoutBySide(layout);
+  const rowCount = Math.max(left.length, right.length);
+  if (rowCount === 0) return [];
+
+  return Array.from({ length: rowCount }, (_, rowIndex) => ({
+    left: left[rowIndex] ?? symmetryCellFromElement("left", "", rowIndex),
+    right: right[rowIndex] ?? symmetryCellFromElement("right", "", rowIndex),
+    rowIndex,
+  }));
+}
+
 /** Scale selon le nombre de cellules (évite débordement 6+ par côté). */
 function getDefaultScale(visualData: Record<string, unknown> | null): number {
   if (!visualData) return 1;
@@ -140,6 +212,8 @@ function getDefaultScale(visualData: Record<string, unknown> | null): number {
   const layout = Array.isArray(p?.layout) ? (p.layout as SymmetryCell[]) : [];
   const isSym = p?.type === "symmetry" || !!p?.symmetry_line;
   if (!isSym || layout.length === 0) return 1;
+  if (buildGroupedSymmetryLayoutPairs(layout).length > 0) return 1;
+  if (buildPositionedSymmetryLayoutPairs(layout).length > 0) return 1;
   const { left, right } = partitionSymmetryLayoutBySide(layout);
   const n = Math.max(left.length, right.length);
   if (n >= 8) return 0.5;
@@ -179,6 +253,63 @@ function SymmetryMirrorCell({
         <span style={color ? { color } : undefined}>{getShapeIcon(String(item.shape ?? ""))}</span>
       )}
     </motion.div>
+  );
+}
+
+function SymmetryPairCell({
+  item,
+  side,
+  rowIndex,
+}: {
+  item: SymmetryCell;
+  side: "left" | "right";
+  rowIndex: number;
+}) {
+  const shapeText = shapeTextFromCell(item);
+  const parsed = parseShapeWithColor(shapeText);
+  const color = resolveVisualizationColor(parsed.color ?? undefined);
+  const isQuestion = isQuestionCell(item);
+  const fromLeft = side === "left";
+
+  return (
+    <motion.div
+      className={`min-h-12 rounded-xl border-2 px-3 py-2 flex items-center gap-2 ${
+        isQuestion ? "border-dashed border-primary/70 bg-primary/5" : "border-primary/30 bg-card"
+      }`}
+      initial={{ opacity: 0, x: fromLeft ? -12 : 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: rowIndex * 0.04 }}
+      aria-label={isQuestion ? "Forme manquante" : shapeText}
+      title={shapeText || (isQuestion ? "Forme manquante" : undefined)}
+    >
+      {isQuestion ? (
+        <span className="text-xl font-bold text-primary">?</span>
+      ) : (
+        <>
+          <span className="text-lg font-semibold" style={color ? { color } : undefined}>
+            {getShapeIcon(shapeText)}
+          </span>
+          <span className="min-w-0 truncate text-xs sm:text-sm text-foreground">{shapeText}</span>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+function SymmetryPairRows({ pairs }: { pairs: SymmetryPair[] }) {
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-1.5">
+      {pairs.map((pair) => (
+        <div
+          key={`sym-pair-${pair.rowIndex}`}
+          className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3"
+        >
+          <SymmetryPairCell item={pair.left} side="left" rowIndex={pair.rowIndex} />
+          <div className="h-12 w-0.5 rounded-full bg-primary/50" aria-hidden />
+          <SymmetryPairCell item={pair.right} side="right" rowIndex={pair.rowIndex} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -360,12 +491,19 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
               >
                 {(() => {
                   const cells = layout as SymmetryCell[];
+                  const groupedPairs = buildGroupedSymmetryLayoutPairs(cells);
+                  const positionedPairs = buildPositionedSymmetryLayoutPairs(cells);
+                  const pairRows = groupedPairs.length > 0 ? groupedPairs : positionedPairs;
                   const { left: leftCells, right: rightCells } =
                     partitionSymmetryLayoutBySide(cells);
                   const axis = String(symmetryLine ?? "vertical").toLowerCase();
                   const isVertical = axis === "vertical" || axis === "v";
 
                   if (isVertical) {
+                    if (pairRows.length > 0) {
+                      return <SymmetryPairRows pairs={pairRows} />;
+                    }
+
                     const totalCols = leftCells.length + 1 + rightCells.length;
                     return (
                       <div

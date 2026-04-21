@@ -69,6 +69,44 @@ def _upper_type(challenge_type: str) -> str:
     return (challenge_type or "").strip().upper()
 
 
+def _flatten_grouped_symmetry_layout(
+    layout: List[Any],
+) -> Optional[List[Dict[str, Any]]]:
+    """Convertit [{side, elements:[...]}] en layout canonique par cellule."""
+    grouped: Dict[str, List[Any]] = {}
+    for item in layout:
+        if not isinstance(item, dict):
+            continue
+        side = str(item.get("side", "")).lower().strip()
+        elements = item.get("elements")
+        if side in ("left", "right") and isinstance(elements, list):
+            grouped[side] = elements
+
+    if not grouped:
+        return None
+
+    row_count = max((len(elements) for elements in grouped.values()), default=0)
+    if row_count == 0:
+        return None
+
+    flat_items: List[Dict[str, Any]] = []
+    for row_idx in range(row_count):
+        for side in ("left", "right"):
+            elements = grouped.get(side, [])
+            if row_idx >= len(elements):
+                continue
+            shape = str(elements[row_idx])
+            cell: Dict[str, Any] = {
+                "side": side,
+                "shape": shape,
+                "position": row_idx + 1,
+            }
+            if "?" in shape:
+                cell["question"] = True
+            flat_items.append(cell)
+    return flat_items
+
+
 # Matrice source de vérité (types DB/API normalisés en majuscules).
 TYPE_CONTRACTS: Dict[str, ChallengeTypeContract] = {
     "SEQUENCE": ChallengeTypeContract(
@@ -343,10 +381,19 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
         for k in ("symmetryLine", "axis"):
             out.pop(k, None)
 
+        grouped_layout = (
+            _flatten_grouped_symmetry_layout(layout)
+            if isinstance(layout, list)
+            else None
+        )
+        if grouped_layout is not None:
+            layout = grouped_layout
+            out["layout"] = grouped_layout
+
         # Detect row-based format: [{"row": N, "left": [...], "right": [...]}]
         # OpenAI sometimes generates this instead of the canonical flat format.
         # Convert to canonical: [{"side": "left"|"right", "shape": "..."[, "question": true]}]
-        if (
+        elif (
             isinstance(layout, list)
             and layout
             and isinstance(layout[0], dict)
@@ -393,7 +440,7 @@ def apply_visual_contract_normalization(
     vd = dict(visual_data)
     ct = _upper_type(challenge_type)
 
-    if ct == "VISUAL":
+    if ct in ("VISUAL", "SPATIAL"):
         vd = normalize_symmetry_visual_data(vd)
 
     return vd

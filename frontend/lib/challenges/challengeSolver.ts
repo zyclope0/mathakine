@@ -14,6 +14,7 @@ import { resolveChallengeResponseMode } from "@/lib/challenges/resolveChallengeR
 import type { ChallengeResponseMode } from "@/lib/challenges/resolveChallengeResponseMode";
 import {
   extractShapeChoicesFromVisualData,
+  hasGroupedSymmetryLayout,
   parsePositionsFromCorrectAnswer,
   parsePositionsFromQuestion,
   parsePositionsFromLayout,
@@ -100,9 +101,10 @@ export function getChallengeVisualAnswerModel(
 
   const showMcq = responseMode === "single_choice" && choicesArray.length > 0;
   const isVisual = challenge.challenge_type?.toLowerCase() === "visual";
+  const groupedSymmetryLayout = isVisual && hasGroupedSymmetryLayout(challenge.visual_data);
 
   const visualChoices =
-    isVisual && challenge.visual_data
+    isVisual && challenge.visual_data && !groupedSymmetryLayout
       ? extractShapeChoicesFromVisualData(challenge.visual_data)
       : [];
 
@@ -112,10 +114,18 @@ export function getChallengeVisualAnswerModel(
       : parsePositionsFromQuestion(challenge.question).length > 0
         ? parsePositionsFromQuestion(challenge.question)
         : parsePositionsFromLayout(challenge.visual_data);
+  const correctAnswerText = String(challenge.correct_answer ?? "");
+  const usesOrderedCsvVisualAnswer =
+    isVisual &&
+    visualPositions.length >= 2 &&
+    correctAnswerText.includes(",") &&
+    !correctAnswerText.toLowerCase().includes("position");
 
   const hasVisualButtons =
     responseMode === "interactive_visual" &&
     !showMcq &&
+    !groupedSymmetryLayout &&
+    !usesOrderedCsvVisualAnswer &&
     visualChoices.length >= 2 &&
     !!challenge.visual_data;
 

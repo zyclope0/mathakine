@@ -134,6 +134,48 @@ def test_normalize_symmetry_converts_row_based_layout() -> None:
     assert question_items, "au moins un item doit avoir question=True"
 
 
+def test_normalize_symmetry_converts_grouped_side_elements_layout() -> None:
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {
+                    "side": "left",
+                    "elements": [
+                        "triangle rouge",
+                        "carré vert",
+                        "pentagone bleu",
+                        "?",
+                    ],
+                },
+                {
+                    "side": "right",
+                    "elements": [
+                        "nonagone rouge",
+                        "octogone vert",
+                        "?",
+                        "hexagone jaune",
+                    ],
+                },
+            ],
+        }
+    )
+
+    layout = vd.get("layout", [])
+    assert len(layout) == 8
+    assert layout[0] == {
+        "side": "left",
+        "shape": "triangle rouge",
+        "position": 1,
+    }
+    question_items = [
+        item for item in layout if isinstance(item, dict) and item.get("question")
+    ]
+    assert len(question_items) == 2
+    assert {item.get("position") for item in question_items} == {3, 4}
+
+
 def test_validate_symmetry_canonical_rejects_bad_side_values() -> None:
     vd = {
         "type": "symmetry",

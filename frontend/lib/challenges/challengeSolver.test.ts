@@ -189,6 +189,59 @@ describe("getChallengeVisualAnswerModel", () => {
       const model = getChallengeVisualAnswerModel(c, {});
       expect(model.derivedUserAnswerFromSelections).toBe("");
     });
+
+    it("garde une réponse texte pour un layout symmetry groupé", () => {
+      const c = challenge({
+        response_mode: "interactive_visual",
+        challenge_type: "visual",
+        visual_data: {
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            {
+              side: "left",
+              elements: ["triangle rouge", "carré vert", "pentagone bleu", "?"],
+            },
+            {
+              side: "right",
+              elements: ["nonagone rouge", "octogone vert", "?", "hexagone jaune"],
+            },
+          ],
+        },
+        correct_answer: "heptagone bleu, hexagone jaune",
+        choices: null,
+      });
+
+      const model = getChallengeVisualAnswerModel(c, {});
+
+      expect(model.visualPositions).toEqual([3, 4]);
+      expect(model.visualChoices).toEqual([]);
+      expect(model.hasVisualButtons).toBe(false);
+    });
+
+    it("garde une réponse texte après normalisation flat si la réponse attendue est une liste CSV", () => {
+      const c = challenge({
+        response_mode: "interactive_visual",
+        challenge_type: "visual",
+        visual_data: {
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            { side: "left", shape: "pentagone bleu", position: 3 },
+            { side: "right", shape: "?", position: 3, question: true },
+            { side: "left", shape: "?", position: 4, question: true },
+            { side: "right", shape: "hexagone jaune", position: 4 },
+          ],
+        },
+        correct_answer: "heptagone bleu, hexagone jaune",
+        choices: null,
+      });
+
+      const model = getChallengeVisualAnswerModel(c, {});
+
+      expect(model.visualPositions).toEqual([3, 4]);
+      expect(model.hasVisualButtons).toBe(false);
+    });
   });
 
   describe("fallback open_text", () => {

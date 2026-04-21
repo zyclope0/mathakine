@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
 import {
+  buildGroupedSymmetryLayoutPairs,
   partitionSymmetryLayoutBySide,
   stableSortSymmetryLayoutCells,
+  VisualRenderer,
 } from "@/components/challenges/visualizations/VisualRenderer";
 
 describe("VisualRenderer symmetry layout (IA9b)", () => {
@@ -31,5 +34,81 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     ];
     const sorted = stableSortSymmetryLayoutCells(items);
     expect(sorted.map((x) => x.shape)).toEqual(["a", "b", "c"]);
+  });
+
+  it("convertit un layout groupé side/elements en 7 paires visuelles", () => {
+    const pairs = buildGroupedSymmetryLayoutPairs([
+      {
+        side: "left",
+        elements: [
+          "triangle rouge",
+          "carré vert",
+          "pentagone bleu",
+          "?",
+          "nonagone violet",
+          "octogone orange",
+          "heptagone gris",
+        ],
+      },
+      {
+        side: "right",
+        elements: [
+          "nonagone rouge",
+          "octogone vert",
+          "?",
+          "hexagone jaune",
+          "triangle violet",
+          "?",
+          "pentagone gris",
+        ],
+      },
+    ]);
+
+    expect(pairs).toHaveLength(7);
+    expect(pairs.filter((pair) => pair.left.question || pair.right.question)).toHaveLength(3);
+    expect(pairs[2]?.right.shape).toBe("?");
+    expect(pairs[3]?.left.shape).toBe("?");
+  });
+
+  it("rend les colonnes groupées ligne par ligne au lieu de deux grands blocs", () => {
+    render(
+      <VisualRenderer
+        visualData={{
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            {
+              side: "left",
+              elements: [
+                "triangle rouge",
+                "carré vert",
+                "pentagone bleu",
+                "?",
+                "nonagone violet",
+                "octogone orange",
+                "heptagone gris",
+              ],
+            },
+            {
+              side: "right",
+              elements: [
+                "nonagone rouge",
+                "octogone vert",
+                "?",
+                "hexagone jaune",
+                "triangle violet",
+                "?",
+                "pentagone gris",
+              ],
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("triangle rouge")).toBeInTheDocument();
+    expect(screen.getByText("nonagone rouge")).toBeInTheDocument();
+    expect(screen.getByText("heptagone gris")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Forme manquante")).toHaveLength(3);
   });
 });

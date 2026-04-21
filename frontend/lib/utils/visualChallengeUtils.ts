@@ -20,6 +20,12 @@ const SHAPE_NAMES = [
   "hexagon",
   "pentagone",
   "pentagon",
+  "heptagone",
+  "heptagon",
+  "octogone",
+  "octagon",
+  "nonagone",
+  "nonagon",
 ];
 const COLOR_NAMES = [
   "rouge",
@@ -70,6 +76,18 @@ function toDisplayForm(shape: string): string {
   return m[shape.toLowerCase()] ?? shape;
 }
 
+export function hasGroupedSymmetryLayout(visualData: unknown): boolean {
+  if (!visualData || typeof visualData !== "object") return false;
+  const layout = (visualData as Record<string, unknown>).layout;
+  if (!Array.isArray(layout)) return false;
+  return layout.some((item: unknown) => {
+    if (!item || typeof item !== "object") return false;
+    const record = item as Record<string, unknown>;
+    const side = String(record.side ?? "").toLowerCase();
+    return (side === "left" || side === "right") && Array.isArray(record.elements);
+  });
+}
+
 /**
  * Extrait toutes les combinaisons "forme couleur" uniques depuis visual_data.
  * Ne pas orienter : on renvoie TOUTES les formes présentes (sauf "?").
@@ -101,6 +119,14 @@ export function extractShapeChoicesFromVisualData(visualData: unknown): string[]
     }
   };
 
+  const addElementsFromGroupedLayout = (item: Record<string, unknown>) => {
+    const elements = item.elements;
+    if (!Array.isArray(elements)) return;
+    for (const element of elements) {
+      add(String(element ?? ""));
+    }
+  };
+
   if (!visualData || typeof visualData !== "object") return [];
 
   const v = visualData as Record<string, unknown>;
@@ -128,6 +154,7 @@ export function extractShapeChoicesFromVisualData(visualData: unknown): string[]
         if (shape && color && shape !== "?" && color !== "?") {
           seen.add(`${toDisplayForm(shape)} ${toDisplayForm(color)}`);
         }
+        addElementsFromGroupedLayout(o);
       }
     }
   }
@@ -170,6 +197,24 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
 
   // Symmetry layout : left/right avec question: true
   const layout = v.layout;
+  if (Array.isArray(layout)) {
+    const groupedPositions: number[] = [];
+    for (const item of layout) {
+      if (!item || typeof item !== "object") continue;
+      const elements = (item as Record<string, unknown>).elements;
+      if (!Array.isArray(elements)) continue;
+      elements.forEach((element: unknown, idx: number) => {
+        const text = String(element ?? "");
+        if ((text === "?" || text.includes("?")) && !groupedPositions.includes(idx + 1)) {
+          groupedPositions.push(idx + 1);
+        }
+      });
+    }
+    if (groupedPositions.length > 0) {
+      return groupedPositions.sort((a, b) => a - b);
+    }
+  }
+
   if (
     Array.isArray(layout) &&
     layout.some((i: unknown) => (i as Record<string, unknown>)?.question)
@@ -189,10 +234,16 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
       .sort((a, b) => (itemPos(a) ?? 0) - (itemPos(b) ?? 0));
 
     leftItems.forEach((item: unknown, idx: number) => {
-      if ((item as Record<string, unknown>)?.question) positions.push(idx + 1);
+      if ((item as Record<string, unknown>)?.question) {
+        const pos = itemPos(item) ?? idx + 1;
+        if (!positions.includes(pos)) positions.push(pos);
+      }
     });
     rightItems.forEach((item: unknown, idx: number) => {
-      if ((item as Record<string, unknown>)?.question) positions.push(leftItems.length + idx + 1);
+      if ((item as Record<string, unknown>)?.question) {
+        const pos = itemPos(item) ?? leftItems.length + idx + 1;
+        if (!positions.includes(pos)) positions.push(pos);
+      }
     });
     return positions.sort((a, b) => a - b);
   }
