@@ -17,6 +17,20 @@ const PADDING = NODE_RADIUS + 8; // marge minimale pour que les nœuds ne soient
 
 type GraphNode = Record<string, unknown> | string | number;
 type GraphEdge = Record<string, unknown> | unknown[];
+type GraphPoint = { x: number; y: number };
+
+const EDGE_FROM_KEYS = ["from", "source", "u", "start"] as const;
+const EDGE_TO_KEYS = ["to", "target", "v", "end"] as const;
+const EDGE_WEIGHT_KEYS = [
+  "weight",
+  "cost",
+  "time",
+  "distance",
+  "label",
+  "value",
+  "poids",
+  "prix",
+] as const;
 
 function getNodeLabel(node: GraphNode, fallbackIndex: number): string {
   if (typeof node === "object" && node !== null) {
@@ -29,6 +43,109 @@ function getNodeLabel(node: GraphNode, fallbackIndex: number): string {
 
 function formatGraphCount(count: number, singular: string, plural: string): string {
   return `${count} ${count > 1 ? plural : singular}`;
+}
+
+function finiteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return null;
+
+  const parsed = Number(value.trim().replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function pointFromUnknown(value: unknown): GraphPoint | null {
+  if (Array.isArray(value) && value.length >= 2) {
+    const x = finiteNumber(value[0]);
+    const y = finiteNumber(value[1]);
+    return x !== null && y !== null ? { x, y } : null;
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const record = value as Record<string, unknown>;
+    const directX = finiteNumber(record.x ?? record.left);
+    const directY = finiteNumber(record.y ?? record.top);
+    if (directX !== null && directY !== null) return { x: directX, y: directY };
+
+    return pointFromUnknown(record.position ?? record.pos ?? record.coordinates ?? record.coords);
+  }
+
+  return null;
+}
+
+function recordValue(record: Record<string, unknown>, keys: readonly string[]): unknown {
+  for (const key of keys) {
+    if (record[key] !== undefined && record[key] !== null) return record[key];
+  }
+
+  return undefined;
+}
+
+function explicitPointForNode(
+  node: GraphNode,
+  key: string,
+  index: number,
+  explicitPositions: unknown
+): GraphPoint | null {
+  const nodePoint = pointFromUnknown(node);
+  if (nodePoint) return nodePoint;
+
+  if (!explicitPositions) return null;
+
+  if (Array.isArray(explicitPositions)) {
+    const byIndex = pointFromUnknown(explicitPositions[index]);
+    const matched = explicitPositions.find((item) => {
+      if (typeof item !== "object" || item === null) return false;
+      const label = getNodeLabel(item as GraphNode, -1).toUpperCase();
+      return label === key.toUpperCase();
+    });
+    return pointFromUnknown(matched) ?? byIndex;
+  }
+
+  if (typeof explicitPositions === "object") {
+    const positions = explicitPositions as Record<string, unknown>;
+    return (
+      pointFromUnknown(positions[key]) ??
+      pointFromUnknown(positions[key.toUpperCase()]) ??
+      pointFromUnknown(positions[key.toLowerCase()]) ??
+      pointFromUnknown(positions[String(index)])
+    );
+  }
+
+  return null;
+}
+
+function normalizeExplicitPoints(
+  rawPoints: GraphPoint[],
+  logicalW: number,
+  logicalH: number
+): GraphPoint[] | null {
+  const unique = new Set(rawPoints.map((point) => `${point.x}:${point.y}`));
+  if (unique.size < 2) return null;
+
+  const xs = rawPoints.map((point) => point.x);
+  const ys = rawPoints.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const rangeX = maxX - minX;
+  const rangeY = maxY - minY;
+  const availW = logicalW - 2 * PADDING;
+  const availH = logicalH - 2 * PADDING;
+
+  return rawPoints.map((point) => ({
+    x: rangeX === 0 ? logicalW / 2 : PADDING + ((point.x - minX) / rangeX) * availW,
+    y: rangeY === 0 ? logicalH / 2 : PADDING + ((point.y - minY) / rangeY) * availH,
+  }));
+}
+
+function splitRoute(route: unknown): [string, string] | null {
+  if (typeof route !== "string") return null;
+  const parts = route
+    .split(/\s*(?:<->|->|→|↔|–|—|-|à|to)\s*/iu)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.length >= 2 ? [parts[0]!, parts[1]!] : null;
 }
 
 /**
@@ -106,48 +223,24 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   // Rayon suffisant pour que les nœuds ne débordent pas
   const radius = Math.min(centerX, centerY) - PADDING;
 
-  const explicitPositions = (visualData?.positions ?? visualData?.layout) as
-    | Record<string, unknown>
-    | null
-    | undefined;
+  const explicitPositions = visualData?.positions ?? visualData?.coordinates ?? visualData?.layout;
+  const rawExplicitPoints = nodes.map((node, index) =>
+    explicitPointForNode(node, getNodeLabel(node, index), index, explicitPositions)
+  );
+  const normalizedExplicitPoints = rawExplicitPoints.every(Boolean)
+    ? normalizeExplicitPoints(rawExplicitPoints as GraphPoint[], logicalW, logicalH)
+    : null;
 
-  const nodePositions = nodes.map((node, index) => {
-    const key = getNodeLabel(node, index);
-
-    if (
-      explicitPositions &&
-      typeof explicitPositions === "object" &&
-      !Array.isArray(explicitPositions)
-    ) {
-      const pos =
-        (explicitPositions as Record<string, unknown>)[key.toUpperCase()] ??
-        (explicitPositions as Record<string, unknown>)[key];
-
-      if (
-        Array.isArray(pos) &&
-        pos.length >= 2 &&
-        typeof pos[0] === "number" &&
-        typeof pos[1] === "number"
-      ) {
-        // Normaliser les positions explicites dans l'espace logique
-        const rawMaxCoord = 200;
-        const availW = logicalW - 2 * PADDING;
-        const availH = logicalH - 2 * PADDING;
-        const scale = Math.min(availW / rawMaxCoord, availH / rawMaxCoord);
-        return {
-          x: PADDING + (pos[0] as number) * scale,
-          y: PADDING + (pos[1] as number) * scale,
-        };
-      }
-    }
-
-    // Layout circulaire — commence à -π/2 pour avoir le premier nœud en haut
-    const angle = -Math.PI / 2 + (2 * Math.PI * index) / nodes.length;
-    return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle),
-    };
-  });
+  const nodePositions =
+    normalizedExplicitPoints ??
+    nodes.map((_node, index) => {
+      // Layout circulaire — commence à -π/2 pour avoir le premier nœud en haut
+      const angle = -Math.PI / 2 + (2 * Math.PI * index) / nodes.length;
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      };
+    });
 
   // ─── Résoudre une arête en indices from/to + poids ────────────────────────
   function resolveEdge(edge: GraphEdge): {
@@ -159,18 +252,22 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     let toIndex: number | undefined;
     let weight: string | number | undefined;
 
-    if (
-      !Array.isArray(edge) &&
-      typeof edge === "object" &&
-      edge !== null &&
-      "from" in edge &&
-      "to" in edge
-    ) {
+    if (!Array.isArray(edge) && typeof edge === "object" && edge !== null) {
       const e = edge as Record<string, unknown>;
+      const fromRaw = recordValue(e, EDGE_FROM_KEYS);
+      const toRaw = recordValue(e, EDGE_TO_KEYS);
+      const routeParts = splitRoute(e.route ?? e.edge ?? e.name);
+      const resolvedFrom = fromRaw ?? routeParts?.[0];
+      const resolvedTo = toRaw ?? routeParts?.[1];
       fromIndex =
-        typeof e.from === "number" ? e.from : nodeMap.get(String(e.from ?? "").toUpperCase());
-      toIndex = typeof e.to === "number" ? e.to : nodeMap.get(String(e.to ?? "").toUpperCase());
-      const w = e.weight ?? e.cost ?? e.time ?? e.distance ?? e.label ?? e.value;
+        typeof resolvedFrom === "number"
+          ? resolvedFrom
+          : nodeMap.get(String(resolvedFrom ?? "").toUpperCase());
+      toIndex =
+        typeof resolvedTo === "number"
+          ? resolvedTo
+          : nodeMap.get(String(resolvedTo ?? "").toUpperCase());
+      const w = recordValue(e, EDGE_WEIGHT_KEYS);
       weight =
         w != null && (typeof w === "number" || typeof w === "string")
           ? w

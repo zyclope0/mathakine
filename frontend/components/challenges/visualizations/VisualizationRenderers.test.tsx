@@ -60,6 +60,33 @@ describe("Visualization renderers", () => {
     expect(screen.getByText(/pondéré/i)).toBeInTheDocument();
   });
 
+  it("rend les graphes avec coordonnées objet et arêtes au format route", async () => {
+    render(
+      <GraphRenderer
+        visualData={{
+          nodes: [
+            { id: "A", x: 0, y: 0 },
+            { id: "B", x: 100, y: 0 },
+            { id: "G", x: 50, y: 100 },
+          ],
+          edges: [
+            { route: "A-B", cost: 4 },
+            { route: "B-G", cost: 1 },
+            { route: "A-G", cost: 9 },
+          ],
+        }}
+      />
+    );
+
+    expect(await screen.findByText("A")).toBeInTheDocument();
+    expect(screen.getByText("B")).toBeInTheDocument();
+    expect(screen.getByText("G")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText(/3 nœuds/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 arêtes/i)).toBeInTheDocument();
+  });
+
   it("affiche les indices utiles d'une substitution sans [object Object]", async () => {
     render(
       <CodingRenderer

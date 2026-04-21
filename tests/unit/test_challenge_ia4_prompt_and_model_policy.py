@@ -37,6 +37,7 @@ def test_coding_prompt_includes_crypto_contract() -> None:
     p = build_challenge_system_prompt("coding", "12-14")
     assert "VISUAL_DATA OBLIGATOIRE (type coding" in p
     assert "caesar" in p.lower()
+    assert "pas une chaîne masquée" in p
     assert "6. CODING" in p
 
 
@@ -70,8 +71,10 @@ def test_probability_prompt_requires_french_visual_text_and_real_4_plus_layer() 
 def test_graph_prompt_requires_weighted_mst_contract() -> None:
     p = build_challenge_system_prompt("graph", "15-17")
     assert '"objective": "minimum_spanning_tree"' in p
+    assert '"objective": "shortest_path"' in p
     assert "chaque arête DOIT inclure un poids numérique" in p
     assert "recalcule Kruskal/Prim" in p
+    assert "recalcule Dijkstra" in p
 
 
 def test_prompt_discourages_under_rating_structurally_complex_challenges() -> None:

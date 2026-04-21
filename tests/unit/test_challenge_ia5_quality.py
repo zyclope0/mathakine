@@ -282,6 +282,49 @@ def test_validate_graph_challenge_rejects_wrong_minimum_spanning_tree_total() ->
     assert err and any("Attendu 38" in e for e in err)
 
 
+def _shortest_path_graph_visual_data() -> dict:
+    return {
+        "nodes": ["A", "B", "C", "D", "E", "F", "G"],
+        "edges": [
+            {"route": "A-B", "cost": 4},
+            {"route": "A-C", "cost": 2},
+            {"route": "B-C", "cost": 1},
+            {"route": "B-D", "cost": 5},
+            {"route": "C-G", "cost": 9},
+            {"route": "C-D", "cost": 8},
+            {"route": "C-E", "cost": 10},
+            {"route": "D-E", "cost": 2},
+            {"route": "D-F", "cost": 6},
+            {"route": "E-F", "cost": 3},
+            {"route": "E-G", "cost": 7},
+            {"route": "F-G", "cost": 1},
+        ],
+        "objective": "shortest_path",
+        "source": "A",
+        "target": "G",
+    }
+
+
+def test_validate_graph_challenge_accepts_shortest_path_total() -> None:
+    err = validate_graph_challenge(
+        _shortest_path_graph_visual_data(),
+        "11",
+        "Le chemin minimal de A à G passe par C.",
+    )
+
+    assert not err
+
+
+def test_validate_graph_challenge_rejects_wrong_shortest_path_total() -> None:
+    err = validate_graph_challenge(
+        _shortest_path_graph_visual_data(),
+        "12",
+        "Le chemin minimal de A à G passe par C.",
+    )
+
+    assert err and any("Attendu 11" in e for e in err)
+
+
 def test_validate_deduction_challenge_happy_path() -> None:
     vd = {
         "type": "logic_grid",

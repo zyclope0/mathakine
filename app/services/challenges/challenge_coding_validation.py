@@ -5,9 +5,28 @@ Extrait de challenge_validator (I5) pour réduire la densité du fichier princip
 et isoler les règles de cohérence type CODING vs SEQUENCE/VISUAL/PUZZLE.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from app.services.challenges.maze_validator import validate_maze_path
+
+_DEDUCIBLE_SUBSTITUTION_RULES = {
+    "caesar",
+    "cesar",
+    "atbash",
+    "reverse",
+    "keyword",
+    "cle-mot",
+}
+
+
+def _known_key_symbols(raw_key: Any) -> Set[str]:
+    if isinstance(raw_key, dict):
+        return {str(key).upper() for key in raw_key.keys() if str(key).strip()}
+
+    if isinstance(raw_key, str):
+        return {char.upper() for char in raw_key if char.isalpha()}
+
+    return set()
 
 
 def validate_coding_challenge(
@@ -145,19 +164,12 @@ def validate_coding_challenge(
             visual_data.get("rule_type") or visual_data.get("deducible_rule") or ""
         ).lower()
         letters_in_msg = set(c for c in msg if c.isalpha())
-        keys_upper = set(k.upper() for k in decode_key.keys())
-        missing = letters_in_msg - keys_upper
+        known_symbols = _known_key_symbols(decode_key)
+        missing = letters_in_msg - known_symbols
         # Si règle déductible (César, Atbash, clé-mot), partial_key avec 3+ exemples suffit
-        is_deducible = rule_type in (
-            "caesar",
-            "cesar",
-            "atbash",
-            "reverse",
-            "keyword",
-            "cle-mot",
-        )
+        is_deducible = rule_type in _DEDUCIBLE_SUBSTITUTION_RULES
         if is_deducible:
-            if len(decode_key) < 2:
+            if len(known_symbols) < 2:
                 errors.append(
                     "SUBSTITUTION: Avec rule_type déductible, fournir au moins 2-3 exemples dans partial_key."
                 )

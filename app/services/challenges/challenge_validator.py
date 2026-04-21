@@ -62,6 +62,7 @@ _GRAPH_ENDPOINT_FROM_KEYS = ("from", "source", "u", "start")
 _GRAPH_ENDPOINT_TO_KEYS = ("to", "target", "v", "end")
 _GRAPH_OBJECTIVE_KEYS = ("objective", "task", "question", "description")
 _GRAPH_NUMBER_RE = re.compile(r"[-+]?\d+(?:[.,]\d+)?")
+_GRAPH_ROUTE_SPLIT_RE = re.compile(r"\s*(?:<->|->|→|↔|–|—|-|à|to)\s*", re.I)
 
 
 class ChallengeValidationError(Exception):
@@ -319,6 +320,17 @@ def _graph_endpoint_index(
     return node_index_by_key.get(key)
 
 
+def _split_graph_route(raw_value: Any) -> Optional[Tuple[str, str]]:
+    if not isinstance(raw_value, str):
+        return None
+    parts = [
+        part.strip() for part in _GRAPH_ROUTE_SPLIT_RE.split(raw_value) if part.strip()
+    ]
+    if len(parts) < 2:
+        return None
+    return parts[0], parts[1]
+
+
 def _weighted_graph_edges(
     edges: List[Any],
     node_index_by_key: Dict[str, int],
@@ -334,6 +346,12 @@ def _weighted_graph_edges(
         if isinstance(edge, dict):
             from_raw = _first_present(edge, _GRAPH_ENDPOINT_FROM_KEYS)
             to_raw = _first_present(edge, _GRAPH_ENDPOINT_TO_KEYS)
+            route = _split_graph_route(
+                edge.get("route") or edge.get("edge") or edge.get("name")
+            )
+            if route is not None:
+                from_raw = from_raw if from_raw is not None else route[0]
+                to_raw = to_raw if to_raw is not None else route[1]
             weight_raw = _first_present(edge, _GRAPH_WEIGHT_KEYS)
         elif isinstance(edge, (list, tuple)) and len(edge) >= 3:
             from_raw, to_raw, weight_raw = edge[0], edge[1], edge[2]
@@ -393,6 +411,111 @@ def _minimum_spanning_tree_total(
     return total
 
 
+def _graph_text_mentions_shortest_path(
+    visual_data: Dict[str, Any], explanation: str
+) -> bool:
+    texts = [str(explanation or "")]
+    texts.extend(str(visual_data.get(key) or "") for key in _GRAPH_OBJECTIVE_KEYS)
+    joined = " ".join(texts).lower()
+
+    return (
+        "shortest_path" in joined
+        or "shortest path" in joined
+        or "plus court" in joined
+        or "chemin minimal" in joined
+        or "coût minimal" in joined
+        or "cout minimal" in joined
+        or "route la plus" in joined
+        or "trajet le plus rapide" in joined
+    )
+
+
+def _extract_shortest_path_endpoints(
+    visual_data: Dict[str, Any],
+    explanation: str,
+    node_index_by_key: Dict[str, int],
+) -> Optional[Tuple[int, int]]:
+    source = (
+        visual_data.get("source")
+        or visual_data.get("start")
+        or visual_data.get("origin")
+        or visual_data.get("from")
+    )
+    target = (
+        visual_data.get("target")
+        or visual_data.get("end")
+        or visual_data.get("destination")
+        or visual_data.get("to")
+    )
+
+    source_index = _graph_endpoint_index(
+        source, node_index_by_key, len(node_index_by_key)
+    )
+    target_index = _graph_endpoint_index(
+        target, node_index_by_key, len(node_index_by_key)
+    )
+    if source_index is not None and target_index is not None:
+        return source_index, target_index
+
+    texts = [str(explanation or "")]
+    texts.extend(str(visual_data.get(key) or "") for key in _GRAPH_OBJECTIVE_KEYS)
+    joined = " ".join(texts)
+    node_pattern = "|".join(re.escape(key) for key in node_index_by_key)
+    if not node_pattern:
+        return None
+
+    endpoint_patterns = (
+        rf"\b(?:de|from)\s+({node_pattern})\s+(?:à|a|to|jusqu['’]?\s*a?|vers)\s+({node_pattern})\b",
+        rf"\b({node_pattern})\s*(?:→|->|à|to)\s*({node_pattern})\b",
+    )
+    for pattern in endpoint_patterns:
+        match = re.search(pattern, joined, re.I)
+        if match:
+            left = node_index_by_key.get(match.group(1).upper())
+            right = node_index_by_key.get(match.group(2).upper())
+            if left is not None and right is not None:
+                return left, right
+    return None
+
+
+def _shortest_path_total(
+    node_count: int,
+    weighted_edges: List[Tuple[int, int, float]],
+    source_index: int,
+    target_index: int,
+    *,
+    directed: bool = False,
+) -> Optional[float]:
+    distances = [math.inf] * node_count
+    visited = [False] * node_count
+    adjacency: List[List[Tuple[int, float]]] = [[] for _ in range(node_count)]
+    for from_index, to_index, weight in weighted_edges:
+        if weight < 0:
+            return None
+        adjacency[from_index].append((to_index, weight))
+        if not directed:
+            adjacency[to_index].append((from_index, weight))
+
+    distances[source_index] = 0.0
+    for _ in range(node_count):
+        current = min(
+            (idx for idx in range(node_count) if not visited[idx]),
+            key=lambda idx: distances[idx],
+            default=None,
+        )
+        if current is None or math.isinf(distances[current]):
+            break
+        if current == target_index:
+            return distances[current]
+        visited[current] = True
+        for neighbor, weight in adjacency[current]:
+            candidate = distances[current] + weight
+            if candidate < distances[neighbor]:
+                distances[neighbor] = candidate
+
+    return None if math.isinf(distances[target_index]) else distances[target_index]
+
+
 def validate_graph_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
@@ -421,8 +544,17 @@ def validate_graph_challenge(
     if edges and isinstance(edges, list):
         for edge in edges:
             if isinstance(edge, dict):
-                from_node = str(edge.get("from", "")).upper()
-                to_node = str(edge.get("to", "")).upper()
+                route = _split_graph_route(
+                    edge.get("route") or edge.get("edge") or edge.get("name")
+                )
+                from_raw = _first_present(edge, _GRAPH_ENDPOINT_FROM_KEYS)
+                to_raw = _first_present(edge, _GRAPH_ENDPOINT_TO_KEYS)
+                from_node = str(
+                    from_raw if from_raw is not None else route[0] if route else ""
+                ).upper()
+                to_node = str(
+                    to_raw if to_raw is not None else route[1] if route else ""
+                ).upper()
             elif isinstance(edge, (list, tuple)) and len(edge) >= 2:
                 from_node = str(edge[0]).upper()
                 to_node = str(edge[1]).upper()
@@ -469,6 +601,41 @@ def validate_graph_challenge(
                 )
                 errors.append(
                     "GRAPH arbre couvrant minimal: correct_answer incohérent. "
+                    f"Attendu {expected_display}, reçu {correct_answer}."
+                )
+
+    if (
+        edges
+        and isinstance(edges, list)
+        and _graph_text_mentions_shortest_path(visual_data, explanation)
+    ):
+        weighted_edges = _weighted_graph_edges(edges, node_index_by_key, len(nodes))
+        answer_total = _parse_graph_number(correct_answer, allow_embedded=True)
+        endpoints = _extract_shortest_path_endpoints(
+            visual_data, explanation, node_index_by_key
+        )
+        if (
+            weighted_edges is not None
+            and answer_total is not None
+            and endpoints is not None
+        ):
+            expected_total = _shortest_path_total(
+                len(nodes),
+                weighted_edges,
+                endpoints[0],
+                endpoints[1],
+                directed=bool(visual_data.get("directed")),
+            )
+            if expected_total is not None and not math.isclose(
+                expected_total, answer_total, rel_tol=1e-9, abs_tol=1e-9
+            ):
+                expected_display = (
+                    int(expected_total)
+                    if expected_total.is_integer()
+                    else round(expected_total, 6)
+                )
+                errors.append(
+                    "GRAPH chemin minimal: correct_answer incohérent. "
                     f"Attendu {expected_display}, reçu {correct_answer}."
                 )
 

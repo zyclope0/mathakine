@@ -39,6 +39,36 @@ def test_coding_valid_caesar_minimal():
     assert err == []
 
 
+def test_coding_substitution_accepts_deducible_string_partial_key():
+    err = validate_coding_challenge(
+        {
+            "type": "substitution",
+            "rule_type": "keyword",
+            "encoded_message": "KGTCEKGTDLS DS TCE JGMBUGBE NO TCE UMDVERSE",
+            "partial_key": "GALIEO??????????????????????",
+        },
+        "MATHEMATICS IS THE LANGUAGE OF THE UNIVERSE",
+        "keyword cipher",
+    )
+
+    assert err == []
+
+
+def test_coding_substitution_string_partial_key_requires_enough_signal():
+    err = validate_coding_challenge(
+        {
+            "type": "substitution",
+            "rule_type": "keyword",
+            "encoded_message": "ABC",
+            "partial_key": "A?????????????????????????",
+        },
+        "XYZ",
+        "keyword cipher",
+    )
+
+    assert any("partial_key" in e for e in err)
+
+
 def test_coding_maze_invalid_path():
     maze = [["S", "."], ["#", "E"]]
     err = validate_coding_challenge(

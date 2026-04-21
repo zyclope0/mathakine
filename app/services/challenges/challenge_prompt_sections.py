@@ -130,6 +130,8 @@ TEXT_VISUAL_DATA_GRAPH = """VISUAL_DATA OBLIGATOIRE (type graph) :
 - Tous les noms dans edges DOIVENT exister dans nodes.
 - Si la question demande un arbre couvrant minimal : chaque arête DOIT inclure un poids numérique (ex. ["A", "B", 4]) et visual_data doit inclure "objective": "minimum_spanning_tree".
 - Pour un arbre couvrant minimal, correct_answer = somme minimale recalculée des arêtes choisies, pas une arête isolée ni une estimation.
+- Si la question demande un chemin/route minimal(e) : chaque arête DOIT inclure un poids numérique et visual_data doit inclure "objective": "shortest_path", "source": "A", "target": "G".
+- Pour un chemin minimal, correct_answer = coût total minimal recalculé (Dijkstra si poids positifs), pas la liste des nœuds seule.
 - Optionnel : "positions" pour placement explicite (x,y)."""
 
 TEXT_VISUAL_DATA_DEDUCTION = """VISUAL_DATA OBLIGATOIRE (type deduction) :
@@ -156,6 +158,7 @@ IMPORTANT pour VISUAL :
 TEXT_VISUAL_DATA_CODING = """VISUAL_DATA OBLIGATOIRE (type coding = cryptographie / décodage) :
 - César : {{"type": "caesar", "encoded_message": "...", "shift": N, ...}}
 - Substitution : clé complète (26 lettres) OU partial_key seulement si règle DÉDUCTIBLE + "rule_type": "caesar"|"atbash"|"keyword".
+- Pour substitution avec partial_key : utiliser un OBJET JSON (ex. {{"keyword_length": 6, "theme_clue": "astronome", "mapping_known": {{"G": "A", "A": "B"}}}}), pas une chaîne masquée comme "GALIEO????".
 - Binaire, symboles, algorithme simple, labyrinthe : voir formats standards du projet.
 - ⛔ INTERDIT pour coding : "sequence" de nombres, "pattern" grille décoratif, shapes/couleurs seuls, numbers/target/movement_options sans message à décoder.
 - correct_answer = mot ou phrase décodée (texte clair) ou directions pour maze.
@@ -245,7 +248,8 @@ TEXT_VAL_PROBABILITY = """9. PROBABILITY :
 
 TEXT_VAL_GRAPH = """10. GRAPH :
    - edges référencent uniquement des nodes existants ; explication alignée avec la question (chemin, distance, liste, etc.).
-   - Arbre couvrant minimal : recalcule Kruskal/Prim, vérifie que correct_answer est bien la somme minimale."""
+   - Arbre couvrant minimal : recalcule Kruskal/Prim, vérifie que correct_answer est bien la somme minimale.
+   - Chemin minimal : recalcule Dijkstra/plus court chemin, vérifie que correct_answer est bien le coût minimal."""
 
 TEXT_VAL_FINAL = """11. FINAL :
    - solution_explanation explique pourquoi correct_answer est correct, sans contradiction avec visual_data."""
