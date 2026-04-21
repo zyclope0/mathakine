@@ -118,7 +118,15 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
   const isMaze = maze && Array.isArray(maze) && maze.length > 0;
 
   // Données de cryptographie
-  const encodedMessage: string = String(visualData.encoded_message ?? visualData.message ?? "");
+  const encodedMessage: string = String(
+    visualData.encoded_message ??
+      visualData.cipher_text ??
+      visualData.ciphertext ??
+      visualData.coded_message ??
+      visualData.encrypted_message ??
+      visualData.message ??
+      ""
+  );
   const shift: number | undefined =
     typeof visualData.shift === "number"
       ? visualData.shift

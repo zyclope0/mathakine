@@ -43,6 +43,7 @@ _TITLE_RULE_LEAK_PATTERNS: Tuple[re.Pattern[str], ...] = (
     ),
     re.compile(r"\b(descend|descente|décroissant|decroissant)\b", re.I),
 )
+_QUOTED_TITLE_WORD_RE = re.compile(r"[«\"']\s*([A-Za-zÀ-ÖØ-öø-ÿ]{3,})\s*[»\"']")
 
 _SAFE_HIGH_DIFFICULTY_TITLES: Dict[str, str] = {
     "SEQUENCE": "La suite cachée",
@@ -153,6 +154,55 @@ def _grid_dimensions(grid: Any) -> Tuple[int, int]:
 
 def _list_len(value: Any) -> int:
     return len(value) if isinstance(value, list) else 0
+
+
+def _coding_key_signal_size(value: Any) -> int:
+    """Compte les éléments de clé réellement exposés au joueur."""
+    if isinstance(value, dict):
+        mapping_known = value.get("mapping_known")
+        if isinstance(mapping_known, dict):
+            return len(mapping_known)
+        return len(value)
+    if isinstance(value, str):
+        return sum(1 for char in value if char.isalpha())
+    if isinstance(value, (list, tuple, set)):
+        return len(value)
+    return 0
+
+
+def _coding_full_key(value: Dict[str, Any]) -> Any:
+    return value.get("full_key", value.get("key"))
+
+
+def _coding_keyword_length_hint(value: Dict[str, Any]) -> Optional[int]:
+    partial_key = value.get("partial_key")
+    if not isinstance(partial_key, dict):
+        return None
+    raw = partial_key.get("keyword_length")
+    try:
+        keyword_length = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return keyword_length if keyword_length >= 3 else None
+
+
+def _coding_title_exposes_keyword_hint(title: str, value: Dict[str, Any]) -> bool:
+    """
+    Détecte le cas précis où le titre donne probablement le mot-clé.
+
+    Conservateur : on ne regarde que les mots explicitement cités entre guillemets
+    et dont la longueur correspond au `keyword_length` demandé par la clé partielle.
+    """
+    if str(value.get("type", "")).strip().lower() != "substitution":
+        return False
+    keyword_length = _coding_keyword_length_hint(value)
+    if keyword_length is None:
+        return False
+    for match in _QUOTED_TITLE_WORD_RE.finditer(title or ""):
+        quoted_word = "".join(char for char in match.group(1) if char.isalpha())
+        if len(quoted_word) == keyword_length:
+            return True
+    return False
 
 
 def _count_numeric_leaf_values(value: Any) -> int:
@@ -504,10 +554,10 @@ def _coding_rating_floors(vd: Dict[str, Any]) -> List[Tuple[float, str]]:
     if coding_subtype != "substitution":
         return []
 
-    full_key = vd.get("key")
+    full_key = _coding_full_key(vd)
     partial_key = vd.get("partial_key")
-    key_size = len(full_key) if isinstance(full_key, dict) else 0
-    partial_size = len(partial_key) if isinstance(partial_key, dict) else 0
+    key_size = _coding_key_signal_size(full_key)
+    partial_size = _coding_key_signal_size(partial_key)
     has_exposed_key = key_size >= 10
     key_is_sparse = not has_exposed_key and (partial_size == 0 or partial_size <= 6)
     if key_is_sparse and len(chunks) >= 7:
@@ -651,7 +701,7 @@ def estimate_structure_signals(
         coding_subtype = str(vd.get("type", "") or "").strip().lower()
         encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
         chunks = [part for part in encoded_message.split() if part.strip()]
-        full_key = vd.get("key")
+        full_key = _coding_full_key(vd)
         partial_key = vd.get("partial_key")
         has_shift = vd.get("shift") is not None
         if coding_subtype == "binary":
@@ -663,14 +713,12 @@ def estimate_structure_signals(
             elements_to_deduce = max(1, len(chunks))
             reasoning_steps_hint = 2 if has_shift else 3
         elif coding_subtype == "substitution":
-            key_size = 0
-            if isinstance(full_key, dict):
-                key_size = len(full_key)
-            elif isinstance(partial_key, dict):
-                key_size = len(partial_key)
+            key_size = _coding_key_signal_size(full_key)
+            if key_size == 0:
+                key_size = _coding_key_signal_size(partial_key)
             constraint_count = key_size
             elements_to_deduce = max(1, len(chunks))
-            if isinstance(full_key, dict) and key_size >= 10:
+            if key_size >= 10 and _coding_key_signal_size(full_key) >= 10:
                 reasoning_steps_hint = 2
                 rule_visibility = "partial"
             else:
@@ -776,7 +824,7 @@ def validate_difficulty_structural_coherence(
         coding_subtype = str(vd.get("type", "") or "").strip().lower()
         encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
         chunks = [part for part in encoded_message.split() if part.strip()]
-        full_key = vd.get("key")
+        full_key = _coding_full_key(vd)
         has_shift = vd.get("shift") is not None
         if (
             coding_subtype == "binary"
@@ -794,8 +842,7 @@ def validate_difficulty_structural_coherence(
             )
         if (
             coding_subtype == "substitution"
-            and isinstance(full_key, dict)
-            and len(full_key) >= 10
+            and _coding_key_signal_size(full_key) >= 10
             and difficulty_rating >= 4.0
         ):
             errors.append(
@@ -923,8 +970,11 @@ def calibrate_challenge_difficulty(
         coding_subtype = str(vd.get("type", "") or "").strip().lower()
         encoded_message = str(vd.get("encoded_message") or vd.get("message") or "")
         chunks = [part for part in encoded_message.split() if part.strip()]
-        full_key = vd.get("key")
+        full_key = _coding_full_key(vd)
         has_shift = vd.get("shift") is not None
+        if _coding_title_exposes_keyword_hint(title, vd) and final > 3.2:
+            final = min(final, 3.2)
+            caps_applied.append("coding_keyword_in_title_cap_3_2")
         if coding_subtype == "binary" and 0 < len(chunks) <= 6 and final > 3.2:
             final = min(final, 3.2)
             caps_applied.append("coding_binary_short_payload_cap_3_2")
@@ -933,8 +983,7 @@ def calibrate_challenge_difficulty(
             caps_applied.append("coding_caesar_explicit_shift_cap_3_0")
         if (
             coding_subtype == "substitution"
-            and isinstance(full_key, dict)
-            and len(full_key) >= 10
+            and _coding_key_signal_size(full_key) >= 10
             and final > 3.2
         ):
             final = min(final, 3.2)

@@ -41,6 +41,16 @@ def test_coding_prompt_includes_crypto_contract() -> None:
     assert "6. CODING" in p
 
 
+def test_coding_prompt_requires_hidden_rule_for_high_difficulty() -> None:
+    p = build_challenge_system_prompt("coding", "15-17")
+    assert "RÈGLE DIFFICULTÉ CODING" in p
+    assert "difficulty_rating >= 4.0" in p
+    assert "ne pas afficher de décalage César" in p
+    assert "pas de clé complète/quasi complète" in p
+    assert "le mot-clé supposé" in p
+    assert "nombre de caractères" in p
+
+
 def test_visual_adult_injects_complexity_rule() -> None:
     adult = build_challenge_system_prompt("visual", "adulte")
     assert "COMPLEXITÉ ADULTE" in adult

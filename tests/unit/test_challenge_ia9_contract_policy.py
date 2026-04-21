@@ -11,6 +11,7 @@ from app.services.challenges.challenge_api_mapper import (
 )
 from app.services.challenges.challenge_contract_policy import (
     EASY_QCM_MAX_DIFFICULTY_EXCLUSIVE,
+    apply_visual_contract_normalization,
     compute_response_mode,
     filter_choices_for_persistence,
     normalize_symmetry_visual_data,
@@ -189,6 +190,20 @@ def test_normalize_symmetry_converts_grouped_side_elements_layout() -> None:
     ]
     assert len(question_items) == 2
     assert {item.get("position") for item in question_items} == {3, 4}
+
+
+def test_normalize_coding_visual_data_canonicalizes_cipher_text_alias() -> None:
+    vd = apply_visual_contract_normalization(
+        "coding",
+        {
+            "type": "substitution",
+            "cipher_text": "HMNWJEIBE DS PNWER",
+            "partial_key": {"rule_type": "keyword"},
+        },
+    )
+
+    assert vd["encoded_message"] == "HMNWJEIBE DS PNWER"
+    assert "cipher_text" not in vd
 
 
 def test_validate_symmetry_canonical_rejects_bad_side_values() -> None:

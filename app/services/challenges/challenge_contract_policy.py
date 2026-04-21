@@ -436,6 +436,39 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
     return out
 
 
+_CODING_ENCODED_MESSAGE_ALIASES = (
+    "cipher_text",
+    "ciphertext",
+    "coded_message",
+    "encrypted_message",
+)
+
+
+def normalize_coding_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Forme canonique CODING pour prompt ↔ validateur ↔ CodingRenderer.
+
+    Le contrat public est ``encoded_message``. Certains modèles produisent
+    spontanément ``cipher_text`` ; on le canonicalise pour ne pas persister un
+    défi impossible à résoudre visuellement.
+    """
+    if not isinstance(visual_data, dict):
+        return {}
+
+    out = dict(visual_data)
+    if not out.get("encoded_message"):
+        for alias in _CODING_ENCODED_MESSAGE_ALIASES:
+            candidate = out.get(alias)
+            if candidate is not None and str(candidate).strip():
+                out["encoded_message"] = str(candidate)
+                break
+
+    for alias in _CODING_ENCODED_MESSAGE_ALIASES:
+        out.pop(alias, None)
+
+    return out
+
+
 def apply_visual_contract_normalization(
     challenge_type: str, visual_data: Any
 ) -> Dict[str, Any]:
@@ -448,6 +481,8 @@ def apply_visual_contract_normalization(
 
     if ct in ("VISUAL", "SPATIAL"):
         vd = normalize_symmetry_visual_data(vd)
+    elif ct == "CODING":
+        vd = normalize_coding_visual_data(vd)
 
     return vd
 

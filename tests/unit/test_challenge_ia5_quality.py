@@ -77,6 +77,18 @@ def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:
     assert err and "binary" in err[0].lower()
 
 
+def test_validate_difficulty_coding_substitution_string_key_vs_rating() -> None:
+    vd = {
+        "type": "substitution",
+        "encoded_message": "KGTCEKGTDLS DS TCE JGMBUGBE",
+        "full_key": "GALIEOBCDFHJKMNPQRSTUVWXYZ",
+    }
+
+    err = validate_difficulty_structural_coherence("CODING", vd, 4.0)
+
+    assert err and any("substitution" in e.lower() for e in err)
+
+
 def test_validate_difficulty_riddle_direct_numeric_clues_vs_rating() -> None:
     vd = {
         "clues": [
@@ -499,6 +511,45 @@ def test_calibrate_challenge_difficulty_caps_short_binary_coding() -> None:
     )
     assert final <= 3.2
     assert "coding_binary_short_payload_cap_3_2" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_string_full_key_coding() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="coding",
+        age_group="15-17",
+        visual_data={
+            "type": "substitution",
+            "encoded_message": "KGTCEKGTDLS DS TCE JGMBUGBE",
+            "full_key": "GALIEOBCDFHJKMNPQRSTUVWXYZ",
+        },
+        title="Le message sous scellés",
+        ai_difficulty=4.3,
+    )
+
+    assert final <= 3.2
+    assert "coding_substitution_full_key_cap_3_2" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_keyword_quoted_in_title() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="coding",
+        age_group="15-17",
+        visual_data={
+            "type": "substitution",
+            "encoded_message": "HMNWJEIBE DS PNWER AUT",
+            "partial_key": {
+                "keyword_length": 7,
+                "theme_clue": "astronomer",
+                "mapping_known": {"G": "A", "A": "B"},
+                "rule_type": "keyword",
+            },
+        },
+        title="Cryptogramme « Galileo » : citation masquée",
+        ai_difficulty=4.3,
+    )
+
+    assert final <= 3.2
+    assert "coding_keyword_in_title_cap_3_2" in meta.get("caps_applied", [])
 
 
 def test_calibrate_challenge_difficulty_raises_complex_pattern_floor() -> None:

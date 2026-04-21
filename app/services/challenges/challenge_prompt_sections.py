@@ -156,10 +156,14 @@ IMPORTANT pour VISUAL :
 - Ne génère JAMAIS de JSON malformé (clés/valeurs invalides)."""
 
 TEXT_VISUAL_DATA_CODING = """VISUAL_DATA OBLIGATOIRE (type coding = cryptographie / décodage) :
-- César : {{"type": "caesar", "encoded_message": "...", "shift": N, ...}}
+- César : {{"type": "caesar", "encoded_message": "...", "shift": N, ...}} ; utiliser EXACTEMENT la clé `encoded_message`, pas `cipher_text`.
 - Substitution : clé complète (26 lettres) OU partial_key seulement si règle DÉDUCTIBLE + "rule_type": "caesar"|"atbash"|"keyword".
 - Pour substitution avec partial_key : utiliser un OBJET JSON (ex. {{"keyword_length": 6, "theme_clue": "astronome", "mapping_known": {{"G": "A", "A": "B"}}}}), pas une chaîne masquée comme "GALIEO????".
 - Binaire, symboles, algorithme simple, labyrinthe : voir formats standards du projet.
+- RÈGLE DIFFICULTÉ CODING : pour difficulty_rating >= 4.0, le décodage doit demander une vraie inférence : décalage César non fourni, mot-clé à déduire, clé partielle courte, message long, ou double transformation explicable.
+- Pour difficulty_rating >= 4.0 : ne pas afficher de décalage César, ne pas donner de clé complète/quasi complète, et ne pas mettre dans le titre le nom du chiffrement, la transformation, le mot-clé supposé ou un mot important du texte clair.
+- Si le décalage, la clé ou la méthode est explicitement donné, noter le défi comme moyen (environ 2.5-3.2), pas comme difficile.
+- Évite d'annoncer un nombre de caractères (`|M|`, longueur du message, etc.) ; si tu l'indiques, il doit correspondre exactement au nombre de lettres de `encoded_message` hors espaces.
 - ⛔ INTERDIT pour coding : "sequence" de nombres, "pattern" grille décoratif, shapes/couleurs seuls, numbers/target/movement_options sans message à décoder.
 - correct_answer = mot ou phrase décodée (texte clair) ou directions pour maze.
 - Rappel : CODING = décoder un message secret (lettres/symboles), pas naviguer dans une liste de nombres."""
@@ -228,7 +232,9 @@ TEXT_VAL_DEDUCTION = """5. DEDUCTION :
 TEXT_VAL_CODING = """6. CODING :
    - "type" parmi caesar, substitution, binary, symbols, algorithm, maze.
    - Pas de shapes/couleurs seuls ni numbers/target/movement_options hors maze/crypto valide.
-   - correct_answer = texte décodé ou résultat attendu selon le sous-type."""
+   - correct_answer = texte décodé ou résultat attendu selon le sous-type.
+   - difficulty >= 4 : règle au moins partiellement cachée, pas de décalage César explicite, pas de clé complète/quasi complète, et titre neutre.
+   - difficulty >= 4 : prévoir un message assez long ou une inférence de clé ; un simple César avec shift visible ou un binaire court doit être noté plus bas."""
 
 TEXT_VAL_CHESS = """7. CHESS :
    - board 8x8 cohérent ; pas de mat en X depuis la position initiale complète.

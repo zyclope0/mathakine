@@ -115,6 +115,29 @@ describe("Visualization renderers", () => {
     expect(screen.queryByText("[object Object]")).not.toBeInTheDocument();
   });
 
+  it("affiche le message codé quand l'IA fournit cipher_text", async () => {
+    render(
+      <CodingRenderer
+        visualData={{
+          type: "substitution",
+          rule_type: "keyword",
+          cipher_text: "HMNWJEIBE DS PNWER",
+          partial_key: {
+            keyword_length: 7,
+            theme_clue: "astronomer",
+            mapping_known: {
+              G: "A",
+              A: "B",
+            },
+          },
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Message codé")).toBeInTheDocument();
+    expect(screen.getByText("HMNWJEIBE DS PNWER")).toBeInTheDocument();
+  });
+
   it("rend le LaTeX dans les indices d'énigme sans afficher les commandes brutes", async () => {
     const { container } = render(
       <RiddleRenderer
