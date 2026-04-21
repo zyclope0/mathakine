@@ -15,6 +15,7 @@ from app.services.challenges.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
     validate_deduction_challenge,
+    validate_puzzle_challenge,
 )
 
 
@@ -71,6 +72,33 @@ def test_validate_difficulty_coding_binary_short_payload_vs_rating() -> None:
     }
     err = validate_difficulty_structural_coherence("CODING", vd, 4.0)
     assert err and "binary" in err[0].lower()
+
+
+def test_validate_puzzle_rejects_numeric_ascending_sort_solution() -> None:
+    vd = {"pieces": ["610", "144", "2584", "987", "377", "1597", "233"]}
+    err = validate_puzzle_challenge(
+        vd,
+        "144, 233, 377, 610, 987, 1597, 2584",
+        "Chaque terme est la somme des deux precedents.",
+    )
+    assert err and any("tri numerique" in e.lower() for e in err)
+
+
+def test_validate_puzzle_allows_non_sort_numeric_order() -> None:
+    vd = {"pieces": ["5", "2", "8", "3"], "description": "ordre par contrainte"}
+    err = validate_puzzle_challenge(
+        vd,
+        "2, 3, 5, 8",
+        "Les pieces suivent une contrainte additive.",
+    )
+    assert any("tri numerique" in e.lower() for e in err)
+
+    non_sort_err = validate_puzzle_challenge(
+        vd,
+        "2, 5, 3, 8",
+        "Les pieces suivent une contrainte additive.",
+    )
+    assert not any("tri numerique" in e.lower() for e in non_sort_err)
 
 
 def test_validate_challenge_choices_min_three_and_no_duplicates() -> None:

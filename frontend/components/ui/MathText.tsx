@@ -16,6 +16,14 @@ function sanitizeLatexFractions(text: string): string {
   return text.replace(/(\\frac\{\d+\}\{\d+\})(\d+)/g, "$1 $2");
 }
 
+function restoreJsonEscapedLatexCommands(text: string): string {
+  return text
+    .replace(/\u000crac/g, "\\frac")
+    .replace(/\u0009ext/g, "\\text")
+    .replace(/(^|[\s(])rac\{/g, "$1\\frac{")
+    .replace(/(^|[\s(])text\{/g, "$1\\text{");
+}
+
 /**
  * Normalise les délimiteurs LaTeX que l'IA produit parfois (`\(...\)`, `\[...\]`).
  * `remark-math` parse de façon fiable `$...$` et `$$...$$`, mais pas ces variantes.
@@ -53,6 +61,30 @@ function sanitizeBrokenLatexBlocks(text: string): string {
   });
 }
 
+function transformOutsideMath(text: string, transform: (part: string) => string): string {
+  return text
+    .split(/(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$)/g)
+    .map((part) => (part.startsWith("$") ? part : transform(part)))
+    .join("");
+}
+
+function renderLooseLatexAsReadableText(text: string): string {
+  return transformOutsideMath(text, (part) =>
+    part
+      .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "$1/$2")
+      .replace(/\\sqrt\{([^{}]+)\}/g, "√($1)")
+      .replace(/\\text\{([^{}]*)\}/g, "$1")
+      .replace(/\\boxed\{([^{}]*)\}/g, "$1")
+      .replace(/\\times/g, "×")
+      .replace(/\\div/g, "÷")
+      .replace(/\\approx/g, "≈")
+      .replace(/\\pi/g, "π")
+      .replace(/\\quad/g, " ")
+      .replace(/\\,/g, " ")
+      .replace(/[ \t]{2,}/g, " ")
+  );
+}
+
 interface MathTextProps {
   /** Texte à rendre — supporte Markdown et LaTeX ($...$ inline, $$...$$ bloc) */
   children: string;
@@ -83,8 +115,10 @@ const sizeClasses = {
 export function MathText({ children, className, size = "base" }: MathTextProps) {
   if (!children) return null;
 
-  const sanitized = sanitizeBrokenLatexBlocks(
-    sanitizeLatexFractions(normalizeLatexDelimiters(children))
+  const sanitized = renderLooseLatexAsReadableText(
+    sanitizeBrokenLatexBlocks(
+      sanitizeLatexFractions(normalizeLatexDelimiters(restoreJsonEscapedLatexCommands(children)))
+    )
   );
 
   return (

@@ -38,4 +38,24 @@ Ainsi le terme suivant vaut \boxed{980}.`;
     expect(screen.getByText(/980/)).toBeInTheDocument();
     expect(container.querySelector(".katex-error")).not.toBeInTheDocument();
   });
+
+  it("rend lisibles les commandes LaTeX inline non délimitées", () => {
+    const raw = String.raw`En remarquant que \frac{233}{144} \approx 1.618 \quad \text{et} \quad \frac{377}{233} \approx 1.618.`;
+
+    const { container } = render(<MathText>{raw}</MathText>);
+
+    expect(container).toHaveTextContent("233/144 ≈ 1.618 et 377/233 ≈ 1.618");
+    expect(container.innerHTML).not.toContain("\\frac");
+    expect(container.innerHTML).not.toContain("\\quad");
+  });
+
+  it("répare les commandes LaTeX dégradées par des échappements JSON", () => {
+    const raw = "En remarquant que \frac{233}{144} \\approx 1.618 \\quad text{et}.";
+
+    const { container } = render(<MathText>{raw}</MathText>);
+
+    expect(container).toHaveTextContent("233/144 ≈ 1.618 et");
+    expect(container.innerHTML).not.toContain("rac{233}");
+    expect(container.innerHTML).not.toContain("text{et}");
+  });
 });

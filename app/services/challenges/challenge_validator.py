@@ -21,6 +21,11 @@ from app.services.challenges.challenge_difficulty_policy import (
     validate_difficulty_structural_coherence,
     validate_title_difficulty_coherence,
 )
+from app.services.challenges.challenge_ordering_utils import (
+    is_numeric_sort_solution,
+    piece_label,
+    split_ordered_answer_parts,
+)
 from app.services.challenges.challenge_pattern_sequence_validation import (
     _looks_numeric_pattern_grid,
     validate_pattern_challenge,
@@ -182,21 +187,12 @@ def validate_puzzle_challenge(
             )
 
     # Parser les pièces en liste de strings normalisées
-    piece_values = []
-    for p in pieces:
-        if isinstance(p, dict):
-            val = p.get("label") or p.get("value") or p.get("name") or str(p)
-        else:
-            val = p
-        piece_values.append(str(val).strip().lower())
+    piece_values = [piece_label(p).lower() for p in pieces]
 
     # Pour un puzzle, la réponse devrait être une liste ordonnée
     if correct_answer:
         # Gérer correct_answer comme liste ou string
-        if isinstance(correct_answer, list):
-            answer_parts = [str(p).strip().lower() for p in correct_answer]
-        else:
-            answer_parts = [p.strip().lower() for p in str(correct_answer).split(",")]
+        answer_parts = [p.lower() for p in split_ordered_answer_parts(correct_answer)]
 
         if len(answer_parts) != len(piece_values):
             errors.append(
@@ -206,6 +202,13 @@ def validate_puzzle_challenge(
 
         # Vérifier que tous les éléments de pieces sont dans la réponse
         missing = set(piece_values) - set(answer_parts)
+        trivial_numeric_sort = is_numeric_sort_solution(pieces, correct_answer)
+        if trivial_numeric_sort:
+            errors.append(
+                "PUZZLE trivial: correct_answer correspond au tri numerique croissant/decroissant des pieces. "
+                "Le puzzle doit exiger une regle d'ordre non reductible a un simple tri."
+            )
+
         if missing:
             errors.append(f"Puzzle: éléments manquants dans correct_answer: {missing}")
 

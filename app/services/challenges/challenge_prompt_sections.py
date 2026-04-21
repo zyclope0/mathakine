@@ -120,6 +120,7 @@ TEXT_VISUAL_DATA_PUZZLE = """VISUAL_DATA OBLIGATOIRE (type puzzle) :
 - {{"pieces": [...], "hints": ["...", "..."], "description": "..."}}
 - correct_answer : ordre des pièces de gauche à droite, séparées par des virgules.
 - IMPORTANT : indices suffisants pour déduire l'ordre.
+- INTERDIT si pièces numériques : correct_answer ne doit pas être simplement le tri croissant ou décroissant des nombres.
 - Si difficulty_rating >= 4 : minimum 6-7 pièces, indices INDIRECTS, combinaison de contraintes (pas seulement 4 couleurs)."""
 
 TEXT_VISUAL_DATA_GRAPH = """VISUAL_DATA OBLIGATOIRE (type graph) :
@@ -191,6 +192,7 @@ TEXT_VAL_SEQUENCE = """2. SEQUENCE :
 
 TEXT_VAL_PUZZLE = """3. PUZZLE :
    - Indices indispensables pour déduire l'ordre ; correct_answer contient toutes les pièces.
+   - Si les pièces sont numériques, vérifie que l'ordre correct n'est PAS le simple ordre croissant/décroissant.
    - difficulty >= 4 : 6+ pièces, indices indirects, contraintes combinées."""
 
 TEXT_VAL_VISUAL = """4. VISUAL (formes/couleurs, symétrie) :
