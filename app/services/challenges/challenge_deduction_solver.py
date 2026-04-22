@@ -26,6 +26,10 @@ CONSTRAINT_ENTITY_IMMEDIATELY_BEFORE_ENTITY = "entity_immediately_before_entity"
 CONSTRAINT_VALUE_BEFORE_VALUE = "value_before_value"
 CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE = "entity_not_adjacent_value"
 
+_NEGATIVE_CLUE_RE = re.compile(
+    r"(?:\bne\b|\bn['’][a-z]+)\b.*\bpas\b|\b(?:jamais|aucun|aucune)\b"
+)
+
 WEEKDAY_ORDER = (
     "lundi",
     "mardi",
@@ -106,6 +110,8 @@ def _build_model(visual_data: Dict[str, Any]) -> Optional[_DeductionModel]:
         values = tuple(str(value).strip() for value in raw_values if str(value).strip())
         if len(values) != len(raw_values):
             return None
+        if len({_norm(value) for value in values}) != len(values):
+            return None
         values_by_category[category] = values
 
     first_category = category_order[0]
@@ -180,6 +186,10 @@ def _contains_any(text: str, needles: Sequence[str]) -> bool:
     return any(needle in normalized for needle in needles)
 
 
+def _is_negative_clue(normalized_text: str) -> bool:
+    return bool(_NEGATIVE_CLUE_RE.search(normalized_text))
+
+
 def _parse_natural_clue(text: str, model: _DeductionModel) -> Optional[_Constraint]:
     normalized = _norm(text)
     mentions = _mentions_for_text(text, model)
@@ -237,10 +247,7 @@ def _parse_natural_clue(text: str, model: _DeductionModel) -> Optional[_Constrai
     if len(first_mentions) == 1 and len(non_day_secondary) == 1:
         entity = first_mentions[0]
         value = non_day_secondary[0]
-        if _contains_any(
-            normalized,
-            ("ne travaille pas", "ne presente pas", "n'intervient pas", "pas sur"),
-        ):
+        if _is_negative_clue(normalized) or _contains_any(normalized, ("pas sur",)):
             return _Constraint(
                 CONSTRAINT_ENTITY_NOT_VALUE,
                 _LabelRef(entity.category, entity.value),

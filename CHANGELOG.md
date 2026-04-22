@@ -40,6 +40,10 @@ Active references:
 
 ## [Unreleased]
 
+### Fixed
+
+- Challenge validation and rendering hardening: deduction clues now handle negative natural-language constraints, probability urn checks distinguish with/without replacement and normalize weights consistently, chess highlights can target empty tactical squares, and graph visualizations ignore invalid edges without crashing.
+
 ## [3.6.0-beta.3] - 2026-04-20
 
 ### Added

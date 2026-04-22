@@ -19,7 +19,13 @@ from app.services.challenges.challenge_contract_policy import (
     validate_choices_policy,
     validate_symmetry_canonical,
 )
-from app.services.challenges.challenge_validator import validate_challenge_logic
+from app.services.challenges.challenge_deduction_solver import (
+    analyze_deduction_uniqueness,
+)
+from app.services.challenges.challenge_validator import (
+    validate_challenge_logic,
+    validate_probability_challenge,
+)
 
 
 def test_validate_choices_policy_deduction_forbids_qcm() -> None:
@@ -256,6 +262,79 @@ def test_validate_challenge_logic_accepts_root_substitution_partial_key_aliases(
     assert ok, errors
 
 
+def test_deduction_solver_treats_negative_same_day_clue_as_exclusion() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Students": ["Clara", "Marc"],
+                "Topics": ["Python", "Rust"],
+                "Days": ["Lundi", "Mardi"],
+            },
+            "clues": [
+                "Clara n'intervient pas le meme jour que Python.",
+                "Python est programme Lundi.",
+            ],
+        },
+        "Clara:Rust:Mardi,Marc:Python:Lundi",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_solver_rejects_duplicate_values_in_category() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Students": ["Alex", "Alex"],
+                "Days": ["Lundi", "Mardi"],
+            },
+            "clues": ["Alex est programme Lundi."],
+        },
+        "Alex:Lundi",
+    )
+
+    assert result.checked is False
+    assert result.reason == "unsupported_model"
+
+
+def test_probability_weighted_without_replacement_normalizes_underfilled_weights() -> (
+    None
+):
+    errors = validate_probability_challenge(
+        {
+            "urns": {
+                "A": {"red": 1, "blue": 1, "selection_probability": 0.2},
+                "B": {"red": 2, "blue": 1, "selection_probability": 0.3},
+            },
+            "draws_without_replacement": 2,
+            "event": "two marbles of different colors",
+        },
+        "4/5",
+        "Loi des probabilites totales avec normalisation des poids.",
+    )
+
+    assert errors == []
+
+
+def test_probability_weighted_formula_requires_without_replacement_signal() -> None:
+    errors = validate_probability_challenge(
+        {
+            "urns": {
+                "A": {"red": 1, "blue": 1, "selection_probability": 0.5},
+                "B": {"red": 2, "blue": 1, "selection_probability": 0.5},
+            },
+            "draws": 2,
+            "event": "two marbles of different colors",
+        },
+        "1/999",
+        "Avec remise ou regime non precise, la verification conservative ignore la formule sans remise.",
+    )
+
+    assert errors == []
+
+
 def test_chess_visual_contract_normalizes_french_board_symbols() -> None:
     vd = apply_visual_contract_normalization(
         "chess",
@@ -282,7 +361,11 @@ def test_chess_visual_contract_normalizes_french_board_symbols() -> None:
 
     assert vd["board"][5][5] == "Q"
     assert vd["board"][6][6] == "k"
-    assert vd["highlight_positions"] == [{"row": 5, "col": 5}, {"row": 6, "col": 6}]
+    assert vd["highlight_positions"] == [
+        {"row": 5, "col": 5},
+        {"row": 6, "col": 6},
+        {"row": 7, "col": 5},
+    ]
 
 
 def test_chess_visual_contract_inferrs_white_king_from_single_french_roi_alias() -> (
@@ -310,6 +393,28 @@ def test_chess_visual_contract_inferrs_white_king_from_single_french_roi_alias()
     assert vd["board"][7][4] == "K"
     assert vd["board"][0][6] == "k"
     assert vd["highlight_positions"] == [{"row": 7, "col": 4}, {"row": 0, "col": 6}]
+
+
+def test_chess_visual_contract_keeps_rook_alias_outside_mate_objectives() -> None:
+    vd = apply_visual_contract_normalization(
+        "chess",
+        {
+            "board": [
+                ["", "", "", "", "", "", "r", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "D", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "R", "", "", ""],
+            ],
+            "turn": "white",
+            "objective": "meilleur_coup",
+        },
+    )
+
+    assert vd["board"][7][4] == "R"
 
 
 def test_validate_challenge_logic_accepts_chess_french_board_aliases() -> None:

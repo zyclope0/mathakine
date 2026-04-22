@@ -473,7 +473,9 @@ def _normalize_chess_piece_token(raw_piece: Any) -> str:
     return _CHESS_BOARD_PIECE_ALIASES.get(piece, piece)
 
 
-def _normalize_chess_board(board: Any) -> List[List[Any]]:
+def _normalize_chess_board(
+    board: Any, *, infer_missing_kings_from_rook_aliases: bool = False
+) -> List[List[Any]]:
     if not isinstance(board, list):
         return []
 
@@ -493,7 +495,9 @@ def _normalize_chess_board(board: Any) -> List[List[Any]]:
                 row.append(_normalize_chess_piece_token(raw_cell))
         normalized.append(row)
 
-    return _infer_missing_kings_from_french_rook_aliases(normalized)
+    if infer_missing_kings_from_rook_aliases:
+        return _infer_missing_kings_from_french_rook_aliases(normalized)
+    return normalized
 
 
 def _infer_missing_kings_from_french_rook_aliases(
@@ -533,17 +537,6 @@ def _infer_missing_kings_from_french_rook_aliases(
     return board
 
 
-def _chess_square_has_piece(board: List[List[Any]], row: int, col: int) -> bool:
-    if row < 0 or col < 0 or row >= len(board):
-        return False
-    row_values = board[row]
-    if not isinstance(row_values, list) or col >= len(row_values):
-        return False
-    cell = row_values[col]
-    piece = cell.get("piece") if isinstance(cell, dict) else cell
-    return _normalize_chess_piece_token(piece) in _CHESS_VALID_BOARD_PIECES
-
-
 def _normalize_chess_highlight_position(raw_position: Any) -> Optional[Tuple[int, int]]:
     if isinstance(raw_position, dict):
         raw_row = raw_position.get("row")
@@ -576,7 +569,11 @@ def normalize_chess_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
         return {}
 
     out = dict(visual_data)
-    board = _normalize_chess_board(out.get("board"))
+    objective = str(out.get("objective", "")).strip().lower()
+    board = _normalize_chess_board(
+        out.get("board"),
+        infer_missing_kings_from_rook_aliases=objective.startswith("mat_en_"),
+    )
     if board:
         out["board"] = board
 
@@ -588,8 +585,7 @@ def normalize_chess_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
             if coords is None:
                 continue
             row, col = coords
-            if _chess_square_has_piece(board, row, col):
-                normalized_highlights.append({"row": row, "col": col})
+            normalized_highlights.append({"row": row, "col": col})
         out["highlight_positions"] = normalized_highlights
 
     return out

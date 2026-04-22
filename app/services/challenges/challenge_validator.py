@@ -1249,6 +1249,25 @@ def _parse_draw_count(raw: Any) -> int:
     return int(match.group(0)) if match else 0
 
 
+def _parse_draws_without_replacement_count(visual_data: Dict[str, Any]) -> int:
+    explicit = visual_data.get("draws_without_replacement")
+    if explicit is not None:
+        return _parse_draw_count(explicit)
+
+    raw_draws = visual_data.get("draws")
+    if raw_draws is None:
+        return 0
+
+    draw_text = str(raw_draws).lower()
+    if (
+        "without replacement" not in draw_text
+        and "sans remise" not in draw_text
+        and "non remise" not in draw_text
+    ):
+        return 0
+    return _parse_draw_count(raw_draws)
+
+
 def _format_probability_percent(value: Fraction) -> str:
     return f"{float(value * 100):.2f}%"
 
@@ -1324,9 +1343,7 @@ def _event_targets_different_colors(visual_data: Dict[str, Any]) -> bool:
 def _compute_weighted_two_draw_different_color_probability(
     visual_data: Dict[str, Any],
 ) -> Optional[Fraction]:
-    draws = _parse_draw_count(
-        visual_data.get("draws_without_replacement", visual_data.get("draws"))
-    )
+    draws = _parse_draws_without_replacement_count(visual_data)
     if draws != 2 or not _event_targets_different_colors(visual_data):
         return None
 
@@ -1342,7 +1359,7 @@ def _compute_weighted_two_draw_different_color_probability(
         total_weight = sum(weights, Fraction(0, 1))
         if total_weight <= 0:
             return None
-        if total_weight > 1:
+        if total_weight != 1:
             weights = [weight / total_weight for weight in weights]
     else:
         return None

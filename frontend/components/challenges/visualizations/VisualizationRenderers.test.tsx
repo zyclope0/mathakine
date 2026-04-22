@@ -87,6 +87,50 @@ describe("Visualization renderers", () => {
     expect(screen.getByText(/3 arêtes/i)).toBeInTheDocument();
   });
 
+  it("ignore les arêtes avec indices numériques hors bornes", async () => {
+    render(
+      <GraphRenderer
+        visualData={{
+          nodes: [{ label: "A" }, { label: "B" }],
+          edges: [
+            [0, 9, 7],
+            [0, 1, 2],
+          ],
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Graphe")).toBeInTheDocument();
+    expect(screen.getByText("A")).toBeInTheDocument();
+    expect(screen.getByText("B")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.queryByText("7")).not.toBeInTheDocument();
+    expect(screen.getByText(/1 arête/i)).toBeInTheDocument();
+  });
+
+  it("revient au layout circulaire si les coordonnées explicites sont alignées", async () => {
+    const { container } = render(
+      <GraphRenderer
+        visualData={{
+          nodes: [
+            { label: "A", x: 10, y: 0 },
+            { label: "B", x: 10, y: 50 },
+            { label: "C", x: 10, y: 100 },
+          ],
+          edges: [["A", "B", 4]],
+        }}
+      />
+    );
+
+    expect(await screen.findByText("Graphe")).toBeInTheDocument();
+    const nodeCircles = Array.from(container.querySelectorAll("circle")).filter(
+      (circle) => circle.getAttribute("r") === "20"
+    );
+    const xPositions = new Set(nodeCircles.map((circle) => circle.getAttribute("cx")));
+
+    expect(xPositions.size).toBeGreaterThan(1);
+  });
+
   it("affiche les indices utiles d'une substitution sans [object Object]", async () => {
     render(
       <CodingRenderer

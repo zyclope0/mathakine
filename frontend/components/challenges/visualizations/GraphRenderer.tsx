@@ -18,6 +18,14 @@ const PADDING = NODE_RADIUS + 8; // marge minimale pour que les nœuds ne soient
 type GraphNode = Record<string, unknown> | string | number;
 type GraphEdge = Record<string, unknown> | unknown[];
 type GraphPoint = { x: number; y: number };
+type ResolvedGraphEdge = {
+  fromIndex: number;
+  toIndex: number;
+  from: GraphPoint;
+  to: GraphPoint;
+  weight: string | number | undefined;
+  index: number;
+};
 
 const EDGE_FROM_KEYS = ["from", "source", "u", "start"] as const;
 const EDGE_TO_KEYS = ["to", "target", "v", "end"] as const;
@@ -95,8 +103,8 @@ function explicitPointForNode(
     const byIndex = pointFromUnknown(explicitPositions[index]);
     const matched = explicitPositions.find((item) => {
       if (typeof item !== "object" || item === null) return false;
-      const label = getNodeLabel(item as GraphNode, -1).toUpperCase();
-      return label === key.toUpperCase();
+      const label = getNodeLabel(item as GraphNode, -1);
+      return label.toUpperCase() === key.toUpperCase();
     });
     return pointFromUnknown(matched) ?? byIndex;
   }
@@ -130,12 +138,14 @@ function normalizeExplicitPoints(
   const maxY = Math.max(...ys);
   const rangeX = maxX - minX;
   const rangeY = maxY - minY;
+  if (rangeX === 0 || rangeY === 0) return null;
+
   const availW = logicalW - 2 * PADDING;
   const availH = logicalH - 2 * PADDING;
 
   return rawPoints.map((point) => ({
-    x: rangeX === 0 ? logicalW / 2 : PADDING + ((point.x - minX) / rangeX) * availW,
-    y: rangeY === 0 ? logicalH / 2 : PADDING + ((point.y - minY) / rangeY) * availH,
+    x: PADDING + ((point.x - minX) / rangeX) * availW,
+    y: PADDING + ((point.y - minY) / rangeY) * availH,
   }));
 }
 
@@ -209,7 +219,6 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   });
 
   const nodeCountLabel = formatGraphCount(nodes.length, "nœud", "nœuds");
-  const edgeCountLabel = formatGraphCount(edges.length, "arête", "arêtes");
 
   // ─── Layout en coordonnées logiques ───────────────────────────────────────
   // On travaille dans un espace logique indépendant de la taille d'affichage.
@@ -243,6 +252,15 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     });
 
   // ─── Résoudre une arête en indices from/to + poids ────────────────────────
+  function resolveNodeIndex(rawValue: unknown): number | undefined {
+    if (typeof rawValue === "number") {
+      return Number.isInteger(rawValue) && rawValue >= 0 && rawValue < nodes.length
+        ? rawValue
+        : undefined;
+    }
+    return nodeMap.get(String(rawValue ?? "").toUpperCase());
+  }
+
   function resolveEdge(edge: GraphEdge): {
     fromIndex: number | undefined;
     toIndex: number | undefined;
@@ -259,14 +277,8 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
       const routeParts = splitRoute(e.route ?? e.edge ?? e.name);
       const resolvedFrom = fromRaw ?? routeParts?.[0];
       const resolvedTo = toRaw ?? routeParts?.[1];
-      fromIndex =
-        typeof resolvedFrom === "number"
-          ? resolvedFrom
-          : nodeMap.get(String(resolvedFrom ?? "").toUpperCase());
-      toIndex =
-        typeof resolvedTo === "number"
-          ? resolvedTo
-          : nodeMap.get(String(resolvedTo ?? "").toUpperCase());
+      fromIndex = resolveNodeIndex(resolvedFrom);
+      toIndex = resolveNodeIndex(resolvedTo);
       const w = recordValue(e, EDGE_WEIGHT_KEYS);
       weight =
         w != null && (typeof w === "number" || typeof w === "string")
@@ -275,10 +287,8 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
             ? String(w)
             : undefined;
     } else if (Array.isArray(edge)) {
-      fromIndex =
-        typeof edge[0] === "number" ? edge[0] : nodeMap.get(String(edge[0] ?? "").toUpperCase());
-      toIndex =
-        typeof edge[1] === "number" ? edge[1] : nodeMap.get(String(edge[1] ?? "").toUpperCase());
+      fromIndex = resolveNodeIndex(edge[0]);
+      toIndex = resolveNodeIndex(edge[1]);
       if (edge.length >= 3 && edge[2] != null) {
         const w2 = edge[2];
         weight = typeof w2 === "number" || typeof w2 === "string" ? w2 : String(w2);
@@ -288,10 +298,26 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     return { fromIndex, toIndex, weight };
   }
 
-  const isWeighted = edges.some((edge) => {
-    const { weight } = resolveEdge(edge);
-    return weight !== undefined;
+  const resolvedEdges = edges.flatMap((edge, index): ResolvedGraphEdge[] => {
+    const { fromIndex, toIndex, weight } = resolveEdge(edge);
+    if (fromIndex === undefined || toIndex === undefined) return [];
+    const from = nodePositions[fromIndex];
+    const to = nodePositions[toIndex];
+    if (!from || !to) return [];
+
+    return [
+      {
+        fromIndex,
+        toIndex,
+        from,
+        to,
+        weight,
+        index,
+      },
+    ];
   });
+  const edgeCountLabel = formatGraphCount(resolvedEdges.length, "arête", "arêtes");
+  const isWeighted = resolvedEdges.some(({ weight }) => weight !== undefined);
 
   return (
     <Card flat className={`bg-card border-border/50 ${className ?? ""}`}>
@@ -314,15 +340,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               style={{ display: "block", maxHeight: "420px" }}
             >
               {/* Arêtes */}
-              {edges.map((edge, index) => {
-                const { fromIndex, toIndex, weight } = resolveEdge(edge);
-
-                if (fromIndex === undefined || toIndex === undefined) return null;
-
-                const from = nodePositions[fromIndex];
-                const to = nodePositions[toIndex];
-                if (!from || !to) return null;
-
+              {resolvedEdges.map(({ fromIndex, toIndex, from, to, weight, index }) => {
                 const midX = (from.x + to.x) / 2;
                 const midY = (from.y + to.y) / 2;
 
