@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface CodingRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
@@ -696,7 +698,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                       <div className="pl-3 space-y-1">
                         {(value as unknown[]).map((item: unknown, i: number) => (
                           <p key={i} className="text-sm text-foreground">
-                            • {typeof item === "object" ? JSON.stringify(item) : String(item)}
+                            • {itemLabel(item, { fallback: `#${i + 1}` })}
                           </p>
                         ))}
                       </div>
@@ -709,7 +711,9 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                       {key.replace(/_/g, " ")} :
                     </span>
                     <span className="text-sm text-foreground">
-                      {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      {typeof value === "object" && value !== null
+                        ? itemLabel(value, { fallback: "—" })
+                        : String(value)}
                     </span>
                   </div>
                 );

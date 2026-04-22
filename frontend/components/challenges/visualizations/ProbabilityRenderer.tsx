@@ -10,6 +10,8 @@ import { Dices, Percent, TrendingUp, Circle, Package } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface ProbabilityRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
@@ -588,7 +590,9 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
                     {key.replace(/_/g, " ")} :
                   </span>
                   <span className="text-sm text-foreground">
-                    {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                    {typeof value === "object" && value !== null
+                      ? itemLabel(value, { fallback: "—" })
+                      : String(value)}
                   </span>
                 </div>
               ))}

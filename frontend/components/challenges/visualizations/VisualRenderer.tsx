@@ -9,6 +9,7 @@ import {
   findVisualizationColorInText,
   resolveVisualizationColor,
 } from "@/components/challenges/visualizations/_colorMap";
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
 
 interface VisualRendererProps {
   visualData: Record<string, unknown> | null;
@@ -926,7 +927,9 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                       <div key={key} className="border-l-2 border-primary/30 pl-3 py-1">
                         <span className="text-xs font-semibold text-primary">{key}:</span>
                         <span className="text-sm text-foreground ml-2">
-                          {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                          {typeof value === "object" && value !== null
+                            ? itemLabel(value, { fallback: "—" })
+                            : String(value)}
                         </span>
                       </div>
                     ))}

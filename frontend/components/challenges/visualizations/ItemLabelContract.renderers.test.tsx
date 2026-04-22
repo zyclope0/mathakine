@@ -1,10 +1,27 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
 import { PuzzleRenderer } from "@/components/challenges/visualizations/PuzzleRenderer";
 import { SequenceRenderer } from "@/components/challenges/visualizations/SequenceRenderer";
 import { RiddleRenderer } from "@/components/challenges/visualizations/RiddleRenderer";
+import { DeductionRenderer } from "@/components/challenges/visualizations/DeductionRenderer";
+import { CodingRenderer } from "@/components/challenges/visualizations/CodingRenderer";
+import { ProbabilityRenderer } from "@/components/challenges/visualizations/ProbabilityRenderer";
+import { VisualRenderer } from "@/components/challenges/visualizations/VisualRenderer";
+import frMessages from "@/messages/fr.json";
+
+vi.mock("@/lib/hooks/useAccessibleAnimation", () => ({
+  useAccessibleAnimation: () => ({ shouldReduceMotion: false }),
+}));
+
+beforeEach(() => {
+  window.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => {
+    cb(0);
+    return 1;
+  });
+  window.cancelAnimationFrame = vi.fn();
+});
 
 /**
  * Lot M étape 1 — anti-régression globale.
@@ -24,17 +41,9 @@ function expectNoRawLeak(container: Element): void {
   }
 }
 
-const messages = {
-  challenges: {
-    visualizations: {
-      puzzle: { hintsHeading: "Indices" },
-    },
-  },
-} as const;
-
 function withIntl(children: React.ReactNode): React.ReactElement {
   return (
-    <NextIntlClientProvider locale="fr" messages={messages}>
+    <NextIntlClientProvider locale="fr" messages={frMessages}>
       {children as React.ReactElement}
     </NextIntlClientProvider>
   );
@@ -103,6 +112,100 @@ describe("Contrat d'affichage unifié — aucune repr brute dans l'UI", () => {
     expectNoRawLeak(container);
     expect(container.textContent).toContain("six");
     expect(container.textContent).toContain("X");
+  });
+
+  it("DeductionRenderer : entities/attributes arrays mixtes", () => {
+    const { container } = render(
+      withIntl(
+        <DeductionRenderer
+          visualData={{
+            entities: [
+              "Alice",
+              { name: "Bob" },
+              { value: "Claire" },
+              { id: "D" },
+              { payload: "nope" },
+            ],
+          }}
+        />
+      )
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("Alice");
+    expect(container.textContent).toContain("Bob");
+    expect(container.textContent).toContain("Claire");
+    expect(container.textContent).toContain("D");
+  });
+
+  it("DeductionRenderer : logic grid avec entities objet", () => {
+    const { container } = render(
+      withIntl(
+        <DeductionRenderer
+          visualData={{
+            type: "logic_grid",
+            entities: {
+              eleves: [{ name: "Alice" }, { name: "Bob" }, { id: "Z" }],
+              matieres: ["Maths", { label: "Physique" }],
+            },
+            clues: ["Clue 1."],
+          }}
+        />
+      )
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("Alice");
+    expect(container.textContent).toContain("Bob");
+    expect(container.textContent).toContain("Z");
+    expect(container.textContent).toContain("Physique");
+  });
+
+  it("CodingRenderer : fallback meta/arrays objet — pas de leak", () => {
+    const { container } = render(
+      <CodingRenderer
+        visualData={{
+          custom_field: [{ name: "Alpha" }, { id: "Beta" }, "plain", { foo: "bar" }],
+          summary: { label: "Résumé" },
+        }}
+      />
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("Alpha");
+    expect(container.textContent).toContain("Beta");
+    expect(container.textContent).toContain("Résumé");
+  });
+
+  it("ProbabilityRenderer : fallback propriété objet — pas de leak", () => {
+    const { container } = render(
+      withIntl(
+        <ProbabilityRenderer
+          visualData={{
+            // Type inconnu → chemin fallback Object.entries qui rendait JSON.
+            custom_meta: { label: "Détails d'urne" },
+            tag: { name: "Tag principal" },
+          }}
+        />
+      )
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("Détails d'urne");
+    expect(container.textContent).toContain("Tag principal");
+  });
+
+  it("VisualRenderer mode rawData : pas de leak JSON dans les valeurs objet", () => {
+    const { container } = render(
+      <VisualRenderer
+        visualData={{
+          // Pas de grid/shapes/layout → fallback rawData.
+          meta: { label: "Contexte A" },
+          note: { name: "Observation B" },
+          legend: { id: "L1" },
+        }}
+      />
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("Contexte A");
+    expect(container.textContent).toContain("Observation B");
+    expect(container.textContent).toContain("L1");
   });
 
   it("RiddleRenderer : clues avec objets text/description/id", () => {

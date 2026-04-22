@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface DeductionRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
@@ -73,7 +75,7 @@ export function DeductionRenderer({
       name: key,
       displayName: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
       values: Array.isArray(values)
-        ? values.map((v) => (typeof v === "string" ? v : String(v)))
+        ? values.map((v, i) => itemLabel(v, { fallback: `#${i + 1}` }))
         : String(values)
             .split(",")
             .map((v) => v.trim()),
@@ -469,13 +471,7 @@ export function DeductionRenderer({
                         key={i}
                         className="bg-primary/10 border border-primary/30 px-2 py-1 rounded text-sm text-foreground"
                       >
-                        {typeof item === "object" && item !== null
-                          ? String(
-                              (item as Record<string, unknown>).name ??
-                                (item as Record<string, unknown>).value ??
-                                JSON.stringify(item)
-                            )
-                          : String(item)}
+                        {itemLabel(item, { fallback: `#${i + 1}` })}
                       </span>
                     ))}
                   </div>
