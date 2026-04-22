@@ -5,16 +5,19 @@ import { MathText } from "@/components/ui/MathText";
 import { Lightbulb, Key, HelpCircle, Grid3x3, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface RiddleRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string;
 }
 
-function textFromRiddleItem(item: string | Record<string, unknown>): string {
-  if (typeof item === "string") {
-    return item;
-  }
-  return String(item.text ?? item.description ?? item.value ?? JSON.stringify(item));
+function textFromRiddleItem(item: unknown): string {
+  return itemLabel(item, {
+    // Pour une énigme, ``text`` / ``description`` sont les champs natifs,
+    // mais on laisse passer label/value/name pour tolérer les variantes LLM.
+    fields: ["text", "description", "label", "value", "name", "id"],
+  });
 }
 
 /**
@@ -199,36 +202,50 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Indices</h4>
           </div>
           <div className="space-y-2">
-            {clues.map((clue: string | Record<string, unknown>, index: number) => (
-              <div
-                key={index}
-                className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
-              >
-                {typeof clue === "string" ? (
-                  <MathText size="sm" className="text-foreground">
-                    {clue}
-                  </MathText>
-                ) : (
-                  <div>
-                    {(clue as Record<string, unknown>).title != null && (
-                      <p className="font-medium text-primary mb-1">
-                        {String((clue as Record<string, unknown>).title)}
-                      </p>
-                    )}
-                    {(clue as Record<string, unknown>).description != null && (
-                      <MathText size="sm" className="text-muted-foreground">
-                        {String((clue as Record<string, unknown>).description)}
-                      </MathText>
-                    )}
-                    {(clue as Record<string, unknown>).value != null && (
-                      <MathText size="sm" className="text-foreground mt-1">
-                        {String((clue as Record<string, unknown>).value)}
-                      </MathText>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+            {clues.map((clue: string | Record<string, unknown>, index: number) => {
+              const c =
+                typeof clue === "object" && clue !== null
+                  ? (clue as Record<string, unknown>)
+                  : null;
+              const hasStructured =
+                c !== null && (c.title != null || c.description != null || c.value != null);
+              // Variante LLM : ``{text: "..."}``, ``{label: "..."}``, ``{id: "..."}``.
+              // On passe par ``itemLabel`` pour lire tout le contrat officiel
+              // sans jamais leaker la repr brute dans le DOM.
+              const fallbackText = typeof clue === "string" ? "" : textFromRiddleItem(clue);
+              return (
+                <div
+                  key={index}
+                  className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
+                >
+                  {typeof clue === "string" ? (
+                    <MathText size="sm" className="text-foreground">
+                      {clue}
+                    </MathText>
+                  ) : hasStructured ? (
+                    <div>
+                      {c?.title != null && (
+                        <p className="font-medium text-primary mb-1">{String(c.title)}</p>
+                      )}
+                      {c?.description != null && (
+                        <MathText size="sm" className="text-muted-foreground">
+                          {String(c.description)}
+                        </MathText>
+                      )}
+                      {c?.value != null && (
+                        <MathText size="sm" className="text-foreground mt-1">
+                          {String(c.value)}
+                        </MathText>
+                      )}
+                    </div>
+                  ) : fallbackText ? (
+                    <MathText size="sm" className="text-foreground">
+                      {fallbackText}
+                    </MathText>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -395,7 +412,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                     <div className="pl-3 space-y-1">
                       {value.map((item: unknown, i: number) => (
                         <p key={i} className="text-sm text-foreground">
-                          • {typeof item === "object" ? JSON.stringify(item) : String(item)}
+                          • {itemLabel(item, { fallback: `#${i + 1}` })}
                         </p>
                       ))}
                     </div>

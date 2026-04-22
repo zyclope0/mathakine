@@ -6,6 +6,8 @@ import { TrendingUp, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface SequenceRendererProps {
   visualData: Record<string, unknown> | null;
   difficultyRating?: number | null | undefined;
@@ -77,14 +79,7 @@ export function SequenceRenderer({
           <div className="flex flex-wrap items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
             {sequence.map((item: unknown, index: number) => {
               const isHighlighted = highlightedIndex === index;
-              const itemValue =
-                typeof item === "object" && item !== null
-                  ? String(
-                      (item as Record<string, unknown>).value ??
-                        (item as Record<string, unknown>).label ??
-                        JSON.stringify(item)
-                    )
-                  : String(item);
+              const itemValue = itemLabel(item, { fallback: `#${index + 1}` });
 
               return (
                 <div key={index} className="flex items-center gap-2">

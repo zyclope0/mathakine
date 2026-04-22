@@ -26,6 +26,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+
 interface PuzzleRendererProps {
   visualData: Record<string, unknown> | null;
   className?: string | undefined;
@@ -125,17 +127,10 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   const description: string = String(visualData?.description ?? "");
 
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
-  const initialItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
+  const initialItems: PuzzleItem[] = pieces.map((p: unknown, i: number) => ({
     id: `item-${i}`,
-    value:
-      typeof p === "object" && p !== null
-        ? String(
-            (p as Record<string, unknown>).value ??
-              (p as Record<string, unknown>).label ??
-              JSON.stringify(p)
-          )
-        : String(p),
-    original: p,
+    value: itemLabel(p, { fallback: `#${i + 1}` }),
+    original: p as Record<string, unknown>,
   }));
 
   const [items, setItems] = useState<PuzzleItem[]>(initialItems);
@@ -143,17 +138,10 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
 
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
-    const newItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
+    const newItems: PuzzleItem[] = pieces.map((p: unknown, i: number) => ({
       id: `item-${i}`,
-      value:
-        typeof p === "object" && p !== null
-          ? String(
-              (p as Record<string, unknown>).value ??
-                (p as Record<string, unknown>).label ??
-                JSON.stringify(p)
-            )
-          : String(p),
-      original: p,
+      value: itemLabel(p, { fallback: `#${i + 1}` }),
+      original: p as Record<string, unknown>,
     }));
     setItems(newItems);
     // Notifier le parent en différé pour éviter "Cannot update while rendering"
@@ -242,10 +230,10 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
               <h5 className="section-label-primary">{t("hintsHeading")}</h5>
               <ul className="space-y-1">
-                {hints.map((hint: string, idx: number) => (
+                {hints.map((hint: unknown, idx: number) => (
                   <li key={idx} className="text-sm text-foreground flex items-start gap-2">
                     <span className="text-primary font-bold">{idx + 1}.</span>
-                    <span>{typeof hint === "string" ? hint : JSON.stringify(hint)}</span>
+                    <span>{itemLabel(hint)}</span>
                   </li>
                 ))}
               </ul>

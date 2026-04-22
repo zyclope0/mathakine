@@ -1,40 +1,116 @@
 """Utilities for ordered challenge payloads.
 
-Shared by challenge validators to avoid divergent interpretations of
-``visual_data.pieces`` / ``correct_answer``.
+Shared by challenge validators **and** renderers to avoid divergent
+interpretations of ``visual_data.pieces`` / ``items`` / ``shapes`` /
+``correct_answer``.
+
+``item_label(raw, fields=...)`` est la fonction centrale : elle extrait un
+libellé **affichable** depuis un élément quelconque produit par le LLM, et
+**refuse de produire une repr Python** (``"{'id': ...}"``) — cause
+historique des leaks dans l'UI.
+
+Contrat :
+- string → trim.
+- numeric → repr canonique.
+- dict → premier champ textuel dans l'ordre officiel
+  ``label → value → name → text → description → id → piece_id → tag``
+  (override via ``fields``). Fail-open ``""`` si rien de reconnu.
+- string ressemblant à ``"{'name': '...'}"`` ou ``'{"name": "..."}"`` → on
+  tente de réextraire la valeur via ``_parse_python_dict_like_label_str``.
 """
 
 from __future__ import annotations
 
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 _ANSWER_PART_SEPARATOR_RE = re.compile(r"\s*(?:,|;|\n)\s*")
 _NUMERIC_TOKEN_RE = re.compile(r"^[+-]?\d+(?:[.,]\d+)?$")
+
+DEFAULT_ITEM_LABEL_FIELDS: tuple = (
+    "label",
+    "value",
+    "name",
+    "text",
+    "description",
+    "id",
+    "piece_id",
+    "tag",
+)
+
+_PY_DICT_LABEL_FIELD_RE = re.compile(
+    r"""['"](?P<field>name|label|value|text|description|id|piece_id|tag)['"]\s*:\s*['"](?P<val>[^'"]*)['"]""",
+    re.IGNORECASE,
+)
+
+
+def _parse_python_dict_like_label_str(text: str) -> Optional[str]:
+    """Extrait un libellé depuis une chaîne style ``"{'name': 'cercle rouge'}"``.
+
+    Retourne ``None`` si la chaîne n'a pas la forme d'une repr dict
+    (fail-open sur les vraies chaînes de forme comme ``"cercle rouge"``).
+    """
+    s = text.strip()
+    if not (s.startswith("{") and s.endswith("}")):
+        return None
+    fields: Dict[str, str] = {}
+    for m in _PY_DICT_LABEL_FIELD_RE.finditer(s):
+        fields.setdefault(m.group("field").lower(), m.group("val").strip())
+    if not fields:
+        return None
+    for k in DEFAULT_ITEM_LABEL_FIELDS:
+        v = fields.get(k)
+        if v:
+            return v
+    return None
+
+
+def item_label(
+    raw: Any,
+    fields: Optional[Iterable[str]] = None,
+    *,
+    fallback: str = "",
+) -> str:
+    """Libellé affichable pour un élément arbitraire de ``visual_data``.
+
+    Ne produit **jamais** la repr Python d'un dict — fail-open ``fallback``
+    (vide par défaut).
+    """
+    if raw is None:
+        return fallback
+    if isinstance(raw, bool):
+        return fallback
+    if isinstance(raw, (int, float)):
+        return str(raw)
+    keys = tuple(fields) if fields is not None else DEFAULT_ITEM_LABEL_FIELDS
+    if isinstance(raw, dict):
+        for key in keys:
+            v = raw.get(key)
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                return str(v)
+        return fallback
+    if isinstance(raw, str):
+        parsed = _parse_python_dict_like_label_str(raw)
+        if parsed is not None:
+            return parsed
+        return raw.strip()
+    # Autres types (list/tuple/set) : pas d'étiquette affichable stable ;
+    # jamais de ``str(x)`` silencieux qui leak.
+    return fallback
 
 
 _PIECE_LABEL_FIELDS: tuple = ("label", "value", "name", "id", "piece_id", "tag")
 
 
 def piece_label(piece: Any) -> str:
-    """Return the learner-visible label for one puzzle piece.
+    """Label d'une pièce de puzzle — alias orienté puzzle d'``item_label``.
 
-    Lit ``label`` / ``value`` / ``name`` / ``id`` (et alias courants). Évite
-    ``str(dict)`` qui produirait la repr Python entière (``"{'id': 'A', ...}"``)
-    — jamais mentionnée par ``correct_answer`` ni par l'explication, ce qui
-    bloque puzzle validation + auto-correction sans raison valable.
+    Conservé pour stabilité des imports publics. Préfère ``item_label`` pour
+    tout nouveau code générique.
     """
-    if isinstance(piece, dict):
-        for key in _PIECE_LABEL_FIELDS:
-            raw = piece.get(key)
-            if isinstance(raw, str) and raw.strip():
-                return raw.strip()
-            if isinstance(raw, (int, float)) and not isinstance(raw, bool):
-                return str(raw)
-        # Fail-open : pas de label exploitable → chaîne vide plutôt que
-        # repr Python bruyante, pour laisser les autres invariants décider.
-        return ""
-    return str(piece).strip()
+    return item_label(piece, fields=_PIECE_LABEL_FIELDS)
 
 
 def split_ordered_answer_parts(answer: Any) -> List[str]:
