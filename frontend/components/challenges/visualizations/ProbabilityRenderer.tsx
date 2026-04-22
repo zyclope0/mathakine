@@ -134,23 +134,31 @@ function extractUrnData(visualData: Record<string, unknown>): ProbabilityUrn[] {
   if (!isRecord(source)) return [];
 
   const declaredTotal = Number(visualData.total_per_urn ?? 0);
-  return Object.entries(source)
-    .map(([label, composition]) => {
-      if (!isRecord(composition)) return null;
-      const items = extractCompositionItems(composition);
+  const urns: ProbabilityUrn[] = [];
 
-      if (items.length === 0) return null;
-      const computedTotal = items.reduce((sum, item) => sum + item.count, 0);
-      const containerTotal = Number(composition.total ?? 0);
-      return {
-        label: formatContainerLabel(label),
-        items,
-        total:
-          containerTotal > 0 ? containerTotal : declaredTotal > 0 ? declaredTotal : computedTotal,
-        selectionProbability: extractSelectionProbability(composition),
-      };
-    })
-    .filter((urn): urn is ProbabilityUrn => urn !== null);
+  for (const [label, composition] of Object.entries(source)) {
+    if (!isRecord(composition)) continue;
+
+    const items = extractCompositionItems(composition);
+    if (items.length === 0) continue;
+
+    const computedTotal = items.reduce((sum, item) => sum + item.count, 0);
+    const containerTotal = Number(composition.total ?? 0);
+    const selectionProbability = extractSelectionProbability(composition);
+
+    const urn: ProbabilityUrn = {
+      label: formatContainerLabel(label),
+      items,
+      total:
+        containerTotal > 0 ? containerTotal : declaredTotal > 0 ? declaredTotal : computedTotal,
+    };
+    if (selectionProbability !== undefined) {
+      urn.selectionProbability = selectionProbability;
+    }
+    urns.push(urn);
+  }
+
+  return urns;
 }
 
 /**
