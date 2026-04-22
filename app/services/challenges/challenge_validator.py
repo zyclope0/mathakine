@@ -65,6 +65,34 @@ _GRAPH_NUMBER_RE = re.compile(r"[-+]?\d+(?:[.,]\d+)?")
 _GRAPH_ROUTE_SPLIT_RE = re.compile(r"\s*(?:<->|->|→|↔|–|—|-|à|to)\s*", re.I)
 
 
+_CHESS_VALID_PIECES = frozenset(
+    {"K", "k", "Q", "q", "R", "r", "B", "b", "N", "n", "P", "p"}
+)
+_CHESS_EMPTY = ""
+_CHESS_KNIGHT_OFFSETS = (
+    (-2, -1),
+    (-2, 1),
+    (-1, -2),
+    (-1, 2),
+    (1, -2),
+    (1, 2),
+    (2, -1),
+    (2, 1),
+)
+_CHESS_KING_OFFSETS = (
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+)
+_CHESS_BISHOP_DIRECTIONS = ((-1, -1), (-1, 1), (1, -1), (1, 1))
+_CHESS_ROOK_DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+
+
 class ChallengeValidationError(Exception):
     """Exception levée lors de la validation d'un challenge."""
 
@@ -1477,6 +1505,123 @@ def validate_deduction_challenge(
     return errors
 
 
+def _chess_piece_at(board: List[List[str]], row: int, col: int) -> str:
+    if 0 <= row < 8 and 0 <= col < 8:
+        return board[row][col]
+    return _CHESS_EMPTY
+
+
+def _chess_piece_color(piece: str) -> Optional[str]:
+    if not piece:
+        return None
+    return "white" if piece.isupper() else "black"
+
+
+def _chess_find_piece_positions(
+    board: List[List[str]], target_piece: str
+) -> List[Tuple[int, int]]:
+    positions: List[Tuple[int, int]] = []
+    for row_index, row in enumerate(board):
+        for col_index, piece in enumerate(row):
+            if piece == target_piece:
+                positions.append((row_index, col_index))
+    return positions
+
+
+def _chess_is_attacked_by(
+    board: List[List[str]], target_row: int, target_col: int, attacker_color: str
+) -> bool:
+    attacker_is_white = attacker_color == "white"
+    pawn_piece = "P" if attacker_is_white else "p"
+    knight_piece = "N" if attacker_is_white else "n"
+    king_piece = "K" if attacker_is_white else "k"
+    bishop_piece = "B" if attacker_is_white else "b"
+    rook_piece = "R" if attacker_is_white else "r"
+    queen_piece = "Q" if attacker_is_white else "q"
+
+    pawn_source_row = target_row + (1 if attacker_is_white else -1)
+    for pawn_source_col in (target_col - 1, target_col + 1):
+        if _chess_piece_at(board, pawn_source_row, pawn_source_col) == pawn_piece:
+            return True
+
+    for row_delta, col_delta in _CHESS_KNIGHT_OFFSETS:
+        if (
+            _chess_piece_at(board, target_row + row_delta, target_col + col_delta)
+            == knight_piece
+        ):
+            return True
+
+    for row_delta, col_delta in _CHESS_KING_OFFSETS:
+        if (
+            _chess_piece_at(board, target_row + row_delta, target_col + col_delta)
+            == king_piece
+        ):
+            return True
+
+    for row_delta, col_delta in _CHESS_BISHOP_DIRECTIONS:
+        row = target_row + row_delta
+        col = target_col + col_delta
+        while 0 <= row < 8 and 0 <= col < 8:
+            piece = _chess_piece_at(board, row, col)
+            if piece:
+                if piece in (bishop_piece, queen_piece):
+                    return True
+                break
+            row += row_delta
+            col += col_delta
+
+    for row_delta, col_delta in _CHESS_ROOK_DIRECTIONS:
+        row = target_row + row_delta
+        col = target_col + col_delta
+        while 0 <= row < 8 and 0 <= col < 8:
+            piece = _chess_piece_at(board, row, col)
+            if piece:
+                if piece in (rook_piece, queen_piece):
+                    return True
+                break
+            row += row_delta
+            col += col_delta
+
+    return False
+
+
+def _validate_chess_position_legality(board: List[List[str]], turn: str) -> List[str]:
+    errors: List[str] = []
+    piece_count = sum(1 for row in board for piece in row if piece)
+    if not (4 <= piece_count <= 8):
+        errors.append(
+            f"CHESS: position tactique attendue avec 4 à 8 pièces, reçu {piece_count}"
+        )
+
+    white_kings = _chess_find_piece_positions(board, "K")
+    black_kings = _chess_find_piece_positions(board, "k")
+    if len(white_kings) != 1:
+        errors.append(
+            f"CHESS: il doit y avoir exactement un roi blanc, reçu {len(white_kings)}"
+        )
+    if len(black_kings) != 1:
+        errors.append(
+            f"CHESS: il doit y avoir exactement un roi noir, reçu {len(black_kings)}"
+        )
+    if errors:
+        return errors
+
+    if turn == "white":
+        black_king_row, black_king_col = black_kings[0]
+        if _chess_is_attacked_by(board, black_king_row, black_king_col, "white"):
+            errors.append(
+                "CHESS: roi noir déjà en échec alors que c'est aux Blancs de jouer"
+            )
+    elif turn == "black":
+        white_king_row, white_king_col = white_kings[0]
+        if _chess_is_attacked_by(board, white_king_row, white_king_col, "black"):
+            errors.append(
+                "CHESS: roi blanc déjà en échec alors que c'est aux Noirs de jouer"
+            )
+
+    return errors
+
+
 def validate_chess_challenge(
     visual_data: Dict[str, Any], correct_answer: str, explanation: str
 ) -> List[str]:
@@ -1491,18 +1636,25 @@ def validate_chess_challenge(
         errors.append("CHESS: visual_data.board manquant ou invalide")
         return errors
 
+    board_is_rectangular = True
+    normalized_board: List[List[str]] = []
     if len(board) != 8:
         errors.append(f"CHESS: board doit avoir 8 rangées, reçu {len(board)}")
-    valid_pieces = {"K", "k", "Q", "q", "R", "r", "B", "b", "N", "n", "P", "p", ""}
+        board_is_rectangular = False
     for i, row in enumerate(board):
         if not isinstance(row, (list, tuple)) or len(row) != 8:
             errors.append(f"CHESS: board[{i}] doit être une liste de 8 éléments")
+            board_is_rectangular = False
             break
+        normalized_row: List[str] = []
         for j, cell in enumerate(row):
             val = str(cell).strip() if cell else ""
-            if val and val not in valid_pieces:
+            normalized_row.append(val)
+            if val and val not in _CHESS_VALID_PIECES:
                 errors.append(f"CHESS: pièce invalide '{cell}' en [{i},{j}]")
+                board_is_rectangular = False
                 break
+        normalized_board.append(normalized_row)
 
     turn = visual_data.get("turn", "").lower()
     if turn not in ("white", "black"):
@@ -1515,6 +1667,13 @@ def validate_chess_challenge(
 
     if not correct_answer or not str(correct_answer).strip():
         errors.append("CHESS: correct_answer est vide (notation algébrique attendue)")
+
+    if (
+        board_is_rectangular
+        and len(normalized_board) == 8
+        and turn in ("white", "black")
+    ):
+        errors.extend(_validate_chess_position_legality(normalized_board, turn))
 
     return errors
 

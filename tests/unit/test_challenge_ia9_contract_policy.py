@@ -256,6 +256,127 @@ def test_validate_challenge_logic_accepts_root_substitution_partial_key_aliases(
     assert ok, errors
 
 
+def test_chess_visual_contract_normalizes_french_board_symbols() -> None:
+    vd = apply_visual_contract_normalization(
+        "chess",
+        {
+            "board": [
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "D", "", ""],
+                ["", "", "", "", "", "", "r", ""],
+                ["", "", "", "", "K", "", "", ""],
+            ],
+            "turn": "white",
+            "objective": "mat_en_2",
+            "highlight_positions": [
+                {"row": 5, "col": 5},
+                {"row": 6, "col": 6},
+                {"row": 7, "col": 5},
+            ],
+        },
+    )
+
+    assert vd["board"][5][5] == "Q"
+    assert vd["board"][6][6] == "k"
+    assert vd["highlight_positions"] == [{"row": 5, "col": 5}, {"row": 6, "col": 6}]
+
+
+def test_chess_visual_contract_inferrs_white_king_from_single_french_roi_alias() -> (
+    None
+):
+    vd = apply_visual_contract_normalization(
+        "chess",
+        {
+            "board": [
+                ["", "", "", "", "", "", "r", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "D", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "R", "", "", ""],
+            ],
+            "turn": "white",
+            "objective": "mat_en_1",
+            "highlight_positions": [{"row": 7, "col": 4}, {"row": 0, "col": 6}],
+        },
+    )
+
+    assert vd["board"][7][4] == "K"
+    assert vd["board"][0][6] == "k"
+    assert vd["highlight_positions"] == [{"row": 7, "col": 4}, {"row": 0, "col": 6}]
+
+
+def test_validate_challenge_logic_accepts_chess_french_board_aliases() -> None:
+    ok, errors = validate_challenge_logic(
+        {
+            "challenge_type": "CHESS",
+            "title": "La position critique",
+            "description": "d" * 12,
+            "question": "Trouve la ligne forcée.",
+            "correct_answer": "Dg5+, Rf8, Df6#",
+            "solution_explanation": "e" * 12,
+            "difficulty_rating": 4.0,
+            "visual_data": {
+                "board": [
+                    ["", "", "", "", "", "", "", "r"],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "D", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["R", "", "", "", "K", "", "", ""],
+                ],
+                "turn": "white",
+                "objective": "mat_en_2",
+                "highlight_positions": [{"row": 5, "col": 5}, {"row": 0, "col": 7}],
+            },
+        }
+    )
+
+    assert ok, errors
+
+
+def test_validate_challenge_logic_rejects_chess_when_opponent_king_already_in_check() -> (
+    None
+):
+    ok, errors = validate_challenge_logic(
+        {
+            "challenge_type": "CHESS",
+            "title": "Mat clair en deux coups",
+            "description": "Les Blancs jouent et cherchent une ligne forcée.",
+            "question": "Donne la ligne forcée complète.",
+            "correct_answer": "Dg5+, Rf8, Df6#",
+            "solution_explanation": "La ligne force le mat.",
+            "difficulty_rating": 3.8,
+            "visual_data": {
+                "board": [
+                    ["", "", "", "", "", "r", "", "k"],
+                    ["", "", "", "", "", "N", "p", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "Q", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "K", ""],
+                ],
+                "turn": "white",
+                "objective": "mat_en_2",
+                "highlight_positions": [{"row": 0, "col": 7}, {"row": 1, "col": 5}],
+            },
+        }
+    )
+
+    assert not ok
+    assert any("roi noir déjà en échec" in error for error in errors)
+
+
 def test_validate_symmetry_canonical_rejects_bad_side_values() -> None:
     vd = {
         "type": "symmetry",

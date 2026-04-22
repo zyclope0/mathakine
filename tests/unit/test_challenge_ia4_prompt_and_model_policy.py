@@ -104,6 +104,17 @@ def test_graph_prompt_requires_weighted_mst_contract() -> None:
     assert "recalcule Dijkstra" in p
 
 
+def test_chess_prompt_bounds_position_and_forced_line_contract() -> None:
+    p = build_challenge_system_prompt("chess", "15-17")
+    assert "4 à 8 pièces maximum" in p
+    assert "UNIQUEMENT ces symboles anglais/FEN" in p
+    assert "Dame blanche = Q, roi noir = k" in p
+    assert "Évite mat_en_3" in p
+    assert "mat_en_2 seulement si la ligne forcée est très courte" in p
+    assert "LIGNE FORCÉE complète" in p
+    assert '"coup blanc, réponse noire forcée, coup blanc mat"' in p
+
+
 def test_prompt_discourages_under_rating_structurally_complex_challenges() -> None:
     p = build_challenge_system_prompt("sequence", "15-17")
     assert "Ne PAS sous-évaluer" in p
@@ -229,6 +240,14 @@ def test_build_challenge_ai_stream_kwargs_o3_json_and_reasoning() -> None:
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["max_completion_tokens"] == 5000
     assert kw["reasoning_effort"] == "low"
+
+
+def test_chess_generation_runtime_budget_is_bounded() -> None:
+    assert AIConfig.get_reasoning_effort("chess") == "low"
+    assert AIConfig.get_max_tokens("chess") == 6000
+    assert AIConfig.get_timeout("chess") == 90.0
+    assert AIConfig.get_max_retries("chess") == 1
+    assert AIConfig.get_max_retries("sequence") == AIConfig.MAX_RETRIES
 
 
 def test_build_challenge_ai_stream_kwargs_gpt5_verbosity_and_temp_when_none() -> None:

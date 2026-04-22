@@ -183,11 +183,17 @@ TEXT_VISUAL_DATA_PROBABILITY = """VISUAL_DATA OBLIGATOIRE (type probability) :
 
 TEXT_VISUAL_DATA_CHESS = """VISUAL_DATA OBLIGATOIRE (type chess) :
 - INTERDIT : position de départ complète pour mat en X coups.
-- Mat en X coups : position TACTIQUE (peu de pièces, roi noir menacé).
+- Position TACTIQUE courte : 4 à 8 pièces maximum, roi noir exposé, pas de position d'ouverture ni de milieu de jeu dense.
 - Notation : K/k Roi, Q/q Dame, R/r Tour, B/b Fou, N/n Cavalier, P/p Pion. MAJ = blanc, min = noir. "" = vide.
+- IMPORTANT `board` : utiliser UNIQUEMENT ces symboles anglais/FEN dans l'échiquier : K, Q, R, B, N, P pour les blancs ; k, q, r, b, n, p pour les noirs. Ne JAMAIS mettre D/T/F/C/R français dans `board` (ex. Dame blanche = Q, roi noir = k).
+- La notation française est acceptée seulement dans `correct_answer` (ex. Dg5+), jamais dans `visual_data.board`.
 - board[0] = rangée 8, board[7] = rangée 1 ; board[row][0] = colonne a.
-- "turn" : white/black ; "objective" : mat_en_1, mat_en_2, mat_en_3, meilleur_coup.
-- correct_answer : notation algébrique ; duals séparés par " | ".
+- "turn" : white/black ; "objective" : mat_en_1, mat_en_2, meilleur_coup. Évite mat_en_3.
+- Position légale : si "turn" = white, le roi noir ne doit PAS déjà être en échec dans la position initiale ; si "turn" = black, le roi blanc ne doit PAS déjà être en échec.
+- Pour 15-17 ans : privilégie mat_en_1 ou meilleur_coup. Utilise mat_en_2 seulement si la ligne forcée est très courte et évidente à expliquer.
+- Pour mat_en_2 : la question doit demander la LIGNE FORCÉE complète, pas seulement "les deux coups blancs".
+- correct_answer : notation algébrique courte. Pour mat_en_2, inclure exactement la ligne "coup blanc, réponse noire forcée, coup blanc mat" (ex. "Dd7+, Rf8, Df7#"). Duals séparés par " | ".
+- solution_explanation : courte et vérifiable ; expliquer le motif tactique et la réponse noire forcée, sans arbre de variantes long.
 - highlight_positions : uniquement des cases avec une pièce."""
 
 TEXT_VISUAL_DATA_FALLBACK = """VISUAL_DATA OBLIGATOIRE :
@@ -238,6 +244,9 @@ TEXT_VAL_CODING = """6. CODING :
 
 TEXT_VAL_CHESS = """7. CHESS :
    - board 8x8 cohérent ; pas de mat en X depuis la position initiale complète.
+   - Position courte : 4 à 8 pièces maximum ; éviter les positions denses qui demandent une analyse moteur.
+   - Position légale : le roi adverse ne doit pas être déjà en échec au début si c'est au joueur actif de jouer.
+   - Pour mat_en_2 : correct_answer doit être la ligne forcée complète (blanc, noir forcé, blanc mat) et la question doit demander cette ligne.
    - Vérifier unicité ou lister les duals dans correct_answer.
    - highlight_positions : cases occupées uniquement."""
 

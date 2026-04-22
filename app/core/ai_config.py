@@ -23,7 +23,9 @@ class AIConfig:
 
     # Reasoning Effort : contrôle la profondeur (o3, GPT-5.2)
     # low = rapide/économique, medium = équilibré, high = raisonnement profond
-    # Pas de high partout : sequence/puzzle/riddle/graph/coding suffisent avec low/medium
+    # Pas de high partout : sequence/puzzle/riddle/graph/coding suffisent avec low/medium.
+    # Chess est volontairement borné : la qualité vient d'une position tactique simple,
+    # pas d'une recherche ouverte coûteuse que le LLM ne peut pas prouver comme un moteur.
     REASONING_EFFORT_MAP: Dict[str, str] = {
         "pattern": "high",  # Patterns logiques complexes
         "sequence": "low",  # Séquences simples
@@ -33,7 +35,7 @@ class AIConfig:
         "riddle": "low",  # Énigmes textuelles simples
         "deduction": "high",  # Déduction logique stricte
         "coding": "medium",  # Cryptographie : medium pour cohérence
-        "chess": "medium",  # Échecs : medium (o3 consomme beaucoup si high)
+        "chess": "low",  # Échecs : positions courtes, budget borné
         "probability": "low",  # Probabilités : low suffit
     }
 
@@ -79,16 +81,22 @@ class AIConfig:
         "riddle": 5000,  # Énigmes avec contexte
         "deduction": 8000,  # Déduction avec règles et explications détaillées
         "coding": 6000,  # Cryptographie avec message encodé et clé
-        "chess": 14000,  # o3 raisonne avant output ; board 8x8 + explication
+        "chess": 6000,  # board 8x8 + ligne tactique courte ; évite les runs >5 min
         "probability": 4000,  # Probabilités simples
     }
 
     # Timeouts - plus longs pour GPT-5 avec reasoning
     DEFAULT_TIMEOUT: float = 90.0  # 90 secondes par défaut
     MAX_TIMEOUT: float = 180.0  # Maximum 3 minutes
+    TIMEOUT_MAP: Dict[str, float] = {
+        "chess": 90.0,
+    }
 
     # Retry configuration
     MAX_RETRIES: int = 3
+    MAX_RETRIES_BY_TYPE: Dict[str, int] = {
+        "chess": 1,
+    }
     RETRY_BACKOFF_MULTIPLIER: float = 1.0
     RETRY_MIN_WAIT: float = 2.0
     RETRY_MAX_WAIT: float = 10.0
@@ -140,17 +148,26 @@ class AIConfig:
     @classmethod
     def get_timeout(cls, challenge_type: Optional[str] = None) -> float:
         """Retourne le timeout à utiliser."""
+        type_key = (challenge_type or "").strip().lower()
+        if type_key in cls.TIMEOUT_MAP:
+            return cls.TIMEOUT_MAP[type_key]
+
         # Timeout plus long pour types complexes avec raisonnement profond
-        if challenge_type in [
+        if type_key in [
             "visual",
             "deduction",
             "pattern",
             "graph",
             "coding",
-            "chess",
         ]:
             return cls.MAX_TIMEOUT
         return cls.DEFAULT_TIMEOUT
+
+    @classmethod
+    def get_max_retries(cls, challenge_type: Optional[str] = None) -> int:
+        """Retourne le nombre d'essais OpenAI autorisé pour ce type."""
+        type_key = (challenge_type or "").strip().lower()
+        return cls.MAX_RETRIES_BY_TYPE.get(type_key, cls.MAX_RETRIES)
 
     @classmethod
     def is_gpt5_model(cls, model: str) -> bool:

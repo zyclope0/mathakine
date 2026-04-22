@@ -334,9 +334,10 @@ async def generate_challenge_stream(
             return
 
         yield sse_status_message("Génération en cours...")
+        max_retries = AIConfig.get_max_retries(challenge_type)
 
         @retry(
-            stop=stop_after_attempt(AIConfig.MAX_RETRIES),
+            stop=stop_after_attempt(max_retries),
             wait=wait_exponential(
                 multiplier=AIConfig.RETRY_BACKOFF_MULTIPLIER,
                 min=AIConfig.RETRY_MIN_WAIT,
@@ -372,7 +373,7 @@ async def generate_challenge_stream(
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
             logger.error(
                 "Erreur API OpenAI aprÃ¨s %s tentatives: %s",
-                AIConfig.MAX_RETRIES,
+                max_retries,
                 api_error,
             )
             yield sse_error_message(

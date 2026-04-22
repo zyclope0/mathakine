@@ -151,6 +151,23 @@ describe("ChallengeSolverCommandBar", () => {
     expect(screen.getByText(solver.visualOrderedAnswerFormat)).toBeInTheDocument();
   });
 
+  it("shows a collapsible chess notation guide for chess answers", () => {
+    render(
+      <ChallengeSolverCommandBar
+        {...baseProps({
+          challengeType: "chess",
+          textInputKind: "chess",
+        })}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText(/Écris les coups en notation échecs/)).toBeInTheDocument();
+    expect(screen.getByText(solver.chessNotationGuideTitle)).toBeInTheDocument();
+    expect(screen.getByText(solver.chessNotationFrenchTitle)).toBeInTheDocument();
+    expect(screen.getByText(/Dd7\+, Rf8, Df7#/, { selector: "code" })).toBeInTheDocument();
+  });
+
   it("calls onSubmit when validate clicked and not disabled", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

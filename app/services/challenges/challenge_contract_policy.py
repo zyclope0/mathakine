@@ -449,6 +449,151 @@ _CODING_PARTIAL_KEY_ROOT_FIELDS = (
     "rule_type",
 )
 
+_CHESS_BOARD_PIECE_ALIASES: Dict[str, str] = {
+    # Alias français fréquents produits par le LLM dans visual_data.board.
+    # Le renderer et le validateur attendent la notation FEN anglaise.
+    "D": "Q",
+    "T": "R",
+    "F": "B",
+    "C": "N",
+    "d": "q",
+    "t": "r",
+    "f": "b",
+    "c": "n",
+}
+_CHESS_VALID_BOARD_PIECES = frozenset(
+    {"K", "k", "Q", "q", "R", "r", "B", "b", "N", "n", "P", "p"}
+)
+
+
+def _normalize_chess_piece_token(raw_piece: Any) -> str:
+    piece = str(raw_piece or "").strip()
+    if piece in ("", ".", " "):
+        return ""
+    return _CHESS_BOARD_PIECE_ALIASES.get(piece, piece)
+
+
+def _normalize_chess_board(board: Any) -> List[List[Any]]:
+    if not isinstance(board, list):
+        return []
+
+    normalized: List[List[Any]] = []
+    for raw_row in board:
+        if not isinstance(raw_row, list):
+            normalized.append([])
+            continue
+        row: List[Any] = []
+        for raw_cell in raw_row:
+            if isinstance(raw_cell, dict):
+                cell = dict(raw_cell)
+                if "piece" in cell:
+                    cell["piece"] = _normalize_chess_piece_token(cell.get("piece"))
+                row.append(cell)
+            else:
+                row.append(_normalize_chess_piece_token(raw_cell))
+        normalized.append(row)
+
+    return _infer_missing_kings_from_french_rook_aliases(normalized)
+
+
+def _infer_missing_kings_from_french_rook_aliases(
+    board: List[List[Any]],
+) -> List[List[Any]]:
+    """
+    Corrige un cas LLM courant en français : R/r utilisé pour roi au lieu de K/k.
+
+    Si le roi attendu existe déjà, R/r reste une tour. Si aucun roi n'existe et
+    qu'une seule tour de cette couleur est présente, la position était déjà invalide ;
+    l'hypothèse la plus conservatrice pour un défi de mat est que la pièce désigne
+    le roi dans la notation française.
+    """
+    king_count_by_piece: Dict[str, int] = {"K": 0, "k": 0}
+    rook_positions_by_piece: Dict[str, List[Tuple[int, int]]] = {"R": [], "r": []}
+    for row_index, row in enumerate(board):
+        if not isinstance(row, list):
+            continue
+        for col_index, cell in enumerate(row):
+            piece = cell.get("piece") if isinstance(cell, dict) else cell
+            if piece in king_count_by_piece:
+                king_count_by_piece[piece] += 1
+            elif piece in rook_positions_by_piece:
+                rook_positions_by_piece[piece].append((row_index, col_index))
+
+    for rook_piece, king_piece in (("R", "K"), ("r", "k")):
+        if (
+            king_count_by_piece[king_piece] == 0
+            and len(rook_positions_by_piece[rook_piece]) == 1
+        ):
+            row_index, col_index = rook_positions_by_piece[rook_piece][0]
+            cell = board[row_index][col_index]
+            if isinstance(cell, dict):
+                cell["piece"] = king_piece
+            else:
+                board[row_index][col_index] = king_piece
+    return board
+
+
+def _chess_square_has_piece(board: List[List[Any]], row: int, col: int) -> bool:
+    if row < 0 or col < 0 or row >= len(board):
+        return False
+    row_values = board[row]
+    if not isinstance(row_values, list) or col >= len(row_values):
+        return False
+    cell = row_values[col]
+    piece = cell.get("piece") if isinstance(cell, dict) else cell
+    return _normalize_chess_piece_token(piece) in _CHESS_VALID_BOARD_PIECES
+
+
+def _normalize_chess_highlight_position(raw_position: Any) -> Optional[Tuple[int, int]]:
+    if isinstance(raw_position, dict):
+        raw_row = raw_position.get("row")
+        raw_col = raw_position.get("col")
+    elif isinstance(raw_position, (list, tuple)) and len(raw_position) >= 2:
+        raw_row, raw_col = raw_position[0], raw_position[1]
+    elif isinstance(raw_position, str) and len(raw_position.strip()) >= 2:
+        text = raw_position.strip().lower()
+        file_char, rank_char = text[0], text[1]
+        if file_char < "a" or file_char > "h" or not rank_char.isdigit():
+            return None
+        raw_row = 8 - int(rank_char)
+        raw_col = ord(file_char) - ord("a")
+    else:
+        return None
+
+    try:
+        row = int(raw_row)
+        col = int(raw_col)
+    except (TypeError, ValueError):
+        return None
+    if not (0 <= row <= 7 and 0 <= col <= 7):
+        return None
+    return row, col
+
+
+def normalize_chess_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Canonicalise les symboles d'échecs pour le validateur et le renderer."""
+    if not isinstance(visual_data, dict):
+        return {}
+
+    out = dict(visual_data)
+    board = _normalize_chess_board(out.get("board"))
+    if board:
+        out["board"] = board
+
+    raw_highlights = out.get("highlight_positions")
+    if isinstance(raw_highlights, list) and board:
+        normalized_highlights: List[Dict[str, int]] = []
+        for raw_position in raw_highlights:
+            coords = _normalize_chess_highlight_position(raw_position)
+            if coords is None:
+                continue
+            row, col = coords
+            if _chess_square_has_piece(board, row, col):
+                normalized_highlights.append({"row": row, "col": col})
+        out["highlight_positions"] = normalized_highlights
+
+    return out
+
 
 def normalize_coding_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -506,6 +651,8 @@ def apply_visual_contract_normalization(
         vd = normalize_symmetry_visual_data(vd)
     elif ct == "CODING":
         vd = normalize_coding_visual_data(vd)
+    elif ct == "CHESS":
+        vd = normalize_chess_visual_data(vd)
 
     return vd
 
