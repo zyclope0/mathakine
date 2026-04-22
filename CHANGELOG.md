@@ -46,6 +46,7 @@ Active references:
 
 - Route-level loading states now cover the heavier protected learner/admin surfaces: `/dashboard`, `/settings`, `/profile`, and `/admin`, with the admin fallback aligned to the existing layout shell instead of duplicating it.
 - Adaptive difficulty now seeds conservative ordinal priors for non-IRT exercise types (`GEOMETRIE`, `TEXTE`, `DIVERS`) when no diagnostic score is available, while keeping direct IRT and existing proxies (`MIXTE`, `FRACTIONS`) authoritative.
+- Chess challenges now expose an inline notation helper so learners can understand expected move syntax without leaving the solving flow.
 
 ### Changed
 
@@ -58,6 +59,9 @@ Active references:
 - High-difficulty sequence generation is now structurally stricter: `4.0+` sequences must avoid short one-gap patterns, simple arithmetic/geometric progressions, and direct-rule formats that were inflating the visible rating.
 - Coding challenge policy was clarified without increasing generation cost: coding challenges may still carry `choices` as a quality/fallback artifact, but they now always start in `open_text` mode instead of exposing a QCM immediately.
 - Challenge generation hardening now neutralizes over-revealing coding titles and recalibrates too-simple `coding` payloads before the blocking validation phase, instead of rejecting recoverable generations too early.
+- Challenge generation prompts now better preserve the learner-facing locale for coding answers and avoid putting the solving rule directly in titles.
+- Graph challenge generation now prefers renderable graph payloads with explicit edges/weights instead of table-only descriptions that leave the visualization empty.
+- Probability challenge generation now favors harder adult/15-17 tasks through weighted urns, conditional reasoning, and richer distractors while keeping equivalent QCM options out of the same choice set.
 - Coverage governance is now explicit across CI and Codecov: backend and frontend uploads are separated, project targets are documented by scope, and the default blended Codecov status no longer obscures the real gates.
 - CI test database naming is now aligned end-to-end on `test_mathakine`, and the artifact actions in `tests.yml` were realigned to currently valid published versions.
 - The adaptive-difficulty documentation/comments now explicitly distinguish the seeded cold-start path from the legacy direct-IRT selection path so the scope of the fix is not misread later.
@@ -74,6 +78,18 @@ Active references:
 - The challenge substitution renderer now displays keyword-based `partial_key` hints cleanly instead of leaking nested objects as `[object Object]`.
 - Challenge generation SSE messages now use clean French strings again instead of mojibake in learner-facing toasts.
 - Malformed LaTeX in challenge feedback explanations now degrades safely in the frontend instead of rendering aggressive red KaTeX error text.
+- Riddle challenge generation now avoids high-difficulty QCM shortcuts and tones down hints that reveal the mathematical mechanism too directly.
+- Deduction challenge validation now rejects under-constrained grids more conservatively instead of accepting schedules that are not uniquely determined.
+- Probability challenge rendering now supports urn-style visual data cleanly, including weighted urn selection and repeated color labels, without duplicate React keys or misleading aggregate totals.
+- Visual/spatial challenge rendering now displays paired shape layouts from structured `layout` data, with clearer answer guidance and color-aware shape labels.
+- Puzzle challenge generation now rejects sortable numeric tile sets that can be solved by simple ascending order despite a claimed hidden rule.
+- Graph challenge rendering now falls back to deterministic node layouts when the payload omits coordinates, preventing single-node or empty graph displays.
+- Coding challenge validation now rejects malformed substitution `partial_key` payloads earlier and requires enough mapping examples for deductible keyword substitutions.
+- Chess challenge generation now rejects invalid piece letters, impossible highlights, positions where the side to move starts with the enemy king already in check, and overcomplicated mate-in-two payloads that are not short tactical positions.
+- Numeric multi-cell pattern validation now verifies provable arithmetic/geometric/quadratic grids and rejects unverifiable numeric grids instead of bypassing validation.
+- Exercise AI arithmetic validation now handles signed binary expressions such as `-3 + 5` and `10 - -3` while staying fail-open on compound expressions.
+- AI-generated exercises now persist the runtime F42 `difficulty_tier` used in the prompt, preventing mastery-band context from being lost when the exercise is saved.
+- AI exercise stream adaptive-context failures now log unexpected DB/service exceptions with stack traces while preserving the historical fail-open behavior.
 
 ### Refactored
 
@@ -88,6 +104,7 @@ Active references:
 - Added a generation calibration audit script producing a versioned pre-invitations baseline.
 - Documented AI model routing policy per exercise type and difficulty.
 - Documented challenge difficulty downward calibration coverage.
+- Removed committed local pytest/smoke output artifacts and ignored their regenerated filenames.
 
 ## [3.6.0-beta.2] - 2026-04-17
 
