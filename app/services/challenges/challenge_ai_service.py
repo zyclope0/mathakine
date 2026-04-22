@@ -66,6 +66,132 @@ CHALLENGE_AI_GENERIC_ERROR_MESSAGE = (
 CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE = (
     "Erreur temporaire lors de la g\u00e9n\u00e9ration du d\u00e9fi. R\u00e9essayez."
 )
+_CHESS_VALIDATION_REPAIR_MAX_TOKENS = 2500
+_CHESS_VALIDATION_REPAIR_ERROR_MARKERS = (
+    "roi noir déjà en échec",
+    "roi blanc déjà en échec",
+)
+
+
+def _should_attempt_chess_validation_repair(
+    challenge_type: str, validation_errors: list[str]
+) -> bool:
+    """Autorise une réparation IA bornée pour les positions d'échecs illégales."""
+    if (challenge_type or "").strip().lower() != "chess":
+        return False
+    return any(
+        marker in error
+        for error in validation_errors
+        for marker in _CHESS_VALIDATION_REPAIR_ERROR_MARKERS
+    )
+
+
+def _build_chess_validation_repair_prompt(
+    challenge_data: Dict[str, Any],
+    validation_errors: list[str],
+    *,
+    locale: str = "fr",
+) -> str:
+    """Construit un prompt compact de réparation pour un JSON chess invalide."""
+    language_instruction = (
+        "Rédige les champs visibles en français."
+        if (locale or "fr").lower().startswith("fr")
+        else "Keep visible fields in the interface language."
+    )
+    payload = json.dumps(challenge_data, ensure_ascii=False, indent=2)
+    errors = "\n".join(f"- {err}" for err in validation_errors)
+    return (
+        "Corrige ce défi d'échecs JSON sans ajouter de texte hors JSON.\n"
+        f"{language_instruction}\n"
+        "Erreurs de validation à corriger :\n"
+        f"{errors}\n\n"
+        "Contraintes non négociables :\n"
+        "- Conserve challenge_type=CHESS/chess et un visual_data.board 8x8.\n"
+        "- Utilise seulement K,Q,R,B,N,P / k,q,r,b,n,p dans board.\n"
+        "- Position tactique courte : 4 à 8 pièces, exactement un roi blanc et un roi noir.\n"
+        "- Si turn=white, le roi noir ne doit pas déjà être attaqué avant le coup blanc.\n"
+        "- Si turn=black, le roi blanc ne doit pas déjà être attaqué avant le coup noir.\n"
+        "- Recalcule correct_answer et solution_explanation pour être cohérents avec le board corrigé.\n"
+        "- Pour mat_en_1 : correct_answer = un seul coup mat.\n"
+        "- Pour mat_en_2 : correct_answer = ligne complète coup actif, réponse forcée, coup mat.\n"
+        "- Ne mets jamais de choices pour chess.\n\n"
+        "JSON à corriger :\n"
+        f"{payload}"
+    )
+
+
+async def _repair_chess_validation_failure_with_openai(
+    *,
+    client: AsyncOpenAI,
+    challenge_type: str,
+    age_group: str,
+    locale: str,
+    ai_params: Dict[str, Any],
+    challenge_data: Dict[str, Any],
+    validation_errors: list[str],
+    personalization: Optional["ChallengeStreamPersonalizationMeta"],
+) -> tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """Tente une réparation non-stream, uniquement après échec structurel CHESS."""
+    fallback_model = resolve_challenge_ai_fallback_model(challenge_type)
+    repair_prompt = _build_chess_validation_repair_prompt(
+        challenge_data,
+        validation_errors,
+        locale=locale,
+    )
+    response = await client.chat.completions.create(
+        model=fallback_model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Tu es un validateur/correcteur JSON pour des défis d'échecs. "
+                    "Retourne uniquement un objet JSON valide."
+                ),
+            },
+            {"role": "user", "content": repair_prompt},
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=min(
+            int(ai_params.get("max_tokens", _CHESS_VALIDATION_REPAIR_MAX_TOKENS)),
+            _CHESS_VALIDATION_REPAIR_MAX_TOKENS,
+        ),
+        temperature=0.2,
+    )
+
+    content = ""
+    if response.choices and response.choices[0].message.content:
+        content = response.choices[0].message.content
+    if not content.strip():
+        return None, None
+
+    repaired_raw = extract_json_from_text(content)
+    repaired_raw["challenge_type"] = challenge_type
+    repaired = normalize_generated_challenge(
+        repaired_raw,
+        challenge_type,
+        age_group,
+        f42_rating_hint=(
+            personalization.target_difficulty_rating_hint
+            if personalization is not None
+            else None
+        ),
+        difficulty_tier=(
+            personalization.resolved_target_tier
+            if personalization is not None
+            else None
+        ),
+    )
+    repaired = auto_correct_challenge(repaired)
+
+    usage = getattr(response, "usage", None)
+    usage_event: Optional[Dict[str, Any]] = None
+    if usage is not None:
+        usage_event = {
+            "model": fallback_model,
+            "prompt_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
+            "completion_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
+        }
+    return repaired, usage_event
 
 
 def normalize_generated_challenge(
@@ -412,13 +538,21 @@ async def generate_challenge_stream(
             prompt_tokens: int,
             completion_tokens: int,
         ) -> None:
-            usage_events.append(
-                {
-                    "model": model,
-                    "prompt_tokens": max(0, int(prompt_tokens)),
-                    "completion_tokens": max(0, int(completion_tokens)),
-                }
-            )
+            usage_event = {
+                "model": model,
+                "prompt_tokens": max(0, int(prompt_tokens)),
+                "completion_tokens": max(0, int(completion_tokens)),
+            }
+            if usage_events_tracked:
+                usage_stats = token_tracker.track_usage(
+                    challenge_type=challenge_type,
+                    prompt_tokens=usage_event["prompt_tokens"],
+                    completion_tokens=usage_event["completion_tokens"],
+                    model=usage_event["model"],
+                )
+                logger.debug("Token usage tracked: %s", usage_stats)
+                return
+            usage_events.append(usage_event)
 
         def _flush_usage_events() -> None:
             nonlocal usage_events_tracked
@@ -615,21 +749,57 @@ async def generate_challenge_stream(
                 auto_corrected = True
                 validation_passed = True
             else:
-                logger.error(
-                    "Correction automatique impossible. Erreurs restantes: {}",
-                    remaining_errors,
-                )
                 validation_passed = False
-                _record_generation_failure(
-                    error_type="validation_failed_after_autocorrect"
-                )
-                errors_str = ", ".join(remaining_errors[:5])
-                yield sse_error_message(
-                    "Le défi généré ne passe pas la validation finale "
-                    f"(correction automatique impossible). Détail : {errors_str}"
-                )
-                yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                return
+                if _should_attempt_chess_validation_repair(
+                    challenge_type, remaining_errors
+                ):
+                    logger.info("Tentative de réparation IA ciblée CHESS...")
+                    try:
+                        repaired_challenge, repair_usage = (
+                            await _repair_chess_validation_failure_with_openai(
+                                client=client,
+                                challenge_type=challenge_type,
+                                age_group=age_group,
+                                locale=locale,
+                                ai_params=ai_params,
+                                challenge_data=corrected_challenge,
+                                validation_errors=remaining_errors,
+                                personalization=personalization,
+                            )
+                        )
+                        if repair_usage is not None:
+                            _queue_usage(**repair_usage)
+                    except Exception as repair_error:
+                        logger.warning("Réparation IA CHESS échouée: {}", repair_error)
+                        repaired_challenge = None
+
+                    if repaired_challenge is not None:
+                        is_valid_after_repair, repair_errors = validate_challenge_logic(
+                            repaired_challenge
+                        )
+                        if is_valid_after_repair:
+                            logger.info("Réparation IA CHESS réussie")
+                            challenge_data = repaired_challenge
+                            auto_corrected = True
+                            validation_passed = True
+                        else:
+                            remaining_errors = repair_errors
+
+                if not validation_passed:
+                    logger.error(
+                        "Correction automatique impossible. Erreurs restantes: {}",
+                        remaining_errors,
+                    )
+                    _record_generation_failure(
+                        error_type="validation_failed_after_autocorrect"
+                    )
+                    errors_str = ", ".join(remaining_errors[:5])
+                    yield sse_error_message(
+                        "Le défi généré ne passe pas la validation finale "
+                        f"(correction automatique impossible). Détail : {errors_str}"
+                    )
+                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                    return
         else:
             logger.debug("Challenge validÃ© avec succÃ¨s")
             validation_passed = True

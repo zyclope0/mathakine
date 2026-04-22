@@ -190,6 +190,7 @@ TEXT_VISUAL_DATA_CHESS = """VISUAL_DATA OBLIGATOIRE (type chess) :
 - board[0] = rangée 8, board[7] = rangée 1 ; board[row][0] = colonne a.
 - "turn" : white/black ; "objective" : mat_en_1, mat_en_2, meilleur_coup. Évite mat_en_3.
 - Position légale : si "turn" = white, le roi noir ne doit PAS déjà être en échec dans la position initiale ; si "turn" = black, le roi blanc ne doit PAS déjà être en échec.
+- Checklist obligatoire avant JSON : trace les attaques des Dames/Tours/Fous/Cavaliers/Pions vers le roi adverse. Exemple interdit : Fou blanc en c4 + roi noir en g8 est illégal, car la diagonale c4-d5-e6-f7-g8 attaque déjà le roi.
 - Pour 15-17 ans : privilégie mat_en_1 ou meilleur_coup. Utilise mat_en_2 seulement si la ligne forcée est très courte et évidente à expliquer.
 - Pour mat_en_2 : la question doit demander la LIGNE FORCÉE complète, pas seulement "les deux coups blancs".
 - correct_answer : notation algébrique courte. Pour mat_en_2, inclure exactement la ligne "coup blanc, réponse noire forcée, coup blanc mat" (ex. "Dd7+, Rf8, Df7#"). Duals séparés par " | ".
@@ -246,6 +247,7 @@ TEXT_VAL_CHESS = """7. CHESS :
    - board 8x8 cohérent ; pas de mat en X depuis la position initiale complète.
    - Position courte : 4 à 8 pièces maximum ; éviter les positions denses qui demandent une analyse moteur.
    - Position légale : le roi adverse ne doit pas être déjà en échec au début si c'est au joueur actif de jouer.
+   - Vérifie explicitement les diagonales, colonnes, rangées et cavaliers avant d'affirmer que le roi n'est pas en échec.
    - Pour mat_en_2 : correct_answer doit être la ligne forcée complète (blanc, noir forcé, blanc mat) et la question doit demander cette ligne.
    - Vérifier unicité ou lister les duals dans correct_answer.
    - highlight_positions : cases occupées uniquement."""

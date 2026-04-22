@@ -111,8 +111,34 @@ def test_chess_prompt_bounds_position_and_forced_line_contract() -> None:
     assert "Dame blanche = Q, roi noir = k" in p
     assert "Évite mat_en_3" in p
     assert "mat_en_2 seulement si la ligne forcée est très courte" in p
+    assert "Fou blanc en c4 + roi noir en g8 est illégal" in p
+    assert "diagonale c4-d5-e6-f7-g8 attaque déjà le roi" in p
     assert "LIGNE FORCÉE complète" in p
     assert '"coup blanc, réponse noire forcée, coup blanc mat"' in p
+
+
+def test_chess_validation_repair_is_scoped_to_initial_check_errors() -> None:
+    assert (
+        challenge_ai_service._should_attempt_chess_validation_repair(
+            "chess",
+            ["CHESS: roi noir déjà en échec alors que c'est aux Blancs de jouer"],
+        )
+        is True
+    )
+    assert (
+        challenge_ai_service._should_attempt_chess_validation_repair(
+            "sequence",
+            ["CHESS: roi noir déjà en échec alors que c'est aux Blancs de jouer"],
+        )
+        is False
+    )
+    assert (
+        challenge_ai_service._should_attempt_chess_validation_repair(
+            "chess",
+            ["CHESS: board doit avoir 8 rangées, reçu 7"],
+        )
+        is False
+    )
 
 
 def test_prompt_discourages_under_rating_structurally_complex_challenges() -> None:
