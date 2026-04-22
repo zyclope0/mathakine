@@ -17,7 +17,10 @@ from tenacity import (
 
 from app.core.ai_config import AIConfig
 from app.core.ai_generation_policy import (
+    ExerciseAIModelFamily,
+    ExerciseAIModelNotAllowedError,
     build_exercise_ai_stream_kwargs,
+    classify_exercise_ai_model_family,
     resolve_exercise_ai_model,
 )
 from app.core.config import settings
@@ -224,17 +227,46 @@ def build_exercise_system_prompt(
     default_theme: str,
     calibration_desc: str = "",
     cognitive_hint: str = "",
+    compact_mode: bool = False,
 ) -> str:
-    """Construit le prompt système pour la génération d'exercices."""
+    """Construit le prompt système pour la génération d'exercices.
+
+    ``compact_mode=True`` fusionne les trois directives Lots B/E/C
+    (calibrage pédagogique, intensité cognitive, exigence non-trivialité) en
+    **une seule ligne** au lieu de trois bullets distincts. Utilisé pour les
+    familles o-series où chaque ligne consomme inutilement du reasoning
+    budget et peut mordre sur le budget de sortie visible.
+    """
     theme_line = f"- Contexte par défaut : {default_theme}" if default_theme else ""
-    cal_line = (
-        f"- Calibrage pédagogique : {calibration_desc}" if calibration_desc else ""
-    )
-    cog_line = (
-        f"- Intensité cognitive attendue : {cognitive_hint}" if cognitive_hint else ""
-    )
     nontriv = _non_triviality_hint(exercise_type, derived_difficulty)
-    nontriv_line = f"- Exigence de difficulté : {nontriv}" if nontriv else ""
+
+    if compact_mode:
+        directives: list[str] = []
+        if calibration_desc:
+            directives.append(f"calibrage={calibration_desc}")
+        if cognitive_hint:
+            directives.append(f"intensité={cognitive_hint}")
+        if nontriv:
+            directives.append(f"exigence={nontriv}")
+        constraints_block = (
+            f"- Directives pédagogiques : {' | '.join(directives)}"
+            if directives
+            else ""
+        )
+        cal_line = constraints_block
+        cog_line = ""
+        nontriv_line = ""
+    else:
+        cal_line = (
+            f"- Calibrage pédagogique : {calibration_desc}" if calibration_desc else ""
+        )
+        cog_line = (
+            f"- Intensité cognitive attendue : {cognitive_hint}"
+            if cognitive_hint
+            else ""
+        )
+        nontriv_line = f"- Exigence de difficulté : {nontriv}" if nontriv else ""
+
     return f"""Tu es un créateur d'exercices mathématiques pédagogiques.
 
 ## CONTRAINTES OBLIGATOIRES
@@ -382,6 +414,36 @@ async def generate_exercise_stream(
             pedagogical_band_override=pedagogical_band_override,
         )
 
+        try:
+            model = resolve_exercise_ai_model()
+            resolved_model = model
+        except (ValueError, ExerciseAIModelNotAllowedError) as policy_error:
+            logger.error("Configuration IA exercices invalide: %s", policy_error)
+            generation_metrics.record_generation(
+                challenge_type=metrics_key,
+                success=False,
+                validation_passed=False,
+                duration_seconds=_duration_s(),
+                error_type="exercise_ai_policy_error",
+            )
+            safe_message = get_safe_error_message(
+                policy_error,
+                default=EXERCISE_AI_POLICY_ERROR_MESSAGE,
+            )
+            yield sse_error_message(safe_message)
+            return
+
+        # Mode compact : fusionne les 3 directives Lots B/E/C en une ligne pour
+        # les familles o-series (moins de reasoning tokens consommés pour lire
+        # les contraintes, plus de budget pour émettre un JSON complet).
+        try:
+            compact_prompt_mode = (
+                classify_exercise_ai_model_family(model)
+                is ExerciseAIModelFamily.O_SERIES
+            )
+        except (ValueError, ExerciseAIModelNotAllowedError):
+            compact_prompt_mode = False
+
         system_prompt = build_exercise_system_prompt(
             exercise_type,
             effective_difficulty,
@@ -390,14 +452,13 @@ async def generate_exercise_stream(
             default_theme,
             calibration_desc=gen_profile["calibration_desc"],
             cognitive_hint=gen_profile.get("cognitive_hint") or "",
+            compact_mode=compact_prompt_mode,
         )
         user_prompt = build_exercise_user_prompt(
             prompt, exercise_type, effective_difficulty
         )
 
         try:
-            model = resolve_exercise_ai_model()
-            resolved_model = model
             system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après."
             api_kwargs = build_exercise_ai_stream_kwargs(
                 model=model,

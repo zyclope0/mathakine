@@ -294,6 +294,87 @@ def test_persisted_difficulty_uses_effective_after_clamp() -> None:
     assert persisted["difficulty"] == "CHEVALIER"
 
 
+# ---------------------------------------------------------------------------
+# Lot J — compact_mode pour familles o-series (prompt condensé)
+# ---------------------------------------------------------------------------
+
+
+def test_build_exercise_system_prompt_verbose_by_default_three_bullets() -> None:
+    """Mode par défaut (non o-series) : 3 bullets séparés pour les directives."""
+    prompt = build_exercise_system_prompt(
+        "mixte",
+        "CHEVALIER",
+        "9-11",
+        DIFFICULTY_RANGES["CHEVALIER"],
+        "",
+        calibration_desc="cal description",
+        cognitive_hint="cog hint text",
+    )
+    assert "- Calibrage pédagogique : cal description" in prompt
+    assert "- Intensité cognitive attendue : cog hint text" in prompt
+    # mixte + CHEVALIER → directive non-trivialité présente (multi-étapes).
+    assert "- Exigence de difficulté :" in prompt
+    # Mode verbose : pas de ligne fusionnée.
+    assert "- Directives pédagogiques :" not in prompt
+
+
+def test_build_exercise_system_prompt_compact_mode_merges_directives() -> None:
+    """Mode compact (o-series) : une seule ligne ``Directives pédagogiques``."""
+    prompt = build_exercise_system_prompt(
+        "mixte",
+        "CHEVALIER",
+        "9-11",
+        DIFFICULTY_RANGES["CHEVALIER"],
+        "",
+        calibration_desc="cal description",
+        cognitive_hint="cog hint text",
+        compact_mode=True,
+    )
+    # Fusion : une seule ligne contenant les 3 clauses.
+    assert "- Directives pédagogiques :" in prompt
+    assert "calibrage=cal description" in prompt
+    assert "intensité=cog hint text" in prompt
+    assert "exigence=" in prompt
+    # Bullets verbeux absents en mode compact.
+    assert "- Calibrage pédagogique :" not in prompt
+    assert "- Intensité cognitive attendue :" not in prompt
+    assert "- Exigence de difficulté :" not in prompt
+
+
+def test_compact_mode_omits_empty_clauses_cleanly() -> None:
+    """Mode compact sans cognitive ni non-trivialité : ligne réduite sans séparateurs flottants."""
+    prompt = build_exercise_system_prompt(
+        "addition",
+        "INITIE",  # pas de directive non-trivialité
+        "6-8",
+        DIFFICULTY_RANGES["INITIE"],
+        "",
+        calibration_desc="cal description",
+        cognitive_hint="",  # vide
+        compact_mode=True,
+    )
+    assert "- Directives pédagogiques : calibrage=cal description" in prompt
+    # Aucun pipe flottant ``| |`` et pas d'intensité/exigence à vide.
+    assert "| intensité=" not in prompt
+    assert "| exigence=" not in prompt
+    assert "| |" not in prompt
+
+
+def test_compact_mode_empty_directives_produces_no_line() -> None:
+    """Si tout est vide, aucune ligne de directives n'est émise."""
+    prompt = build_exercise_system_prompt(
+        "addition",
+        "INITIE",
+        "6-8",
+        DIFFICULTY_RANGES["INITIE"],
+        "",
+        calibration_desc="",
+        cognitive_hint="",
+        compact_mode=True,
+    )
+    assert "- Directives pédagogiques :" not in prompt
+
+
 def test_persist_exercise_ai_sync_forwards_runtime_difficulty_tier(monkeypatch) -> None:
     captured: dict[str, object] = {}
 

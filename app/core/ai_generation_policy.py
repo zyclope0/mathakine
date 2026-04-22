@@ -105,8 +105,23 @@ MAX_COMPLETION_TOKENS_BY_EXERCISE_TYPE: Final[Dict[str, int]] = {
     "divers": 4500,
 }
 
-# Verbosity GPT-5.x pour JSON exercice : concis par défaut (tous types)
-_EXERCISE_IA_GPT5_VERBOSITY: Final[str] = "low"
+# Verbosity GPT-5.x pour JSON exercice, calibrée par type.
+# ``low`` force la concision : OK pour opérations simples (JSON court) ; pour les
+# types pédagogiquement plus riches (fractions, texte, mixte, geometrie),
+# ``low`` rabote l'explication et le hint, d'où ``medium``. ``high`` jamais :
+# produit des JSON trop longs qui se font tronquer avant clôture.
+_EXERCISE_IA_GPT5_VERBOSITY_DEFAULT: Final[str] = "low"
+VERBOSITY_BY_EXERCISE_TYPE_GPT5: Final[Dict[str, str]] = {
+    "addition": "low",
+    "soustraction": "low",
+    "multiplication": "low",
+    "division": "low",
+    "divers": "low",
+    "fractions": "medium",
+    "geometrie": "medium",
+    "texte": "medium",
+    "mixte": "medium",
+}
 
 
 class ExerciseAIModelFamily(str, Enum):
@@ -271,6 +286,17 @@ def o_series_reasoning_effort_for_exercise_type(exercise_type: str) -> str:
     return effort
 
 
+def verbosity_for_exercise_type_gpt5(exercise_type: str) -> str:
+    """Verbosity GPT-5 à utiliser pour ce type d'exercice.
+
+    Retourne ``low`` pour les types concis (opérations directes), ``medium``
+    pour les types où l'explication/hint doivent rester lisibles (fractions,
+    geometrie, texte, mixte). Fallback : ``low``.
+    """
+    key = (exercise_type or "").strip().lower()
+    return VERBOSITY_BY_EXERCISE_TYPE_GPT5.get(key, _EXERCISE_IA_GPT5_VERBOSITY_DEFAULT)
+
+
 def max_completion_tokens_for_exercise_type(
     exercise_type: str,
     model: Optional[str] = None,
@@ -340,7 +366,7 @@ def build_exercise_ai_stream_kwargs(
     if family is ExerciseAIModelFamily.GPT5:
         base["response_format"] = {"type": "json_object"}
         base["reasoning_effort"] = effort
-        base["verbosity"] = _EXERCISE_IA_GPT5_VERBOSITY
+        base["verbosity"] = verbosity_for_exercise_type_gpt5(exercise_type)
         if effort == "none":
             base["temperature"] = 0.7
         return base

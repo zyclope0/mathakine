@@ -6,6 +6,7 @@ from app.core.ai_generation_policy import (
     DEFAULT_EXERCISES_AI_MODEL,
     EXERCISES_AI_ALLOWED_MODEL_IDS,
     MODEL_FAMILY_CAPABILITIES,
+    VERBOSITY_BY_EXERCISE_TYPE_GPT5,
     ExerciseAIModelFamily,
     ExerciseAIModelNotAllowedError,
     build_exercise_ai_stream_kwargs,
@@ -17,6 +18,7 @@ from app.core.ai_generation_policy import (
     reasoning_effort_for_exercise_type,
     resolve_exercise_ai_model,
     resolve_exercise_ai_model_for_user,
+    verbosity_for_exercise_type_gpt5,
 )
 from app.core.config import settings
 
@@ -270,8 +272,63 @@ def test_build_stream_kwargs_gpt5_family() -> None:
     )
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["reasoning_effort"] == "high"
-    assert kw["verbosity"] == "low"
+    # Lot J : mixte → verbosity medium (explications multi-opérations à préserver).
+    assert kw["verbosity"] == "medium"
     assert "temperature" not in kw
+
+
+def test_verbosity_for_exercise_type_gpt5_per_type_map() -> None:
+    # Types à opération directe → concis ``low`` (JSON court, pas de perte).
+    assert verbosity_for_exercise_type_gpt5("addition") == "low"
+    assert verbosity_for_exercise_type_gpt5("soustraction") == "low"
+    assert verbosity_for_exercise_type_gpt5("multiplication") == "low"
+    assert verbosity_for_exercise_type_gpt5("division") == "low"
+    assert verbosity_for_exercise_type_gpt5("divers") == "low"
+    # Types pédagogiquement plus riches → ``medium`` pour préserver explication/hint.
+    assert verbosity_for_exercise_type_gpt5("fractions") == "medium"
+    assert verbosity_for_exercise_type_gpt5("geometrie") == "medium"
+    assert verbosity_for_exercise_type_gpt5("texte") == "medium"
+    assert verbosity_for_exercise_type_gpt5("mixte") == "medium"
+    # Fallback : ``low`` pour type inconnu.
+    assert verbosity_for_exercise_type_gpt5("type_futur_inconnu") == "low"
+    assert verbosity_for_exercise_type_gpt5("") == "low"
+
+
+def test_verbosity_map_covers_all_canonical_exercise_types() -> None:
+    # Invariant : les 9 types canoniques doivent être mappés explicitement.
+    canonical = {
+        "addition",
+        "soustraction",
+        "multiplication",
+        "division",
+        "fractions",
+        "geometrie",
+        "texte",
+        "mixte",
+        "divers",
+    }
+    assert canonical <= set(VERBOSITY_BY_EXERCISE_TYPE_GPT5.keys())
+
+
+def test_build_stream_kwargs_gpt5_verbosity_low_on_simple_ops() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="gpt-5-mini",
+        exercise_type="addition",
+        system_content="sys",
+        user_content="user",
+    )
+    assert kw["verbosity"] == "low"
+
+
+def test_build_stream_kwargs_gpt5_verbosity_medium_on_rich_types() -> None:
+    for rich_type in ("fractions", "geometrie", "texte"):
+        kw = build_exercise_ai_stream_kwargs(
+            model="gpt-5-mini",
+            exercise_type=rich_type,
+            system_content="sys",
+            user_content="user",
+        )
+        assert kw["verbosity"] == "medium", f"{rich_type} devrait être medium"
 
 
 def test_build_stream_kwargs_gpt5_temperature_when_reasoning_none(
