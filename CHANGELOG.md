@@ -40,10 +40,18 @@ Active references:
 
 ## [Unreleased]
 
+### Changed
+
+- Exercise and challenge AI generation now default to `o4-mini` instead of `o3`, with `o4-mini` routed through the existing o-series reasoning kwargs and `gpt-4.1*` reserved as explicit override-only models.
+- Exercise AI generation now caps o-series reasoning effort at `medium` and gives `MIXTE` a larger completion budget to avoid empty JSON after hidden reasoning consumes the full output cap.
+
 ### Fixed
 
 - Challenge validation and rendering hardening: deduction clues now handle negative natural-language constraints, probability urn checks distinguish with/without replacement and normalize weights consistently, chess highlights can target empty tactical squares, and graph visualizations ignore invalid edges without crashing.
 - Puzzle challenge generation now asks for compact complete `visual_data` earlier in the JSON and rejects explicitly truncated OpenAI JSON instead of auto-closing partial objects into invalid challenges.
+- Visual challenge generation now caps `o4-mini` reasoning to preserve completion budget and asks for compact, early `visual_data` to reduce truncated JSON outputs.
+- Visual symmetry challenges now normalize grouped `layout[].shapes` payloads before API delivery and render them as explicit row pairs instead of blank side panels.
+- Challenge generation now uses a type-aware `o-series` reasoning budget policy and logs `finish_reason` / observed token usage so truncated JSON can be diagnosed as a budget issue instead of a logic issue.
 
 ## [3.6.0-beta.3] - 2026-04-20
 
@@ -91,7 +99,7 @@ Active references:
 - Graph challenge rendering now falls back to deterministic node layouts when the payload omits coordinates, preventing single-node or empty graph displays.
 - Coding challenge validation now rejects malformed substitution `partial_key` payloads earlier and requires enough mapping examples for deductible keyword substitutions.
 - Chess challenge generation now rejects invalid piece letters, impossible highlights, positions where the side to move starts with the enemy king already in check, and overcomplicated mate-in-two payloads that are not short tactical positions.
-- Numeric multi-cell pattern validation now verifies provable arithmetic/geometric/quadratic grids and rejects unverifiable numeric grids instead of bypassing validation.
+- Numeric multi-cell pattern validation now verifies provable arithmetic/geometric/quadratic grids and applies minimal answer count/type checks to unverifiable numeric grids instead of bypassing validation or blocking Sudoku-like challenges.
 - Exercise AI arithmetic validation now handles signed binary expressions such as `-3 + 5` and `10 - -3` while staying fail-open on compound expressions.
 - AI-generated exercises now persist the runtime F42 `difficulty_tier` used in the prompt, preventing mastery-band context from being lost when the exercise is saved.
 - AI exercise stream adaptive-context failures now log unexpected DB/service exceptions with stack traces while preserving the historical fail-open behavior.

@@ -13,8 +13,8 @@ Avant les lots IA10b et IA12, le chat pouvait encore etre influence par `OPENAI_
 ### Ce qui a ete choisi et pourquoi
 
 - `assistant_chat` est gouverne par une allowlist fail-closed et un defaut produit explicite `gpt-5-mini`, avec un seam premium `gpt-5.4` et un fallback cheap `gpt-4o-mini`. Cela evite qu'un legacy env global pilote le chat par accident. Sources : `app/core/app_model_policy.py:61-73`, `app/core/app_model_policy.py:83-143`.
-- `exercises_ai` garde `o3` comme defaut produit et delegue les families/kwargs a une policy dediee. Sources : `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-235`.
-- `challenges_ai` garde `o3` comme defaut produit, avec un fallback de stream `gpt-4o-mini` borne et une carte par type de defi. Sources : `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`.
+- `exercises_ai` garde `o4-mini` comme defaut produit et delegue les families/kwargs a une policy dediee. Sources : `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-235`.
+- `challenges_ai` garde `o4-mini` comme defaut produit, avec un fallback de stream `gpt-4o-mini` borne et une carte par type de defi. Sources : `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`.
 - Les couts/tokens runtime et les metriques de qualite restent process-locales et bornees, alors que les runs d'evaluation peuvent etre persistables et relus separement. Sources : `app/utils/ai_workload_keys.py:25-36`, `app/utils/token_tracker.py:151-221`, `app/utils/token_tracker.py:313-332`, `app/utils/generation_metrics.py:33-53`, `app/utils/generation_metrics.py:123-136`, `app/utils/generation_metrics.py:231-240`, `app/evaluation/ai_generation_harness.py:128-199`.
 
 ### Alternatives rejetees
@@ -52,8 +52,8 @@ References : `app/core/app_model_policy.py:100-187`, `app/core/ai_generation_pol
 | Workload         | Modele par defaut | Allowlist / fallback                                                                                             | Fichier source                                                                                                                   |
 | ---------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `assistant_chat` | `gpt-5-mini`      | allowlist fail-closed : `gpt-5-mini`, `gpt-5.4`, `gpt-4o-mini`, `gpt-4o` ; fallback cheap controle `gpt-4o-mini` | `app/core/app_model_policy.py:61-73`, `app/core/app_model_policy.py:83-143`                                                      |
-| `exercises_ai`   | `o3`              | allowlist `EXERCISES_AI_ALLOWED_MODEL_IDS` ; comportement par famille dans `MODEL_FAMILY_CAPABILITIES`           | `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-262` |
-| `challenges_ai`  | `o3`              | allowlist heritee des exercices ; fallback stream `gpt-4o-mini`                                                  | `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`      |
+| `exercises_ai`   | `o4-mini`         | allowlist `EXERCISES_AI_ALLOWED_MODEL_IDS` ; comportement par famille dans `MODEL_FAMILY_CAPABILITIES`           | `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-262` |
+| `challenges_ai`  | `o4-mini`         | allowlist heritee des exercices ; fallback stream `gpt-4o-mini`                                                  | `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`      |
 
 ## 5. Observabilite runtime
 

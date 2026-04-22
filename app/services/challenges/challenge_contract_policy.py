@@ -14,6 +14,7 @@ Principes EdTech :
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -69,16 +70,84 @@ def _upper_type(challenge_type: str) -> str:
     return (challenge_type or "").strip().upper()
 
 
+_SYMMETRY_SIDE_ALIASES: Dict[str, str] = {
+    "left": "left",
+    "l": "left",
+    "gauche": "left",
+    "cote gauche": "left",
+    "cotes gauche": "left",
+    "colonne gauche": "left",
+    "partie gauche": "left",
+    "left side": "left",
+    "left column": "left",
+    "right": "right",
+    "r": "right",
+    "droite": "right",
+    "droit": "right",
+    "cote droit": "right",
+    "cote droite": "right",
+    "cotes droit": "right",
+    "cotes droite": "right",
+    "colonne droite": "right",
+    "partie droite": "right",
+    "right side": "right",
+    "right column": "right",
+}
+
+_SYMMETRY_AXIS_SIDE_VALUES = {
+    "axis",
+    "axe",
+    "center",
+    "centre",
+    "milieu",
+    "ligne",
+    "symmetry line",
+    "ligne de symetrie",
+}
+
+
+def _normalize_label(raw: Any) -> str:
+    text = str(raw or "").strip().lower()
+    text = "".join(
+        char
+        for char in unicodedata.normalize("NFKD", text)
+        if not unicodedata.combining(char)
+    )
+    return " ".join(text.replace("_", " ").replace("-", " ").split())
+
+
+def _normalize_symmetry_side(raw_side: Any) -> Optional[str]:
+    normalized = _normalize_label(raw_side)
+    if not normalized:
+        return None
+    if normalized in _SYMMETRY_SIDE_ALIASES:
+        return _SYMMETRY_SIDE_ALIASES[normalized]
+    if "gauche" in normalized or "left" in normalized:
+        return "left"
+    if "droite" in normalized or "droit" in normalized or "right" in normalized:
+        return "right"
+    return None
+
+
+def _is_symmetry_axis_side(raw_side: Any) -> bool:
+    normalized = _normalize_label(raw_side)
+    return normalized in _SYMMETRY_AXIS_SIDE_VALUES or "axe" in normalized
+
+
 def _flatten_grouped_symmetry_layout(
     layout: List[Any],
 ) -> Optional[List[Dict[str, Any]]]:
-    """Convertit [{side, elements:[...]}] en layout canonique par cellule."""
+    """Convertit [{side, elements|shapes|items:[...]}] en layout canonique par cellule."""
     grouped: Dict[str, List[Any]] = {}
     for item in layout:
         if not isinstance(item, dict):
             continue
-        side = str(item.get("side", "")).lower().strip()
+        side = _normalize_symmetry_side(item.get("side"))
         elements = item.get("elements")
+        if not isinstance(elements, list):
+            elements = item.get("shapes")
+        if not isinstance(elements, list):
+            elements = item.get("items")
         if side in ("left", "right") and isinstance(elements, list):
             grouped[side] = elements
 
@@ -427,7 +496,13 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
                 if isinstance(item, dict):
                     cell = dict(item)
                     if "side" in cell:
-                        cell["side"] = str(cell["side"]).lower().strip()
+                        normalized_side = _normalize_symmetry_side(cell.get("side"))
+                        if normalized_side:
+                            cell["side"] = normalized_side
+                        elif _is_symmetry_axis_side(cell.get("side")):
+                            continue
+                        else:
+                            cell["side"] = str(cell["side"]).lower().strip()
                     new_layout.append(cell)
                 else:
                     new_layout.append(item)

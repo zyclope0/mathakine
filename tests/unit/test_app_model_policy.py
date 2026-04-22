@@ -104,7 +104,9 @@ def test_assistant_legacy_openai_model_o3_ignored(
     monkeypatch.setattr(settings, "OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL", "o3")
     monkeypatch.setattr(
-        app_model_policy.logger, "warning", lambda msg, *args: warnings.append(msg % args if args else msg)
+        app_model_policy.logger,
+        "warning",
+        lambda msg, *args: warnings.append(msg % args if args else msg),
     )
 
     assert resolve_assistant_chat_model() == DEFAULT_ASSISTANT_CHAT_MODEL
@@ -125,12 +127,14 @@ def test_controlled_cheap_fallback() -> None:
     assert CHEAP_ASSISTANT_CHAT_FALLBACK_MODEL == "gpt-4o-mini"
 
 
-def test_resolve_exercises_ai_public_delegates_o3(
+def test_resolve_exercises_ai_public_delegates_o4_mini(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES", "")
-    assert resolve_exercises_ai_model_public() == DEFAULT_EXERCISES_AI_MODEL == "o3"
+    assert (
+        resolve_exercises_ai_model_public() == DEFAULT_EXERCISES_AI_MODEL == "o4-mini"
+    )
 
 
 def test_resolve_challenges_ai_public_delegates(
@@ -138,7 +142,7 @@ def test_resolve_challenges_ai_public_delegates(
 ) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_CHALLENGES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_REASONING", "")
-    assert resolve_challenges_ai_model_public("sequence") == "o3"
+    assert resolve_challenges_ai_model_public("sequence") == "o4-mini"
 
 
 def test_resolve_challenges_fallback_public_delegates(

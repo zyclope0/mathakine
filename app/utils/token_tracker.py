@@ -52,9 +52,9 @@ class TokenTracker:
         """
         total_tokens = prompt_tokens + completion_tokens
 
-        # Coûts par modèle (USD par 1K tokens) - mise à jour mars 2026
+        # Coûts par modèle (USD par 1K tokens) - mise à jour avril 2026
         # Source: https://openai.com/api/pricing/
-        # Les modèles o3/o3-mini sont facturés sur les tokens de raisonnement (output élargi)
+        # Les modèles o-series sont facturés sur les tokens de raisonnement (output élargi)
         cost_per_1k_tokens = {
             "gpt-4o-mini": {
                 "input": 0.15 / 1000,  # $0.15 per 1M tokens
@@ -68,6 +68,18 @@ class TokenTracker:
                 "input": 10.00 / 1000,  # $10.00 per 1M tokens
                 "output": 30.00 / 1000,  # $30.00 per 1M tokens
             },
+            "gpt-4.1": {
+                "input": 2.00 / 1000,  # $2.00 per 1M tokens
+                "output": 8.00 / 1000,  # $8.00 per 1M tokens
+            },
+            "gpt-4.1-mini": {
+                "input": 0.40 / 1000,  # $0.40 per 1M tokens
+                "output": 1.60 / 1000,  # $1.60 per 1M tokens
+            },
+            "gpt-4.1-nano": {
+                "input": 0.10 / 1000,  # $0.10 per 1M tokens
+                "output": 0.40 / 1000,  # $0.40 per 1M tokens
+            },
             "o3": {
                 "input": 2.00 / 1000,  # $2.00 per 1M tokens
                 "output": 8.00 / 1000,  # $8.00 per 1M tokens (inclut reasoning tokens)
@@ -77,8 +89,8 @@ class TokenTracker:
                 "output": 4.40 / 1000,  # $4.40 per 1M tokens
             },
             "o4-mini": {
-                "input": 1.10 / 1000,  # $1.10 per 1M tokens (estimation)
-                "output": 4.40 / 1000,  # $4.40 per 1M tokens (estimation)
+                "input": 1.10 / 1000,  # $1.10 per 1M tokens
+                "output": 4.40 / 1000,  # $4.40 per 1M tokens
             },
             # Exercices IA (allowlist) — grilles indicatives ; ajuster selon openai.com/pricing
             "o1": {
@@ -126,7 +138,7 @@ class TokenTracker:
         # Calculer le coût — warning explicite si modèle inconnu (pas de fallback silencieux)
         if model not in cost_per_1k_tokens:
             logger.warning(
-                "Modèle '%s' absent de la table de coûts — estimation avec gpt-4o-mini. Mettre à jour token_tracker.py § cost_per_1k_tokens.",
+                "Modèle '{}' absent de la table de coûts — estimation avec gpt-4o-mini. Mettre à jour token_tracker.py § cost_per_1k_tokens.",
                 model,
             )
         model_costs = cost_per_1k_tokens.get(model, cost_per_1k_tokens["gpt-4o-mini"])
@@ -156,9 +168,9 @@ class TokenTracker:
         self._prune_stale_daily_totals()
 
         logger.info(
-            "Token usage tracked - Type: %s, "
-            "Tokens: %s (prompt: %s, completion: %s), "
-            "Cost: $%.6f, Model: %s",
+            "Token usage tracked - Type: {}, "
+            "Tokens: {} (prompt: {}, completion: {}), "
+            "Cost: ${:.6f}, Model: {}",
             challenge_type,
             total_tokens,
             prompt_tokens,

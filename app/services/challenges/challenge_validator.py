@@ -903,7 +903,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
     )
     if sanitized_title and sanitized_title != title:
         logger.info(
-            "Correction automatique titre (fuite de règle): '%s' → '%s'",
+            "Correction automatique titre (fuite de règle): '{}' → '{}'",
             title,
             sanitized_title,
         )
@@ -982,7 +982,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
                     if current_answer != expected_lower:
                         logger.info(
-                            "Correction automatique VISUAL: correct_answer changé de '%s' à '%s'",
+                            "Correction automatique VISUAL: correct_answer changé de '{}' à '{}'",
                             corrected.get("correct_answer"),
                             expected_answer,
                         )
@@ -1022,7 +1022,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                                         shape.capitalize(), expected_answer.capitalize()
                                     )
                                     logger.info(
-                                        "Correction automatique titre: '%s' → '%s'",
+                                        "Correction automatique titre: '{}' → '{}'",
                                         title,
                                         new_title,
                                     )
@@ -1039,7 +1039,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                 current_answer = corrected.get("correct_answer", "")
                 if str(current_answer).strip() != str(expected_answer).strip():
                     logger.info(
-                        "Correction automatique SEQUENCE: correct_answer changé de '%s' à '%s'",
+                        "Correction automatique SEQUENCE: correct_answer changé de '{}' à '{}'",
                         current_answer,
                         expected_answer,
                     )
@@ -1079,7 +1079,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
 
                 if not is_valid:
                     logger.info(
-                        "Correction automatique MAZE: chemin invalide '%s' → '%s'",
+                        "Correction automatique MAZE: chemin invalide '{}' → '{}'",
                         current_answer,
                         correct_path,
                     )
@@ -1091,7 +1091,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                     )
             else:
                 logger.warning(
-                    "Impossible de trouver un chemin valide dans le labyrinthe de %s à %s",
+                    "Impossible de trouver un chemin valide dans le labyrinthe de {} à {}",
                     start,
                     end,
                 )

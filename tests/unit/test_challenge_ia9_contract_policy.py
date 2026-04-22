@@ -123,6 +123,24 @@ def test_normalize_symmetry_sets_type_and_symmetry_line() -> None:
     assert vd["layout"][0]["side"] == "left"
 
 
+def test_normalize_symmetry_canonicalizes_french_sides_and_drops_axis() -> None:
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {"side": "côté gauche", "shape": "triangle rouge"},
+                {"side": "axe de symétrie", "shape": "|"},
+                {"side": "colonne droite", "shape": "?"},
+            ],
+        }
+    )
+
+    layout = vd.get("layout", [])
+    assert [item.get("side") for item in layout] == ["left", "right"]
+    assert validate_symmetry_canonical(vd) == []
+
+
 def test_normalize_symmetry_converts_row_based_layout() -> None:
     """Sentry #111221704 — OpenAI génère parfois un layout row-based au lieu du format plat canonique."""
     vd = normalize_symmetry_visual_data(
@@ -191,11 +209,52 @@ def test_normalize_symmetry_converts_grouped_side_elements_layout() -> None:
         "shape": "triangle rouge",
         "position": 1,
     }
+
+
+def test_normalize_symmetry_converts_grouped_side_shapes_layout() -> None:
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {
+                    "side": "left",
+                    "shapes": [
+                        "triangle bleu",
+                        "carré rouge",
+                        "cercle vert",
+                        "hexagone jaune",
+                    ],
+                },
+                {
+                    "side": "right",
+                    "shapes": [
+                        "hexagone jaune",
+                        "cercle vert",
+                        "?",
+                        "triangle bleu",
+                    ],
+                    "question": True,
+                },
+            ],
+        }
+    )
+
+    layout = vd.get("layout", [])
+    assert len(layout) == 8
+    assert layout[0]["shape"] == "triangle bleu"
+    assert layout[1]["shape"] == "hexagone jaune"
+    assert layout[5] == {
+        "side": "right",
+        "shape": "?",
+        "position": 3,
+        "question": True,
+    }
+    assert validate_symmetry_canonical(vd) == []
     question_items = [
         item for item in layout if isinstance(item, dict) and item.get("question")
     ]
-    assert len(question_items) == 2
-    assert {item.get("position") for item in question_items} == {3, 4}
+    assert question_items == [layout[5]]
 
 
 def test_normalize_coding_visual_data_canonicalizes_cipher_text_alias() -> None:

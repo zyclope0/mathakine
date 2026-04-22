@@ -161,14 +161,14 @@ def resolve_assistant_chat_model_for_user(
 
 
 def resolve_exercises_ai_model_public() -> str:
-    """Exercices IA SSE : dÃ©faut ``o3``, overrides dans ``ai_generation_policy``."""
+    """Exercices IA SSE : défaut ``o4-mini``, overrides dans ``ai_generation_policy``."""
     from app.core.ai_generation_policy import resolve_exercise_ai_model
 
     return resolve_exercise_ai_model()
 
 
 def resolve_challenges_ai_model_public(challenge_type: str) -> str:
-    """DÃ©fis IA SSE : dÃ©faut ``o3``, overrides dans ``challenge_ai_model_policy``."""
+    """Défis IA SSE : défaut ``o4-mini``, overrides dans ``challenge_ai_model_policy``."""
     from app.services.challenges.challenge_ai_model_policy import (
         resolve_challenge_ai_model,
     )
@@ -177,7 +177,7 @@ def resolve_challenges_ai_model_public(challenge_type: str) -> str:
 
 
 def resolve_challenges_ai_fallback_public(challenge_type: str) -> str:
-    """Fallback stream vide (famille o3) : policy ``challenge_ai_model_policy``."""
+    """Fallback stream vide (famille o-series) : policy ``challenge_ai_model_policy``."""
     from app.services.challenges.challenge_ai_model_policy import (
         resolve_challenge_ai_fallback_model,
     )

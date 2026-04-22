@@ -70,6 +70,25 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     expect(pairs[3]?.left.shape).toBe("?");
   });
 
+  it("convertit un layout groupé side/shapes en paires visuelles", () => {
+    const pairs = buildGroupedSymmetryLayoutPairs([
+      {
+        side: "left",
+        shapes: ["triangle bleu", "carré rouge", "cercle vert", "hexagone jaune"],
+      },
+      {
+        side: "right",
+        shapes: ["hexagone jaune", "cercle vert", "?", "triangle bleu"],
+        question: true,
+      },
+    ]);
+
+    expect(pairs).toHaveLength(4);
+    expect(pairs[0]?.left.shape).toBe("triangle bleu");
+    expect(pairs[0]?.right.shape).toBe("hexagone jaune");
+    expect(pairs[2]?.right.question).toBe(true);
+  });
+
   it("rend les colonnes groupées ligne par ligne au lieu de deux grands blocs", () => {
     const { container } = render(
       <VisualRenderer
@@ -112,5 +131,32 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     expect(screen.getAllByLabelText("Forme manquante")).toHaveLength(3);
     expect(container.querySelectorAll('polygon[fill="#ef4444"]').length).toBeGreaterThan(0);
     expect(container.querySelectorAll('polygon[fill="#3b82f6"]').length).toBeGreaterThan(0);
+  });
+
+  it("rend les colonnes groupées avec clé shapes sans blocs vides", () => {
+    render(
+      <VisualRenderer
+        visualData={{
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            {
+              side: "left",
+              shapes: ["triangle bleu", "carré rouge", "cercle vert", "hexagone jaune"],
+            },
+            {
+              side: "right",
+              shapes: ["hexagone jaune", "cercle vert", "?", "triangle bleu"],
+              question: true,
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getAllByText("triangle bleu")).toHaveLength(2);
+    expect(screen.getByText("carré rouge")).toBeInTheDocument();
+    expect(screen.getAllByText("hexagone jaune")).toHaveLength(2);
+    expect(screen.getAllByLabelText("Forme manquante")).toHaveLength(1);
   });
 });

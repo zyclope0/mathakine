@@ -165,7 +165,7 @@ class Settings(BaseSettings):
     )
     OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE: str = Field(
         default="",
-        description="Override ops : modèle appelé si le stream défis o3/o3-mini renvoie un contenu vide. "
+        description="Override ops : modèle appelé si le stream défis o-series renvoie un contenu vide. "
         "Vide = défaut policy (challenge_ai_model_policy). Allowlist = EXERCISES_AI_ALLOWED_MODEL_IDS.",
     )
 

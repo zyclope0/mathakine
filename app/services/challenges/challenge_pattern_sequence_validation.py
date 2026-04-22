@@ -68,6 +68,31 @@ def _format_numeric_pattern_value(value: float) -> str:
     return f"{value:.6f}".rstrip("0").rstrip(".")
 
 
+def _split_multi_answer_parts(correct_answer: str) -> List[str]:
+    return [p.strip() for p in str(correct_answer).split(",") if p.strip()]
+
+
+def _validate_unverified_multi_answer_shape(
+    correct_answer: str, question_count: int, numeric_grid: bool
+) -> List[str]:
+    parts = _split_multi_answer_parts(correct_answer)
+    if len(parts) != question_count:
+        return [
+            "Pattern multi-cellules non verifiable: "
+            f"correct_answer doit contenir {question_count} valeurs separees par des virgules"
+        ]
+
+    if numeric_grid and any(
+        not _STRICT_NUMERIC_PATTERN_RE.fullmatch(part) for part in parts
+    ):
+        return [
+            "Pattern numerique multi-cellules non verifiable: "
+            "correct_answer doit contenir uniquement des valeurs numeriques"
+        ]
+
+    return []
+
+
 def _candidate_from_arithmetic_line(
     known_points: List[Tuple[int, float]],
     missing_indices: List[int],
@@ -270,16 +295,25 @@ def validate_pattern_challenge(
 
     # Plusieurs "?" -> format "O, O, X, O"
     if question_count > 1:
-        if _looks_numeric_pattern_grid(grid):
+        numeric_grid = _looks_numeric_pattern_grid(grid)
+        if numeric_grid:
             expected_multi = _compute_numeric_pattern_answers_multi(grid)
             if not expected_multi:
-                errors.append(
-                    "Pattern numerique multi-cellules non verifiable: "
-                    "generation refusee pour eviter une reponse inventee"
+                errors.extend(
+                    _validate_unverified_multi_answer_shape(
+                        correct_answer, question_count, numeric_grid
+                    )
                 )
                 return errors
         else:
             expected_multi = compute_pattern_answers_multi(grid)
+            if not expected_multi:
+                errors.extend(
+                    _validate_unverified_multi_answer_shape(
+                        correct_answer, question_count, numeric_grid
+                    )
+                )
+                return errors
         if expected_multi:
             correct_parts = [
                 p.strip().upper() for p in str(correct_answer).split(",") if p.strip()

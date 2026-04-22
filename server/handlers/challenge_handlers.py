@@ -73,7 +73,7 @@ async def get_challenges_list(request: Request) -> JSONResponse:
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
         logger.debug(
-            "API - Parametres: limit=%s, skip=%s, order=%s, hide_completed=%s",
+            "API - Parametres: limit={}, skip={}, order={}, hide_completed={}",
             p.limit,
             p.skip,
             p.order,
@@ -95,14 +95,14 @@ async def get_challenges_list(request: Request) -> JSONResponse:
             user_id=user_id,
         )
         logger.info(
-            "Recuperation reussie de %s defis sur %s total (locale: %s)",
+            "Recuperation reussie de {} defis sur {} total (locale: {})",
             len(list_result.items),
             list_result.total,
             locale,
         )
         return JSONResponse(list_result.model_dump())
     except ValueError as filter_validation_error:
-        logger.error("Erreur de validation des parametres: %s", filter_validation_error)
+        logger.error("Erreur de validation des parametres: {}", filter_validation_error)
         return ErrorHandler.create_validation_error(
             errors=[str(filter_validation_error)],
             user_message="Les parametres de filtrage sont invalides.",
@@ -132,13 +132,13 @@ async def get_challenge(request: Request) -> JSONResponse:
         challenge_dict = await run_db_bound(get_challenge_detail_for_api, challenge_id)
 
         logger.info(
-            "Recuperation reussie du defi logique %s (locale: %s)", challenge_id, locale
+            "Recuperation reussie du defi logique {} (locale: {})", challenge_id, locale
         )
         return JSONResponse(challenge_dict)
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
     except ValueError as id_validation_error:
-        logger.error("Erreur de validation: %s", id_validation_error)
+        logger.error("Erreur de validation: {}", id_validation_error)
         return ErrorHandler.create_validation_error(
             errors=["ID de defi invalide"],
             user_message="L'identifiant du defi est invalide.",
@@ -187,13 +187,13 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
     except ChallengeAttemptRecordError as record_err:
-        logger.error("Erreur enregistrement tentative: %s", record_err)
+        logger.error("Erreur enregistrement tentative: {}", record_err)
         return api_error_response(500, record_err.message)
     except (ValueError, TypeError):
         return api_error_response(400, "ID de defi invalide")
     except SQLAlchemyError as submission_db_error:
         logger.error(
-            "challenge.submit_attempt: erreur base de données: %s",
+            "challenge.submit_attempt: erreur base de données: {}",
             submission_db_error,
             exc_info=True,
         )
@@ -263,7 +263,7 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         completed_ids = await run_db_bound(query_completed_challenges_ids, user_id)
 
         logger.debug(
-            "Recuperation de %s challenges completes pour l'utilisateur %s",
+            "Recuperation de {} challenges completes pour l'utilisateur {}",
             len(completed_ids),
             user_id,
         )
@@ -293,11 +293,11 @@ async def get_challenges_stats(request: Request) -> JSONResponse:
     try:
         response_data = await run_db_bound(get_challenges_stats_for_api_sync)
         total = response_data.get("total", 0)
-        logger.info("Statistiques défis récupérées: %s défis actifs", total)
+        logger.info("Statistiques défis récupérées: {} défis actifs", total)
         return JSONResponse(response_data)
     except Exception as e:
         logger.error(
-            "Erreur lors de la récupération des statistiques des défis: %s",
+            "Erreur lors de la récupération des statistiques des défis: {}",
             e,
             exc_info=True,
         )
@@ -359,7 +359,7 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
 
     except Exception as ai_stream_error:
         logger.error(
-            "Erreur dans generate_ai_challenge_stream: %s",
+            "Erreur dans generate_ai_challenge_stream: {}",
             ai_stream_error,
             exc_info=True,
         )

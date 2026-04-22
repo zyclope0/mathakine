@@ -65,7 +65,7 @@ def prepare_stream_context(
     # Validation et sanitization du prompt
     is_safe, safety_reason = validate_prompt_safety(prompt_raw)
     if not is_safe:
-        logger.warning("Prompt utilisateur rejeté pour sécurité: %s", safety_reason)
+        logger.warning("Prompt utilisateur rejeté pour sécurité: {}", safety_reason)
         return PrepareStreamContextResult(
             query=None, error_message=f"Prompt invalide: {safety_reason}"
         )
@@ -76,7 +76,7 @@ def prepare_stream_context(
     challenge_type = challenge_type_raw.lower()
     if challenge_type not in VALID_CHALLENGE_TYPES:
         logger.warning(
-            "Type de challenge invalide: %s, utilisation de 'sequence' par défaut",
+            "Type de challenge invalide: {}, utilisation de 'sequence' par défaut",
             challenge_type_raw,
         )
         challenge_type = "sequence"
@@ -87,7 +87,7 @@ def prepare_stream_context(
     if explicit_requested:
         resolved_explicit = age_group_exercise_from_api(str(age_group_raw).strip())
         if not resolved_explicit:
-            logger.warning("Groupe d'âge challenge invalide: %s", age_group_raw)
+            logger.warning("Groupe d'âge challenge invalide: {}", age_group_raw)
             return PrepareStreamContextResult(
                 query=None,
                 error_message="Groupe d'âge invalide",
@@ -105,7 +105,7 @@ def prepare_stream_context(
         allowed, rate_limit_reason = check_ai_generation_rate_limit(user_id)
         if not allowed:
             logger.warning(
-                "Rate limit atteint pour utilisateur %s: %s",
+                "Rate limit atteint pour utilisateur {}: {}",
                 user_id,
                 rate_limit_reason,
             )

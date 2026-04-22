@@ -564,6 +564,28 @@ async def generate_exercise_stream(
                 model=resolved_model,
             )
 
+        if not full_response.strip():
+            max_out = int(api_kwargs.get("max_completion_tokens") or 0)
+            logger.error(
+                "Exercice IA réponse vide: model=%s, exercise_type=%s, "
+                "reasoning_effort=%s, completion_tokens=%s, max_completion_tokens=%s",
+                resolved_model,
+                exercise_type,
+                api_kwargs.get("reasoning_effort", "N/A"),
+                completion_tokens_estimate,
+                max_out,
+            )
+            _track_openai_cost()
+            generation_metrics.record_generation(
+                challenge_type=metrics_key,
+                success=False,
+                validation_passed=False,
+                duration_seconds=_duration_s(),
+                error_type="empty_response",
+            )
+            yield sse_error_message(EXERCISE_AI_INVALID_JSON_MESSAGE)
+            return
+
         try:
             exercise_data = extract_json_from_text(full_response)
         except json.JSONDecodeError as json_error:

@@ -12,6 +12,7 @@ from app.services.challenges.challenge_age_group import normalize_age_group_for_
 from app.services.challenges.challenge_contract_policy import (
     RESPONSE_MODE_SINGLE_CHOICE,
     RESPONSE_MODES,
+    apply_visual_contract_normalization,
     compute_response_mode,
     sanitize_choices_for_delivery,
 )
@@ -45,7 +46,7 @@ def resolve_challenge_response_mode(challenge: Any) -> str:
     Sinon recalcul depuis type, ``visual_data``, difficulté et choix **sanitisés**.
     """
     ct = _challenge_type_api_value(challenge)
-    vd = safe_parse_json(getattr(challenge, "visual_data", None), {})
+    vd = _challenge_visual_data_dict(challenge, ct)
     dr = getattr(challenge, "difficulty_rating", None)
     drf: Union[float, None]
     if isinstance(dr, (int, float)) and 1.0 <= float(dr) <= 5.0:
@@ -71,6 +72,11 @@ def resolve_challenge_response_mode(challenge: Any) -> str:
             return rm
 
     return compute_response_mode(ct, vd, drf, sanitized)
+
+
+def _challenge_visual_data_dict(challenge: Any, challenge_type: str) -> Dict[str, Any]:
+    visual_data = safe_parse_json(getattr(challenge, "visual_data", None), {})
+    return apply_visual_contract_normalization(challenge_type, visual_data)
 
 
 def challenge_to_list_item(challenge) -> Dict[str, Any]:
@@ -112,6 +118,7 @@ def challenge_to_detail_dict(challenge) -> Dict[str, Any]:
     ca = getattr(challenge, "correct_answer", None)
     ca_str = str(ca).strip() if ca is not None else ""
     choices_out: list = sanitize_choices_for_delivery(ct, drf, ch_raw, ca_str)
+    visual_data = _challenge_visual_data_dict(challenge, ct)
 
     return {
         "id": challenge.id,
@@ -124,7 +131,7 @@ def challenge_to_detail_dict(challenge) -> Dict[str, Any]:
         "correct_answer": challenge.correct_answer,
         "choices": choices_out,
         "solution_explanation": challenge.solution_explanation,
-        "visual_data": safe_parse_json(challenge.visual_data, {}),
+        "visual_data": visual_data,
         "hints": safe_parse_json(challenge.hints, []),
         "tags": challenge.tags,
         "difficulty_rating": challenge.difficulty_rating,

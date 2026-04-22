@@ -62,13 +62,18 @@ TEXT_JSON_CONTRACT_TEMPLATE = """Retourne uniquement le défi au format JSON val
   "description": "Description claire du problème avec contexte engageant",
   "question": "Question spécifique et précise à résoudre",
   "correct_answer": "Réponse correcte (VALIDÉE pour correspondre au pattern)",
-  "solution_explanation": "Explication détaillée adaptée à {age_display} (COHÉRENTE avec correct_answer)",
-  "hints": ["Indice 1 (piste pédagogique)", "Indice 2 (piste)", "Indice 3 (piste)"],
   "visual_data": {{...}},
+  "solution_explanation": "Explication concise, suffisante et vérifiable adaptée à {age_display} (COHÉRENTE avec correct_answer)",
+  "hints": ["Indice 1 (piste pédagogique)", "Indice 2 (piste)", "Indice 3 (piste)"],
   "difficulty_rating": X.X,
   "difficulty_axes": {{"reasoning_steps": 3, "rule_visibility": "hidden|partial|explicit", "constraint_count_hint": 5}},
   "choices": ["distracteur plausible A", "distracteur plausible B", "bonne réponse", "..."]
 }}
+
+CONTRAINTE DE SORTIE JSON :
+- Place toujours `visual_data` avant `solution_explanation` pour éviter qu'un texte long tronque les données de rendu.
+- `solution_explanation` doit être concise : étapes courtes, pas de preuve exhaustive, pas de paragraphe narratif long.
+- Ne produis aucun texte hors JSON et ferme toujours l'objet JSON final.
 
 CHOIX / QCM (politique par type — IA9) :
 - ``deduction``, ``chess`` : **ne jamais** inclure ``choices``.
@@ -149,6 +154,10 @@ TEXT_VISUAL_DATA_DEDUCTION = """VISUAL_DATA OBLIGATOIRE (type deduction) :
 TEXT_VISUAL_DATA_VISUAL = """VISUAL_DATA OBLIGATOIRE (type visual) :
 - Symétrie/rotation : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [...], "shapes": [...], "arrangement": "horizontal", "description": "..."}} — pour un carré (■) utiliser "carré" pas "rectangle".
 - Formes colorées : {{"shapes": ["cercle rouge", "triangle vert", "carré ?"], "arrangement": "ligne"}} ou ascii si besoin.
+- Place `visual_data` tôt dans le JSON (avant la longue `solution_explanation`) et ne l'omets jamais.
+- Garde `visual_data.description` court : une phrase utile au rendu, pas une explication de solution.
+- Pour difficulty_rating >= 4 : privilégier 2-3 inconnues maximum avec contraintes combinées plutôt qu'une grande scène verbeuse.
+- `solution_explanation` doit rester compacte : 4 à 6 étapes courtes, pas de preuve exhaustive ni de paragraphe narratif long.
 
 IMPORTANT pour VISUAL :
 - Si associations forme-couleur : montrer AU MOINS UN EXEMPLE VISIBLE de chaque association avant la question.

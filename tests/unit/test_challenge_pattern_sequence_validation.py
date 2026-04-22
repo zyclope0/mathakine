@@ -35,15 +35,42 @@ def test_validate_pattern_numeric_multi_cell_grid_rejects_wrong_answer() -> None
     assert any("Pattern multi-cellules incoherent" in error for error in errors)
 
 
-def test_validate_pattern_numeric_multi_cell_grid_rejects_unverifiable_answer() -> None:
+def test_validate_pattern_numeric_multi_cell_grid_accepts_unverifiable_well_formed_answer() -> (
+    None
+):
     errors = validate_pattern_challenge(
         {"grid": [["2", "?", "8"], ["3", "?", "12"]]},
         "5, 6",
         "",
     )
 
+    assert errors == []
+
+
+def test_validate_pattern_numeric_multi_cell_grid_rejects_unverifiable_wrong_count() -> (
+    None
+):
+    errors = validate_pattern_challenge(
+        {"grid": [["2", "?", "8"], ["3", "?", "12"]]},
+        "5",
+        "",
+    )
+
     assert errors
-    assert any("non verifiable" in error for error in errors)
+    assert any("2 valeurs" in error for error in errors)
+
+
+def test_validate_pattern_numeric_multi_cell_grid_rejects_unverifiable_non_numeric_answer() -> (
+    None
+):
+    errors = validate_pattern_challenge(
+        {"grid": [["2", "?", "8"], ["3", "?", "12"]]},
+        "A, 6",
+        "",
+    )
+
+    assert errors
+    assert any("uniquement des valeurs numeriques" in error for error in errors)
 
 
 def test_analyze_pattern_does_not_invent_answer_from_two_numeric_points() -> None:

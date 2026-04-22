@@ -267,7 +267,7 @@ def compare_deduction(user_answer: str, correct_answer: str) -> bool:
 
     user_assoc = _parse_associations(user_answer)
     correct_assoc = _parse_associations(correct_answer)
-    logger.debug("Deduction - User: %s, Correct: %s", user_assoc, correct_assoc)
+    logger.debug("Deduction - User: {}, Correct: {}", user_assoc, correct_assoc)
     return user_assoc == correct_assoc
 
 
@@ -301,7 +301,7 @@ def compare_probability(user_answer: str, correct_answer: str) -> bool:
     if not is_correct and user_answer.strip() == (correct_answer or "").strip():
         is_correct = True
     logger.debug(
-        "PROBABILITY - User: %s, Correct: %s, Parsed: %s/%s, Result: %s",
+        "PROBABILITY - User: {}, Correct: {}, Parsed: {}/{}, Result: {}",
         user_answer,
         correct_answer,
         u_val,
@@ -338,7 +338,7 @@ def compare_chess(user_answer: str, correct_answer: str) -> bool:
         u_norm in correct_norms if correct_norms else u_norm == _normalize(correct_raw)
     )
     logger.debug(
-        "CHESS - User: %s, Correct: %s, Result: %s", u_norm, correct_norms, is_correct
+        "CHESS - User: {}, Correct: {}, Result: {}", u_norm, correct_norms, is_correct
     )
     return is_correct
 
@@ -355,7 +355,7 @@ def compare_graph(user_answer: str, correct_answer: str) -> bool:
     else:
         is_correct = user_list == correct_list
     logger.debug(
-        "GRAPH - User: %s, Correct: %s, Result: %s",
+        "GRAPH - User: {}, Correct: {}, Result: {}",
         user_set if is_node_list else user_list,
         correct_set if is_node_list else correct_list,
         is_correct,
@@ -449,7 +449,7 @@ def compare_visual_pattern(
             c = correct_list[0] if correct_list else ""
             is_correct = normalize_shape_answer(u) == normalize_shape_answer(c)
 
-    logger.debug("VISUAL/PATTERN - Result: %s", is_correct)
+    logger.debug("VISUAL/PATTERN - Result: {}", is_correct)
     return is_correct
 
 
@@ -457,7 +457,7 @@ def compare_sequence_default(user_answer: str, correct_answer: str) -> bool:
     """Comparaison par défaut (SEQUENCE et autres types simples)."""
     user_list = parse_answer_to_list(user_answer)
     correct_list = parse_answer_to_list(correct_answer)
-    logger.debug("Default comparison - User: %s, Correct: %s", user_list, correct_list)
+    logger.debug("Default comparison - User: {}, Correct: {}", user_list, correct_list)
     if len(user_list) > 1 or len(correct_list) > 1:
         return user_list == correct_list
     u = user_list[0] if user_list else ""

@@ -104,7 +104,7 @@ def _execute_attempt(
         if "progress_savepoint" in locals() and progress_savepoint.is_active:
             progress_savepoint.rollback()
         logger.warning(
-            "challenge_progress upsert (best effort): %s",
+            "challenge_progress upsert (best effort): {}",
             progress_err,
             exc_info=True,
         )
@@ -124,7 +124,7 @@ def _execute_attempt(
             points_earned = POINTS_PER_CORRECT_EXERCISE
         except Exception as gamif_err:
             logger.error(
-                "Gamification error on challenge %s: %s",
+                "Gamification error on challenge {}: {}",
                 cmd.challenge_id,
                 gamif_err,
             )
@@ -137,7 +137,7 @@ def _execute_attempt(
             new_badges = [_badge_dict_to_earned(b) for b in raw_badges]
         except (SQLAlchemyError, TypeError, ValueError) as badge_err:
             logger.warning(
-                "Badge check après défi (best effort): %s",
+                "Badge check après défi (best effort): {}",
                 badge_err,
                 exc_info=True,
             )

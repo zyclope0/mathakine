@@ -87,7 +87,7 @@ class LogicChallengeService:
                     "LogicChallengeType", challenge_type, db
                 )
                 logger.debug(
-                    "Type de défi adapté: de '%s' à '%s'", challenge_type, adapted_type
+                    "Type de défi adapté: de '{}' à '{}'", challenge_type, adapted_type
                 )
                 query = query.filter(LogicChallenge.challenge_type == adapted_type)
 
@@ -95,7 +95,7 @@ class LogicChallengeService:
                 # Adapter le groupe d'âge pour le moteur de base de données actuel
                 adapted_age = adapt_enum_for_db("AgeGroup", age_group, db)
                 logger.debug(
-                    "Groupe d'âge adapté: de '%s' à '%s'", age_group, adapted_age
+                    "Groupe d'âge adapté: de '{}' à '{}'", age_group, adapted_age
                 )
                 query = query.filter(LogicChallenge.age_group == adapted_age)
 
@@ -108,7 +108,7 @@ class LogicChallengeService:
             return query.all()
         except SQLAlchemyError as challenges_fetch_error:
             logger.error(
-                "Erreur lors de la récupération des défis: %s", challenges_fetch_error
+                "Erreur lors de la récupération des défis: {}", challenges_fetch_error
             )
             return []
 
@@ -133,7 +133,7 @@ class LogicChallengeService:
                 "LogicChallengeType", challenge_type, db
             )
             logger.debug(
-                "Type de défi adapté: de '%s' à '%s'",
+                "Type de défi adapté: de '{}' à '{}'",
                 challenge_type,
                 challenge_data["challenge_type"],
             )
@@ -142,7 +142,7 @@ class LogicChallengeService:
             age_group = challenge_data["age_group"]
             challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
             logger.debug(
-                "Groupe d'âge adapté: de '%s' à '%s'",
+                "Groupe d'âge adapté: de '{}' à '{}'",
                 age_group,
                 challenge_data["age_group"],
             )
@@ -184,7 +184,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error("Défi avec ID %s non trouvé pour mise à jour", challenge_id)
+            logger.error("Défi avec ID {} non trouvé pour mise à jour", challenge_id)
             return False
 
         # Adapter les valeurs d'enum pour le moteur de base de données actuel
@@ -194,7 +194,7 @@ class LogicChallengeService:
                 "LogicChallengeType", challenge_type, db
             )
             logger.debug(
-                "Type de défi adapté pour mise à jour: de '%s' à '%s'",
+                "Type de défi adapté pour mise à jour: de '{}' à '{}'",
                 challenge_type,
                 challenge_data["challenge_type"],
             )
@@ -203,7 +203,7 @@ class LogicChallengeService:
             age_group = challenge_data["age_group"]
             challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
             logger.debug(
-                "Groupe d'âge adapté pour mise à jour: de '%s' à '%s'",
+                "Groupe d'âge adapté pour mise à jour: de '{}' à '{}'",
                 age_group,
                 challenge_data["age_group"],
             )
@@ -235,7 +235,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error("Défi avec ID %s non trouvé pour archivage", challenge_id)
+            logger.error("Défi avec ID {} non trouvé pour archivage", challenge_id)
             raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
         DatabaseAdapter.archive(db, challenge)
@@ -256,7 +256,7 @@ class LogicChallengeService:
         """
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
-            logger.error("Défi avec ID %s non trouvé pour suppression", challenge_id)
+            logger.error("Défi avec ID {} non trouvé pour suppression", challenge_id)
             raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
         DatabaseAdapter.delete(db, challenge)
@@ -300,7 +300,7 @@ class LogicChallengeService:
 
             if not challenge:
                 logger.error(
-                    "Tentative d'enregistrement d'une tentative pour un défi inexistant (ID %s)",
+                    "Tentative d'enregistrement d'une tentative pour un défi inexistant (ID {})",
                     challenge_id,
                 )
                 return None
@@ -313,7 +313,7 @@ class LogicChallengeService:
             # Log de l'action
             is_correct = attempt_data.get("is_correct", False)
             logger.info(
-                "Tentative enregistrée pour le défi %s: %s",
+                "Tentative enregistrée pour le défi {}: {}",
                 challenge_id,
                 "Correcte" if is_correct else "Incorrecte",
             )
@@ -326,7 +326,7 @@ class LogicChallengeService:
             if auto_commit:
                 db.rollback()
             logger.error(
-                "Erreur lors de l'enregistrement de la tentative: %s",
+                "Erreur lors de l'enregistrement de la tentative: {}",
                 attempt_save_error,
             )
             return None
@@ -334,7 +334,7 @@ class LogicChallengeService:
             if auto_commit:
                 db.rollback()
             logger.error(
-                "Erreur de données lors de l'enregistrement de la tentative: %s",
+                "Erreur de données lors de l'enregistrement de la tentative: {}",
                 attempt_save_error,
             )
             return None

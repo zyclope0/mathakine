@@ -3,7 +3,7 @@ Politique applicative typée : génération IA exercices (flux SSE OpenAI).
 
 Vue multi-workloads : :mod:`app.core.app_model_policy` documente l'index et délègue ici pour ``exercises_ai``.
 
-Source de vérité métier par défaut : constantes de ce module (ex. modèle par défaut ``o3``).
+Source de vérité métier par défaut : constantes de ce module (ex. modèle par défaut ``o4-mini``).
 Les variables d'environnement ne font qu'**override** opérationnel, sans remplacer la policy.
 
 Hiérarchie de résolution du modèle (aujourd'hui) :
@@ -42,6 +42,10 @@ EXERCISES_AI_ALLOWED_MODEL_IDS: Final[frozenset[str]] = frozenset(
         "o1-mini",
         "o3",
         "o3-mini",
+        "o4-mini",
+        "gpt-4.1",
+        "gpt-4.1-mini",
+        "gpt-4.1-nano",
         "gpt-5",
         "gpt-5-mini",
         "gpt-5-nano",
@@ -61,9 +65,10 @@ EXERCISES_AI_ALLOWED_MODEL_IDS: Final[frozenset[str]] = frozenset(
 # Défaut et paramètres par type d'exercice (clés API = minuscules)
 # ---------------------------------------------------------------------------
 
-DEFAULT_EXERCISES_AI_MODEL: Final[str] = "o3"
+DEFAULT_EXERCISES_AI_MODEL: Final[str] = "o4-mini"
 
 _REASONING_EFFORT_DEFAULT: Final[str] = "medium"
+_O_SERIES_REASONING_EFFORT_MAX: Final[str] = "medium"
 _MAX_COMPLETION_TOKENS_DEFAULT: Final[int] = 4000
 
 REASONING_EFFORT_BY_EXERCISE_TYPE: Final[Dict[str, str]] = {
@@ -86,7 +91,9 @@ MAX_COMPLETION_TOKENS_BY_EXERCISE_TYPE: Final[Dict[str, int]] = {
     "geometrie": 3200,
     "fractions": 4500,
     "texte": 4500,
-    "mixte": 5000,
+    # o-series compte les tokens de raisonnement dans max_completion_tokens ;
+    # MIXTE GRAND_MAITRE a besoin d'une marge visible suffisante pour fermer le JSON.
+    "mixte": 6500,
     "divers": 4500,
 }
 
@@ -98,7 +105,9 @@ class ExerciseAIModelFamily(str, Enum):
     """Famille de modèle pour le routage des paramètres Chat Completions (exercices IA)."""
 
     O1 = "o1"
-    O3 = "o3"
+    O_SERIES = "o_series"
+    # Alias historique conservé pour les tests/outils qui parlent encore de famille "o3".
+    O3 = "o_series"
     GPT5 = "gpt5"
     CHAT_CLASSIC = "chat_classic"
 
@@ -126,7 +135,7 @@ MODEL_FAMILY_CAPABILITIES: Final[
         supports_verbosity=False,
         supports_temperature=False,
     ),
-    ExerciseAIModelFamily.O3: ModelFamilyCapabilities(
+    ExerciseAIModelFamily.O_SERIES: ModelFamilyCapabilities(
         supports_response_format_json_object=True,
         supports_reasoning_effort=True,
         supports_verbosity=False,
@@ -174,8 +183,8 @@ def _infer_family_for_allowed_model(normalized_id: str) -> ExerciseAIModelFamily
     """
     if normalized_id.startswith("o1"):
         return ExerciseAIModelFamily.O1
-    if normalized_id.startswith("o3"):
-        return ExerciseAIModelFamily.O3
+    if normalized_id.startswith("o3") or normalized_id.startswith("o4"):
+        return ExerciseAIModelFamily.O_SERIES
     if normalized_id.startswith("gpt-5") or normalized_id.startswith("gpt5"):
         return ExerciseAIModelFamily.GPT5
     if normalized_id.startswith("gpt-4") or normalized_id.startswith("gpt-3.5"):
@@ -204,7 +213,7 @@ def resolve_exercise_ai_model() -> str:
     """
     Modèle effectif pour le flux SSE exercices IA (identifiant normalisé minuscules).
 
-    Override env d'abord, puis défaut applicatif ``o3``.
+    Override env d'abord, puis défaut applicatif ``o4-mini``.
     ``o1`` / ``o1-mini`` uniquement si présents dans l'allowlist et choisis via override.
     Lève :class:`ExerciseAIModelNotAllowedError` si l'override n'est pas allowlisté.
     """
@@ -236,9 +245,22 @@ def resolve_exercise_ai_model_for_user(
 
 
 def reasoning_effort_for_exercise_type(exercise_type: str) -> str:
-    """Niveau ``reasoning_effort`` pour familles qui le supportent (o3, gpt-5.x)."""
+    """Niveau ``reasoning_effort`` pour familles qui le supportent (o-series, gpt-5.x)."""
     key = (exercise_type or "").strip().lower()
     return REASONING_EFFORT_BY_EXERCISE_TYPE.get(key, _REASONING_EFFORT_DEFAULT)
+
+
+def o_series_reasoning_effort_for_exercise_type(exercise_type: str) -> str:
+    """
+    Effort effectif pour o-series.
+
+    ``high`` peut consommer tout le budget de sortie en raisonnement caché sur des JSON courts.
+    On borne donc o-series à ``medium`` et on laisse les familles GPT-5 conserver la valeur brute.
+    """
+    effort = reasoning_effort_for_exercise_type(exercise_type)
+    if effort == "high":
+        return _O_SERIES_REASONING_EFFORT_MAX
+    return effort
 
 
 def max_completion_tokens_for_exercise_type(exercise_type: str) -> int:
@@ -282,9 +304,11 @@ def build_exercise_ai_stream_kwargs(
     if family is ExerciseAIModelFamily.O1:
         return base
 
-    if family is ExerciseAIModelFamily.O3:
+    if family is ExerciseAIModelFamily.O_SERIES:
         base["response_format"] = {"type": "json_object"}
-        base["reasoning_effort"] = effort
+        base["reasoning_effort"] = o_series_reasoning_effort_for_exercise_type(
+            exercise_type
+        )
         return base
 
     if family is ExerciseAIModelFamily.GPT5:

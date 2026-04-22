@@ -232,9 +232,15 @@ function symmetryCellFromElement(
 
 function groupedElementsForSide(layout: SymmetryCell[], side: "left" | "right"): unknown[] {
   const group = layout.find(
-    (item) => String(item.side ?? "").toLowerCase() === side && Array.isArray(item.elements)
+    (item) =>
+      String(item.side ?? "").toLowerCase() === side &&
+      (Array.isArray(item.elements) || Array.isArray(item.shapes) || Array.isArray(item.items))
   );
-  return group && Array.isArray(group.elements) ? group.elements : [];
+  if (!group) return [];
+  if (Array.isArray(group.elements)) return group.elements;
+  if (Array.isArray(group.shapes)) return group.shapes;
+  if (Array.isArray(group.items)) return group.items;
+  return [];
 }
 
 /**

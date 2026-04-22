@@ -112,6 +112,21 @@ def test_puzzle_prompt_prioritizes_complete_compact_visual_data() -> None:
     assert "5 à 7 étapes courtes" in p
 
 
+def test_visual_prompt_prioritizes_complete_compact_visual_data() -> None:
+    p = build_challenge_system_prompt("visual", "15-17")
+    assert "Place `visual_data` tôt dans le JSON" in p
+    assert "visual_data.description` court" in p
+    assert "2-3 inconnues maximum" in p
+    assert "4 à 6 étapes courtes" in p
+
+
+def test_global_json_contract_places_visual_data_before_explanation() -> None:
+    p = build_challenge_system_prompt("graph", "15-17")
+    assert p.index('"visual_data"') < p.index('"solution_explanation"')
+    assert "Explication concise, suffisante et vérifiable" in p
+    assert "Ne produis aucun texte hors JSON" in p
+
+
 def test_chess_prompt_bounds_position_and_forced_line_contract() -> None:
     p = build_challenge_system_prompt("chess", "15-17")
     assert "4 à 8 pièces maximum" in p
@@ -171,11 +186,13 @@ def test_prompt_size_well_below_monolith_for_representative_types() -> None:
         ), f"{ctype} devrait être nettement plus court que le monolithe ({n} >= baseline-4000)"
 
 
-def test_resolve_challenge_model_default_o3(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_challenge_model_default_o4_mini(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_CHALLENGES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_REASONING", "")
-    assert resolve_challenge_ai_model("sequence") == "o3"
-    assert resolve_challenge_ai_model("unknown_future_type") == "o3"
+    assert resolve_challenge_ai_model("sequence") == "o4-mini"
+    assert resolve_challenge_ai_model("unknown_future_type") == "o4-mini"
 
 
 def test_challenges_override_beats_reasoning_legacy(
@@ -208,7 +225,7 @@ def test_ai_config_get_model_delegates_to_policy(
 ) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_CHALLENGES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_REASONING", "")
-    assert AIConfig.get_model("graph") == "o3"
+    assert AIConfig.get_model("graph") == "o4-mini"
     assert AIConfig.get_model("graph") == resolve_challenge_ai_model("graph")
 
 
@@ -276,12 +293,47 @@ def test_build_challenge_ai_stream_kwargs_o3_json_and_reasoning() -> None:
     assert kw["reasoning_effort"] == "low"
 
 
+def test_build_challenge_ai_stream_kwargs_o4_mini_json_and_reasoning() -> None:
+    kw = build_challenge_ai_stream_kwargs(
+        model="o4-mini",
+        system_content="S",
+        user_content="U",
+        ai_params={
+            "model": "o4-mini",
+            "max_tokens": 5000,
+            "reasoning_effort": "medium",
+        },
+    )
+    assert kw["response_format"] == {"type": "json_object"}
+    assert kw["max_completion_tokens"] == 5000
+    assert kw["reasoning_effort"] == "medium"
+
+
 def test_chess_generation_runtime_budget_is_bounded() -> None:
     assert AIConfig.get_reasoning_effort("chess") == "low"
     assert AIConfig.get_max_tokens("chess") == 6000
     assert AIConfig.get_timeout("chess") == 90.0
     assert AIConfig.get_max_retries("chess") == 1
     assert AIConfig.get_max_retries("sequence") == AIConfig.MAX_RETRIES
+
+
+def test_o_series_reasoning_is_systemically_bounded_for_json_completion_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "OPENAI_MODEL_CHALLENGES_OVERRIDE", "")
+    monkeypatch.setattr(settings, "OPENAI_MODEL_REASONING", "")
+    assert AIConfig.get_reasoning_effort("pattern") == "high"
+    assert AIConfig.get_o_series_reasoning_effort("pattern") == "medium"
+    assert AIConfig.get_reasoning_effort("visual") == "high"
+    assert AIConfig.get_o_series_reasoning_effort("visual") == "medium"
+    assert AIConfig.get_reasoning_effort("deduction") == "high"
+    assert AIConfig.get_o_series_reasoning_effort("deduction") == "medium"
+    assert AIConfig.get_o_series_reasoning_effort("coding") == "medium"
+    assert AIConfig.get_o_series_reasoning_effort("chess") == "low"
+    params = AIConfig.get_openai_params("visual")
+    assert params["model"] == "o4-mini"
+    assert params["reasoning_effort"] == "medium"
+    assert params["max_tokens"] == 8000
 
 
 def test_puzzle_generation_has_extra_completion_budget_for_json_closure() -> None:

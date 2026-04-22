@@ -13,6 +13,7 @@ from app.core.ai_generation_policy import (
     get_model_family_capabilities,
     max_completion_tokens_for_exercise_type,
     normalize_exercise_ai_model_id,
+    o_series_reasoning_effort_for_exercise_type,
     reasoning_effort_for_exercise_type,
     resolve_exercise_ai_model,
     resolve_exercise_ai_model_for_user,
@@ -29,12 +30,16 @@ def test_default_model_and_allowlist_coherent() -> None:
     [
         ("o1", ExerciseAIModelFamily.O1),
         ("o1-mini", ExerciseAIModelFamily.O1),
-        ("O3", ExerciseAIModelFamily.O3),
-        ("o3-mini", ExerciseAIModelFamily.O3),
+        ("O3", ExerciseAIModelFamily.O_SERIES),
+        ("o3-mini", ExerciseAIModelFamily.O_SERIES),
+        ("o4-mini", ExerciseAIModelFamily.O_SERIES),
         ("gpt-5.1", ExerciseAIModelFamily.GPT5),
         ("gpt-5.4", ExerciseAIModelFamily.GPT5),
         ("gpt-5-mini", ExerciseAIModelFamily.GPT5),
         ("gpt5-nano", ExerciseAIModelFamily.GPT5),
+        ("gpt-4.1", ExerciseAIModelFamily.CHAT_CLASSIC),
+        ("gpt-4.1-mini", ExerciseAIModelFamily.CHAT_CLASSIC),
+        ("gpt-4.1-nano", ExerciseAIModelFamily.CHAT_CLASSIC),
         ("gpt-4o-mini", ExerciseAIModelFamily.CHAT_CLASSIC),
     ],
 )
@@ -50,18 +55,18 @@ def test_model_family_capabilities_matrix_covers_all_families() -> None:
         assert caps is MODEL_FAMILY_CAPABILITIES[fam]
     o1 = MODEL_FAMILY_CAPABILITIES[ExerciseAIModelFamily.O1]
     assert o1.supports_response_format_json_object is False
-    o3 = MODEL_FAMILY_CAPABILITIES[ExerciseAIModelFamily.O3]
-    assert o3.supports_reasoning_effort is True
+    o_series = MODEL_FAMILY_CAPABILITIES[ExerciseAIModelFamily.O_SERIES]
+    assert o_series.supports_reasoning_effort is True
     g5 = MODEL_FAMILY_CAPABILITIES[ExerciseAIModelFamily.GPT5]
     assert g5.supports_verbosity is True
     chat = MODEL_FAMILY_CAPABILITIES[ExerciseAIModelFamily.CHAT_CLASSIC]
     assert chat.supports_temperature is True
 
 
-def test_resolve_default_is_policy_o3(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_default_is_policy_o4_mini(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES", "")
-    assert resolve_exercise_ai_model() == DEFAULT_EXERCISES_AI_MODEL == "o3"
+    assert resolve_exercise_ai_model() == DEFAULT_EXERCISES_AI_MODEL == "o4-mini"
 
 
 def test_resolve_override_beats_legacy_exercises(
@@ -99,14 +104,27 @@ def test_classify_rejects_gpt4_bare_if_not_allowlisted() -> None:
         classify_exercise_ai_model_family("gpt-4")
 
 
-def test_build_stream_kwargs_rejects_unlisted_model() -> None:
-    with pytest.raises(ExerciseAIModelNotAllowedError, match="non autorisé"):
-        build_exercise_ai_stream_kwargs(
-            model="o4-mini",
-            exercise_type="addition",
-            system_content="s",
-            user_content="u",
-        )
+def test_build_stream_kwargs_o4_mini_uses_reasoning_series() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="o4-mini",
+        exercise_type="geometrie",
+        system_content="s",
+        user_content="u",
+    )
+    assert kw["response_format"] == {"type": "json_object"}
+    assert kw["reasoning_effort"] == "medium"
+    assert kw["max_completion_tokens"] == 3200
+
+
+def test_build_stream_kwargs_o4_mini_mixte_caps_hidden_reasoning_budget() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="o4-mini",
+        exercise_type="mixte",
+        system_content="s",
+        user_content="u",
+    )
+    assert kw["reasoning_effort"] == "medium"
+    assert kw["max_completion_tokens"] == 6500
 
 
 def test_resolve_explicit_o1_override_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -120,17 +138,18 @@ def test_resolve_exercise_ai_model_for_user_delegates(
 ) -> None:
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES_OVERRIDE", "")
     monkeypatch.setattr(settings, "OPENAI_MODEL_EXERCISES", "")
-    assert resolve_exercise_ai_model_for_user(99, "addition") == "o3"
+    assert resolve_exercise_ai_model_for_user(99, "addition") == "o4-mini"
 
 
 def test_reasoning_effort_and_max_tokens_by_type() -> None:
     assert reasoning_effort_for_exercise_type("addition") == "low"
     assert reasoning_effort_for_exercise_type("geometrie") == "medium"
     assert reasoning_effort_for_exercise_type("mixte") == "high"
+    assert o_series_reasoning_effort_for_exercise_type("mixte") == "medium"
     assert reasoning_effort_for_exercise_type("unknown_type") == "medium"
     assert max_completion_tokens_for_exercise_type("addition") == 2800
     assert max_completion_tokens_for_exercise_type("geometrie") == 3200
-    assert max_completion_tokens_for_exercise_type("mixte") == 5000
+    assert max_completion_tokens_for_exercise_type("mixte") == 6500
     assert max_completion_tokens_for_exercise_type("unknown") == 4000
 
 
@@ -159,6 +178,18 @@ def test_build_stream_kwargs_o3_family() -> None:
     assert kw["max_completion_tokens"] == 2800
     assert "temperature" not in kw
     assert "verbosity" not in kw
+
+
+def test_build_stream_kwargs_gpt41_mini_chat_classic_family() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="gpt-4.1-mini",
+        exercise_type="addition",
+        system_content="sys",
+        user_content="user",
+    )
+    assert kw["response_format"] == {"type": "json_object"}
+    assert kw["temperature"] == 0.7
+    assert "reasoning_effort" not in kw
 
 
 def test_build_stream_kwargs_o1_family() -> None:

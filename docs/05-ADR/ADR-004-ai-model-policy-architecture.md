@@ -19,13 +19,13 @@ Deux modules de politique coexistent dans la base de code :
 
 **Module B — `app/core/ai_generation_policy.py`** (exercices)
 - Source de vérité pour la résolution du modèle exercices.
-- Hiérarchie : `OPENAI_MODEL_EXERCISES_OVERRIDE` > `OPENAI_MODEL_EXERCISES` (legacy) > `DEFAULT_EXERCISES_AI_MODEL` (o3).
+- Hiérarchie : `OPENAI_MODEL_EXERCISES_OVERRIDE` > `OPENAI_MODEL_EXERCISES` (legacy) > `DEFAULT_EXERCISES_AI_MODEL` (`o4-mini`).
 - Expose `EXERCISES_AI_ALLOWED_MODEL_IDS` : allowlist explicite des identifiants OpenAI autorisés.
 - Délégation documentée dans `app/core/app_model_policy` (index multi-workloads).
 
 **Module C — `app/services/challenges/challenge_ai_model_policy.py`** (défis)
 - Source de vérité pour la résolution du modèle défis.
-- Hiérarchie : `OPENAI_MODEL_CHALLENGES_OVERRIDE` > `OPENAI_MODEL_REASONING` (legacy) > `CHALLENGE_MODEL_BY_TYPE` > `DEFAULT_CHALLENGES_AI_MODEL` (o3).
+- Hiérarchie : `OPENAI_MODEL_CHALLENGES_OVERRIDE` > `OPENAI_MODEL_REASONING` (legacy) > `CHALLENGE_MODEL_BY_TYPE` > `DEFAULT_CHALLENGES_AI_MODEL` (`o4-mini`).
 - Réutilise `EXERCISES_AI_ALLOWED_MODEL_IDS` et `normalize_exercise_ai_model_id` depuis le module B.
 - Gère en plus le fallback stream vide (`resolve_challenge_ai_fallback_model` → `gpt-4o-mini`).
 

@@ -19,9 +19,9 @@ class AIConfig:
     """Configuration centralisée pour la génération IA."""
 
     # Résolution modèle **défis** (stream) : ``challenge_ai_model_policy.resolve_challenge_ai_model``.
-    # Fallback stream vide (o3) : ``resolve_challenge_ai_fallback_model``.
+    # Fallback stream vide (o-series) : ``resolve_challenge_ai_fallback_model``.
 
-    # Reasoning Effort : contrôle la profondeur (o3, GPT-5.2)
+    # Reasoning Effort : contrôle la profondeur (o-series, GPT-5.x)
     # low = rapide/économique, medium = équilibré, high = raisonnement profond
     # Pas de high partout : sequence/puzzle/riddle/graph/coding suffisent avec low/medium.
     # Chess est volontairement borné : la qualité vient d'une position tactique simple,
@@ -37,6 +37,23 @@ class AIConfig:
         "coding": "medium",  # Cryptographie : medium pour cohérence
         "chess": "low",  # Échecs : positions courtes, budget borné
         "probability": "low",  # Probabilités : low suffit
+    }
+
+    # Les modèles o-series consomment le budget de sortie avec leur raisonnement caché.
+    # Cette matrice privilégie un JSON complet au premier passage. Les validations et
+    # réparations ciblées portent la qualité, plutôt qu'un raisonnement "high" coûteux
+    # qui peut produire une réponse visible vide ou tronquée.
+    O_SERIES_REASONING_EFFORT_BY_TYPE: Dict[str, str] = {
+        "pattern": "medium",
+        "sequence": "low",
+        "puzzle": "low",
+        "graph": "medium",
+        "visual": "medium",
+        "riddle": "low",
+        "deduction": "medium",
+        "coding": "medium",
+        "chess": "low",
+        "probability": "low",
     }
 
     # GPT-5.2 Verbosity : contrôle la longueur de réponse
@@ -107,9 +124,17 @@ class AIConfig:
         return model and model.lower().startswith("o1")
 
     @classmethod
+    def is_o_series_reasoning_model(cls, model: str) -> bool:
+        """Vérifie si le modèle est une famille o-series avec ``reasoning_effort``."""
+        if not model:
+            return False
+        normalized = model.lower()
+        return normalized.startswith("o3") or normalized.startswith("o4")
+
+    @classmethod
     def is_o3_model(cls, model: str) -> bool:
-        """Vérifie si le modèle est o3/o3-mini (structured output OK, reasoning_effort supporté)."""
-        return model and model.lower().startswith("o3")
+        """Alias historique : la branche couvre désormais les modèles o3 et o4."""
+        return cls.is_o_series_reasoning_model(model)
 
     @classmethod
     def get_model(cls, challenge_type: str) -> str:
@@ -117,7 +142,7 @@ class AIConfig:
         Modèle OpenAI pour la génération d'un défi.
 
         Délègue à :func:`app.services.challenges.challenge_ai_model_policy.resolve_challenge_ai_model`
-        (hiérarchie explicite : override défis > legacy ``OPENAI_MODEL_REASONING`` > carte par type > ``o3``).
+        (hiérarchie explicite : override défis > legacy ``OPENAI_MODEL_REASONING`` > carte par type > ``o4-mini``).
         """
         from app.services.challenges.challenge_ai_model_policy import (
             resolve_challenge_ai_model,
@@ -129,6 +154,15 @@ class AIConfig:
     def get_reasoning_effort(cls, challenge_type: str) -> str:
         """Retourne le niveau de raisonnement pour GPT-5.2."""
         return cls.REASONING_EFFORT_MAP.get(challenge_type.lower(), "medium")
+
+    @classmethod
+    def get_o_series_reasoning_effort(cls, challenge_type: str) -> str:
+        """Retourne le niveau de raisonnement borné pour les modèles o-series."""
+        type_key = (challenge_type or "").strip().lower()
+        return cls.O_SERIES_REASONING_EFFORT_BY_TYPE.get(
+            type_key,
+            cls.get_reasoning_effort(type_key),
+        )
 
     @classmethod
     def get_verbosity(cls, challenge_type: str) -> str:
@@ -193,9 +227,11 @@ class AIConfig:
         if cls.is_o1_model(model):
             # o1 n'accepte pas response_format json_object -> géré dans le handler
             pass
-        # o3/o3-mini : reasoning_effort + structured output supportés
-        elif cls.is_o3_model(model):
-            params["reasoning_effort"] = reasoning_effort
+        # o-series reasoning : reasoning_effort + structured output supportés
+        elif cls.is_o_series_reasoning_model(model):
+            params["reasoning_effort"] = cls.get_o_series_reasoning_effort(
+                challenge_type
+            )
             # verbosity non supporté par o3 Chat Completions
         elif cls.is_gpt5_model(model):
             params["reasoning_effort"] = reasoning_effort

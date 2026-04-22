@@ -58,7 +58,7 @@ def normalize_age_group_for_db(age_group: str) -> AgeGroup:
         return AgeGroup(age_group_lower)
     except ValueError:
         pass
-    logger.warning("Groupe d'âge non reconnu: %s, utilisation de ALL_AGES", age_group)
+    logger.warning("Groupe d'âge non reconnu: {}, utilisation de ALL_AGES", age_group)
     return AgeGroup.ALL_AGES
 
 
