@@ -13,13 +13,28 @@ _ANSWER_PART_SEPARATOR_RE = re.compile(r"\s*(?:,|;|\n)\s*")
 _NUMERIC_TOKEN_RE = re.compile(r"^[+-]?\d+(?:[.,]\d+)?$")
 
 
+_PIECE_LABEL_FIELDS: tuple = ("label", "value", "name", "id", "piece_id", "tag")
+
+
 def piece_label(piece: Any) -> str:
-    """Return the learner-visible label for one puzzle piece."""
+    """Return the learner-visible label for one puzzle piece.
+
+    Lit ``label`` / ``value`` / ``name`` / ``id`` (et alias courants). Évite
+    ``str(dict)`` qui produirait la repr Python entière (``"{'id': 'A', ...}"``)
+    — jamais mentionnée par ``correct_answer`` ni par l'explication, ce qui
+    bloque puzzle validation + auto-correction sans raison valable.
+    """
     if isinstance(piece, dict):
-        value = piece.get("label") or piece.get("value") or piece.get("name") or piece
-    else:
-        value = piece
-    return str(value).strip()
+        for key in _PIECE_LABEL_FIELDS:
+            raw = piece.get(key)
+            if isinstance(raw, str) and raw.strip():
+                return raw.strip()
+            if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+                return str(raw)
+        # Fail-open : pas de label exploitable → chaîne vide plutôt que
+        # repr Python bruyante, pour laisser les autres invariants décider.
+        return ""
+    return str(piece).strip()
 
 
 def split_ordered_answer_parts(answer: Any) -> List[str]:

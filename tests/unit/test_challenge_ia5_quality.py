@@ -152,6 +152,50 @@ def test_validate_puzzle_allows_non_sort_numeric_order() -> None:
     assert not any("tri numerique" in e.lower() for e in non_sort_err)
 
 
+def test_validate_puzzle_accepts_pieces_with_id_field() -> None:
+    """Contrat LLM fréquent : ``pieces: [{"id": "A", "pattern": [...]}]``.
+
+    ``piece_label`` doit lire ``id`` et ne jamais sortir la repr Python
+    du dict — sinon la validation bloque alors que correct_answer "A, B, C, ..."
+    est parfaitement cohérent avec les pièces.
+    """
+    vd = {
+        "pieces": [
+            {"id": "A", "pattern": ["NW: rouge"]},
+            {"id": "B", "pattern": ["NW: bleu", "NE: rouge"]},
+            {"id": "C", "pattern": ["NW: rouge", "NE: rouge", "SW: rouge"]},
+            {"id": "D", "pattern": ["NW: bleu", "NE: rouge", "SW: rouge", "SE: rouge"]},
+            {"id": "E", "pattern": ["NW: rouge", "SW: rouge", "SE: rouge"]},
+            {"id": "F", "pattern": ["NW: bleu", "SE: rouge"]},
+        ],
+        "hints": [
+            "Compare le nombre de points rouges sur chaque tuile.",
+            "Regarde la couleur du quadrant NW.",
+            "Observe l'alternance rouge/bleu sur NW.",
+        ],
+    }
+    errors = validate_puzzle_challenge(
+        vd,
+        "A, B, C, D, E, F",
+        "On compte les points rouges sur A, B, C, D, E, F puis l'alternance NW.",
+    )
+    assert errors == []
+    # Sanity : aucune repr Python dict ne doit apparaître dans les messages.
+    for err in errors:
+        assert "{'id'" not in err
+        assert '{"id"' not in err
+
+
+def test_piece_label_ignores_non_label_dict_without_python_repr() -> None:
+    from app.services.challenges.challenge_ordering_utils import piece_label
+
+    assert piece_label({"id": "A", "pattern": ["x"]}) == "A"
+    assert piece_label({"label": "Alpha"}) == "Alpha"
+    assert piece_label({"value": 3}) == "3"
+    # Dict sans clé label-compatible : fail-open chaîne vide, pas de repr Python.
+    assert piece_label({"pattern": ["x"]}) == ""
+
+
 def test_validate_challenge_choices_min_three_and_no_duplicates() -> None:
     assert not validate_challenge_choices("SEQUENCE", "10", None)
     assert validate_challenge_choices("SEQUENCE", "10", ["10", "11"])
