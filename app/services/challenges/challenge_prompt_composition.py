@@ -132,7 +132,12 @@ def build_challenge_system_prompt(challenge_type: str, age_group: str) -> str:
     parts.extend(
         [
             TEXT_LATEX_RULES,
-            TEXT_JSON_CONTRACT_TEMPLATE.format(age_display=age_display),
+            # ``ct`` = type canonique (ex. spatial → visual). Garde l'invariant
+            # ``spatial`` et ``visual`` produisent le même tail, et le modèle
+            # voit toujours le nom canonique dans la directive de priorité.
+            TEXT_JSON_CONTRACT_TEMPLATE.format(
+                age_display=age_display, challenge_type=ct
+            ),
             TEXT_DIFFICULTY_RULES,
         ]
     )

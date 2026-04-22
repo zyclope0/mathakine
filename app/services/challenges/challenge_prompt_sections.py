@@ -73,7 +73,9 @@ TEXT_JSON_CONTRACT_TEMPLATE = """Retourne uniquement le défi au format JSON val
 CONTRAINTE DE SORTIE JSON :
 - Place toujours `visual_data` avant `solution_explanation` pour éviter qu'un texte long tronque les données de rendu.
 - `solution_explanation` doit être concise : étapes courtes, pas de preuve exhaustive, pas de paragraphe narratif long.
+- `description`, `question` et `solution_explanation` doivent rester brefs et ciblés : privilégie 1 court paragraphe pour `description`, 1 phrase claire pour `question`, et 2 à 4 étapes courtes pour `solution_explanation`.
 - Ne produis aucun texte hors JSON et ferme toujours l'objet JSON final.
+- Si une contrainte entre en conflit, priorité stricte : validité JSON > type `{challenge_type}` uniquement > cohérence logique > règles de difficulté > champs optionnels. En cas de doute, omets `choices` plutôt que de produire un QCM non conforme.
 
 CHOIX / QCM (politique par type — IA9) :
 - ``deduction``, ``chess`` : **ne jamais** inclure ``choices``.

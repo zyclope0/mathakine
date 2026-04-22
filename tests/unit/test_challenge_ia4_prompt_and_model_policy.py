@@ -124,7 +124,48 @@ def test_global_json_contract_places_visual_data_before_explanation() -> None:
     p = build_challenge_system_prompt("graph", "15-17")
     assert p.index('"visual_data"') < p.index('"solution_explanation"')
     assert "Explication concise, suffisante et vérifiable" in p
-    assert "Ne produis aucun texte hors JSON" in p
+
+
+def test_global_json_contract_includes_length_budget_per_field() -> None:
+    """Lot K-mini — budget longueur explicite par champ pour limiter la troncature.
+
+    Encadre le modèle sur des cibles concrètes (1 paragraphe / 1 phrase / 2-4 étapes)
+    pour réduire le risque qu'une narration longue tronque ``visual_data`` ou
+    ferme mal le JSON. Suggéré par OpenAI après test runtime sequence.
+    """
+    p = build_challenge_system_prompt("sequence", "15-17")
+    assert (
+        "doivent rester brefs et ciblés" in p
+    ), "le budget longueur par champ doit apparaître dans le contrat JSON"
+    assert "1 court paragraphe" in p
+    assert "1 phrase claire" in p
+    assert "2 à 4 étapes courtes" in p
+
+
+def test_global_json_contract_priority_order_uses_actual_type() -> None:
+    """Lot K-mini — la règle de priorité interpole le type réel du défi.
+
+    Sous contrainte de budget, dit explicitement au modèle quoi sacrifier en
+    premier (champs optionnels) plutôt que de casser le contrat JSON. Verrouille
+    aussi l'interpolation de ``challenge_type`` dans la directive.
+    """
+    p_sequence = build_challenge_system_prompt("sequence", "15-17")
+    assert "priorité stricte" in p_sequence
+    assert "type `sequence` uniquement" in p_sequence
+    assert "omets `choices` plutôt que de produire un QCM non conforme" in p_sequence
+
+    assert "Ne produis aucun texte hors JSON" in p_sequence
+
+    # Vérifie que l'interpolation reflète le bon type pour un autre challenge.
+    p_graph = build_challenge_system_prompt("graph", "15-17")
+    assert "type `graph` uniquement" in p_graph
+    assert "type `sequence` uniquement" not in p_graph
+
+    # Spatial est canonicalisé vers visual : la directive doit utiliser le nom canonique
+    # (sinon l'invariant ``spatial == visual sur le tail`` casse).
+    p_spatial = build_challenge_system_prompt("spatial", "15-17")
+    assert "type `visual` uniquement" in p_spatial
+    assert "type `spatial` uniquement" not in p_spatial
 
 
 def test_chess_prompt_bounds_position_and_forced_line_contract() -> None:
