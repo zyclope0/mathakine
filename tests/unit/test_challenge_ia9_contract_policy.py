@@ -257,6 +257,115 @@ def test_normalize_symmetry_converts_grouped_side_shapes_layout() -> None:
     assert question_items == [layout[5]]
 
 
+def test_normalize_symmetry_reparses_python_dict_like_shape_strings_in_place() -> None:
+    """Rétro-compat défis persistés avant le fix : ``shape`` peut être une
+    chaîne Python-like ``"{'name': 'cercle rouge', 'size': 'petit'}"`` (repr
+    produite par l'ancien code). La normalisation API doit les reparser
+    en ``shape``/``size`` plats, jamais renvoyer la repr brute.
+    """
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {
+                    "side": "left",
+                    "shape": "{'name': 'cercle rouge', 'size': 'petit'}",
+                    "position": 1,
+                },
+                {
+                    "side": "right",
+                    "shape": "{'name': 'pentagone vert', 'size': 'grand'}",
+                    "position": 1,
+                },
+                {
+                    "side": "right",
+                    "shape": "{'name': '?', 'size': '?'}",
+                    "position": 2,
+                    "question": True,
+                },
+                {
+                    "side": "left",
+                    "shape": (
+                        "{'name': 'triangle jaune', 'size': 'petit', "
+                        "'orientation': 'sommet vers la gauche'}"
+                    ),
+                    "position": 3,
+                },
+            ],
+        }
+    )
+
+    layout = vd.get("layout", [])
+    assert len(layout) == 4
+    for item in layout:
+        assert "{'name'" not in str(item.get("shape"))
+    assert layout[0]["shape"] == "cercle rouge"
+    assert layout[0]["size"] == "petit"
+    assert layout[1]["shape"] == "pentagone vert"
+    assert layout[2]["shape"] == "?"
+    assert layout[2]["question"] is True
+    assert layout[3]["shape"] == "triangle jaune"
+    assert layout[3]["size"] == "petit"
+    assert layout[3]["orientation"] == "sommet vers la gauche"
+
+
+def test_normalize_symmetry_flattens_object_shapes_with_name_size_orientation() -> None:
+    """Le LLM renvoie parfois ``shapes: [{"name": "...", "size": "..."}]`` ; le
+    backend doit extraire ``name`` pour le shape plat et préserver la
+    métadonnée ``size``/``orientation`` — jamais renvoyer ``str(dict)``.
+    """
+    vd = normalize_symmetry_visual_data(
+        {
+            "type": "symmetry",
+            "symmetry_line": "vertical",
+            "layout": [
+                {
+                    "side": "left",
+                    "shapes": [
+                        {"name": "cercle rouge", "size": "petit"},
+                        {"name": "carré bleu", "size": "grand"},
+                        {
+                            "name": "triangle jaune",
+                            "size": "petit",
+                            "orientation": "sommet vers la gauche",
+                        },
+                    ],
+                },
+                {
+                    "side": "right",
+                    "shapes": [
+                        {"name": "carré bleu", "size": "grand"},
+                        {"name": "?", "size": "?"},
+                        {"name": "cercle rouge", "size": "petit"},
+                    ],
+                },
+            ],
+        }
+    )
+
+    layout = vd.get("layout", [])
+    assert len(layout) == 6
+    # Aucun item ne doit jamais contenir la repr Python du dict.
+    for item in layout:
+        assert "{'name'" not in str(item.get("shape"))
+        assert '{"name"' not in str(item.get("shape"))
+    assert layout[0]["shape"] == "cercle rouge"
+    assert layout[0]["size"] == "petit"
+    question_items = [
+        item for item in layout if isinstance(item, dict) and item.get("question")
+    ]
+    assert len(question_items) == 1
+    assert question_items[0]["shape"] == "?"
+    assert question_items[0]["side"] == "right"
+    # Orientation est préservée lorsqu'elle existe.
+    triangle = next(
+        i for i in layout if isinstance(i, dict) and i.get("shape") == "triangle jaune"
+    )
+    assert triangle["size"] == "petit"
+    assert triangle["orientation"] == "sommet vers la gauche"
+
+
 def test_normalize_coding_visual_data_canonicalizes_cipher_text_alias() -> None:
     vd = apply_visual_contract_normalization(
         "coding",

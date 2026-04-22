@@ -89,6 +89,29 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     expect(pairs[2]?.right.question).toBe(true);
   });
 
+  it("interprète shapes[] comme objets { name, size, orientation } (contrat LLM)", () => {
+    const pairs = buildGroupedSymmetryLayoutPairs([
+      {
+        side: "left",
+        shapes: [
+          { name: "cercle rouge", size: "petit" },
+          { name: "carré bleu", size: "grand" },
+        ],
+      },
+      {
+        side: "right",
+        shapes: [
+          { name: "carré bleu", size: "grand" },
+          { name: "?", size: "?" },
+        ],
+      },
+    ]);
+    expect(pairs).toHaveLength(2);
+    expect(pairs[0]?.left.shape).toBe("cercle rouge");
+    expect(pairs[0]?.left.displayText).toBe("cercle rouge (petit)");
+    expect(pairs[1]?.right.question).toBe(true);
+  });
+
   it("rend les colonnes groupées ligne par ligne au lieu de deux grands blocs", () => {
     const { container } = render(
       <VisualRenderer
@@ -158,5 +181,60 @@ describe("VisualRenderer symmetry layout (IA9b)", () => {
     expect(screen.getByText("carré rouge")).toBeInTheDocument();
     expect(screen.getAllByText("hexagone jaune")).toHaveLength(2);
     expect(screen.getAllByLabelText("Forme manquante")).toHaveLength(1);
+  });
+
+  it("reparse une chaîne dict-python renvoyée par un backend fallback", () => {
+    // Symptôme si la normalisation backend a été contournée : str(dict) avec
+    // guillemets simples. Le renderer doit détecter couleur + forme et ne
+    // jamais afficher la repr Python brute ``{'name'...}``.
+    const { container } = render(
+      <VisualRenderer
+        visualData={{
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            { side: "left", shape: "{'name': 'cercle rouge', 'size': 'petit'}" },
+            { side: "right", shape: "{'name': 'carré bleu', 'size': 'grand'}" },
+            { side: "left", shape: "{'name': 'cercle rouge', 'size': 'petit'}" },
+            { side: "right", shape: "{'name': 'carré bleu', 'size': 'grand'}" },
+          ],
+        }}
+      />
+    );
+    // Repr Python brute interdite : pas de `{'name'...}` dans le DOM.
+    expect(container.textContent ?? "").not.toContain("{'name'");
+    // Parse dict-python : couleur rouge (cercle) et bleu (carré/losange)
+    // doivent avoir été détectées depuis le champ ``name``.
+    expect(container.querySelectorAll('circle[fill="#ef4444"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('polygon[fill="#3b82f6"]').length).toBeGreaterThan(0);
+  });
+
+  it("affiche un libellé lisible quand shapes[] contient des objets", () => {
+    render(
+      <VisualRenderer
+        visualData={{
+          type: "symmetry",
+          symmetry_line: "vertical",
+          layout: [
+            {
+              side: "left",
+              shapes: [
+                { name: "cercle rouge", size: "petit" },
+                { name: "carré bleu", size: "grand" },
+              ],
+            },
+            {
+              side: "right",
+              shapes: [
+                { name: "carré bleu", size: "grand" },
+                { name: "?", size: "?" },
+              ],
+            },
+          ],
+        }}
+      />
+    );
+    expect(screen.getByText(/cercle rouge/)).toBeInTheDocument();
+    expect(screen.getAllByText(/carré bleu/)).toHaveLength(2);
   });
 });

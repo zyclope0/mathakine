@@ -208,12 +208,134 @@ export function partitionSymmetryLayoutBySide(layout: SymmetryCell[]): {
   return { left, right };
 }
 
+/** Lit un libellé de forme utilisable par parseShapeWithColor + ShapeGlyph. */
+function shapeStringFromField(raw: unknown): string {
+  if (raw == null) return "";
+  if (typeof raw === "string") return raw.trim();
+  if (typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    const n =
+      typeof o.name === "string"
+        ? o.name
+        : typeof o.label === "string"
+          ? o.label
+          : typeof o.value === "string"
+            ? o.value
+            : "";
+    return n.trim();
+  }
+  return String(raw).trim();
+}
+
+/**
+ * Défense en profondeur : si le backend a envoyé le dict sous forme de chaîne
+ * Python (`"{'name': 'cercle rouge', 'size': 'petit'}"`), on tente d'en extraire
+ * `name` + `size`/`orientation`. Sinon on retourne la chaîne d'origine.
+ * Évite d'afficher `[object Object]` ou la repr Python brute si la
+ * normalisation backend a été contournée.
+ */
+function parsePythonDictLikeShape(
+  text: string
+): { name: string; size?: string; orientation?: string } | null {
+  const t = text.trim();
+  if (!t.startsWith("{") || !t.endsWith("}")) return null;
+  const readField = (field: string): string | undefined => {
+    // 'field': 'value' ou "field": "value"
+    const re = new RegExp(`['"]${field}['"]\\s*:\\s*['"]([^'"]*)['"]`, "i");
+    const m = t.match(re);
+    return m?.[1]?.trim();
+  };
+  const name = readField("name") ?? readField("label") ?? readField("value") ?? "";
+  if (!name) return null;
+  const size = readField("size");
+  const orientation = readField("orientation");
+  const out: { name: string; size?: string; orientation?: string } = { name };
+  if (size) out.size = size;
+  if (orientation) out.orientation = orientation;
+  return out;
+}
+
+/**
+ * L’API / le modèle renvoie souvent chaque emplacement comme
+ * { "name": "carré bleu", "size": "grand", "orientation": "…" }.
+ * String(obj) ou [object Object] cassaient l’icône et le libellé.
+ */
+function normalizeRawSymmetryElement(raw: unknown): {
+  shape: string;
+  question: boolean;
+  color?: string;
+  displayText: string;
+} {
+  if (raw == null) {
+    return { shape: "", question: false, displayText: "" };
+  }
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    const parsed = parsePythonDictLikeShape(s);
+    if (parsed) {
+      const parts = [parsed.name];
+      if (parsed.size && parsed.size !== "?") parts.push(`(${parsed.size})`);
+      if (parsed.orientation) parts.push("· " + parsed.orientation);
+      return {
+        shape: parsed.name,
+        question: parsed.name === "?" || parsed.name.includes("?"),
+        displayText: parts.join(" "),
+      };
+    }
+    return { shape: s, question: s.includes("?"), displayText: s };
+  }
+  if (typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    const name = shapeStringFromField(o);
+    const q = name === "?" || (name.length > 0 && name.includes("?")) || o.question === true;
+    const size = typeof o.size === "string" ? o.size.trim() : "";
+    const orientation = typeof o.orientation === "string" ? o.orientation.trim() : "";
+    const color = typeof o.color === "string" ? o.color : undefined;
+    if (name === "?" && size === "?") {
+      return { shape: "?", question: true, displayText: "?" };
+    }
+    if (!name) {
+      return { shape: "", question: q, displayText: "" };
+    }
+    const displayParts: string[] = [name];
+    if (size && size !== "?" && !name.toLowerCase().includes(size.toLowerCase())) {
+      displayParts.push(`(${size})`);
+    }
+    if (orientation) {
+      displayParts.push("· " + orientation);
+    }
+    return {
+      shape: name,
+      question: q,
+      ...(color ? { color } : {}),
+      displayText: displayParts.join(" "),
+    };
+  }
+  const fallback = String(raw).trim();
+  return { shape: fallback, question: fallback.includes("?"), displayText: fallback };
+}
+
 function shapeTextFromCell(item: SymmetryCell): string {
-  return String(item.shape ?? item.label ?? item.value ?? "").trim();
+  return (
+    shapeStringFromField(item.shape) ||
+    shapeStringFromField(item.label) ||
+    shapeStringFromField(item.value)
+  );
+}
+
+function displayTextFromCell(item: SymmetryCell, shapeText: string): string {
+  if (typeof item.displayText === "string" && item.displayText.length > 0) {
+    return item.displayText;
+  }
+  return shapeText;
 }
 
 function isQuestionCell(item: SymmetryCell): boolean {
-  return Boolean(item.question) || shapeTextFromCell(item).includes("?");
+  return (
+    Boolean(item.question) ||
+    shapeTextFromCell(item).includes("?") ||
+    shapeTextFromCell(item) === "?"
+  );
 }
 
 function symmetryCellFromElement(
@@ -221,12 +343,14 @@ function symmetryCellFromElement(
   rawElement: unknown,
   rowIndex: number
 ): SymmetryCell {
-  const shape = String(rawElement ?? "").trim();
+  const n = normalizeRawSymmetryElement(rawElement);
   return {
     side,
-    shape,
+    shape: n.shape,
     position: rowIndex + 1,
-    question: shape.includes("?"),
+    question: n.question,
+    ...(n.color ? { color: n.color } : {}),
+    displayText: n.displayText,
   };
 }
 
@@ -349,6 +473,7 @@ function SymmetryPairCell({
   rowIndex: number;
 }) {
   const shapeText = shapeTextFromCell(item);
+  const displayLabel = displayTextFromCell(item, shapeText);
   const parsed = parseShapeWithColor(shapeText);
   const color =
     (typeof item.color === "string" ? resolveVisualizationColor(item.color) : null) ?? parsed.color;
@@ -363,15 +488,17 @@ function SymmetryPairCell({
       initial={{ opacity: 0, x: fromLeft ? -12 : 12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: rowIndex * 0.04 }}
-      aria-label={isQuestion ? "Forme manquante" : shapeText}
-      title={shapeText || (isQuestion ? "Forme manquante" : undefined)}
+      aria-label={isQuestion ? "Forme manquante" : displayLabel || shapeText}
+      title={displayLabel || shapeText || (isQuestion ? "Forme manquante" : undefined)}
     >
       {isQuestion ? (
         <span className="text-xl font-bold text-primary">?</span>
       ) : (
         <>
           <ShapeGlyph shapeText={shapeText} color={color ?? undefined} className="h-5 w-5" />
-          <span className="min-w-0 truncate text-xs sm:text-sm text-foreground">{shapeText}</span>
+          <span className="min-w-0 line-clamp-2 break-words text-left text-xs sm:text-sm text-foreground">
+            {displayLabel}
+          </span>
         </>
       )}
     </motion.div>
@@ -750,7 +877,8 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                     typeof shapeData === "string"
                       ? shapeData
                       : String(
-                          (shapeData as Record<string, unknown>).label ??
+                          (shapeData as Record<string, unknown>).name ??
+                            (shapeData as Record<string, unknown>).label ??
                             (shapeData as Record<string, unknown>).value ??
                             index + 1
                         );

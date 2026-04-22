@@ -14,6 +14,7 @@ Principes EdTech :
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
@@ -164,16 +165,98 @@ def _flatten_grouped_symmetry_layout(
             elements = grouped.get(side, [])
             if row_idx >= len(elements):
                 continue
-            shape = str(elements[row_idx])
+            raw_element = elements[row_idx]
+            shape, extras = _canonicalize_symmetry_shape_element(raw_element)
             cell: Dict[str, Any] = {
                 "side": side,
                 "shape": shape,
                 "position": row_idx + 1,
             }
-            if "?" in shape:
+            if extras:
+                for k, v in extras.items():
+                    if k not in cell:
+                        cell[k] = v
+            if "?" in shape or shape == "":
                 cell["question"] = True
             flat_items.append(cell)
     return flat_items
+
+
+_PYTHON_DICT_SHAPE_FIELD_RE = re.compile(
+    r"""['"](?P<field>name|label|value|size|orientation|color)['"]\s*:\s*['"](?P<val>[^'"]*)['"]""",
+    re.IGNORECASE,
+)
+
+
+def _parse_python_dict_like_shape_str(
+    text: str,
+) -> Optional[Tuple[str, Dict[str, Any]]]:
+    """Si ``text`` ressemble à ``"{'name': 'cercle rouge', 'size': 'petit'}"`` (repr
+    Python-like parfois persistée par l'ancien code), extrait ``name``/``label``/
+    ``value`` comme shape plat et ``size``/``orientation``/``color`` en extras.
+
+    Renvoie ``None`` si ce n'est pas une repr dict reconnaissable, pour rester
+    fail-open sur les vraies chaînes de forme.
+    """
+    s = text.strip()
+    if not (s.startswith("{") and s.endswith("}")):
+        return None
+    fields: Dict[str, str] = {}
+    for m in _PYTHON_DICT_SHAPE_FIELD_RE.finditer(s):
+        fields.setdefault(m.group("field").lower(), m.group("val").strip())
+    if not fields:
+        return None
+    shape_text = fields.get("name") or fields.get("label") or fields.get("value") or ""
+    if not shape_text:
+        return None
+    extras: Dict[str, Any] = {}
+    for k in ("size", "orientation", "color"):
+        v = fields.get(k)
+        if v and v != "?":
+            extras[k] = v
+    return shape_text, extras
+
+
+def _canonicalize_symmetry_shape_element(
+    raw: Any,
+) -> tuple:
+    """
+    Extrait un libellé de forme texte (`shape`) + métadonnées associées.
+
+    Le LLM sort parfois ``shapes: [{"name": "cercle rouge", "size": "petit"}]``
+    au lieu de chaînes plates. ``str(dict)`` produirait ``{'name': ...}`` avec
+    guillemets simples côté front — inacceptable pour le renderer.
+    """
+    if raw is None:
+        return ("", {})
+    if isinstance(raw, str):
+        parsed = _parse_python_dict_like_shape_str(raw)
+        if parsed is not None:
+            shape_text, extras = parsed
+            if shape_text == "?":
+                extras = dict(extras)
+                extras["question"] = True
+            return (shape_text, extras)
+        return (raw.strip(), {})
+    if isinstance(raw, dict):
+        label_candidates = ("name", "label", "value", "shape")
+        shape_text = ""
+        for key in label_candidates:
+            v = raw.get(key)
+            if isinstance(v, str) and v.strip():
+                shape_text = v.strip()
+                break
+        dict_extras: Dict[str, Any] = {}
+        for meta in ("size", "orientation", "color"):
+            mv = raw.get(meta)
+            if isinstance(mv, str) and mv.strip():
+                dict_extras[meta] = mv.strip()
+        if raw.get("question") is True:
+            dict_extras["question"] = True
+        if not shape_text and raw.get("question") is True:
+            shape_text = "?"
+        return (shape_text, dict_extras)
+    return (str(raw).strip(), {})
 
 
 # Matrice source de vérité (types DB/API normalisés en majuscules).
@@ -479,12 +562,18 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
             for row_item in layout:
                 if not isinstance(row_item, dict):
                     continue
-                for shape_str in row_item.get("left") or []:
-                    flat_items.append({"side": "left", "shape": str(shape_str)})
-                for shape_str in row_item.get("right") or []:
-                    s = str(shape_str)
-                    cell: Dict[str, Any] = {"side": "right", "shape": s}
-                    if s == "?":
+                for raw_shape in row_item.get("left") or []:
+                    shape, extras = _canonicalize_symmetry_shape_element(raw_shape)
+                    cell: Dict[str, Any] = {"side": "left", "shape": shape}
+                    for k, v in extras.items():
+                        cell.setdefault(k, v)
+                    flat_items.append(cell)
+                for raw_shape in row_item.get("right") or []:
+                    shape, extras = _canonicalize_symmetry_shape_element(raw_shape)
+                    cell = {"side": "right", "shape": shape}
+                    for k, v in extras.items():
+                        cell.setdefault(k, v)
+                    if shape == "?" or shape == "":
                         cell["question"] = True
                     flat_items.append(cell)
             layout = flat_items
@@ -503,6 +592,34 @@ def normalize_symmetry_visual_data(visual_data: Dict[str, Any]) -> Dict[str, Any
                             continue
                         else:
                             cell["side"] = str(cell["side"]).lower().strip()
+                    raw_shape = cell.get("shape")
+                    if isinstance(raw_shape, dict):
+                        shape_text, extras = _canonicalize_symmetry_shape_element(
+                            raw_shape
+                        )
+                        cell["shape"] = shape_text
+                        for k, v in extras.items():
+                            cell.setdefault(k, v)
+                        if (
+                            shape_text == "?" or shape_text == ""
+                        ) and "question" not in cell:
+                            cell["question"] = True
+                    elif isinstance(raw_shape, str):
+                        # Répare les défis persistés avant le fix :
+                        # ``shape`` y est stocké comme repr Python
+                        # ``"{'name': 'cercle rouge', ...}"``.
+                        parsed = _parse_python_dict_like_shape_str(raw_shape)
+                        if parsed is not None:
+                            shape_text, extras = parsed
+                            cell["shape"] = shape_text
+                            for k, v in extras.items():
+                                cell.setdefault(k, v)
+                            if (
+                                shape_text == "?" or shape_text == ""
+                            ) and "question" not in cell:
+                                cell["question"] = True
+                    elif raw_shape is not None:
+                        cell["shape"] = str(raw_shape)
                     new_layout.append(cell)
                 else:
                     new_layout.append(item)
