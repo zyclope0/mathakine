@@ -7,7 +7,10 @@ Ne contient pas la logique de validation métier, uniquement l'analyse de patter
 et de séquences pour déduire les réponses attendues.
 """
 
+import re
 from typing import Any, List, Optional, Tuple
+
+_STRICT_NUMERIC_CELL_RE = re.compile(r"^[+-]?\d+(?:[,.]\d+)?$")
 
 
 def find_question_position_in_grid(grid: List[List[Any]]) -> Optional[Tuple[int, int]]:
@@ -54,9 +57,12 @@ def compute_pattern_answers_multi(grid: List[List[Any]]) -> Optional[str]:
 def _parse_numeric_cell(cell: Any) -> Optional[float]:
     if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
         return None
-    text = str(cell).strip().replace(",", ".")
+    text = str(cell).strip()
     if not text:
         return None
+    if not _STRICT_NUMERIC_CELL_RE.fullmatch(text):
+        return None
+    text = text.replace(",", ".")
     try:
         return float(text)
     except (TypeError, ValueError):
@@ -83,7 +89,10 @@ def _infer_numeric_line_answer(
     known_points = [
         (idx, value) for idx, value in enumerate(numeric_values) if value is not None
     ]
-    if len(known_points) < 2:
+    # Deux points connus ne prouvent pas un motif : ["2", "?", "8"] peut etre
+    # arithmetique (5) ou geometrique (4). On exige au moins trois points connus
+    # avant toute inference numerique.
+    if len(known_points) < 3:
         return None
 
     arithmetic_step: Optional[float] = None

@@ -13,10 +13,11 @@ from app.core.difficulty_tier import (
     clamp_difficulty_for_type,
 )
 from app.services.exercises.exercise_ai_service import (
-    DIFFICULTY_RANGES,
     _HIGH_DIFFICULTY_DIRECTIVE_ATOMIC,
     _HIGH_DIFFICULTY_DIRECTIVE_MULTISTEP,
+    DIFFICULTY_RANGES,
     _non_triviality_hint,
+    _persist_exercise_ai_sync,
     build_exercise_difficulty_info,
     build_exercise_system_prompt,
 )
@@ -291,3 +292,53 @@ def test_persisted_difficulty_uses_effective_after_clamp() -> None:
         "difficulty": effective,
     }
     assert persisted["difficulty"] == "CHEVALIER"
+
+
+def test_persist_exercise_ai_sync_forwards_runtime_difficulty_tier(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeSession:
+        pass
+
+    class _FakeSessionContext:
+        def __enter__(self) -> _FakeSession:
+            return _FakeSession()
+
+        def __exit__(self, exc_type, exc, tb) -> bool:
+            return False
+
+    def fake_sync_db_session() -> _FakeSessionContext:
+        return _FakeSessionContext()
+
+    def fake_create_generated_exercise(**kwargs):
+        captured.update(kwargs)
+        return {"id": 1234}
+
+    monkeypatch.setattr(
+        "app.services.exercises.exercise_ai_service.sync_db_session",
+        fake_sync_db_session,
+    )
+    monkeypatch.setattr(
+        "app.services.exercises.exercise_ai_service.EnhancedServerAdapter.create_generated_exercise",
+        fake_create_generated_exercise,
+    )
+
+    exercise_id = _persist_exercise_ai_sync(
+        {
+            "exercise_type": "mixte",
+            "age_group": "9-11",
+            "difficulty": "MAITRE",
+            "difficulty_tier": 6,
+            "title": "Titre",
+            "question": "Question longue ?",
+            "correct_answer": "42",
+            "choices": ["40", "41", "42", "43"],
+            "explanation": "Explication",
+            "hint": "Indice",
+            "tags": "ai,generated",
+        },
+        "fr",
+    )
+
+    assert exercise_id == 1234
+    assert captured["difficulty_tier"] == 6

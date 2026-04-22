@@ -219,6 +219,25 @@ class TestTryVerifyArithmetic:
     def test_latex_times_large_wrong(self) -> None:
         assert _try_verify_arithmetic(r"Calcule $12 \times 14$", "196") is not None
 
+    def test_signed_addition_correct(self) -> None:
+        assert _try_verify_arithmetic("Calcule -3 + 5", "2") is None
+
+    def test_signed_addition_wrong(self) -> None:
+        assert _try_verify_arithmetic("Calcule -3 + 5", "3") is not None
+
+    def test_subtracting_negative_correct(self) -> None:
+        assert _try_verify_arithmetic("Calcule 10 - -3", "13") is None
+
+    def test_subtracting_negative_wrong(self) -> None:
+        assert _try_verify_arithmetic("Calcule 10 - -3", "7") is not None
+
+    def test_signed_latex_multiplication_correct(self) -> None:
+        assert _try_verify_arithmetic(r"Calcule $-3 \times -4$", "12") is None
+
+    def test_signed_compound_expression_stays_fail_open(self) -> None:
+        # Deux operations dans une expression composee restent hors perimetre GAP-4.
+        assert _try_verify_arithmetic("Calcule 5 + 3 - 2", "999") is None
+
 
 # ---------------------------------------------------------------------------
 # GAP-4 — intégration dans validate_exercise_ai_output

@@ -66,6 +66,27 @@ _ARITH_OP_CHARS = frozenset("+-−×÷/*")
 # Format strict d'un nombre après nettoyage des séparateurs milliers et virgule décimale.
 _STRICT_NUMBER_RE = re.compile(r"^\d+(?:\.\d+)?$")
 
+# Signed-number support. These definitions intentionally override the legacy
+# unsigned regex above while preserving the old mojibake operator entries in
+# _ARITH_OP_MAP for backward compatibility with previously generated content.
+_ARITH_OP_MAP.update(
+    {
+        "\u2212": _op.sub,
+        "\u00d7": _op.mul,
+        "\u00f7": _op.truediv,
+    }
+)
+_ARITH_NUMBER_PATTERN = r"[+\-\u2212]?\s*\d[\d\s]{0,6}(?:[,\.]\d+)?"
+_ARITH_RE = re.compile(
+    rf"(?<![\d,.])({_ARITH_NUMBER_PATTERN})"
+    r"\s*([+\-\u2212\u00d7\u00f7/\*])\s*"
+    rf"({_ARITH_NUMBER_PATTERN})(?![\d,.])",
+)
+_ARITH_REMAINING_OPERATOR_RE = re.compile(
+    r"[+\-\u2212\u00d7\u00f7/\*]\s*[+\-\u2212]?\s*\d"
+)
+_STRICT_NUMBER_RE = re.compile(r"^[+\-]?\d+(?:\.\d+)?$")
+
 
 def _parse_float_strict(token: str) -> Optional[float]:
     """
@@ -79,6 +100,8 @@ def _parse_float_strict(token: str) -> Optional[float]:
     Retourne None si le parsing échoue.
     """
     t = token.strip()
+    t = t.replace("\u2212", "-")
+    t = re.sub(r"^([+\-])\s+(\d)", r"\1\2", t)
     # Supprimer les espaces entre chiffres (séparateur milliers)
     t = re.sub(r"(\d)\s(\d)", r"\1\2", t)
     # Virgule décimale → point
@@ -104,7 +127,7 @@ def _normalize_latex_operators(text: str) -> str:
     Appelée au début de _try_verify_arithmetic pour couvrir le chemin nominal
     du générateur IA, qui formate les questions avec du LaTeX (ex : "Calcule $3 \\times 4$").
     """
-    t = text.replace("\\times", "×").replace("\\div", "÷")
+    t = text.replace("\\times", "\u00d7").replace("\\div", "\u00f7")
     # Supprime les délimiteurs $...$ en conservant le contenu
     t = re.sub(r"\$([^$]+)\$", r"\1", t)
     return t
@@ -132,19 +155,20 @@ def _try_verify_arithmetic(question: str, correct_answer: str) -> Optional[str]:
     """
     normalized = _normalize_latex_operators(question)
 
-    # Garde-fou multi-étapes : si plus d'un symbole d'opérateur apparaît dans la
-    # question (ex. "(3+4)×2", "5+3-2"), on refuse d'évaluer — la regex mono-binaire
-    # capturerait uniquement la première paire et produirait un faux mismatch.
-    # Fail-open : on laisse passer le contenu, les autres contrôles restent actifs.
-    if sum(1 for c in normalized if c in _ARITH_OP_CHARS) > 1:
-        return None
-
-    matches = _ARITH_RE.findall(normalized)
+    # Garde-fou multi-etapes : une seule expression binaire signee est acceptee.
+    # S'il reste un operateur arithmetique hors du match (ex. "5+3-2"),
+    # l'expression est composee et on fail-open.
+    matches = list(_ARITH_RE.finditer(normalized))
     if len(matches) != 1:
         # 0 = pas d'expression simple ; 2+ = ambiguïté → fail-open
         return None
 
-    a_str, op_sym, b_str = matches[0]
+    match = matches[0]
+    remaining = normalized[: match.start()] + normalized[match.end() :]
+    if _ARITH_REMAINING_OPERATOR_RE.search(remaining):
+        return None
+
+    a_str, op_sym, b_str = match.groups()
 
     a = _parse_float_strict(a_str)
     b = _parse_float_strict(b_str)

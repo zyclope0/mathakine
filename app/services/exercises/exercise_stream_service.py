@@ -43,12 +43,11 @@ def _resolve_stream_adaptive_context(
             if user is None:
                 return None
             return resolve_adaptive_context(db, user, exercise_type)
-    except Exception as err:  # noqa: BLE001 - fail-open vers le fallback historique
-        logger.warning(
-            "[ExerciseAIStream] adaptive context resolution failed user_id={} type={}: {}",
+    except Exception:  # noqa: BLE001 - fail-open vers le fallback historique
+        logger.exception(
+            "[ExerciseAIStream] adaptive context resolution failed user_id={} type={}",
             user_id,
             exercise_type,
-            err,
         )
         return None
 

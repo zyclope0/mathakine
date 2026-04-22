@@ -168,6 +168,10 @@ NETTOYAGE_*.md
 RESTRUCTURATION_*.md
 # *_FINAL.md COMMENTÉ - les récaps datés sont importants
 
+# Artefacts locaux de runs pytest / smoke tests
+_unit_smoke.txt
+_pytest_*_out.txt
+
 
 # Archives et code legacy (NE JAMAIS DEPLOYER)
 _ARCHIVE_2026/

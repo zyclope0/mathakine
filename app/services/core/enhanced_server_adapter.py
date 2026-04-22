@@ -167,6 +167,7 @@ class EnhancedServerAdapter:
         tags: Optional[str] = None,
         ai_generated: bool = False,
         locale: str = "fr",
+        difficulty_tier: Optional[int] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Crée un nouvel exercice généré avec support des traductions.
@@ -199,6 +200,7 @@ class EnhancedServerAdapter:
             "exercise_type": exercise_type,
             "age_group": age_group,
             "difficulty": difficulty,
+            "difficulty_tier": difficulty_tier,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
