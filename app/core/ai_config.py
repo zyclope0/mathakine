@@ -118,6 +118,11 @@ class AIConfig:
     RETRY_MIN_WAIT: float = 2.0
     RETRY_MAX_WAIT: float = 10.0
 
+    # Compense le fait que les modèles o-series (o3 / o4-mini) consomment une
+    # part significative du budget ``max_completion_tokens`` en reasoning
+    # tokens cachés. Aligné sur ``ai_generation_policy._O_SERIES_COMPLETION_TOKENS_MULTIPLIER``.
+    O_SERIES_MAX_TOKENS_MULTIPLIER: float = 1.4
+
     @classmethod
     def is_o1_model(cls, model: str) -> bool:
         """Vérifie si le modèle est o1/o1-mini (pas de response_format JSON, pas de reasoning_effort)."""
@@ -180,6 +185,17 @@ class AIConfig:
         return cls.MAX_TOKENS_MAP.get(challenge_type.lower(), 2000)
 
     @classmethod
+    def get_max_tokens_for_model(cls, challenge_type: str, model: str) -> int:
+        """``get_max_tokens`` pondéré : bump o-series pour compenser les reasoning tokens cachés.
+
+        Fail-open sur modèle vide ou non-reconnu : base inchangée.
+        """
+        base = cls.get_max_tokens(challenge_type)
+        if cls.is_o_series_reasoning_model(model):
+            return int(base * cls.O_SERIES_MAX_TOKENS_MULTIPLIER)
+        return base
+
+    @classmethod
     def get_timeout(cls, challenge_type: Optional[str] = None) -> float:
         """Retourne le timeout à utiliser."""
         type_key = (challenge_type or "").strip().lower()
@@ -219,7 +235,7 @@ class AIConfig:
 
         params = {
             "model": model,
-            "max_tokens": cls.get_max_tokens(challenge_type),
+            "max_tokens": cls.get_max_tokens_for_model(challenge_type, model),
             "timeout": cls.get_timeout(challenge_type),
         }
 

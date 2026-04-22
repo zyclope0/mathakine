@@ -71,6 +71,14 @@ _REASONING_EFFORT_DEFAULT: Final[str] = "medium"
 _O_SERIES_REASONING_EFFORT_MAX: Final[str] = "medium"
 _MAX_COMPLETION_TOKENS_DEFAULT: Final[int] = 4000
 
+# Compense le fait que les familles o-series (o3 / o4-mini) consomment une part
+# significative de ``max_completion_tokens`` en reasoning tokens cachés avant
+# d'émettre la moindre sortie visible. Mesuré empiriquement post-migration
+# o4-mini : ratio output/reasoning tombé ~70/30 → ~40/60. Sans bump, un JSON qui
+# tenait en 2800 tokens sur o3 est tronqué sur o4-mini. Fail-open : s'applique
+# uniquement aux familles identifiées ``O_SERIES`` (pas O1, GPT5, CHAT_CLASSIC).
+_O_SERIES_COMPLETION_TOKENS_MULTIPLIER: Final[float] = 1.4
+
 REASONING_EFFORT_BY_EXERCISE_TYPE: Final[Dict[str, str]] = {
     "addition": "low",
     "soustraction": "low",
@@ -263,12 +271,30 @@ def o_series_reasoning_effort_for_exercise_type(exercise_type: str) -> str:
     return effort
 
 
-def max_completion_tokens_for_exercise_type(exercise_type: str) -> int:
-    """Plafond ``max_completion_tokens`` pour la réponse JSON exercice."""
+def max_completion_tokens_for_exercise_type(
+    exercise_type: str,
+    model: Optional[str] = None,
+) -> int:
+    """Plafond ``max_completion_tokens`` pour la réponse JSON exercice.
+
+    Si ``model`` est fourni et appartient à la famille o-series (o3/o4), un
+    multiplicateur est appliqué pour compenser les reasoning tokens cachés qui
+    comptent dans ``max_completion_tokens``. Sinon, base inchangée (fail-open
+    pour modèle inconnu).
+    """
     key = (exercise_type or "").strip().lower()
-    return MAX_COMPLETION_TOKENS_BY_EXERCISE_TYPE.get(
+    base = MAX_COMPLETION_TOKENS_BY_EXERCISE_TYPE.get(
         key, _MAX_COMPLETION_TOKENS_DEFAULT
     )
+    if not model:
+        return base
+    try:
+        family = classify_exercise_ai_model_family(model)
+    except (ValueError, ExerciseAIModelNotAllowedError):
+        return base
+    if family is ExerciseAIModelFamily.O_SERIES:
+        return int(base * _O_SERIES_COMPLETION_TOKENS_MULTIPLIER)
+    return base
 
 
 def build_exercise_ai_stream_kwargs(
@@ -285,7 +311,7 @@ def build_exercise_ai_stream_kwargs(
     (assertions dans les tests pour éviter dérive).
     """
     family = classify_exercise_ai_model_family(model)
-    max_out = max_completion_tokens_for_exercise_type(exercise_type)
+    max_out = max_completion_tokens_for_exercise_type(exercise_type, model=model)
     effort = reasoning_effort_for_exercise_type(exercise_type)
 
     messages: List[Dict[str, str]] = [

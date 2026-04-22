@@ -498,13 +498,18 @@ async def generate_exercise_stream(
         full_response = ""
         prompt_tokens_estimate = (len(system_prompt) + len(user_prompt)) // 4
         completion_tokens_estimate = 0
+        finish_reason_observed: Optional[str] = None
 
         try:
             async for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    full_response += content
-                    completion_tokens_estimate = len(full_response) // 4
+                if chunk.choices:
+                    choice = chunk.choices[0]
+                    if getattr(choice, "finish_reason", None):
+                        finish_reason_observed = choice.finish_reason
+                    if choice.delta.content:
+                        content = choice.delta.content
+                        full_response += content
+                        completion_tokens_estimate = len(full_response) // 4
                 usage = getattr(chunk, "usage", None)
                 if usage is not None:
                     if getattr(usage, "prompt_tokens", None) is not None:
@@ -562,6 +567,22 @@ async def generate_exercise_stream(
                 prompt_tokens=max(0, prompt_tokens_estimate),
                 completion_tokens=max(0, completion_tokens_estimate),
                 model=resolved_model,
+            )
+
+        if finish_reason_observed == "length":
+            # Sortie stream tronquée : reasoning tokens ont consommé tout le
+            # budget ``max_completion_tokens``. Logger structuré pour diagnostic
+            # post-mortem ; pas de retry ici, validation JSON dira si recoverable.
+            logger.warning(
+                "[ExerciseAI] stream_truncation model={} exercise_type={} "
+                "reasoning_effort={} completion_tokens={} "
+                "max_completion_tokens={} response_chars={}",
+                resolved_model,
+                exercise_type,
+                api_kwargs.get("reasoning_effort", "N/A"),
+                completion_tokens_estimate,
+                int(api_kwargs.get("max_completion_tokens") or 0),
+                len(full_response),
             )
 
         if not full_response.strip():

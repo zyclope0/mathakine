@@ -333,7 +333,30 @@ def test_o_series_reasoning_is_systemically_bounded_for_json_completion_budget(
     params = AIConfig.get_openai_params("visual")
     assert params["model"] == "o4-mini"
     assert params["reasoning_effort"] == "medium"
-    assert params["max_tokens"] == 8000
+    # o-series : base 8000 × multiplicateur 1.4 pour compenser les reasoning tokens.
+    assert params["max_tokens"] == int(8000 * AIConfig.O_SERIES_MAX_TOKENS_MULTIPLIER)
+
+
+def test_get_max_tokens_for_model_applies_o_series_multiplier() -> None:
+    # Base pour visual = 8000, bump ×1.4 sur o-series.
+    assert AIConfig.get_max_tokens_for_model("visual", "o4-mini") == int(
+        8000 * AIConfig.O_SERIES_MAX_TOKENS_MULTIPLIER
+    )
+    assert AIConfig.get_max_tokens_for_model("chess", "o3") == int(
+        6000 * AIConfig.O_SERIES_MAX_TOKENS_MULTIPLIER
+    )
+
+
+def test_get_max_tokens_for_model_no_multiplier_for_non_o_series() -> None:
+    # Chat classique, GPT-5, o1 : pas de bump dans ce lot (scope Lot I — o-series only).
+    assert AIConfig.get_max_tokens_for_model("visual", "gpt-4o-mini") == 8000
+    assert AIConfig.get_max_tokens_for_model("pattern", "gpt-5-mini") == 6000
+    assert AIConfig.get_max_tokens_for_model("puzzle", "o1-mini") == 6500
+
+
+def test_get_max_tokens_for_model_fails_open_on_empty_or_unknown_model() -> None:
+    assert AIConfig.get_max_tokens_for_model("visual", "") == 8000
+    assert AIConfig.get_max_tokens_for_model("visual", "unknown-xyz") == 8000
 
 
 def test_puzzle_generation_has_extra_completion_budget_for_json_closure() -> None:

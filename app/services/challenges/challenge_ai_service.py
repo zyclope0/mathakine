@@ -649,12 +649,28 @@ async def generate_challenge_stream(
             completion_tokens=completion_tokens_estimate,
         )
 
-        # Fallback si réponse vide d'un modèle o-series.
-        if not full_response.strip() and AIConfig.is_o_series_reasoning_model(
-            ai_params["model"]
-        ):
+        # Fallback si réponse vide OU tronquée par limite de tokens (o-series).
+        # ``finish_reason == "length"`` signifie que o-series a dépensé tout son
+        # budget (sortie + reasoning caché) sans fermer le JSON. Une re-tentative
+        # non stream sur un modèle chat classique a un budget entièrement visible,
+        # donc une très forte probabilité d'aboutir à un JSON complet.
+        is_o_series_model = AIConfig.is_o_series_reasoning_model(ai_params["model"])
+        fallback_trigger_reason: Optional[str] = None
+        if is_o_series_model:
+            if not full_response.strip():
+                fallback_trigger_reason = "empty_response"
+            elif finish_reason_observed == "length":
+                fallback_trigger_reason = "length_truncation"
+        if fallback_trigger_reason is not None:
             logger.warning(
-                "Réponse vide du modèle o-series, fallback vers modèle sans raisonnement..."
+                "Fallback o-series déclenché (raison={}), modèle={}, type={}, "
+                "completion_tokens={}, reasoning_tokens={}, max_completion_tokens={}",
+                fallback_trigger_reason,
+                ai_params["model"],
+                challenge_type,
+                completion_tokens_estimate,
+                reasoning_tokens_observed,
+                ai_params["max_tokens"],
             )
             fallback_model = resolve_challenge_ai_fallback_model(challenge_type)
             try:

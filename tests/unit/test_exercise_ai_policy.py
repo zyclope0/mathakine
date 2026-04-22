@@ -113,7 +113,8 @@ def test_build_stream_kwargs_o4_mini_uses_reasoning_series() -> None:
     )
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["reasoning_effort"] == "medium"
-    assert kw["max_completion_tokens"] == 3200
+    # o-series : budget ×1.4 pour compenser les reasoning tokens cachés.
+    assert kw["max_completion_tokens"] == int(3200 * 1.4)
 
 
 def test_build_stream_kwargs_o4_mini_mixte_caps_hidden_reasoning_budget() -> None:
@@ -124,7 +125,8 @@ def test_build_stream_kwargs_o4_mini_mixte_caps_hidden_reasoning_budget() -> Non
         user_content="u",
     )
     assert kw["reasoning_effort"] == "medium"
-    assert kw["max_completion_tokens"] == 6500
+    # o-series : budget ×1.4 pour compenser les reasoning tokens cachés.
+    assert kw["max_completion_tokens"] == int(6500 * 1.4)
 
 
 def test_resolve_explicit_o1_override_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -147,10 +149,50 @@ def test_reasoning_effort_and_max_tokens_by_type() -> None:
     assert reasoning_effort_for_exercise_type("mixte") == "high"
     assert o_series_reasoning_effort_for_exercise_type("mixte") == "medium"
     assert reasoning_effort_for_exercise_type("unknown_type") == "medium"
+    # Base (sans modèle) — valeurs historiques.
     assert max_completion_tokens_for_exercise_type("addition") == 2800
     assert max_completion_tokens_for_exercise_type("geometrie") == 3200
     assert max_completion_tokens_for_exercise_type("mixte") == 6500
     assert max_completion_tokens_for_exercise_type("unknown") == 4000
+
+
+def test_max_completion_tokens_applies_o_series_multiplier_when_model_provided() -> (
+    None
+):
+    # o4-mini / o3 → multiplicateur ×1.4 pour compenser les reasoning tokens.
+    assert max_completion_tokens_for_exercise_type("addition", model="o4-mini") == int(
+        2800 * 1.4
+    )
+    assert max_completion_tokens_for_exercise_type("mixte", model="o3") == int(
+        6500 * 1.4
+    )
+    assert max_completion_tokens_for_exercise_type("geometrie", model="o3-mini") == int(
+        3200 * 1.4
+    )
+
+
+def test_max_completion_tokens_no_multiplier_for_non_o_series_families() -> None:
+    # Chat classique, GPT-5 et o1 : pas de bump dans ce lot (non-goal explicite).
+    assert (
+        max_completion_tokens_for_exercise_type("addition", model="gpt-4o-mini") == 2800
+    )
+    assert (
+        max_completion_tokens_for_exercise_type("addition", model="gpt-4.1-mini")
+        == 2800
+    )
+    assert (
+        max_completion_tokens_for_exercise_type("addition", model="gpt-5-mini") == 2800
+    )
+    assert max_completion_tokens_for_exercise_type("fractions", model="o1") == 4500
+
+
+def test_max_completion_tokens_fails_open_on_unknown_model() -> None:
+    # Garde-fou : un modèle hors allowlist ne doit pas casser, juste renvoyer la base.
+    assert (
+        max_completion_tokens_for_exercise_type("addition", model="unknown-model-xyz")
+        == 2800
+    )
+    assert max_completion_tokens_for_exercise_type("addition", model="") == 2800
 
 
 def test_build_stream_kwargs_o3_geometrie_uses_medium_reasoning_effort() -> None:
@@ -161,7 +203,8 @@ def test_build_stream_kwargs_o3_geometrie_uses_medium_reasoning_effort() -> None
         user_content="user",
     )
     assert kw["reasoning_effort"] == "medium"
-    assert kw["max_completion_tokens"] == 3200
+    # o-series : budget multiplié ×1.4 pour compenser les reasoning tokens cachés.
+    assert kw["max_completion_tokens"] == int(3200 * 1.4)
 
 
 def test_build_stream_kwargs_o3_family() -> None:
@@ -175,9 +218,22 @@ def test_build_stream_kwargs_o3_family() -> None:
     assert kw["stream_options"] == {"include_usage": True}
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["reasoning_effort"] == "low"
-    assert kw["max_completion_tokens"] == 2800
+    # o-series : budget multiplié ×1.4.
+    assert kw["max_completion_tokens"] == int(2800 * 1.4)
     assert "temperature" not in kw
     assert "verbosity" not in kw
+
+
+def test_build_stream_kwargs_o4_mini_applies_o_series_multiplier() -> None:
+    kw = build_exercise_ai_stream_kwargs(
+        model="o4-mini",
+        exercise_type="mixte",
+        system_content="sys",
+        user_content="user",
+    )
+    # mixte base = 6500 ; o4-mini → ×1.4.
+    assert kw["max_completion_tokens"] == int(6500 * 1.4)
+    assert kw["reasoning_effort"] == "medium"  # high borné à medium sur o-series
 
 
 def test_build_stream_kwargs_gpt41_mini_chat_classic_family() -> None:
