@@ -120,10 +120,12 @@ TEXT_VISUAL_DATA_PATTERN = """VISUAL_DATA OBLIGATOIRE (type pattern) :
 
 TEXT_VISUAL_DATA_PUZZLE = """VISUAL_DATA OBLIGATOIRE (type puzzle) :
 - {{"pieces": [...], "hints": ["...", "..."], "description": "..."}}
+- Place `visual_data` tôt dans le JSON (avant la longue `solution_explanation`) et ne l'omets jamais.
 - correct_answer : ordre des pièces de gauche à droite, séparées par des virgules.
 - IMPORTANT : indices suffisants pour déduire l'ordre.
 - INTERDIT si pièces numériques : correct_answer ne doit pas être simplement le tri croissant ou décroissant des nombres.
-- Si difficulty_rating >= 4 : minimum 6-7 pièces, indices INDIRECTS, combinaison de contraintes (pas seulement 4 couleurs)."""
+- Si difficulty_rating >= 4 : 6 pièces suffisent si les contraintes sont combinées ; 7 pièces maximum.
+- `solution_explanation` doit rester compacte : 5 à 7 étapes courtes, pas de preuve exhaustive ni de tableau long."""
 
 TEXT_VISUAL_DATA_GRAPH = """VISUAL_DATA OBLIGATOIRE (type graph) :
 - {{"nodes": ["A", "B", ...], "edges": [["A", "B"], ...]}}
@@ -221,8 +223,9 @@ TEXT_VAL_SEQUENCE = """2. SEQUENCE :
 
 TEXT_VAL_PUZZLE = """3. PUZZLE :
    - Indices indispensables pour déduire l'ordre ; correct_answer contient toutes les pièces.
+   - visual_data est obligatoire et doit contenir `pieces` + `hints`/`rules`/`clues`.
    - Si les pièces sont numériques, vérifie que l'ordre correct n'est PAS le simple ordre croissant/décroissant.
-   - difficulty >= 4 : 6+ pièces, indices indirects, contraintes combinées."""
+   - difficulty >= 4 : 6 à 7 pièces, indices indirects, contraintes combinées, explication concise."""
 
 TEXT_VAL_VISUAL = """4. VISUAL (formes/couleurs, symétrie) :
    - Symétrie : ``type`` = \"symmetry\", ``symmetry_line`` = vertical|horizontal, ``layout`` avec ``side`` left/right.

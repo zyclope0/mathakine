@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 
 import pytest
 
@@ -102,6 +103,13 @@ def test_graph_prompt_requires_weighted_mst_contract() -> None:
     assert "chaque arête DOIT inclure un poids numérique" in p
     assert "recalcule Kruskal/Prim" in p
     assert "recalcule Dijkstra" in p
+
+
+def test_puzzle_prompt_prioritizes_complete_compact_visual_data() -> None:
+    p = build_challenge_system_prompt("puzzle", "15-17")
+    assert "Place `visual_data` tôt dans le JSON" in p
+    assert "7 pièces maximum" in p
+    assert "5 à 7 étapes courtes" in p
 
 
 def test_chess_prompt_bounds_position_and_forced_line_contract() -> None:
@@ -274,6 +282,22 @@ def test_chess_generation_runtime_budget_is_bounded() -> None:
     assert AIConfig.get_timeout("chess") == 90.0
     assert AIConfig.get_max_retries("chess") == 1
     assert AIConfig.get_max_retries("sequence") == AIConfig.MAX_RETRIES
+
+
+def test_puzzle_generation_has_extra_completion_budget_for_json_closure() -> None:
+    assert AIConfig.get_max_tokens("puzzle") == 6500
+
+
+def test_challenge_json_parser_rejects_openai_truncation_marker() -> None:
+    with pytest.raises(json.JSONDecodeError):
+        challenge_ai_service._extract_complete_challenge_json(
+            'Model JSON is invalid, check the stop reason\n{"title": "x"'
+        )
+
+
+def test_challenge_json_parser_rejects_incomplete_json_object() -> None:
+    with pytest.raises(json.JSONDecodeError):
+        challenge_ai_service._extract_complete_challenge_json('{"title": "x"')
 
 
 def test_build_challenge_ai_stream_kwargs_gpt5_verbosity_and_temp_when_none() -> None:

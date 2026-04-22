@@ -71,6 +71,25 @@ _CHESS_VALIDATION_REPAIR_ERROR_MARKERS = (
     "roi noir déjà en échec",
     "roi blanc déjà en échec",
 )
+_OPENAI_INVALID_JSON_MARKERS = (
+    "Model JSON is invalid",
+    "check the stop reason",
+)
+
+
+def _extract_complete_challenge_json(full_response: str) -> Dict[str, Any]:
+    """Parse uniquement une réponse JSON complète, sans auto-réparer un flux tronqué."""
+    if any(marker in full_response for marker in _OPENAI_INVALID_JSON_MARKERS):
+        raise json.JSONDecodeError(
+            "Réponse OpenAI JSON explicitement invalide ou tronquée",
+            full_response,
+            0,
+        )
+    start = full_response.find("{")
+    end = full_response.rfind("}")
+    if start == -1 or end <= start:
+        raise json.JSONDecodeError("Objet JSON incomplet", full_response, max(start, 0))
+    return extract_json_from_text(full_response)
 
 
 def _should_attempt_chess_validation_repair(
@@ -164,7 +183,7 @@ async def _repair_chess_validation_failure_with_openai(
     if not content.strip():
         return None, None
 
-    repaired_raw = extract_json_from_text(content)
+    repaired_raw = _extract_complete_challenge_json(content)
     repaired_raw["challenge_type"] = challenge_type
     repaired = normalize_generated_challenge(
         repaired_raw,
@@ -687,7 +706,7 @@ async def generate_challenge_stream(
         _flush_usage_events()
 
         try:
-            challenge_data = extract_json_from_text(full_response)
+            challenge_data = _extract_complete_challenge_json(full_response)
         except json.JSONDecodeError as json_error:
             logger.error("Erreur de parsing JSON: %s", json_error)
             logger.debug("RÃ©ponse reÃ§ue: %s", full_response[:500])

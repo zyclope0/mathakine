@@ -75,7 +75,7 @@ class AIConfig:
     MAX_TOKENS_MAP: Dict[str, int] = {
         "pattern": 6000,  # Patterns avec visual_data
         "sequence": 4000,  # Séquences avec visual_data
-        "puzzle": 5000,  # Puzzles avec hints détaillés
+        "puzzle": 6500,  # Puzzles ordonnés : marge anti-troncature JSON
         "graph": 6000,  # Graphes avec visual_data détaillé
         "visual": 8000,  # Visual (inclut spatial) avec descriptions détaillées
         "riddle": 5000,  # Énigmes avec contexte
