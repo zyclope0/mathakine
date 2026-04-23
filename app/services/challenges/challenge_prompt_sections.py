@@ -150,8 +150,9 @@ TEXT_VISUAL_DATA_DEDUCTION = """VISUAL_DATA OBLIGATOIRE (type deduction) :
 - Les clues doivent mener à une solution unique.
 - Recommandé pour fiabiliser la validation : ajoute aussi `constraints`, liste machine-readable alignée avec les clues.
 - Types de contraintes acceptés : entity_value, entity_not_value, same_row, entity_before_entity, entity_after_entity, entity_immediately_before_entity, value_before_value, entity_not_adjacent_value.
-- Format contrainte : {{"type": "entity_value", "left": {{"category": "Personnes", "value": "Alice"}}, "right": {{"category": "Jours", "value": "Mardi"}}}}.
-- N'inclus `constraints` que si chaque contrainte correspond explicitement à un indice textuel."""
+- Format contrainte : {{"type": "entity_value", "left": {{"category": "Personnes", "value": "Alice"}}, "right": {{"category": "Jours", "value": "Mardi"}}}} ; tu peux aussi lier **deux catégories secondaires** (ex. métier + ville) : cela signifie « la même personne a ce métier ET vit dans cette ville ».
+- N'inclus `constraints` que si chaque contrainte correspond explicitement à un indice textuel.
+- **Unicité** : des seules contraintes du type « tel métier → telle ville » (sans nommer de personne pour chaque branche) peuvent laisser **plusieurs** bijections possibles. Il faut alors un indice supplémentaire (ex. « Alice est avocate » + contrainte Personnes/Métiers) pour lever l'ambiguïté."""
 
 TEXT_VISUAL_DATA_VISUAL = """VISUAL_DATA OBLIGATOIRE (type visual) :
 - Symétrie/rotation : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [...], "shapes": [...], "arrangement": "horizontal", "description": "..."}} — pour un carré (■) utiliser "carré" pas "rectangle".
@@ -248,7 +249,8 @@ TEXT_VAL_DEDUCTION = """5. DEDUCTION :
    - correct_answer : une association par entité de la **première** catégorie, format "A:x:y,B:x:y,..." (\":\" entre champs).
    - Chaque valeur doit appartenir à la liste de sa catégorie.
    - Avant de retourner le JSON, vérifie qu'il n'existe qu'une seule solution compatible avec tous les indices ; si plusieurs solutions restent possibles, ajoute un indice discriminant.
-   - Si `constraints` est fourni, il doit refléter les clues et conduire à la même unique solution que correct_answer."""
+   - Si `constraints` est fourni, il doit refléter les clues et conduire à la même unique solution que correct_answer.
+   - Méfiance : des indices ou contraintes qui ne lient que métiers et villes (sans fixer quelle personne occupe quelle paire) peuvent laisser **plusieurs** bijections ; ajoute alors un indice discriminant (ex. « Alice est avocate » + contrainte associée)."""
 
 TEXT_VAL_CODING = """6. CODING :
    - "type" parmi caesar, substitution, binary, symbols, algorithm, maze.

@@ -3,6 +3,11 @@
 The solver intentionally supports only machine-checkable constraints. If a clue
 cannot be parsed safely, callers should fail open and keep the existing
 structural validation behavior.
+
+Structured ``entity_value`` / ``entity_not_value`` are interpreted as
+same-(first-category) row: the left and right label refs may be the primary
+entity category or any secondary category, with pairwise "same person" / negation
+semantics.
 """
 
 from __future__ import annotations
@@ -357,6 +362,24 @@ def _row_has_ref(
     return assignment[entity].get(ref.category) == ref.value
 
 
+def _refs_co_same_row(
+    assignment: Dict[str, Dict[str, str]],
+    model: _DeductionModel,
+    left: _LabelRef,
+    right: _LabelRef,
+) -> bool:
+    """True if left and right refer to the same first-category row (Zebra / logic grid)."""
+    if left.category == model.first_category and right.category == model.first_category:
+        return left.value == right.value
+    if left.category == model.first_category:
+        return _row_has_ref(assignment, model, left.value, right)
+    if right.category == model.first_category:
+        return _row_has_ref(assignment, model, right.value, left)
+    le = _find_entity_for_ref(assignment, model, left)
+    re = _find_entity_for_ref(assignment, model, right)
+    return le is not None and re is not None and le == re
+
+
 def _find_entity_for_ref(
     assignment: Dict[str, Dict[str, str]], model: _DeductionModel, ref: _LabelRef
 ) -> Optional[str]:
@@ -393,13 +416,9 @@ def _constraint_matches(
         return False
 
     if constraint.kind == CONSTRAINT_ENTITY_VALUE:
-        return left.category == model.first_category and _row_has_ref(
-            assignment, model, left.value, right
-        )
+        return _refs_co_same_row(assignment, model, left, right)
     if constraint.kind == CONSTRAINT_ENTITY_NOT_VALUE:
-        return left.category == model.first_category and not _row_has_ref(
-            assignment, model, left.value, right
-        )
+        return not _refs_co_same_row(assignment, model, left, right)
     if constraint.kind == CONSTRAINT_SAME_ROW:
         left_entity = _find_entity_for_ref(assignment, model, left)
         right_entity = _find_entity_for_ref(assignment, model, right)

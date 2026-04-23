@@ -467,6 +467,68 @@ def test_deduction_solver_rejects_duplicate_values_in_category() -> None:
     assert result.reason == "unsupported_model"
 
 
+def test_deduction_structured_mixed_category_entity_value_not_contradictory() -> None:
+    """entity_value with two secondary categories = same person (Zebra row)."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob", "Clara", "David"],
+            "Métiers": ["Médecin", "Avocat", "Architecte", "Ingénieur"],
+            "Villes": ["Paris", "Lyon", "Marseille", "Toulouse"],
+        },
+        "clues": ["1.", "2."],
+        "constraints": [
+            {
+                "type": "entity_value",
+                "left": {"category": "Métiers", "value": "Ingénieur"},
+                "right": {"category": "Villes", "value": "Paris"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Villes", "value": "Lyon"},
+                "right": {"category": "Métiers", "value": "Avocat"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Métiers", "value": "Médecin"},
+                "right": {"category": "Villes", "value": "Toulouse"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "David"},
+                "right": {"category": "Métiers", "value": "Architecte"},
+            },
+            {
+                "type": "entity_not_value",
+                "left": {"category": "Personnes", "value": "Clara"},
+                "right": {"category": "Villes", "value": "Marseille"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Bob"},
+                "right": {"category": "Villes", "value": "Paris"},
+            },
+        ],
+    }
+    answer = (
+        "Alice:Avocat:Lyon,Bob:Ingénieur:Paris,Clara:Médecin:Toulouse,David:Architecte:Marseille"
+    )
+    ambiguous = analyze_deduction_uniqueness(visual, answer)
+    assert ambiguous.checked is True
+    assert ambiguous.solution_count == 2
+
+    visual["constraints"] = list(visual["constraints"]) + [
+        {
+            "type": "entity_value",
+            "left": {"category": "Personnes", "value": "Alice"},
+            "right": {"category": "Métiers", "value": "Avocat"},
+        },
+    ]
+    unique = analyze_deduction_uniqueness(visual, answer)
+    assert unique.solution_count == 1
+    assert unique.expected_answer_matches is True
+
+
 def test_probability_weighted_without_replacement_normalizes_underfilled_weights() -> (
     None
 ):
