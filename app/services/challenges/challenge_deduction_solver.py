@@ -368,7 +368,14 @@ def _refs_co_same_row(
     left: _LabelRef,
     right: _LabelRef,
 ) -> bool:
-    """True if left and right refer to the same first-category row (Zebra / logic grid)."""
+    """True if left and right refer to the same first-category row (Zebra / logic grid).
+
+    Note: for two secondary refs this overlaps semantically with
+    ``CONSTRAINT_SAME_ROW``. Both kinds are accepted because generators/prompts
+    may emit either: ``entity_value`` for a direct ``X ↔ Y`` relation, or
+    ``same_row`` for an explicit "same row" clue. Keeping both avoids breaking
+    the contract with the prompt's list of accepted constraint types.
+    """
     if left.category == model.first_category and right.category == model.first_category:
         return left.value == right.value
     if left.category == model.first_category:

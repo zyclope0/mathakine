@@ -529,6 +529,69 @@ def test_deduction_structured_mixed_category_entity_value_not_contradictory() ->
     assert unique.expected_answer_matches is True
 
 
+def test_deduction_structured_entity_not_value_secondary_secondary() -> None:
+    """entity_not_value between two secondary categories excludes co-row assignments."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Métiers": ["Médecin", "Avocat"],
+            "Villes": ["Paris", "Lyon"],
+        },
+        "clues": ["1.", "2."],
+        "constraints": [
+            {
+                "type": "entity_not_value",
+                "left": {"category": "Métiers", "value": "Médecin"},
+                "right": {"category": "Villes", "value": "Paris"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Métiers", "value": "Médecin"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Bob"},
+                "right": {"category": "Villes", "value": "Paris"},
+            },
+        ],
+    }
+    result = analyze_deduction_uniqueness(
+        visual, "Alice:Médecin:Lyon,Bob:Avocat:Paris"
+    )
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_structured_entity_value_left_secondary_right_primary() -> None:
+    """entity_value with left=secondary and right=primary (Case 3 of _refs_co_same_row)."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Métiers": ["Médecin", "Avocat"],
+        },
+        "clues": ["1.", "2."],
+        "constraints": [
+            {
+                "type": "entity_value",
+                "left": {"category": "Métiers", "value": "Médecin"},
+                "right": {"category": "Personnes", "value": "Alice"},
+            },
+        ],
+    }
+    result = analyze_deduction_uniqueness(visual, "Alice:Médecin,Bob:Avocat")
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+    wrong = analyze_deduction_uniqueness(visual, "Alice:Avocat,Bob:Médecin")
+    assert wrong.solution_count == 1
+    assert wrong.expected_answer_matches is False
+
+
 def test_probability_weighted_without_replacement_normalizes_underfilled_weights() -> (
     None
 ):
