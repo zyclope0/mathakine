@@ -26,7 +26,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { itemLabel } from "@/components/challenges/visualizations/_itemLabel";
+import {
+  itemDisplayLabel,
+  itemLabel,
+  itemOrderKey,
+} from "@/components/challenges/visualizations/_itemLabel";
 
 interface PuzzleRendererProps {
   visualData: Record<string, unknown> | null;
@@ -40,10 +44,36 @@ interface SortableItemProps {
   index: number;
 }
 
+/**
+ * ``orderKey`` : clé courte envoyée dans ``correct_answer`` (ex. "P1", "P2").
+ *     Priorité stricte à ``id`` / ``piece_id`` pour rester matchable côté
+ *     backend, même si la pièce expose aussi ``name`` / ``label`` éditorial.
+ * ``displayLabel`` : libellé affiché à l'élève, enrichi avec les champs
+ *     descriptifs (``left`` / ``right`` / ``pattern`` …) pour rester solvable.
+ * Les deux DOIVENT être séparés — sinon l'élève voit ``P1 P2 …`` sans
+ * contenu pédagogique et le puzzle devient insoluble (cf. défi #4071).
+ */
 interface PuzzleItem {
   id: string;
   value: string;
+  displayLabel: string;
   original: Record<string, unknown>;
+}
+
+/**
+ * Pure function — construction d'un PuzzleItem. Déclarée hors du composant
+ * pour éviter sa re-création à chaque render (cf. review P1 : dnd-kit
+ * déclenche plusieurs renders par geste).
+ */
+function buildPuzzleItem(p: unknown, i: number): PuzzleItem {
+  const orderKey = itemOrderKey(p, { fallback: `#${i + 1}` });
+  const display = itemDisplayLabel(p, { fallback: orderKey });
+  return {
+    id: `item-${i}`,
+    value: orderKey,
+    displayLabel: display || orderKey,
+    original: p && typeof p === "object" && !Array.isArray(p) ? (p as Record<string, unknown>) : {},
+  };
 }
 
 /** Collision : pointer d'abord (où on relâche = cible), sinon plus proche centre */
@@ -124,25 +154,24 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
         : Array.isArray(visualData?.indices)
           ? visualData.indices
           : [];
-  const description: string = String(visualData?.description ?? "");
+  // Description via ``itemLabel`` : évite un leak ``[object Object]`` si le
+  // LLM renvoie ``description`` comme objet ``{ text: "..." }`` au lieu d'une
+  // chaîne plate — cohérent avec ADR-006.
+  const description: string = itemLabel(visualData?.description);
 
-  // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
-  const initialItems: PuzzleItem[] = pieces.map((p: unknown, i: number) => ({
-    id: `item-${i}`,
-    value: itemLabel(p, { fallback: `#${i + 1}` }),
-    original: p as Record<string, unknown>,
-  }));
+  // Ref sur onOrderChange : **déclarée avant** les useEffect qui la
+  // consomment, pour éviter le couplage temporel fragile (review P1).
+  const onOrderChangeRef = useRef(onOrderChange);
+  useEffect(() => {
+    onOrderChangeRef.current = onOrderChange;
+  }, [onOrderChange]);
 
-  const [items, setItems] = useState<PuzzleItem[]>(initialItems);
+  const [items, setItems] = useState<PuzzleItem[]>(() => pieces.map(buildPuzzleItem));
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
-    const newItems: PuzzleItem[] = pieces.map((p: unknown, i: number) => ({
-      id: `item-${i}`,
-      value: itemLabel(p, { fallback: `#${i + 1}` }),
-      original: p as Record<string, unknown>,
-    }));
+    const newItems: PuzzleItem[] = pieces.map(buildPuzzleItem);
     setItems(newItems);
     // Notifier le parent en différé pour éviter "Cannot update while rendering"
     const order = newItems.map((item: PuzzleItem) => item.value);
@@ -182,21 +211,15 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     setActiveId(null);
   };
 
-  // Notifier le parent de l'ordre initial uniquement au montage (différé)
+  // Notifier le parent de l'ordre initial uniquement au montage (différé).
+  // Passe par la ref pour rester cohérent avec les autres callsites et
+  // absorber un remplacement de ``onOrderChange`` entre mount et microtask.
   useEffect(() => {
-    if (onOrderChange) {
-      const initialOrder = items.map((item) => item.value);
-      queueMicrotask(() => onOrderChange(initialOrder));
-    }
+    const initialOrder = items.map((item) => item.value);
+    queueMicrotask(() => onOrderChangeRef.current?.(initialOrder));
     // exhaustive-deps: intentionnel au montage seulement — inclure items/onOrderChange recréerait des boucles avec le parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Seulement au montage, pas à chaque changement de items
-
-  // Utiliser une ref pour éviter les re-renders infinis
-  const onOrderChangeRef = useRef(onOrderChange);
-  useEffect(() => {
-    onOrderChangeRef.current = onOrderChange;
-  }, [onOrderChange]);
+  }, []);
 
   if (!pieces || pieces.length === 0) {
     return (
@@ -252,7 +275,12 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
             >
               <div className="space-y-2">
                 {items.map((item, index) => (
-                  <SortableItem key={item.id} id={item.id} value={item.value} index={index} />
+                  <SortableItem
+                    key={item.id}
+                    id={item.id}
+                    value={item.displayLabel}
+                    index={index}
+                  />
                 ))}
               </div>
             </SortableContext>
@@ -267,7 +295,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
                     const item = items.find((i) => i.id === activeId);
                     const idx = items.findIndex((i) => i.id === activeId);
                     return item ? (
-                      <PuzzleItemPreview value={item.value} index={idx >= 0 ? idx : 0} />
+                      <PuzzleItemPreview value={item.displayLabel} index={idx >= 0 ? idx : 0} />
                     ) : null;
                   })()
                 : null}

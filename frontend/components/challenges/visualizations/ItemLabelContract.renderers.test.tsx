@@ -50,7 +50,7 @@ function withIntl(children: React.ReactNode): React.ReactElement {
 }
 
 describe("Contrat d'affichage unifié — aucune repr brute dans l'UI", () => {
-  it("PuzzleRenderer : pieces avec {id} (contrat LLM puzzle 4070-bis)", () => {
+  it("PuzzleRenderer : pieces avec {id, left, right} — displayLabel expose le contenu pédagogique (défi #4071)", () => {
     const { container } = render(
       withIntl(
         <PuzzleRenderer
@@ -69,10 +69,85 @@ describe("Contrat d'affichage unifié — aucune repr brute dans l'UI", () => {
       )
     );
     expectNoRawLeak(container);
+    // Les id restent visibles (clé d'ordre pour correct_answer).
     expect(container.textContent).toContain("P1");
     expect(container.textContent).toContain("P2");
     expect(container.textContent).toContain("P3");
+    // Le contenu pédagogique (left/right) DOIT être visible sinon le puzzle
+    // devient insoluble — regression guard pour le défi #4071.
+    expect(container.textContent).toContain("11 ↔ 13");
+    expect(container.textContent).toContain("3 ↔ 5");
+    expect(container.textContent).toContain("17 ↔ 19");
     expect(container.textContent).toContain("Départ au plus petit premier.");
+  });
+
+  it("PuzzleRenderer : onOrderChange reçoit les ids courts, JAMAIS les displayLabel (contrat correct_answer)", async () => {
+    // Régression garde : correct_answer côté backend compare sur les ids
+    // courts ("P1, P2, ..."). Si le front envoie les displayLabel riches
+    // ("P1 · 11 ↔ 13, P2 · 3 ↔ 5, ..."), la validation échoue silencieusement.
+    const handler = vi.fn();
+    render(
+      withIntl(
+        <PuzzleRenderer
+          visualData={{
+            pieces: [
+              { id: "P1", left: "11", right: "13" },
+              { id: "P2", left: "3", right: "5" },
+              { id: "P3", left: "17", right: "19" },
+            ],
+          }}
+          onOrderChange={handler}
+        />
+      )
+    );
+    // Flush microtasks (queueMicrotask dans le mount effect).
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    expect(handler).toHaveBeenCalled();
+    const lastCall = handler.mock.calls[handler.mock.calls.length - 1]?.[0];
+    expect(lastCall).toEqual(["P1", "P2", "P3"]);
+  });
+
+  it("PuzzleRenderer : orderKey reste l'id même si 'name' éditorial présent (miroir #4071)", async () => {
+    // Miroir du bug #4071 : itemLabel classique prioriserait ``name`` avant
+    // ``id`` (ordre officiel). Le backend attend des ids courts → il FAUT
+    // que orderKey soit "P1", pas "paire première".
+    const handler = vi.fn();
+    render(
+      withIntl(
+        <PuzzleRenderer
+          visualData={{
+            pieces: [
+              { id: "P1", name: "paire première", left: "11", right: "13" },
+              { id: "P2", name: "paire seconde", left: "3", right: "5" },
+            ],
+          }}
+          onOrderChange={handler}
+        />
+      )
+    );
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    const lastCall = handler.mock.calls[handler.mock.calls.length - 1]?.[0];
+    expect(lastCall).toEqual(["P1", "P2"]);
+  });
+
+  it("PuzzleRenderer : pieces avec {id, pattern} — displayLabel expose le pattern", () => {
+    const { container } = render(
+      withIntl(
+        <PuzzleRenderer
+          visualData={{
+            pieces: [
+              { id: "A", pattern: ["NW: rouge", "NE: vide"] },
+              { id: "B", pattern: ["NW: bleu", "NE: rouge"] },
+            ],
+          }}
+        />
+      )
+    );
+    expectNoRawLeak(container);
+    expect(container.textContent).toContain("A");
+    expect(container.textContent).toContain("B");
+    expect(container.textContent).toContain("NW: rouge");
+    expect(container.textContent).toContain("NW: bleu");
   });
 
   it("PuzzleRenderer : pieces mixtes string + label + id", () => {
