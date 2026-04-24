@@ -94,3 +94,23 @@ class TestGenerationMetricsSummary:
         for _ in range(5):
             metrics.record_generation("riddle", success=True, validation_passed=True)
         assert len(metrics._generation_history["riddle"]) == 3
+
+    def test_error_code_counts_global_and_by_type(self):
+        metrics = GenerationMetrics()
+        metrics.record_generation(
+            "puzzle",
+            success=False,
+            validation_passed=False,
+            error_type="validation_failed",
+            error_codes=["a", "b"],
+        )
+        metrics.record_generation(
+            "riddle",
+            success=True,
+            validation_passed=True,
+            duration_seconds=0.1,
+        )
+        s = metrics.get_summary(days=1)
+        assert s["error_code_counts"] == {"a": 1, "b": 1}
+        assert s["by_type"]["puzzle"]["error_code_counts"] == {"a": 1, "b": 1}
+        assert s["by_type"]["riddle"]["error_code_counts"] == {}

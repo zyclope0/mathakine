@@ -39,11 +39,13 @@ class GenerationMetrics:
         duration_seconds: float = 0.0,
         error_type: Optional[str] = None,
         generation_status: Optional[str] = None,
+        error_codes: Optional[List[str]] = None,
     ):
         """Record one generation attempt in runtime metrics.
 
         ``generation_status`` (défis) : statut d'orchestration une fois le pipeline
         validation / réparation résolu. Optionnel pour rétrocompatibilité (exercices, chat).
+        ``error_codes`` : codes de validation stables (défis) ; optionnel ailleurs.
         """
         record: Dict[str, Any] = {
             "timestamp": datetime.now(),
@@ -54,6 +56,8 @@ class GenerationMetrics:
             "error_type": error_type,
             "generation_status": generation_status,
         }
+        if error_codes is not None:
+            record["error_codes"] = list(error_codes)
 
         self._generation_history[challenge_type].append(record)
         self._prune_metric_key_records(challenge_type)
@@ -138,6 +142,7 @@ class GenerationMetrics:
             "validation_failure_rate": self.get_validation_failure_rate(days=days),
             "auto_correction_rate": self.get_auto_correction_rate(days=days),
             "average_duration": self.get_average_duration(days=days),
+            "error_code_counts": self._get_error_code_counts(days, challenge_type=None),
             "generation_status_counts": self._get_generation_status_counts(
                 days, challenge_type=None
             ),
@@ -164,6 +169,9 @@ class GenerationMetrics:
                 "auto_correction_rate": self.get_auto_correction_rate(metric_key, days),
                 "average_duration": self.get_average_duration(metric_key, days),
                 "total_generations": len(self._records_in_window(metric_key, days)),
+                "error_code_counts": self._get_error_code_counts(
+                    days, challenge_type=metric_key
+                ),
                 "generation_status_counts": self._get_generation_status_counts(
                     days, challenge_type=metric_key
                 ),
@@ -256,6 +264,20 @@ class GenerationMetrics:
                     continue
                 counts[error_type] = counts.get(error_type, 0) + 1
 
+        return counts
+
+    def _get_error_code_counts(
+        self, days: int, challenge_type: Optional[str] = None
+    ) -> Dict[str, int]:
+        """Décompte des codes d'erreur de validation (champ optionnel)."""
+        records = self._records_in_window(challenge_type, days)
+        counts: Dict[str, int] = {}
+        for record in records:
+            codes = record.get("error_codes")
+            if not codes:
+                continue
+            for code in codes:
+                counts[code] = counts.get(code, 0) + 1
         return counts
 
     def _prune_metric_key_records(self, metric_key: str) -> None:

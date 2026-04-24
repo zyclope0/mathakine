@@ -362,3 +362,96 @@ async def test_o_series_length_truncation_triggers_fallback_on_challenges() -> N
     models_seen = {call["model"] for call in track_calls}
     assert "o4-mini" in models_seen
     assert "gpt-4o-mini" in models_seen
+
+
+@pytest.mark.asyncio
+async def test_o_series_fallback_empty_response_counts_as_failure_flushes_primary() -> (
+    None
+):
+    """Fallback o-series sans contenu : pas de succès, usage primary flushé, métrique fallback_empty."""
+    primary_client = MagicMock()
+    primary_client.chat.completions.create = AsyncMock(
+        return_value=_yield_chunks(
+            _build_stream_chunk(
+                content=None,
+                prompt_tokens=50,
+                completion_tokens=10,
+            )
+        )
+    )
+    fallback_response = MagicMock()
+    fallback_response.choices = []
+    fallback_response.usage = MagicMock(prompt_tokens=20, completion_tokens=0)
+
+    fallback_client = MagicMock()
+    fallback_client.chat.completions.create = AsyncMock(return_value=fallback_response)
+
+    track_calls: list[dict[str, Any]] = []
+    events: list[str] = []
+    record_gen = MagicMock()
+    record_success = MagicMock()
+    probe_without_countable = MagicMock()
+
+    with (
+        patch.object(settings, "OPENAI_API_KEY", "sk-test-fallback-empty"),
+        patch("openai.AsyncOpenAI", side_effect=[primary_client, fallback_client]),
+        patch.object(
+            AIConfig,
+            "get_openai_params",
+            return_value={
+                "model": "o3",
+                "max_tokens": 500,
+                "timeout": 60,
+                "reasoning_effort": "medium",
+            },
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.resolve_challenge_ai_fallback_model",
+            return_value="gpt-4o-mini",
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.validate_challenge_logic",
+            return_value=(True, []),
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.run_db_bound",
+            new=AsyncMock(
+                return_value={"id": 1, "title": "x", "description": "y"},
+            ),
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.token_tracker.track_usage",
+            side_effect=lambda **kwargs: track_calls.append(kwargs) or kwargs,
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.generation_metrics.record_generation",
+            record_gen,
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.openai_workload_circuit_breaker.record_success",
+            record_success,
+        ),
+        patch(
+            "app.services.challenges.challenge_ai_service.openai_workload_circuit_breaker.probe_finished_without_countable_outcome",
+            probe_without_countable,
+        ),
+    ):
+        async for line in generate_challenge_stream(
+            challenge_type="sequence",
+            age_group="9-11",
+            prompt="fallback empty",
+            user_id=1,
+            locale="fr",
+        ):
+            events.append(line)
+
+    joined = "\n".join(events)
+    assert '"type": "challenge"' not in joined
+    assert '"type": "error"' in joined
+    assert len(track_calls) >= 1
+    assert track_calls[0]["model"] == "o3"
+    assert record_gen.call_count == 1
+    assert record_gen.call_args.kwargs["success"] is False
+    assert record_gen.call_args.kwargs["error_type"] == "fallback_empty_response"
+    record_success.assert_not_called()
+    probe_without_countable.assert_called_once()

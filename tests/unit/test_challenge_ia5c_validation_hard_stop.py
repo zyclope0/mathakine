@@ -97,6 +97,7 @@ async def test_validation_hard_stop_no_challenge_event_no_persist():
     assert kw["success"] is False
     assert kw["generation_status"] == CHALLENGE_GENERATION_STATUS_REJECTED
     assert kw["error_type"] == "validation_failed_after_autocorrect"
+    assert kw.get("error_codes") == ["validation_unknown"]
 
     joined = "\n".join(events)
     assert '"type": "challenge"' not in joined

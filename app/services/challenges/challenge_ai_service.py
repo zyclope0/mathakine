@@ -41,6 +41,9 @@ from app.services.challenges.challenge_prompt_composition import (
     build_challenge_user_prompt,
 )
 from app.services.challenges.challenge_service import normalize_age_group_for_frontend
+from app.services.challenges.challenge_validation_error_codes import (
+    classify_challenge_validation_errors,
+)
 from app.services.challenges.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
@@ -447,6 +450,7 @@ async def generate_challenge_stream(
     validation_passed = True
     auto_corrected = False
     chess_repair_succeeded = False
+    chess_repair: str = "none"
     usage_events_tracked = False
 
     try:
@@ -457,6 +461,7 @@ async def generate_challenge_stream(
             validation_ok: bool = False,
             auto_corrected_flag: bool = False,
             generation_status: Optional[ChallengePipelineGenerationStatus] = None,
+            error_codes: Optional[list[str]] = None,
         ) -> None:
             duration = (datetime.now() - start_time).total_seconds()
             generation_metrics.record_generation(
@@ -467,6 +472,7 @@ async def generate_challenge_stream(
                 duration_seconds=duration,
                 error_type=error_type,
                 generation_status=generation_status,
+                error_codes=error_codes,
             )
 
         try:
@@ -731,8 +737,12 @@ async def generate_challenge_stream(
                         fallback_completion_tokens_estimate = int(
                             fallback_usage.completion_tokens
                         )
-                if fallback_resp.choices and fallback_resp.choices[0].message.content:
-                    full_response = fallback_resp.choices[0].message.content
+                fallback_msg = None
+                if fallback_resp.choices and fallback_resp.choices[0].message:
+                    fallback_msg = fallback_resp.choices[0].message.content
+                has_fallback_body = bool(str(fallback_msg or "").strip())
+                if has_fallback_body:
+                    full_response = str(fallback_msg).strip()
                     if fallback_completion_tokens_estimate == 0:
                         fallback_completion_tokens_estimate = len(full_response) // 4
                     logger.info(
@@ -740,11 +750,30 @@ async def generate_challenge_stream(
                         fallback_model,
                         len(full_response),
                     )
-                _queue_usage(
-                    model=fallback_model,
-                    prompt_tokens=fallback_prompt_tokens_estimate,
-                    completion_tokens=fallback_completion_tokens_estimate,
-                )
+                    _queue_usage(
+                        model=fallback_model,
+                        prompt_tokens=fallback_prompt_tokens_estimate,
+                        completion_tokens=fallback_completion_tokens_estimate,
+                    )
+                else:
+                    if fallback_usage is not None:
+                        fb_pt = int(getattr(fallback_usage, "prompt_tokens", 0) or 0)
+                        fb_ct = int(
+                            getattr(fallback_usage, "completion_tokens", 0) or 0
+                        )
+                        if fb_pt > 0 or fb_ct > 0:
+                            _queue_usage(
+                                model=fallback_model,
+                                prompt_tokens=fb_pt,
+                                completion_tokens=fb_ct,
+                            )
+                    _flush_usage_events()
+                    openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
+                    _record_generation_failure(
+                        error_type="fallback_empty_response",
+                    )
+                    yield sse_error_message(CHALLENGE_AI_GENERIC_ERROR_MESSAGE)
+                    return
             except Exception as fb_err:
                 if is_countable_openai_failure(fb_err):
                     openai_workload_circuit_breaker.record_countable_failure()
@@ -871,6 +900,9 @@ async def generate_challenge_stream(
                 challenge_type, remaining_errors
             ):
                 logger.info("Tentative de réparation IA ciblée CHESS...")
+                chess_repair = "chess_ai_attempted"
+                repaired_challenge: Optional[Dict[str, Any]] = None
+                repair_error: Optional[Exception] = None
                 try:
                     repaired_challenge, repair_usage = (
                         await _repair_chess_validation_failure_with_openai(
@@ -886,11 +918,15 @@ async def generate_challenge_stream(
                     )
                     if repair_usage is not None:
                         _queue_usage(**repair_usage)
-                except Exception as repair_error:
-                    logger.warning("Réparation IA CHESS échouée: {}", repair_error)
-                    repaired_challenge = None
+                except Exception as caught_repair:
+                    repair_error = caught_repair
+                    logger.warning("Réparation IA CHESS échouée: {}", caught_repair)
 
-                if repaired_challenge is not None:
+                if repair_error is not None:
+                    chess_repair = "chess_ai_failed"
+                elif repaired_challenge is None:
+                    chess_repair = "chess_ai_attempted"
+                else:
                     is_valid_after_repair, repair_errors = validate_challenge_logic(
                         repaired_challenge
                     )
@@ -900,27 +936,36 @@ async def generate_challenge_stream(
                         auto_corrected = True
                         chess_repair_succeeded = True
                         validation_passed = True
+                        chess_repair = "chess_ai_succeeded"
                     else:
                         remaining_errors = repair_errors
+                        chess_repair = "chess_ai_failed"
 
             if not validation_passed:
                 logger.error(
                     "Correction automatique impossible. Erreurs restantes: {}",
                     remaining_errors,
                 )
+                error_codes = classify_challenge_validation_errors(
+                    remaining_errors, challenge_type
+                )
                 logger.info(
-                    "Challenge pipeline resolved: status=%s, type=%s, "
-                    "validation_passed=%s, auto_corrected=%s",
+                    "Challenge pipeline resolved: status={}, type={}, "
+                    "validation_passed={}, auto_corrected={}, error_codes={}, "
+                    "repair={}",
                     CHALLENGE_GENERATION_STATUS_REJECTED,
                     challenge_type,
                     validation_passed,
                     auto_corrected,
+                    error_codes,
+                    chess_repair,
                 )
                 _record_generation_failure(
                     error_type="validation_failed_after_autocorrect",
                     validation_ok=validation_passed,
                     auto_corrected_flag=auto_corrected,
                     generation_status=CHALLENGE_GENERATION_STATUS_REJECTED,
+                    error_codes=error_codes,
                 )
                 errors_str = ", ".join(remaining_errors[:5])
                 yield sse_error_message(
@@ -938,13 +983,20 @@ async def generate_challenge_stream(
             auto_corrected=auto_corrected,
             chess_repair_succeeded=chess_repair_succeeded,
         )
+        if chess_repair_succeeded:
+            repair_for_log: str = "chess_ai_succeeded"
+        else:
+            repair_for_log = "none"
         logger.info(
-            "Challenge pipeline resolved: status=%s, type=%s, "
-            "validation_passed=%s, auto_corrected=%s",
+            "Challenge pipeline resolved: status={}, type={}, "
+            "validation_passed={}, auto_corrected={}, error_codes={}, "
+            "repair={}",
             pipeline_generation_status,
             challenge_type,
             validation_passed,
             auto_corrected,
+            [],
+            repair_for_log,
         )
 
         normalized_challenge = challenge_data
