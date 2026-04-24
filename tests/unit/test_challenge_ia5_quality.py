@@ -57,6 +57,26 @@ def test_sanitize_leaky_title_for_coding_keyword_in_title() -> None:
     )
 
 
+def test_sanitize_leaky_title_for_coding_theme_clue_in_title() -> None:
+    assert (
+        sanitize_leaky_title(
+            "coding",
+            "Le message caché du triangle",
+            4.0,
+            {
+                "type": "substitution",
+                "encoded_message": "X",
+                "partial_key": {
+                    "keyword_length": 6,
+                    "theme_clue": "triangle",
+                    "mapping_known": {"T": "A"},
+                },
+            },
+        )
+        == "Le message sous scellés"
+    )
+
+
 def test_validate_title_difficulty_coherence_errors_when_high_rating() -> None:
     err = validate_title_difficulty_coherence("Suite x2 a chaque pas", 4.5)
     assert err and "titre" in err[0].lower()
@@ -712,6 +732,79 @@ def test_calibrate_challenge_difficulty_caps_direct_numeric_riddle() -> None:
     )
     assert final == 3.0
     assert "riddle_direct_numeric_clues_cap_3_0" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_caps_coding_theme_clue_unquoted_in_title() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="coding",
+        age_group="15-17",
+        visual_data={
+            "type": "substitution",
+            "encoded_message": "IT BEMJERPDE KMUQ PEKQEDBKE QUP I UKDVEPQ",
+            "partial_key": {
+                "keyword_length": 6,
+                "theme_clue": "triangle",
+                "mapping_known": {"T": "A", "P": "R"},
+                "rule_type": "keyword",
+            },
+        },
+        title="Le message caché du triangle",
+        ai_difficulty=4.0,
+    )
+    assert final <= 3.2
+    assert "coding_theme_clue_in_title_cap_3_2" in meta.get("caps_applied", [])
+
+
+def test_calibrate_challenge_difficulty_ignores_theme_clue_when_not_in_title() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="coding",
+        age_group="15-17",
+        visual_data={
+            "type": "substitution",
+            "encoded_message": "IT BEMJERPDE KMUQ",
+            "partial_key": {
+                "keyword_length": 6,
+                "theme_clue": "triangle",
+                "mapping_known": {"T": "A"},
+                "rule_type": "keyword",
+            },
+        },
+        title="Le manuscrit oublié",
+        ai_difficulty=4.0,
+    )
+    assert "coding_theme_clue_in_title_cap_3_2" not in meta.get("caps_applied", [])
+    assert final >= 3.3
+
+
+def test_calibrate_challenge_difficulty_caps_magic_square_riddle() -> None:
+    final, meta = calibrate_challenge_difficulty(
+        challenge_type="riddle",
+        age_group="15-17",
+        visual_data={
+            "description": (
+                "Chaque ligne, chaque colonne et chacune des deux diagonales "
+                "vérifient une même somme constante."
+            ),
+            "clues": [
+                "La somme des trois nombres de la première ligne est 8 + 1 + 6.",
+                "La somme des trois nombres de la troisième colonne est identique "
+                "à celle de la première ligne.",
+                "La diagonale principale part du coin supérieur gauche.",
+                "La diagonale secondaire part du coin supérieur droit.",
+                "La somme constante est égale à celle de la première ligne.",
+            ],
+            "key_elements": [
+                "Propriété de somme constante (magie du carré)",
+                "Somme à trouver",
+                "Emplacement (2,2) à calculer",
+            ],
+            "grid": [["8", "1", "6"], ["3", "?", "7"], ["4", "9", "2"]],
+        },
+        title="Le carré aux sommes cachées",
+        ai_difficulty=4.0,
+    )
+    assert final == 3.0
+    assert "riddle_magic_square_explicit_cap_3_0" in meta.get("caps_applied", [])
 
 
 def test_calibrate_challenge_difficulty_caps_direct_urn_probability() -> None:

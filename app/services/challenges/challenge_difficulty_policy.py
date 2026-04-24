@@ -89,10 +89,11 @@ def sanitize_leaky_title(
     vd = visual_data if isinstance(visual_data, dict) else {}
 
     # CODING est sensible aux titres : le badge indique déjà le type, donc
-    # répéter "César", "binaire" ou le mot-clé dans le titre casse l'enquête.
+    # répéter "César", "binaire", le mot-clé ou l'indice thématique casse l'enquête.
     if key == "CODING" and (
         title_suggests_rule_leak(raw_title)
         or _coding_title_exposes_keyword_hint(raw_title, vd)
+        or _coding_title_exposes_theme_clue(raw_title, vd)
     ):
         return _SAFE_HIGH_DIFFICULTY_TITLES[key]
 
@@ -216,6 +217,31 @@ def _coding_title_exposes_keyword_hint(title: str, value: Dict[str, Any]) -> boo
         if len(quoted_word) == keyword_length:
             return True
     return False
+
+
+def _coding_title_exposes_theme_clue(title: str, value: Dict[str, Any]) -> bool:
+    """Détecte un `theme_clue` exposé en clair dans le titre (substitution/keyword).
+
+    Exemple visé : ``title='Le message caché du triangle'`` avec
+    ``partial_key.theme_clue='triangle'``. Ici le titre donne l'indice thématique,
+    pas le mot-clé, mais l'effet reste une aide directe pour un défi 4+.
+    """
+    if str(value.get("type", "")).strip().lower() != "substitution":
+        return False
+    partial_key = value.get("partial_key")
+    if not isinstance(partial_key, dict):
+        return False
+    theme_clue_raw = partial_key.get("theme_clue")
+    if not isinstance(theme_clue_raw, str):
+        return False
+    theme_clue = _signal_text(theme_clue_raw)
+    if len(theme_clue) < 4:
+        return False
+    normalized_title = _signal_text(title or "")
+    if not normalized_title:
+        return False
+    pattern = re.compile(rf"\b{re.escape(theme_clue)}\b")
+    return bool(pattern.search(normalized_title))
 
 
 def _count_numeric_leaf_values(value: Any) -> int:
@@ -484,6 +510,57 @@ def _riddle_has_over_direct_numeric_clues(visual_data: Dict[str, Any]) -> bool:
     if clue_count == 0 or clue_count > 5:
         return False
     return _riddle_direct_clue_score(visual_data) >= 3
+
+
+_MAGIC_SQUARE_PRINCIPLE_PATTERNS: Tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bcarre?\s+magique\b", re.I),
+    re.compile(r"\bmagic\s+square\b", re.I),
+    re.compile(r"\bsomme\s+constante\b", re.I),
+    re.compile(r"\bconstante\s+magique\b", re.I),
+)
+
+
+def _riddle_mentions_magic_square_principle(visual_data: Dict[str, Any]) -> bool:
+    texts: List[str] = []
+    for key in (
+        "clues",
+        "indices",
+        "hints",
+        "riddle",
+        "question",
+        "description",
+        "context",
+        "key_elements",
+        "elements_cles",
+    ):
+        _append_riddle_texts(visual_data.get(key), texts)
+    joined = _signal_text(" ".join(texts))
+    return any(pattern.search(joined) for pattern in _MAGIC_SQUARE_PRINCIPLE_PATTERNS)
+
+
+def _riddle_single_unknown_signal(visual_data: Dict[str, Any]) -> bool:
+    grid = visual_data.get("grid")
+    if isinstance(grid, list):
+        q = _count_question_cells(grid)
+        if q == 1:
+            return True
+    for key in ("riddle", "description", "question"):
+        text = visual_data.get(key)
+        if isinstance(text, str) and text.count("?") == 1:
+            return True
+    return False
+
+
+def _riddle_has_explicit_magic_square(visual_data: Dict[str, Any]) -> bool:
+    """Cap signal : principe du carré magique (règle connue) + une seule inconnue.
+
+    Cible un cas récurrent où l'IA note 4.0+ un défi dont la règle arithmétique
+    est explicitement nommée (somme constante) et où il ne reste qu'une case
+    vide — contraire à la règle du prompt « UNE SEULE case vide → max 2.5-3.0 ».
+    """
+    if not _riddle_mentions_magic_square_principle(visual_data):
+        return False
+    return _riddle_single_unknown_signal(visual_data)
 
 
 def _highest_floor(
@@ -988,6 +1065,9 @@ def calibrate_challenge_difficulty(
         if _coding_title_exposes_keyword_hint(title, vd) and final > 3.2:
             final = min(final, 3.2)
             caps_applied.append("coding_keyword_in_title_cap_3_2")
+        if _coding_title_exposes_theme_clue(title, vd) and final > 3.2:
+            final = min(final, 3.2)
+            caps_applied.append("coding_theme_clue_in_title_cap_3_2")
         if coding_subtype == "binary" and 0 < len(chunks) <= 6 and final > 3.2:
             final = min(final, 3.2)
             caps_applied.append("coding_binary_short_payload_cap_3_2")
@@ -1006,6 +1086,9 @@ def calibrate_challenge_difficulty(
         if _riddle_has_over_direct_numeric_clues(vd) and final > 3.0:
             final = min(final, 3.0)
             caps_applied.append("riddle_direct_numeric_clues_cap_3_0")
+        if _riddle_has_explicit_magic_square(vd) and final > 3.0:
+            final = min(final, 3.0)
+            caps_applied.append("riddle_magic_square_explicit_cap_3_0")
 
     if challenge_type.lower() == "probability":
         if _probability_is_direct_total_probability(vd) and final > 3.8:
