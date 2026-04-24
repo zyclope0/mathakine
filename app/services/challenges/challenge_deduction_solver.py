@@ -35,6 +35,20 @@ _NEGATIVE_CLUE_RE = re.compile(
     r"(?:\bne\b|\bn['’][a-z]+)\b.*\bpas\b|\b(?:jamais|aucun|aucune)\b"
 )
 
+# Explicit "same X" phrases for natural co-row clues (primary + one non-day
+# secondary). Accentless forms match ``_norm`` output; do not add a bare "meme".
+_SAME_ROW_NATURAL_PHRASES: Tuple[str, ...] = (
+    "meme jour",
+    "meme couleur",
+    "meme activite",
+    "meme groupe",
+    "same day",
+    "same color",
+    "same colour",
+    "same activity",
+    "same group",
+)
+
 WEEKDAY_ORDER = (
     "lundi",
     "mardi",
@@ -191,6 +205,15 @@ def _contains_any(text: str, needles: Sequence[str]) -> bool:
     return any(needle in normalized for needle in needles)
 
 
+def _looks_like_same_row_natural_clue(normalized_text: str) -> bool:
+    """Conservative 'same row' signal when exactly one primary and one secondary ref exist.
+
+    Uses a closed list of multi-word markers (e.g. ``meme couleur``), not a lone
+    ``meme`` token, to limit false ``entity_value`` positives.
+    """
+    return _contains_any(normalized_text, _SAME_ROW_NATURAL_PHRASES)
+
+
 def _is_negative_clue(normalized_text: str) -> bool:
     return bool(_NEGATIVE_CLUE_RE.search(normalized_text))
 
@@ -258,7 +281,7 @@ def _parse_natural_clue(text: str, model: _DeductionModel) -> Optional[_Constrai
                 _LabelRef(entity.category, entity.value),
                 _LabelRef(value.category, value.value),
             )
-        if _contains_any(normalized, ("meme jour", "même jour")):
+        if _looks_like_same_row_natural_clue(normalized):
             return _Constraint(
                 CONSTRAINT_ENTITY_VALUE,
                 _LabelRef(entity.category, entity.value),
@@ -436,24 +459,15 @@ def _constraint_matches(
     if left_day is None or right_day is None:
         return False
 
+    # Jour d'une ref : toute ref résolue en ligne (primaire ou secondaire) via
+    # ``_day_index_for_ref`` — même logique que ``value_before_value`` pour le
+    # classement, y compris pour les contraintes structurées X avant Y en secondaire.
     if constraint.kind == CONSTRAINT_ENTITY_BEFORE_ENTITY:
-        return (
-            left.category == model.first_category
-            and right.category == model.first_category
-            and left_day < right_day
-        )
+        return left_day < right_day
     if constraint.kind == CONSTRAINT_ENTITY_AFTER_ENTITY:
-        return (
-            left.category == model.first_category
-            and right.category == model.first_category
-            and left_day > right_day
-        )
+        return left_day > right_day
     if constraint.kind == CONSTRAINT_ENTITY_IMMEDIATELY_BEFORE_ENTITY:
-        return (
-            left.category == model.first_category
-            and right.category == model.first_category
-            and right_day - left_day == 1
-        )
+        return right_day - left_day == 1
     if constraint.kind == CONSTRAINT_VALUE_BEFORE_VALUE:
         return left_day < right_day
     if constraint.kind == CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE:

@@ -102,6 +102,7 @@ def item_label(
 
 
 _PIECE_LABEL_FIELDS: tuple = ("label", "value", "name", "id", "piece_id", "tag")
+_PIECE_ORDER_KEY_FIELDS: tuple = ("id", "piece_id", "label", "value", "name", "tag")
 
 
 def piece_label(piece: Any) -> str:
@@ -111,6 +112,11 @@ def piece_label(piece: Any) -> str:
     tout nouveau code générique.
     """
     return item_label(piece, fields=_PIECE_LABEL_FIELDS)
+
+
+def piece_order_key(piece: Any) -> str:
+    """Stable ordering key for puzzle answers."""
+    return item_label(piece, fields=_PIECE_ORDER_KEY_FIELDS)
 
 
 def split_ordered_answer_parts(answer: Any) -> List[str]:

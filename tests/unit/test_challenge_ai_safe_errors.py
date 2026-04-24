@@ -16,6 +16,7 @@ from app.services.challenges.challenge_ai_service import (
     CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
     generate_challenge_stream,
 )
+from app.utils.circuit_breaker import openai_workload_circuit_breaker
 
 
 def _parse_sse_payloads(events: list[str]) -> list[dict]:
@@ -253,3 +254,73 @@ async def test_generate_challenge_stream_normalizes_recoverable_difficulty_befor
     assert persisted_payloads[0]["difficulty_rating"] == 3.0
     assert validate_mock.call_count >= 1
     assert validate_mock.call_args_list[0].args[0]["difficulty_rating"] == 3.0
+
+
+@pytest.mark.asyncio
+async def test_o_series_fallback_non_countable_failure_yields_safe_error_and_stops():
+    """Fallback après stream vide : exception hors famille OpenAI countable → SSE erreur, pas de succès."""
+
+    async def stream_no_text():
+        chunk = MagicMock()
+        chunk.choices = [MagicMock()]
+        chunk.choices[0].delta = MagicMock(content=None)
+        chunk.choices[0].finish_reason = None
+        chunk.usage = MagicMock(prompt_tokens=321, completion_tokens=0)
+        yield chunk
+
+    main_client = MagicMock()
+    main_client.chat.completions.create = AsyncMock(return_value=stream_no_text())
+    fallback_client = MagicMock()
+    fallback_client.chat.completions.create = AsyncMock(
+        side_effect=RuntimeError("secret fallback transport")
+    )
+    clients: list[MagicMock] = [main_client, fallback_client]
+    track_calls: list[dict] = []
+
+    def openai_factory(*_a, **_kw) -> MagicMock:
+        return clients.pop(0)
+
+    with (
+        patch.object(settings, "OPENAI_API_KEY", "sk-test-o-series-fallback-fail"),
+        patch("openai.AsyncOpenAI", side_effect=openai_factory),
+        patch.object(
+            AIConfig,
+            "get_openai_params",
+            return_value={
+                "model": "o4-mini",
+                "max_tokens": 500,
+                "timeout": 30,
+                "temperature": 0.5,
+                "reasoning_effort": "medium",
+            },
+        ),
+        patch.object(AIConfig, "MAX_RETRIES", 2),
+        patch.object(AIConfig, "RETRY_BACKOFF_MULTIPLIER", 0.0),
+        patch.object(AIConfig, "RETRY_MIN_WAIT", 0.0),
+        patch.object(AIConfig, "RETRY_MAX_WAIT", 0.0),
+        patch.object(openai_workload_circuit_breaker, "record_success") as record_ok,
+        patch(
+            "app.services.challenges.challenge_ai_service.token_tracker.track_usage",
+            side_effect=lambda **kwargs: track_calls.append(kwargs) or kwargs,
+        ),
+    ):
+        events: list[str] = []
+        async for line in generate_challenge_stream(
+            challenge_type="sequence",
+            age_group="9-11",
+            prompt="test",
+            user_id=1,
+            locale="fr",
+        ):
+            events.append(line)
+
+    payloads = _parse_sse_payloads(events)
+    assert payloads[-1]["type"] == "error"
+    assert payloads[-1]["message"] == CHALLENGE_AI_GENERIC_ERROR_MESSAGE
+    assert not any(p.get("type") == "challenge" for p in payloads)
+    record_ok.assert_not_called()
+    assert len(track_calls) == 1
+    assert track_calls[0]["model"] == "o4-mini"
+    assert track_calls[0]["challenge_type"] == "sequence"
+    assert track_calls[0]["prompt_tokens"] == 321
+    assert track_calls[0]["completion_tokens"] == 0

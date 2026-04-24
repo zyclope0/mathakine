@@ -370,6 +370,69 @@ def test_create_challenge_persists_choices_column(db_session):
     assert ch.choices == choice_list
 
 
+def test_create_challenge_persists_runtime_difficulty_tier_override(db_session):
+    """Tier F42 explicite : pas de recalcul depuis difficulty_rating seul."""
+    import uuid
+
+    from app.services.challenges.challenge_service import create_challenge
+
+    user = User(
+        username=f"tier_ov_{uuid.uuid4().hex[:8]}",
+        email=f"tier_ov_{uuid.uuid4().hex[:8]}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    ch = create_challenge(
+        db_session,
+        title="Tier runtime",
+        description="D",
+        challenge_type="SEQUENCE",
+        age_group="9-11",
+        correct_answer="42",
+        solution_explanation="E",
+        creator_id=user.id,
+        difficulty_rating=2.0,
+        difficulty_tier=11,
+    )
+    db_session.refresh(ch)
+    assert ch.difficulty_tier == 11
+
+
+def test_create_challenge_derives_tier_when_no_override(db_session):
+    """Sans difficulty_tier : même formule que compute_difficulty_tier_for_logic_challenge."""
+    import uuid
+
+    from app.core.difficulty_tier import compute_difficulty_tier_for_logic_challenge
+    from app.services.challenges.challenge_service import create_challenge
+
+    user = User(
+        username=f"tier_leg_{uuid.uuid4().hex[:8]}",
+        email=f"tier_leg_{uuid.uuid4().hex[:8]}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    ch = create_challenge(
+        db_session,
+        title="Tier legacy",
+        description="D",
+        challenge_type="SEQUENCE",
+        age_group="9-11",
+        correct_answer="42",
+        solution_explanation="E",
+        creator_id=user.id,
+        difficulty_rating=3.0,
+    )
+    db_session.refresh(ch)
+    expected = compute_difficulty_tier_for_logic_challenge(ch.age_group, None, 3.0)
+    assert ch.difficulty_tier == expected
+
+
 # --- B3 : get_challenge_stats agrégat atomique ---
 
 

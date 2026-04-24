@@ -151,7 +151,7 @@ def test_persist_challenge_sync_returns_difficulty_tier() -> None:
     created.hints = ["h1"]
     created.visual_data = {"items": [1, 2, 3]}
     created.difficulty_rating = 3.4
-    created.difficulty_tier = 5
+    created.difficulty_tier = 8
     created.estimated_time_minutes = 7
     created.tags = "logic,sequence"
     created.is_active = True
@@ -173,6 +173,7 @@ def test_persist_challenge_sync_returns_difficulty_tier() -> None:
         "tags": "logic,sequence",
         "choices": ["40", "41", "42"],
         "response_mode": "single_choice",
+        "difficulty_tier": 8,
     }
 
     with (
@@ -183,18 +184,20 @@ def test_persist_challenge_sync_returns_difficulty_tier() -> None:
         patch(
             "app.services.challenges.challenge_ai_service.challenge_service.create_challenge",
             return_value=created,
-        ),
+        ) as mock_create,
     ):
         out = _persist_challenge_sync(
             normalized,
             user_id=99,
             challenge_type="sequence",
             model="gpt-test",
-            f42_personalization={"resolved_target_tier": 5},
+            f42_personalization={"resolved_target_tier": 8},
         )
 
+    mock_create.assert_called_once()
+    assert mock_create.call_args.kwargs["difficulty_tier"] == 8
     assert out is not None
-    assert out["difficulty_tier"] == 5
+    assert out["difficulty_tier"] == 8
     assert out["difficulty_rating"] == 3.4
 
 

@@ -14,12 +14,11 @@ import pytest
 
 from app.services.challenges.challenge_ordering_utils import (
     DEFAULT_ITEM_LABEL_FIELDS,
+    _parse_python_dict_like_label_str,
     item_label,
     parse_numeric_order,
     piece_label,
-)
-from app.services.challenges.challenge_ordering_utils import (
-    _parse_python_dict_like_label_str,
+    piece_order_key,
 )
 
 
@@ -111,6 +110,12 @@ def test_piece_label_delegates_to_item_label_with_puzzle_fields() -> None:
     assert piece_label("Alpha") == "Alpha"
     assert piece_label({"label": "Beta", "id": "Z"}) == "Beta"
     assert piece_label({"pattern": ["x"]}) == ""
+
+
+def test_piece_order_key_prefers_stable_ids_over_editorial_labels() -> None:
+    assert piece_order_key({"label": "paire 11↔13", "id": "P1"}) == "P1"
+    assert piece_order_key({"piece_id": "P2", "name": "tuile 2"}) == "P2"
+    assert piece_order_key({"label": "Beta"}) == "Beta"
 
 
 def test_parse_numeric_order_unchanged_by_refactor() -> None:

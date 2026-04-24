@@ -15,7 +15,11 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import case, distinct, func, or_
 from sqlalchemy.orm import Session
 
-from app.core.difficulty_tier import compute_difficulty_tier_for_logic_challenge
+from app.core.difficulty_tier import (
+    DIFFICULTY_TIER_MAX,
+    DIFFICULTY_TIER_MIN,
+    compute_difficulty_tier_for_logic_challenge,
+)
 from app.core.logging_config import get_logger
 from app.core.types import ChallengeStatsDict
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
@@ -31,6 +35,18 @@ from app.services.challenges.logic_challenge_service import LogicChallengeServic
 from app.utils.db_helpers import adapt_enum_for_db
 
 logger = get_logger(__name__)
+
+
+def _coerce_valid_difficulty_tier_override(raw: Any) -> Optional[int]:
+    if raw is None:
+        return None
+    try:
+        tier = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if DIFFICULTY_TIER_MIN <= tier <= DIFFICULTY_TIER_MAX:
+        return tier
+    return None
 
 
 def challenge_to_api_dict(challenge) -> Dict[str, Any]:
@@ -58,6 +74,7 @@ def _prepare_challenge_data(
     creator_id: Optional[int] = None,
     generation_parameters: Optional[Dict] = None,
     choices: Optional[List[str]] = None,
+    difficulty_tier: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Étape 1 : préparation et normalisation des entrées pour création d'un challenge.
@@ -67,9 +84,13 @@ def _prepare_challenge_data(
     db_age_group = normalize_age_group_for_db(age_group)
     logger.debug("Conversion groupe d'âge: {} -> {}", age_group, db_age_group)
 
-    tier = compute_difficulty_tier_for_logic_challenge(
-        db_age_group, None, difficulty_rating
-    )
+    tier_override = _coerce_valid_difficulty_tier_override(difficulty_tier)
+    if tier_override is not None:
+        tier = tier_override
+    else:
+        tier = compute_difficulty_tier_for_logic_challenge(
+            db_age_group, None, difficulty_rating
+        )
     return {
         "title": title,
         "description": description,
@@ -134,6 +155,7 @@ def create_challenge(
     creator_id: Optional[int] = None,
     generation_parameters: Optional[Dict] = None,
     choices: Optional[List[str]] = None,
+    difficulty_tier: Optional[int] = None,
 ) -> LogicChallenge:
     """
     Créer un nouveau challenge.
@@ -159,6 +181,7 @@ def create_challenge(
         estimated_time_minutes: Temps estimé (défaut: 10)
         tags: Tags séparés par virgules (optionnel)
         creator_id: ID du créateur (optionnel)
+        difficulty_tier: Tier F42 1–12 explicite (optionnel) ; sinon dérivé du rating.
 
     Returns:
         LogicChallenge créé
@@ -179,6 +202,7 @@ def create_challenge(
         creator_id=creator_id,
         generation_parameters=generation_parameters,
         choices=choices,
+        difficulty_tier=difficulty_tier,
     )
     _validate_challenge_data(prepared)
     challenge = _persist_challenge(db, prepared)

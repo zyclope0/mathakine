@@ -206,6 +206,28 @@ def test_validate_puzzle_accepts_pieces_with_id_field() -> None:
         assert '{"id"' not in err
 
 
+def test_validate_puzzle_matches_answer_on_stable_piece_ids_not_labels() -> None:
+    vd = {
+        "pieces": [
+            {"id": "P1", "label": "paire 11-13"},
+            {"id": "P2", "label": "paire 13-17"},
+            {"id": "P3", "label": "paire 17-19"},
+        ],
+        "hints": [
+            "Observe les ecarts entre les paires.",
+            "La paire centrale touche les deux autres.",
+        ],
+    }
+
+    errors = validate_puzzle_challenge(
+        vd,
+        "P1, P2, P3",
+        "Les pieces 'paire 11-13', 'paire 13-17' et 'paire 17-19' s'ordonnent par chevauchement progressif.",
+    )
+
+    assert errors == []
+
+
 def test_piece_label_ignores_non_label_dict_without_python_repr() -> None:
     from app.services.challenges.challenge_ordering_utils import piece_label
 
@@ -734,7 +756,9 @@ def test_calibrate_challenge_difficulty_caps_direct_numeric_riddle() -> None:
     assert "riddle_direct_numeric_clues_cap_3_0" in meta.get("caps_applied", [])
 
 
-def test_calibrate_challenge_difficulty_caps_coding_theme_clue_unquoted_in_title() -> None:
+def test_calibrate_challenge_difficulty_caps_coding_theme_clue_unquoted_in_title() -> (
+    None
+):
     final, meta = calibrate_challenge_difficulty(
         challenge_type="coding",
         age_group="15-17",

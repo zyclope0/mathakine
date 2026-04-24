@@ -44,13 +44,19 @@ Active references:
 
 - Exercise and challenge AI generation now default to `o4-mini` instead of `o3`, with `o4-mini` routed through the existing o-series reasoning kwargs and `gpt-4.1*` reserved as explicit override-only models.
 - Exercise AI generation now caps o-series reasoning effort at `medium` and gives `MIXTE` a larger completion budget to avoid empty JSON after hidden reasoning consumes the full output cap.
+- Challenge generation prompts now enforce per-field length budgets and explicit priority ordering between competing directives, reducing conflicting instructions and truncated outputs.
+- Challenge renderers now use a unified item-label contract for object-based `visual_data`, so learner-facing text stays readable instead of leaking raw Python dict / JSON / `[object Object]` representations.
+- Puzzle challenges now separate stable ordering keys from learner-facing labels, preserving both backend answer matching and frontend solvability for structured pieces.
+- Challenge difficulty calibration now caps explicit magic-square riddles and coding titles that leak their theme clue, preventing visibly overrated challenges.
 
 ### Fixed
 
-- Challenge validation and rendering hardening: deduction clues now handle negative natural-language constraints, probability urn checks distinguish with/without replacement and normalize weights consistently, chess highlights can target empty tactical squares, and graph visualizations ignore invalid edges without crashing.
+- Challenge validation and rendering hardening: deduction clues now handle negative natural-language constraints and same-row cross-secondary `entity_value` relations, probability urn checks distinguish with/without replacement and normalize weights consistently, chess highlights can target empty tactical squares, and graph visualizations ignore invalid edges without crashing.
 - Puzzle challenge generation now asks for compact complete `visual_data` earlier in the JSON and rejects explicitly truncated OpenAI JSON instead of auto-closing partial objects into invalid challenges.
 - Visual challenge generation now caps `o4-mini` reasoning to preserve completion budget and asks for compact, early `visual_data` to reduce truncated JSON outputs.
-- Visual symmetry challenges now normalize grouped `layout[].shapes` payloads before API delivery and render them as explicit row pairs instead of blank side panels.
+- Visual symmetry challenges now normalize grouped `layout` payloads (`elements`, `shapes`, `items`), French side labels, and legacy python-dict-like shape strings before API delivery, then render them as explicit row pairs instead of blank side panels.
+- Puzzle validation now reads stable `id` / `piece_id` keys when present, aligning backend validation with the frontend ordering key used during drag-and-drop solving.
+- Challenge renderers now resolve object-backed labels through a shared fallback contract, preventing raw object leaks in coding, deduction, probability, puzzle, riddle, sequence, and visual views.
 - Challenge generation now uses a type-aware `o-series` reasoning budget policy and logs `finish_reason` / observed token usage so truncated JSON can be diagnosed as a budget issue instead of a logic issue.
 
 ## [3.6.0-beta.3] - 2026-04-20

@@ -3,6 +3,7 @@ Module de validation logique pour les challenges générés par IA.
 Vérifie la cohérence entre visual_data, correct_answer et solution_explanation.
 """
 
+import copy
 import json
 import math
 import re
@@ -30,6 +31,7 @@ from app.services.challenges.challenge_difficulty_policy import (
 from app.services.challenges.challenge_ordering_utils import (
     is_numeric_sort_solution,
     piece_label,
+    piece_order_key,
     split_ordered_answer_parts,
 )
 from app.services.challenges.challenge_pattern_sequence_validation import (
@@ -237,21 +239,23 @@ def validate_puzzle_challenge(
             )
 
     # Parser les pièces en liste de strings normalisées
-    piece_values = [piece_label(p).lower() for p in pieces]
+    piece_order_values = [piece_order_key(p).lower() for p in pieces]
+    piece_display_values = [piece_label(p).lower() for p in pieces]
+    piece_values = piece_order_values
 
     # Pour un puzzle, la réponse devrait être une liste ordonnée
     if correct_answer:
         # Gérer correct_answer comme liste ou string
         answer_parts = [p.lower() for p in split_ordered_answer_parts(correct_answer)]
 
-        if len(answer_parts) != len(piece_values):
+        if len(answer_parts) != len(piece_order_values):
             errors.append(
                 f"Puzzle incohérent: correct_answer contient {len(answer_parts)} éléments, "
                 f"mais pieces contient {len(piece_values)} éléments"
             )
 
         # Vérifier que tous les éléments de pieces sont dans la réponse
-        missing = set(piece_values) - set(answer_parts)
+        missing = set(piece_order_values) - set(answer_parts)
         trivial_numeric_sort = is_numeric_sort_solution(pieces, correct_answer)
         if trivial_numeric_sort:
             errors.append(
@@ -263,11 +267,13 @@ def validate_puzzle_challenge(
             errors.append(f"Puzzle: éléments manquants dans correct_answer: {missing}")
 
     # Vérifier que l'explication justifie l'ordre
-    if explanation and piece_values:
+    if explanation and piece_display_values:
         # L'explication devrait mentionner au moins quelques éléments
         explanation_lower = str(explanation).lower()
-        mentioned_count = sum(1 for p in piece_values if p in explanation_lower)
-        if mentioned_count < len(piece_values) // 2:
+        mentioned_count = sum(
+            1 for p in piece_display_values if p and p in explanation_lower
+        )
+        if mentioned_count < len(piece_display_values) // 2:
             errors.append(
                 "L'explication ne mentionne pas assez d'éléments du puzzle pour justifier l'ordre."
             )
@@ -875,11 +881,11 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dictionnaire corrigé (peut être identique si aucune correction possible)
     """
-    corrected = challenge_data.copy()
+    corrected = copy.deepcopy(challenge_data)
 
-    challenge_type = challenge_data.get("challenge_type", "").upper()
-    visual_data = challenge_data.get("visual_data", {})
-    difficulty_raw = challenge_data.get("difficulty_rating")
+    challenge_type = corrected.get("challenge_type", "").upper()
+    visual_data = corrected.get("visual_data", {})
+    difficulty_raw = corrected.get("difficulty_rating")
     difficulty_rating = (
         float(difficulty_raw)
         if isinstance(difficulty_raw, (int, float))
@@ -1173,6 +1179,8 @@ def validate_probability_challenge(
                 if isinstance(v, (int, float)) and v > 0:
                     has_counts = True
                     break
+            if has_counts:
+                break
     if not has_counts:
         errors.append(
             "PROBABILITY: visual_data doit contenir des quantités numériques "

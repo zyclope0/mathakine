@@ -364,6 +364,7 @@ def _persist_challenge_sync(
                 response_mode=normalized_challenge.get("response_mode"),
                 f42_personalization=f42_personalization,
             ),
+            difficulty_tier=normalized_challenge.get("difficulty_tier"),
         )
         if (
             created_challenge
@@ -718,6 +719,7 @@ async def generate_challenge_stream(
                 if is_countable_openai_failure(fb_err):
                     openai_workload_circuit_breaker.record_countable_failure()
                     logger.error("Fallback Ã©chouÃ©: {}", fb_err)
+                    _flush_usage_events()
                     yield sse_error_message(
                         get_safe_error_message(
                             fb_err,
@@ -727,6 +729,14 @@ async def generate_challenge_stream(
                     return
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
                 logger.error("Fallback Ã©chouÃ©: {}", fb_err)
+                _flush_usage_events()
+                yield sse_error_message(
+                    get_safe_error_message(
+                        fb_err,
+                        default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
+                    )
+                )
+                return
 
         openai_workload_circuit_breaker.record_success()
 
@@ -820,68 +830,63 @@ async def generate_challenge_stream(
             logger.warning(
                 "Challenge généré avec erreurs de validation: {}", validation_errors
             )
-            logger.info("Tentative de correction automatique...")
-            corrected_challenge = auto_correct_challenge(challenge_data)
-            is_valid_after_correction, remaining_errors = validate_challenge_logic(
-                corrected_challenge
+            logger.info(
+                "Challenge toujours invalide après auto-correction générique; "
+                "erreurs: {}",
+                validation_errors,
             )
-            if is_valid_after_correction:
-                logger.info("Correction automatique réussie")
-                challenge_data = corrected_challenge
-                auto_corrected = True
-                validation_passed = True
-            else:
-                validation_passed = False
-                if _should_attempt_chess_validation_repair(
-                    challenge_type, remaining_errors
-                ):
-                    logger.info("Tentative de réparation IA ciblée CHESS...")
-                    try:
-                        repaired_challenge, repair_usage = (
-                            await _repair_chess_validation_failure_with_openai(
-                                client=client,
-                                challenge_type=challenge_type,
-                                age_group=age_group,
-                                locale=locale,
-                                ai_params=ai_params,
-                                challenge_data=corrected_challenge,
-                                validation_errors=remaining_errors,
-                                personalization=personalization,
-                            )
+            validation_passed = False
+            remaining_errors = list(validation_errors)
+            if _should_attempt_chess_validation_repair(
+                challenge_type, remaining_errors
+            ):
+                logger.info("Tentative de réparation IA ciblée CHESS...")
+                try:
+                    repaired_challenge, repair_usage = (
+                        await _repair_chess_validation_failure_with_openai(
+                            client=client,
+                            challenge_type=challenge_type,
+                            age_group=age_group,
+                            locale=locale,
+                            ai_params=ai_params,
+                            challenge_data=challenge_data,
+                            validation_errors=remaining_errors,
+                            personalization=personalization,
                         )
-                        if repair_usage is not None:
-                            _queue_usage(**repair_usage)
-                    except Exception as repair_error:
-                        logger.warning("Réparation IA CHESS échouée: {}", repair_error)
-                        repaired_challenge = None
+                    )
+                    if repair_usage is not None:
+                        _queue_usage(**repair_usage)
+                except Exception as repair_error:
+                    logger.warning("Réparation IA CHESS échouée: {}", repair_error)
+                    repaired_challenge = None
 
-                    if repaired_challenge is not None:
-                        is_valid_after_repair, repair_errors = validate_challenge_logic(
-                            repaired_challenge
-                        )
-                        if is_valid_after_repair:
-                            logger.info("Réparation IA CHESS réussie")
-                            challenge_data = repaired_challenge
-                            auto_corrected = True
-                            validation_passed = True
-                        else:
-                            remaining_errors = repair_errors
+                if repaired_challenge is not None:
+                    is_valid_after_repair, repair_errors = validate_challenge_logic(
+                        repaired_challenge
+                    )
+                    if is_valid_after_repair:
+                        logger.info("Réparation IA CHESS réussie")
+                        challenge_data = repaired_challenge
+                        auto_corrected = True
+                        validation_passed = True
+                    else:
+                        remaining_errors = repair_errors
 
-                if not validation_passed:
-                    logger.error(
-                        "Correction automatique impossible. Erreurs restantes: {}",
-                        remaining_errors,
-                    )
-                    _record_generation_failure(
-                        error_type="validation_failed_after_autocorrect"
-                    )
-                    errors_str = ", ".join(remaining_errors[:5])
-                    yield sse_error_message(
-                        "Le défi généré ne passe pas la validation finale "
-                        f"(correction automatique impossible). Détail : {errors_str}"
-                    )
-                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                    return
+            if not validation_passed:
+                logger.error(
+                    "Correction automatique impossible. Erreurs restantes: {}",
+                    remaining_errors,
+                )
+                _record_generation_failure(
+                    error_type="validation_failed_after_autocorrect"
+                )
+                errors_str = ", ".join(remaining_errors[:5])
+                yield sse_error_message(
+                    "Le défi généré ne passe pas la validation finale "
+                    f"(correction automatique impossible). Détail : {errors_str}"
+                )
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                return
         else:
             logger.debug("Challenge validÃ© avec succÃ¨s")
             validation_passed = True

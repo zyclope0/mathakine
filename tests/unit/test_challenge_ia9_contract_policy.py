@@ -451,6 +451,110 @@ def test_deduction_solver_treats_negative_same_day_clue_as_exclusion() -> None:
     assert result.expected_answer_matches is True
 
 
+def test_deduction_solver_natural_same_color_clue_entity_value() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Personnes": ["Alice", "Bob"],
+                "Couleurs": ["Rouge", "Bleu"],
+            },
+            "clues": [
+                "Alice a la meme couleur que Rouge.",
+                "Bob a la meme couleur que Bleu.",
+            ],
+        },
+        "Alice:Rouge,Bob:Bleu",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_solver_natural_same_activity_clue_entity_value() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Personnes": ["Clara", "Noah"],
+                "Métiers": ["Médecin", "Avocat"],
+            },
+            "clues": [
+                "Clara exerce la meme activite que Médecin.",
+                "Noah exerce la meme activite que Avocat.",
+            ],
+        },
+        "Clara:Médecin,Noah:Avocat",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_solver_natural_same_group_clue_entity_value() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Élèves": ["Marc", "Julie"],
+                "Clubs": ["Robotique", "Débat"],
+            },
+            "clues": [
+                "Marc est dans le meme groupe que Robotique.",
+                "Julie est dans le meme groupe que Débat.",
+            ],
+        },
+        "Marc:Robotique,Julie:Débat",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_solver_natural_negative_same_color_is_exclusion() -> None:
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Personnes": ["Alice", "Bob"],
+                "Couleurs": ["Rouge", "Bleu"],
+            },
+            "clues": [
+                "Alice n'a pas la meme couleur que Rouge.",
+                "Bob a la meme couleur que Rouge.",
+            ],
+        },
+        "Alice:Bleu,Bob:Rouge",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
+def test_deduction_solver_natural_same_day_positive_co_row_still_parses() -> None:
+    """``meme jour`` + topic/day schedule clues still yield a unique grid."""
+    result = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Students": ["Clara", "Marc"],
+                "Topics": ["Python", "Rust"],
+                "Days": ["Lundi", "Mardi"],
+            },
+            "clues": [
+                "Clara intervient le meme jour que Python.",
+                "Marc intervient le meme jour que Rust.",
+                "Python est programme Lundi.",
+                "Rust est programme Mardi.",
+            ],
+        },
+        "Clara:Python:Lundi,Marc:Rust:Mardi",
+    )
+
+    assert result.checked is True
+    assert result.solution_count == 1
+    assert result.expected_answer_matches is True
+
+
 def test_deduction_solver_rejects_duplicate_values_in_category() -> None:
     result = analyze_deduction_uniqueness(
         {
@@ -510,9 +614,7 @@ def test_deduction_structured_mixed_category_entity_value_not_contradictory() ->
             },
         ],
     }
-    answer = (
-        "Alice:Avocat:Lyon,Bob:Ingénieur:Paris,Clara:Médecin:Toulouse,David:Architecte:Marseille"
-    )
+    answer = "Alice:Avocat:Lyon,Bob:Ingénieur:Paris,Clara:Médecin:Toulouse,David:Architecte:Marseille"
     ambiguous = analyze_deduction_uniqueness(visual, answer)
     assert ambiguous.checked is True
     assert ambiguous.solution_count == 2
@@ -557,9 +659,7 @@ def test_deduction_structured_entity_not_value_secondary_secondary() -> None:
             },
         ],
     }
-    result = analyze_deduction_uniqueness(
-        visual, "Alice:Médecin:Lyon,Bob:Avocat:Paris"
-    )
+    result = analyze_deduction_uniqueness(visual, "Alice:Médecin:Lyon,Bob:Avocat:Paris")
     assert result.checked is True
     assert result.solution_count == 1
     assert result.expected_answer_matches is True
@@ -588,6 +688,136 @@ def test_deduction_structured_entity_value_left_secondary_right_primary() -> Non
     assert result.expected_answer_matches is True
 
     wrong = analyze_deduction_uniqueness(visual, "Alice:Avocat,Bob:Médecin")
+    assert wrong.solution_count == 1
+    assert wrong.expected_answer_matches is False
+
+
+def test_deduction_structured_entity_before_entity_two_secondaries() -> None:
+    """Jour de la ref secondaire: Python avant Rust en calendrier (indice jour)."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Sujets": ["Python", "Rust"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": ["1."],
+        "constraints": [
+            {
+                "type": "entity_before_entity",
+                "left": {"category": "Sujets", "value": "Python"},
+                "right": {"category": "Sujets", "value": "Rust"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Sujets", "value": "Python"},
+            },
+        ],
+    }
+    good = "Alice:Python:Lundi,Bob:Rust:Mardi"
+    u = analyze_deduction_uniqueness(visual, good)
+    assert u.checked is True
+    assert u.solution_count == 1
+    assert u.expected_answer_matches is True
+
+    wrong = analyze_deduction_uniqueness(visual, "Alice:Python:Mardi,Bob:Rust:Lundi")
+    assert wrong.solution_count == 1
+    assert wrong.expected_answer_matches is False
+
+
+def test_deduction_structured_entity_after_entity_two_secondaries() -> None:
+    """Rust est après Python sur l'échelle des jours (deux sujets en secondaire)."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Sujets": ["Python", "Rust"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": ["1."],
+        "constraints": [
+            {
+                "type": "entity_after_entity",
+                "left": {"category": "Sujets", "value": "Rust"},
+                "right": {"category": "Sujets", "value": "Python"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Sujets", "value": "Python"},
+            },
+        ],
+    }
+    good = "Alice:Python:Lundi,Bob:Rust:Mardi"
+    u = analyze_deduction_uniqueness(visual, good)
+    assert u.checked is True
+    assert u.solution_count == 1
+    assert u.expected_answer_matches is True
+
+
+def test_deduction_structured_entity_immediately_before_entity_two_secondaries() -> (
+    None
+):
+    """Jours contigus : la ligne Sujet Python est le créneau juste avant celle de Rust."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Sujets": ["Python", "Rust"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": ["1."],
+        "constraints": [
+            {
+                "type": "entity_immediately_before_entity",
+                "left": {"category": "Sujets", "value": "Python"},
+                "right": {"category": "Sujets", "value": "Rust"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Sujets", "value": "Python"},
+            },
+        ],
+    }
+    good = "Alice:Python:Lundi,Bob:Rust:Mardi"
+    u = analyze_deduction_uniqueness(visual, good)
+    assert u.checked is True
+    assert u.solution_count == 1
+    assert u.expected_answer_matches is True
+
+
+def test_deduction_structured_entity_before_entity_primary_primary_unchanged() -> None:
+    """Comparaison de jours entre deux personnes (refs primaires) inchangée."""
+    visual = {
+        "type": "logic_grid",
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Sujets": ["Python", "Rust"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": ["1."],
+        "constraints": [
+            {
+                "type": "entity_before_entity",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Personnes", "value": "Bob"},
+            },
+            {
+                "type": "entity_value",
+                "left": {"category": "Personnes", "value": "Alice"},
+                "right": {"category": "Sujets", "value": "Python"},
+            },
+        ],
+    }
+    good = "Alice:Python:Lundi,Bob:Rust:Mardi"
+    u = analyze_deduction_uniqueness(visual, good)
+    assert u.checked is True
+    assert u.solution_count == 1
+    assert u.expected_answer_matches is True
+
+    wrong = analyze_deduction_uniqueness(visual, "Alice:Python:Mardi,Bob:Rust:Lundi")
     assert wrong.solution_count == 1
     assert wrong.expected_answer_matches is False
 

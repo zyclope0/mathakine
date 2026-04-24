@@ -314,6 +314,7 @@ def test_build_challenge_ai_stream_kwargs_o1_no_json_format() -> None:
     )
     assert kw["model"] == "o1-mini"
     assert kw["stream"] is True
+    assert kw["stream_options"] == {"include_usage": True}
     assert "response_format" not in kw
     assert kw["max_completion_tokens"] == 1234
 
@@ -329,6 +330,7 @@ def test_build_challenge_ai_stream_kwargs_o3_json_and_reasoning() -> None:
             "reasoning_effort": "low",
         },
     )
+    assert kw["stream_options"] == {"include_usage": True}
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["max_completion_tokens"] == 5000
     assert kw["reasoning_effort"] == "low"
@@ -345,6 +347,7 @@ def test_build_challenge_ai_stream_kwargs_o4_mini_json_and_reasoning() -> None:
             "reasoning_effort": "medium",
         },
     )
+    assert kw["stream_options"] == {"include_usage": True}
     assert kw["response_format"] == {"type": "json_object"}
     assert kw["max_completion_tokens"] == 5000
     assert kw["reasoning_effort"] == "medium"
@@ -429,6 +432,7 @@ def test_build_challenge_ai_stream_kwargs_gpt5_verbosity_and_temp_when_none() ->
             "temperature": 0.42,
         },
     )
+    assert kw["stream_options"] == {"include_usage": True}
     assert kw["max_completion_tokens"] == 4000
     assert kw["reasoning_effort"] == "none"
     assert kw["verbosity"] == "medium"
@@ -448,6 +452,7 @@ def test_build_challenge_ai_stream_kwargs_gpt5_no_temp_when_reasoning_active() -
             "temperature": 0.9,
         },
     )
+    assert kw["stream_options"] == {"include_usage": True}
     assert "temperature" not in kw
 
 
@@ -462,6 +467,7 @@ def test_build_challenge_ai_stream_kwargs_chat_classic_max_tokens() -> None:
             "temperature": 0.35,
         },
     )
+    assert kw["stream_options"] == {"include_usage": True}
     assert kw["max_tokens"] == 2000
     assert kw["temperature"] == 0.35
     assert kw["response_format"] == {"type": "json_object"}

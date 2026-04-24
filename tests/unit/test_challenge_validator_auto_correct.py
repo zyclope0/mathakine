@@ -39,6 +39,58 @@ def test_auto_correct_pattern_analyze_pattern_none_does_not_raise() -> None:
     assert out["solution_explanation"] == "Explication initiale"
 
 
+def test_auto_correct_symmetry_marks_question_without_mutating_input() -> None:
+    challenge_data = {
+        "challenge_type": "VISUAL",
+        "visual_data": {
+            "type": "symmetry",
+            "layout": [
+                {"side": "left", "shape": "cercle"},
+                {"side": "right", "shape": "carré"},
+            ],
+        },
+        "correct_answer": "cercle",
+        "solution_explanation": "x",
+    }
+    right_before = challenge_data["visual_data"]["layout"][1]
+
+    out = auto_correct_challenge(challenge_data)
+
+    assert "question" not in right_before
+    assert out["visual_data"]["layout"][1].get("question") is True
+    assert out["visual_data"]["layout"] is not challenge_data["visual_data"]["layout"]
+    assert out["visual_data"] is not challenge_data["visual_data"]
+    assert out is not challenge_data
+
+
+def test_auto_correct_pattern_nested_visual_data_not_shared_with_input() -> None:
+    challenge_data = {
+        "challenge_type": "PATTERN",
+        "visual_data": {"grid": [["2", "4"], ["8", "?"]]},
+        "correct_answer": "ancien",
+        "solution_explanation": "Explication initiale",
+    }
+    with (
+        patch(
+            "app.services.challenges.challenge_validator.compute_pattern_answers_multi",
+            return_value="WRONG_MULTI",
+        ),
+        patch(
+            "app.services.challenges.challenge_validator.find_question_position_in_grid",
+            return_value=(1, 1),
+        ),
+        patch(
+            "app.services.challenges.challenge_validator.analyze_pattern",
+            return_value="16",
+        ),
+    ):
+        out = auto_correct_challenge(challenge_data)
+
+    assert out["correct_answer"] == "16"
+    assert out["visual_data"] is not challenge_data["visual_data"]
+    assert out["visual_data"]["grid"] is not challenge_data["visual_data"]["grid"]
+
+
 def test_auto_correct_pattern_single_question_uses_single_branch() -> None:
     """Une seule '?' ne doit pas passer par la correction multi-cellules."""
     challenge_data = {

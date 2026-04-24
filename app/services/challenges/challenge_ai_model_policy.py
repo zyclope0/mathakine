@@ -109,6 +109,9 @@ def build_challenge_ai_stream_kwargs(
     ``verbosity`` pour GPT-5 ; ``temperature`` pour GPT-5 uniquement si
     ``reasoning_effort == "none"`` et présent dans ``ai_params`` ; branche chat classique
     avec ``max_tokens`` + ``temperature``.
+
+    ``stream_options`` avec ``include_usage`` est aligné sur les exercices pour exposer les
+    usages réels sur les chunks stream lorsque le fournisseur les renvoie.
     """
     use_o1 = AIConfig.is_o1_model(model)
     use_o_series = AIConfig.is_o_series_reasoning_model(model)
@@ -120,6 +123,7 @@ def build_challenge_ai_stream_kwargs(
             {"role": "user", "content": user_content},
         ],
         "stream": True,
+        "stream_options": {"include_usage": True},
     }
     if not use_o1:
         api_kwargs["response_format"] = {"type": "json_object"}
