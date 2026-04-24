@@ -1,4 +1,4 @@
-﻿# Architecture Frontend â€” Mathakine
+# Architecture Frontend â€” Mathakine
 
 > Dernière mise à jour : 16/04/2026  
 > Validé contre le code source réel (post-audit industrialisation + FFI-L16 shell/chatbot + FFI-L17A/B guardrails + FFI-L20A/B/C/D/E/F/G/H + lots ciblés CHAT-AUTH-01 à OG-META-09)
