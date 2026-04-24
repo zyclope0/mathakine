@@ -20,6 +20,13 @@ from app.services.challenges.challenge_contract_policy import (
     validate_symmetry_canonical,
 )
 from app.services.challenges.challenge_deduction_solver import (
+    CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE,
+    CONSTRAINT_ENTITY_NOT_VALUE,
+    _build_model,
+    _Constraint,
+    _constraint_matches,
+    _LabelRef,
+    _parse_natural_clue,
     analyze_deduction_uniqueness,
 )
 from app.services.challenges.challenge_validator import (
@@ -820,6 +827,137 @@ def test_deduction_structured_entity_before_entity_primary_primary_unchanged() -
     wrong = analyze_deduction_uniqueness(visual, "Alice:Python:Mardi,Bob:Rust:Lundi")
     assert wrong.solution_count == 1
     assert wrong.expected_answer_matches is False
+
+
+def test_deduction_natural_bilateral_ni_immediatement_avant_ni_apres() -> None:
+    """Formulation bilatérale → entity_not_adjacent (ni voisin immédiat des deux côtés)."""
+    visual = {
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Matières": ["Mathématiques", "Physique"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": [
+            "Mathematiques est programme Lundi.",
+            "Physique est programme Mardi.",
+            "Alice n'est ni immédiatement avant ni immédiatement après Mathématiques.",
+            "Alice n'est pas en Physique.",
+        ],
+    }
+    expected = "Alice:Mathématiques:Lundi,Bob:Physique:Mardi"
+    r = analyze_deduction_uniqueness(visual, expected)
+    assert r.checked is True
+    assert r.solution_count == 1
+    assert r.expected_answer_matches is True
+
+
+def test_deduction_positive_bilateral_immediate_phrase_is_not_misparsed_as_negative() -> (
+    None
+):
+    model = _build_model(
+        {
+            "entities": {
+                "Personnes": ["Alice", "Bob"],
+                "Matieres": ["Mathematiques", "Physique"],
+                "Jours": ["Lundi", "Mardi"],
+            }
+        }
+    )
+
+    assert model is not None
+    assert (
+        _parse_natural_clue(
+            "Alice est immediatement avant ou immediatement apres Mathematiques.",
+            model,
+        )
+        is None
+    )
+
+
+def test_deduction_natural_unilateral_pas_immediatement_avant() -> None:
+    """« Pas immédiatement avant » ≠ entity_not_value : ordre calendaire directionnel."""
+    visual = {
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Matières": ["Mathématiques", "Physique"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": [
+            "Mathematiques est programme Lundi.",
+            "Physique est programme Mardi.",
+            "Alice n'est pas immédiatement avant Mathématiques.",
+            "Alice n'est pas en Physique.",
+        ],
+    }
+    expected = "Alice:Mathématiques:Lundi,Bob:Physique:Mardi"
+    r = analyze_deduction_uniqueness(visual, expected)
+    assert r.checked is True
+    assert r.solution_count == 1
+    assert r.expected_answer_matches is True
+
+
+def test_deduction_natural_unilateral_pas_immediatement_apres() -> None:
+    visual = {
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Matières": ["Mathématiques", "Physique"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+        "clues": [
+            "Mathematiques est programme Lundi.",
+            "Physique est programme Mardi.",
+            "Alice n'est pas immédiatement après Mathématiques.",
+            "Alice n'est pas en Physique.",
+        ],
+    }
+    expected = "Alice:Mathématiques:Lundi,Bob:Physique:Mardi"
+    r = analyze_deduction_uniqueness(visual, expected)
+    assert r.checked is True
+    assert r.solution_count == 1
+    assert r.expected_answer_matches is True
+
+
+def test_deduction_not_immediate_before_weaker_than_entity_not_same_row() -> None:
+    """Interdiction « pas imm. avant » autorise la co-ligne même jour; entity_not non."""
+    visual = {
+        "entities": {
+            "Personnes": ["Alice", "Bob"],
+            "Matières": ["Mathématiques", "Physique"],
+            "Jours": ["Lundi", "Mardi"],
+        },
+    }
+    model = _build_model(visual)
+    assert model is not None
+    assignment = {
+        "Alice": {"Matières": "Mathématiques", "Jours": "Lundi"},
+        "Bob": {"Matières": "Physique", "Jours": "Mardi"},
+    }
+    left = _LabelRef("Personnes", "Alice")
+    right = _LabelRef("Matières", "Mathématiques")
+    c_not_imm = _Constraint(CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE, left, right)
+    c_not_val = _Constraint(CONSTRAINT_ENTITY_NOT_VALUE, left, right)
+    assert _constraint_matches(assignment, model, c_not_imm) is True
+    assert _constraint_matches(assignment, model, c_not_val) is False
+
+
+def test_deduction_natural_simple_entity_not_regression_2x2() -> None:
+    """Négation simple hors adjacence : entity_not_value inchangé sans colonne Jours."""
+    r = analyze_deduction_uniqueness(
+        {
+            "entities": {
+                "Personnes": ["Alice", "Bob"],
+                "Matières": ["Mathématiques", "Physique"],
+            },
+            "clues": [
+                "Alice n'est pas en Physique.",
+                "Bob n'est pas en Mathématiques.",
+            ],
+        },
+        "Alice:Mathématiques,Bob:Physique",
+    )
+    assert r.checked is True
+    assert r.solution_count == 1
+    assert r.expected_answer_matches is True
 
 
 def test_probability_weighted_without_replacement_normalizes_underfilled_weights() -> (

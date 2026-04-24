@@ -8,6 +8,9 @@ Structured ``entity_value`` / ``entity_not_value`` are interpreted as
 same-(first-category) row: the left and right label refs may be the primary
 entity category or any secondary category, with pairwise "same person" / negation
 semantics.
+Natural-language "pas immédiatement avant / après" uses dedicated directional
+kinds: they are not negated same-row (``entity_not_value``) nor the bilateral
+"ni avant ni après" adjacency (``entity_not_adjacent_value``).
 """
 
 from __future__ import annotations
@@ -30,6 +33,9 @@ CONSTRAINT_ENTITY_AFTER_ENTITY = "entity_after_entity"
 CONSTRAINT_ENTITY_IMMEDIATELY_BEFORE_ENTITY = "entity_immediately_before_entity"
 CONSTRAINT_VALUE_BEFORE_VALUE = "value_before_value"
 CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE = "entity_not_adjacent_value"
+# Négation directionnelle (jour) : « pas immédiatement avant/après » (≠ « même ligne »)
+CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE = "entity_not_immediately_before_value"
+CONSTRAINT_ENTITY_NOT_IMMEDIATELY_AFTER_VALUE = "entity_not_immediately_after_value"
 
 _NEGATIVE_CLUE_RE = re.compile(
     r"(?:\bne\b|\bn['’][a-z]+)\b.*\bpas\b|\b(?:jamais|aucun|aucune)\b"
@@ -218,6 +224,15 @@ def _is_negative_clue(normalized_text: str) -> bool:
     return bool(_NEGATIVE_CLUE_RE.search(normalized_text))
 
 
+def _looks_like_negative_bilateral_immediate_clue(normalized_text: str) -> bool:
+    """True only for explicitly negative bilateral immediate adjacency clues."""
+    if _is_negative_clue(normalized_text) or _contains_any(
+        normalized_text, ("pas sur",)
+    ):
+        return True
+    return normalized_text.count(" ni ") >= 2
+
+
 def _parse_natural_clue(text: str, model: _DeductionModel) -> Optional[_Constraint]:
     normalized = _norm(text)
     mentions = _mentions_for_text(text, model)
@@ -257,25 +272,46 @@ def _parse_natural_clue(text: str, model: _DeductionModel) -> Optional[_Constrai
             _LabelRef(second.category, second.value),
         )
 
-    if (
-        len(first_mentions) == 1
-        and len(non_day_secondary) == 1
-        and _contains_any(normalized, ("immediatement avant", "immediatement apres"))
-        and "avant" in normalized
-        and "apres" in normalized
-    ):
-        entity = first_mentions[0]
-        value = non_day_secondary[0]
-        return _Constraint(
-            CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE,
-            _LabelRef(entity.category, entity.value),
-            _LabelRef(value.category, value.value),
-        )
-
     if len(first_mentions) == 1 and len(non_day_secondary) == 1:
         entity = first_mentions[0]
         value = non_day_secondary[0]
-        if _is_negative_clue(normalized) or _contains_any(normalized, ("pas sur",)):
+        is_neg = _is_negative_clue(normalized) or _contains_any(
+            normalized, ("pas sur",)
+        )
+        if (
+            _looks_like_negative_bilateral_immediate_clue(normalized)
+            and _contains_any(
+                normalized, ("immediatement avant", "immediatement apres")
+            )
+            and "avant" in normalized
+            and "apres" in normalized
+        ):
+            return _Constraint(
+                CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE,
+                _LabelRef(entity.category, entity.value),
+                _LabelRef(value.category, value.value),
+            )
+        if (
+            is_neg
+            and _contains_any(normalized, ("immediatement avant",))
+            and "apres" not in normalized
+        ):
+            return _Constraint(
+                CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE,
+                _LabelRef(entity.category, entity.value),
+                _LabelRef(value.category, value.value),
+            )
+        if (
+            is_neg
+            and _contains_any(normalized, ("immediatement apres",))
+            and "avant" not in normalized
+        ):
+            return _Constraint(
+                CONSTRAINT_ENTITY_NOT_IMMEDIATELY_AFTER_VALUE,
+                _LabelRef(entity.category, entity.value),
+                _LabelRef(value.category, value.value),
+            )
+        if is_neg:
             return _Constraint(
                 CONSTRAINT_ENTITY_NOT_VALUE,
                 _LabelRef(entity.category, entity.value),
@@ -345,6 +381,8 @@ def _parse_structured_constraints(
             CONSTRAINT_ENTITY_IMMEDIATELY_BEFORE_ENTITY,
             CONSTRAINT_VALUE_BEFORE_VALUE,
             CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE,
+            CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE,
+            CONSTRAINT_ENTITY_NOT_IMMEDIATELY_AFTER_VALUE,
         }:
             if left is None or right is None:
                 return None
@@ -472,6 +510,14 @@ def _constraint_matches(
         return left_day < right_day
     if constraint.kind == CONSTRAINT_ENTITY_NOT_ADJACENT_VALUE:
         return left.category == model.first_category and abs(left_day - right_day) != 1
+    if constraint.kind == CONSTRAINT_ENTITY_NOT_IMMEDIATELY_BEFORE_VALUE:
+        if left.category != model.first_category:
+            return False
+        return right_day - left_day != 1
+    if constraint.kind == CONSTRAINT_ENTITY_NOT_IMMEDIATELY_AFTER_VALUE:
+        if left.category != model.first_category:
+            return False
+        return left_day - right_day != 1
     return False
 
 
