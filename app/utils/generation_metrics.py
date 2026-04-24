@@ -7,7 +7,7 @@ but now stores a generic AI metric key for challenges, exercises, and assistant 
 
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.core.logging_config import get_logger
 from app.utils import ai_workload_keys as _ai_workload_keys
@@ -38,15 +38,21 @@ class GenerationMetrics:
         auto_corrected: bool = False,
         duration_seconds: float = 0.0,
         error_type: Optional[str] = None,
+        generation_status: Optional[str] = None,
     ):
-        """Record one generation attempt in runtime metrics."""
-        record = {
+        """Record one generation attempt in runtime metrics.
+
+        ``generation_status`` (défis) : statut d'orchestration une fois le pipeline
+        validation / réparation résolu. Optionnel pour rétrocompatibilité (exercices, chat).
+        """
+        record: Dict[str, Any] = {
             "timestamp": datetime.now(),
             "success": success,
             "validation_passed": validation_passed,
             "auto_corrected": auto_corrected,
             "duration": duration_seconds,
             "error_type": error_type,
+            "generation_status": generation_status,
         }
 
         self._generation_history[challenge_type].append(record)
@@ -132,6 +138,9 @@ class GenerationMetrics:
             "validation_failure_rate": self.get_validation_failure_rate(days=days),
             "auto_correction_rate": self.get_auto_correction_rate(days=days),
             "average_duration": self.get_average_duration(days=days),
+            "generation_status_counts": self._get_generation_status_counts(
+                days, challenge_type=None
+            ),
             "by_type": self._get_summary_by_type(days),
             "by_workload": self._get_summary_by_workload(days),
             "error_types": self._get_error_type_counts(days),
@@ -155,6 +164,9 @@ class GenerationMetrics:
                 "auto_correction_rate": self.get_auto_correction_rate(metric_key, days),
                 "average_duration": self.get_average_duration(metric_key, days),
                 "total_generations": len(self._records_in_window(metric_key, days)),
+                "generation_status_counts": self._get_generation_status_counts(
+                    days, challenge_type=metric_key
+                ),
             }
 
         return summary_by_type
@@ -216,6 +228,19 @@ class GenerationMetrics:
             }
 
         return final_summary
+
+    def _get_generation_status_counts(
+        self, days: int, challenge_type: Optional[str] = None
+    ) -> Dict[str, int]:
+        """Décompte des statuts d'orchestration défis (champ optionnel sur les enregistrements)."""
+        records = self._records_in_window(challenge_type, days)
+        counts: Dict[str, int] = {}
+        for record in records:
+            status = record.get("generation_status")
+            if not status:
+                continue
+            counts[status] = counts.get(status, 0) + 1
+        return counts
 
     def _get_error_type_counts(self, days: int) -> Dict[str, int]:
         """Return runtime errors grouped by error_type."""

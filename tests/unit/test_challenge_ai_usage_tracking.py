@@ -10,7 +10,10 @@ import pytest
 
 from app.core.ai_config import AIConfig
 from app.core.config import settings
-from app.services.challenges.challenge_ai_service import generate_challenge_stream
+from app.services.challenges.challenge_ai_service import (
+    CHALLENGE_GENERATION_STATUS_REJECTED,
+    generate_challenge_stream,
+)
 
 
 def _build_stream_chunk(
@@ -54,6 +57,7 @@ async def test_validation_hard_stop_still_tracks_primary_usage() -> None:
     )
     track_calls: list[dict[str, Any]] = []
     events: list[str] = []
+    record_gen = MagicMock()
 
     with (
         patch.object(settings, "OPENAI_API_KEY", "sk-test-challenge-usage"),
@@ -84,6 +88,10 @@ async def test_validation_hard_stop_still_tracks_primary_usage() -> None:
             "app.services.challenges.challenge_ai_service.token_tracker.track_usage",
             side_effect=lambda **kwargs: track_calls.append(kwargs) or kwargs,
         ),
+        patch(
+            "app.services.challenges.challenge_ai_service.generation_metrics.record_generation",
+            record_gen,
+        ),
     ):
         async for line in generate_challenge_stream(
             challenge_type="sequence",
@@ -103,6 +111,11 @@ async def test_validation_hard_stop_still_tracks_primary_usage() -> None:
     assert track_calls[0]["model"] == "gpt-4o-mini"
     assert track_calls[0]["prompt_tokens"] > 0
     assert track_calls[0]["completion_tokens"] > 0
+
+    assert record_gen.call_count == 1
+    assert record_gen.call_args.kwargs["generation_status"] == (
+        CHALLENGE_GENERATION_STATUS_REJECTED
+    )
 
 
 @pytest.mark.asyncio

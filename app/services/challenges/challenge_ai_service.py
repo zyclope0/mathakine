@@ -6,7 +6,7 @@ Extrait la logique de gÃ©nÃ©ration streaming depuis challenge_handlers.
 import json
 import traceback
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Literal, Optional
 
 from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
 from tenacity import (
@@ -75,6 +75,33 @@ _OPENAI_INVALID_JSON_MARKERS = (
     "Model JSON is invalid",
     "check the stop reason",
 )
+
+# Statuts d'orchestration une fois validation / réparation résolus (Phase 1A).
+ChallengePipelineGenerationStatus = Literal[
+    "accepted", "repaired", "repaired_by_ai", "rejected"
+]
+CHALLENGE_GENERATION_STATUS_ACCEPTED: ChallengePipelineGenerationStatus = "accepted"
+CHALLENGE_GENERATION_STATUS_REPAIRED: ChallengePipelineGenerationStatus = "repaired"
+CHALLENGE_GENERATION_STATUS_REPAIRED_BY_AI: ChallengePipelineGenerationStatus = (
+    "repaired_by_ai"
+)
+CHALLENGE_GENERATION_STATUS_REJECTED: ChallengePipelineGenerationStatus = "rejected"
+
+
+def _resolve_challenge_pipeline_generation_status(
+    *,
+    validation_passed: bool,
+    auto_corrected: bool,
+    chess_repair_succeeded: bool,
+) -> ChallengePipelineGenerationStatus:
+    """A appeler lorsque le pipeline a tranché (validation OK ou rejet final)."""
+    if not validation_passed:
+        return CHALLENGE_GENERATION_STATUS_REJECTED
+    if chess_repair_succeeded:
+        return CHALLENGE_GENERATION_STATUS_REPAIRED_BY_AI
+    if auto_corrected:
+        return CHALLENGE_GENERATION_STATUS_REPAIRED
+    return CHALLENGE_GENERATION_STATUS_ACCEPTED
 
 
 def _extract_complete_challenge_json(full_response: str) -> Dict[str, Any]:
@@ -419,6 +446,7 @@ async def generate_challenge_stream(
     start_time = datetime.now()
     validation_passed = True
     auto_corrected = False
+    chess_repair_succeeded = False
     usage_events_tracked = False
 
     try:
@@ -428,6 +456,7 @@ async def generate_challenge_stream(
             error_type: str,
             validation_ok: bool = False,
             auto_corrected_flag: bool = False,
+            generation_status: Optional[ChallengePipelineGenerationStatus] = None,
         ) -> None:
             duration = (datetime.now() - start_time).total_seconds()
             generation_metrics.record_generation(
@@ -437,6 +466,7 @@ async def generate_challenge_stream(
                 auto_corrected=auto_corrected_flag,
                 duration_seconds=duration,
                 error_type=error_type,
+                generation_status=generation_status,
             )
 
         try:
@@ -868,6 +898,7 @@ async def generate_challenge_stream(
                         logger.info("Réparation IA CHESS réussie")
                         challenge_data = repaired_challenge
                         auto_corrected = True
+                        chess_repair_succeeded = True
                         validation_passed = True
                     else:
                         remaining_errors = repair_errors
@@ -877,8 +908,19 @@ async def generate_challenge_stream(
                     "Correction automatique impossible. Erreurs restantes: {}",
                     remaining_errors,
                 )
+                logger.info(
+                    "Challenge pipeline resolved: status=%s, type=%s, "
+                    "validation_passed=%s, auto_corrected=%s",
+                    CHALLENGE_GENERATION_STATUS_REJECTED,
+                    challenge_type,
+                    validation_passed,
+                    auto_corrected,
+                )
                 _record_generation_failure(
-                    error_type="validation_failed_after_autocorrect"
+                    error_type="validation_failed_after_autocorrect",
+                    validation_ok=validation_passed,
+                    auto_corrected_flag=auto_corrected,
+                    generation_status=CHALLENGE_GENERATION_STATUS_REJECTED,
                 )
                 errors_str = ", ".join(remaining_errors[:5])
                 yield sse_error_message(
@@ -890,6 +932,20 @@ async def generate_challenge_stream(
         else:
             logger.debug("Challenge validÃ© avec succÃ¨s")
             validation_passed = True
+
+        pipeline_generation_status = _resolve_challenge_pipeline_generation_status(
+            validation_passed=validation_passed,
+            auto_corrected=auto_corrected,
+            chess_repair_succeeded=chess_repair_succeeded,
+        )
+        logger.info(
+            "Challenge pipeline resolved: status=%s, type=%s, "
+            "validation_passed=%s, auto_corrected=%s",
+            pipeline_generation_status,
+            challenge_type,
+            validation_passed,
+            auto_corrected,
+        )
 
         normalized_challenge = challenge_data
 
@@ -915,6 +971,7 @@ async def generate_challenge_stream(
                     validation_passed=validation_passed,
                     auto_corrected=auto_corrected,
                     duration_seconds=duration,
+                    generation_status=pipeline_generation_status,
                 )
 
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': challenge_dict})}\n\n"
@@ -924,6 +981,7 @@ async def generate_challenge_stream(
                     error_type="challenge_persistence_missing_id",
                     validation_ok=validation_passed,
                     auto_corrected_flag=auto_corrected,
+                    generation_status=pipeline_generation_status,
                 )
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
         except Exception as db_error:
@@ -933,6 +991,7 @@ async def generate_challenge_stream(
                 error_type="challenge_persistence_error",
                 validation_ok=validation_passed,
                 auto_corrected_flag=auto_corrected,
+                generation_status=pipeline_generation_status,
             )
             if normalized_challenge.get("title"):
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
@@ -953,6 +1012,7 @@ async def generate_challenge_stream(
             validation_passed=False,
             duration_seconds=duration,
             error_type=type(gen_error).__name__,
+            generation_status=None,
         )
         yield sse_error_message(
             get_safe_error_message(

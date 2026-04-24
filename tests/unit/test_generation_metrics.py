@@ -35,6 +35,43 @@ class TestGenerationMetricsSummary:
         assert summary["error_types"]["RateLimitError"] == 1
         assert "retention" in summary
         assert "metrics_disclaimer_fr" in summary
+        assert summary.get("generation_status_counts") == {}
+
+    def test_summary_generation_status_counts_global_and_by_type(self):
+        metrics = GenerationMetrics()
+        metrics.record_generation(
+            "puzzle",
+            success=True,
+            validation_passed=True,
+            auto_corrected=False,
+            duration_seconds=1.0,
+            generation_status="accepted",
+        )
+        metrics.record_generation(
+            "puzzle",
+            success=False,
+            validation_passed=False,
+            duration_seconds=0.5,
+            error_type="x",
+            generation_status="rejected",
+        )
+        metrics.record_generation(
+            "exercise_ai:addition",
+            success=True,
+            validation_passed=True,
+            duration_seconds=1.0,
+        )
+
+        summary = metrics.get_summary(days=1)
+        assert summary["generation_status_counts"] == {"accepted": 1, "rejected": 1}
+        by_type = summary["by_type"]
+        assert "puzzle" in by_type
+        assert by_type["puzzle"]["generation_status_counts"] == {
+            "accepted": 1,
+            "rejected": 1,
+        }
+        assert "total_generations" in by_type["puzzle"]
+        assert "success_rate" in by_type["puzzle"]
 
     def test_unknown_key_in_unknown_workload(self):
         metrics = GenerationMetrics()
