@@ -40,6 +40,8 @@ Active references:
 
 ## [Unreleased]
 
+## [3.6.0-beta.4] - 2026-04-24
+
 ### Changed
 
 - Exercise and challenge AI generation now default to `o4-mini` instead of `o3`, with `o4-mini` routed through the existing o-series reasoning kwargs and `gpt-4.1*` reserved as explicit override-only models.
@@ -48,6 +50,7 @@ Active references:
 - Challenge renderers now use a unified item-label contract for object-based `visual_data`, so learner-facing text stays readable instead of leaking raw Python dict / JSON / `[object Object]` representations.
 - Puzzle challenges now separate stable ordering keys from learner-facing labels, preserving both backend answer matching and frontend solvability for structured pieces.
 - Challenge difficulty calibration now caps explicit magic-square riddles and coding titles that leak their theme clue, preventing visibly overrated challenges.
+- Challenge runtime metrics now record an explicit pipeline `generation_status` (`accepted`, `repaired`, `repaired_by_ai`, `rejected`) so validation outcomes and persistence failures can be separated cleanly in admin telemetry.
 
 ### Fixed
 
@@ -58,6 +61,10 @@ Active references:
 - Puzzle validation now reads stable `id` / `piece_id` keys when present, aligning backend validation with the frontend ordering key used during drag-and-drop solving.
 - Challenge renderers now resolve object-backed labels through a shared fallback contract, preventing raw object leaks in coding, deduction, probability, puzzle, riddle, sequence, and visual views.
 - Challenge generation now uses a type-aware `o-series` reasoning budget policy and logs `finish_reason` / observed token usage so truncated JSON can be diagnosed as a budget issue instead of a logic issue.
+
+### Documentation
+
+- The challenge generation solidification plan was refreshed to reflect the real post-`o4-mini` state, including what is already landed, what remains partial, and the new not-started `json_schema` structured-outputs lot.
 
 ## [3.6.0-beta.3] - 2026-04-20
 
