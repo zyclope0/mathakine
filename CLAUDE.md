@@ -108,7 +108,7 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 - Langue de la doc projet : francais
 - Pas de `os.getenv()` direct - utiliser `settings.X` (Pydantic-validated)
 - Filtres SQLAlchemy : `.is_(True)` / `.is_(False)` (pas `== True`)
-- Logging : `logger.error("msg %s", var)` (pas f-string)
+- Logging : `logger.error("msg {}", var)` (pas f-string ; loguru utilise `{}` pas `%s`)
 - Pas de nouvelle copie Star Wars/Jedi dans les nouveaux textes UI, prompts, tags ou commentaires metier ; preferer spatial neutre sauf compat legacy explicitement documentee
 - Tout nouveau backlog produit -> `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
 - Toute note historique fermee doit quitter le flux actif et aller en archive canonique
