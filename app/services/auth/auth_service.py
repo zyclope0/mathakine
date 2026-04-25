@@ -140,28 +140,28 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         Instance de User si l'authentification réussit, None sinon
     """
     logger.debug(
-        "Tentative d'authentification user_alias=%s",
+        "Tentative d'authentification user_alias={}",
         _mask_username_for_logs(username),
     )
 
     user = get_user_by_username(db, username)
     if not user:
         logger.warning(
-            "Utilisateur non trouvé user_alias=%s",
+            "Utilisateur non trouvé user_alias={}",
             _mask_username_for_logs(username),
         )
         return None
 
     if not user.is_active:
         logger.warning(
-            "Compte désactivé user_id=%s user_alias=%s",
+            "Compte désactivé user_id={} user_alias={}",
             user.id,
             _mask_username_for_logs(username),
         )
         return None
 
     logger.debug(
-        "Utilisateur trouvé user_id=%s user_alias=%s",
+        "Utilisateur trouvé user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(username),
     )
@@ -172,14 +172,14 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 
         if not is_valid:
             logger.warning(
-                "Mot de passe incorrect user_id=%s user_alias=%s",
+                "Mot de passe incorrect user_id={} user_alias={}",
                 user.id,
                 _mask_username_for_logs(username),
             )
             return None
 
         logger.info(
-            "Authentification réussie user_id=%s user_alias=%s",
+            "Authentification réussie user_id={} user_alias={}",
             user.id,
             _mask_username_for_logs(username),
         )
@@ -203,7 +203,7 @@ def create_user(
     """
     if get_user_by_username(db, user_in.username):
         logger.warning(
-            "Tentative de création avec nom déjà utilisé user_alias=%s",
+            "Tentative de création avec nom déjà utilisé user_alias={}",
             _mask_username_for_logs(user_in.username),
         )
         return CreateUserResult(
@@ -214,7 +214,7 @@ def create_user(
 
     if get_user_by_email(db, user_in.email):
         logger.warning(
-            "Tentative de création avec email déjà utilisé email_alias=%s",
+            "Tentative de création avec email déjà utilisé email_alias={}",
             _mask_email_for_logs(user_in.email),
         )
         return CreateUserResult(
@@ -251,7 +251,7 @@ def create_user(
     db.refresh(user)
 
     logger.info(
-        "Nouvel utilisateur créé user_id=%s user_alias=%s",
+        "Nouvel utilisateur créé user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -297,20 +297,20 @@ def create_user_token(user: User) -> TokenResponse:
     # Vérifier que le refresh_token est bien créé
     if not refresh_token:
         logger.error(
-            "ERREUR: refresh_token non créé user_id=%s user_alias=%s",
+            "ERREUR: refresh_token non créé user_id={} user_alias={}",
             user.id,
             _mask_username_for_logs(user.username),
         )
     else:
         logger.debug(
-            "Refresh token créé (longueur: %s) user_id=%s user_alias=%s",
+            "Refresh token créé (longueur: {}) user_id={} user_alias={}",
             len(refresh_token),
             user.id,
             _mask_username_for_logs(user.username),
         )
 
     logger.info(
-        "Tokens créés user_id=%s user_alias=%s",
+        "Tokens créés user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -380,7 +380,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
         user = get_user_by_username(db, username)
         if not user:
             logger.warning(
-                "Tentative de rafraîchissement pour un utilisateur inexistant user_alias=%s",
+                "Tentative de rafraîchissement pour un utilisateur inexistant user_alias={}",
                 _mask_username_for_logs(str(username)),
             )
             return RefreshTokenResult(
@@ -391,7 +391,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
 
         if not user.is_active:
             logger.warning(
-                "Tentative de rafraîchissement pour un utilisateur inactif user_id=%s user_alias=%s",
+                "Tentative de rafraîchissement pour un utilisateur inactif user_id={} user_alias={}",
                 user.id,
                 _mask_username_for_logs(str(username)),
             )
@@ -403,7 +403,7 @@ def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
 
         if _is_token_revoked_by_password_reset(payload, user):
             logger.warning(
-                "Refresh token rejeté (révoqué par reset password) user_id=%s user_alias=%s",
+                "Refresh token rejeté (révoqué par reset password) user_id={} user_alias={}",
                 user.id,
                 _mask_username_for_logs(str(username)),
             )
@@ -465,7 +465,7 @@ def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
     db.refresh(user)
 
     logger.info(
-        "Utilisateur mis à jour user_id=%s user_alias=%s",
+        "Utilisateur mis à jour user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -488,7 +488,7 @@ def update_user_password(
     """
     if not verify_password(current_password, user.hashed_password):
         logger.warning(
-            "Tentative de changement de mot de passe avec mot de passe actuel incorrect user_id=%s user_alias=%s",
+            "Tentative de changement de mot de passe avec mot de passe actuel incorrect user_id={} user_alias={}",
             user.id,
             _mask_username_for_logs(user.username),
         )
@@ -504,7 +504,7 @@ def update_user_password(
     db.refresh(user)
 
     logger.info(
-        "Mot de passe mis à jour user_id=%s user_alias=%s",
+        "Mot de passe mis à jour user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -539,7 +539,7 @@ def verify_email_token(
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(
-        "Email vérifié user_id=%s user_alias=%s",
+        "Email vérifié user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -652,7 +652,7 @@ def reset_password_with_token(
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(
-        "Mot de passe réinitialisé user_id=%s user_alias=%s",
+        "Mot de passe réinitialisé user_id={} user_alias={}",
         user.id,
         _mask_username_for_logs(user.username),
     )
@@ -754,7 +754,7 @@ def recover_refresh_token_from_access_token(
         return None
     if age_seconds > max_age_seconds:
         logger.warning(
-            "Fallback refresh refusé: access_token expiré depuis plus de %s secondes",
+            "Fallback refresh refusé: access_token expiré depuis plus de {} secondes",
             max_age_seconds,
         )
         return None
@@ -762,14 +762,14 @@ def recover_refresh_token_from_access_token(
     user = get_user_by_username(db, username)
     if not user or not user.is_active:
         logger.warning(
-            "Fallback refresh refusé: utilisateur introuvable ou inactif user_alias=%s",
+            "Fallback refresh refusé: utilisateur introuvable ou inactif user_alias={}",
             _mask_username_for_logs(str(username)),
         )
         return None
 
     if _is_token_revoked_by_password_reset(payload, user):
         logger.warning(
-            "Fallback refresh refusé: access_token révoqué par reset password user_id=%s user_alias=%s",
+            "Fallback refresh refusé: access_token révoqué par reset password user_id={} user_alias={}",
             user.id,
             _mask_username_for_logs(str(username)),
         )
