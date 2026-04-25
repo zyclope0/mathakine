@@ -1005,6 +1005,37 @@ async def generate_challenge_stream(
             repair_for_log,
         )
 
+        # --- generation_confidence (log-only, beta phase) ---
+        _calibration = (
+            challenge_data.get("difficulty_calibration", {})
+            if isinstance(challenge_data, dict)
+            else {}
+        )
+        _difficulty_clamped = bool(
+            _calibration.get("caps_applied") or _calibration.get("floors_applied")
+        )
+        _confidence = 1.0
+        if chess_repair_succeeded:
+            _confidence -= 0.3
+        if auto_corrected and not chess_repair_succeeded:
+            _confidence -= 0.1
+        if _difficulty_clamped:
+            _confidence -= 0.2
+        if validation_passed and not auto_corrected:
+            _confidence += 0.1
+        _confidence = round(max(0.0, min(1.0, _confidence)), 2)
+        logger.info(
+            "Challenge generation_confidence: type={}, status={}, confidence={}, "
+            "chess_repair={}, auto_corrected={}, difficulty_clamped={}",
+            challenge_type,
+            pipeline_generation_status,
+            _confidence,
+            chess_repair_succeeded,
+            auto_corrected,
+            _difficulty_clamped,
+        )
+        # --- fin generation_confidence ---
+
         normalized_challenge = challenge_data
 
         try:
