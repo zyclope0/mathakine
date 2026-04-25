@@ -135,6 +135,25 @@ class GenerationMetrics:
         total_duration = sum(r["duration"] for r in records)
         return total_duration / len(records)
 
+    def _get_latency_percentiles(
+        self, challenge_type: Optional[str] = None, days: int = 1
+    ) -> Dict[str, float]:
+        """P50 et P95 de latence en ms sur les générations réussies de la fenêtre."""
+        records = self._records_in_window(challenge_type, days, success_only=True)
+        durations_ms = sorted(r["duration"] * 1000 for r in records)
+        if not durations_ms:
+            return {"p50_ms": 0.0, "p95_ms": 0.0}
+
+        def _percentile(data: list, p: float) -> float:
+            k = (len(data) - 1) * p / 100
+            lo, hi = int(k), min(int(k) + 1, len(data) - 1)
+            return data[lo] + (data[hi] - data[lo]) * (k - lo)
+
+        return {
+            "p50_ms": round(_percentile(durations_ms, 50), 1),
+            "p95_ms": round(_percentile(durations_ms, 95), 1),
+        }
+
     def get_summary(self, days: int = 1) -> Dict:
         """Return full runtime summary for admin read-only."""
         return {
@@ -142,6 +161,7 @@ class GenerationMetrics:
             "validation_failure_rate": self.get_validation_failure_rate(days=days),
             "auto_correction_rate": self.get_auto_correction_rate(days=days),
             "average_duration": self.get_average_duration(days=days),
+            "latency": self._get_latency_percentiles(days=days),
             "error_code_counts": self._get_error_code_counts(days, challenge_type=None),
             "generation_status_counts": self._get_generation_status_counts(
                 days, challenge_type=None
@@ -168,6 +188,7 @@ class GenerationMetrics:
                 ),
                 "auto_correction_rate": self.get_auto_correction_rate(metric_key, days),
                 "average_duration": self.get_average_duration(metric_key, days),
+                "latency": self._get_latency_percentiles(metric_key, days),
                 "total_generations": len(self._records_in_window(metric_key, days)),
                 "error_code_counts": self._get_error_code_counts(
                     days, challenge_type=metric_key

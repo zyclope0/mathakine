@@ -114,3 +114,30 @@ class TestGenerationMetricsSummary:
         assert s["error_code_counts"] == {"a": 1, "b": 1}
         assert s["by_type"]["puzzle"]["error_code_counts"] == {"a": 1, "b": 1}
         assert s["by_type"]["riddle"]["error_code_counts"] == {}
+
+    def test_latency_percentiles_in_summary(self):
+        metrics = GenerationMetrics()
+        # 10 records avec des durées connues pour valider P50/P95
+        durations = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        for d in durations:
+            metrics.record_generation(
+                "deduction",
+                success=True,
+                validation_passed=True,
+                duration_seconds=d,
+            )
+
+        summary = metrics.get_summary(days=1)
+        assert "latency" in summary
+        latency = summary["latency"]
+        assert "p50_ms" in latency
+        assert "p95_ms" in latency
+        # P50 sur 10 valeurs triées : interpolation entre index 4 et 5 (500ms et 600ms)
+        assert 540.0 <= latency["p50_ms"] <= 560.0
+        # P95 sur 10 valeurs : proche de 950ms
+        assert 940.0 <= latency["p95_ms"] <= 960.0
+
+    def test_latency_percentiles_empty(self):
+        metrics = GenerationMetrics()
+        summary = metrics.get_summary(days=1)
+        assert summary["latency"] == {"p50_ms": 0.0, "p95_ms": 0.0}
