@@ -4,7 +4,7 @@
 **Contexte :** Post-lot beta.3, puis correctifs successifs de solidification sur la generation, la validation et les contrats backend/frontend
 **Contrainte :** Sans refonte totale, solo founder, 1-3 mois
 
-**Note de revision :** Ce plan est relu apres la migration `o3 -> o4-mini`, le durcissement du flux SSE defis, plusieurs correctifs du solveur deduction et l'alignement puzzle backend/frontend sur des cles d'ordre stables.
+**Note de revision :** Ce plan est relu apres la migration `o3 -> o4-mini`, le durcissement du flux SSE defis, plusieurs correctifs du solveur deduction, l'alignement puzzle backend/frontend sur des cles d'ordre stables, puis les lots Phase 1A/1B d'observabilite runtime.
 
 ---
 
@@ -21,8 +21,11 @@ atterri dans le code :
 - persistance du `difficulty_tier` runtime
 - suppression du double passage generique d'auto-correction
 - flush du tracking tokens sur erreur fallback
+- fallback o-series vide traite comme echec explicite, sans faux `record_success()` et avec liberation du circuit breaker half-open
 - solveur deduction etendu (same-row naturel, ordering cross-secondary, negations directionnelles)
 - validation puzzle alignee sur des cles stables `id` / `piece_id`
+- statuts pipeline runtime (`accepted`, `repaired`, `repaired_by_ai`, `rejected`)
+- codes d'erreur de validation stabilises et agreges en metriques runtime
 
 Le plan doit donc maintenant distinguer clairement :
 - ce qui est deja fait
@@ -55,7 +58,19 @@ Points unanimes :
 - **Hardening du flux defis** :
   fallback o-series mieux borne, tracking d'usage conserve meme si le fallback
   echoue, une seule passe generique d'auto-correction, persistance coherente
-  du `difficulty_tier`.
+  du `difficulty_tier`. Le cas fallback sans contenu est maintenant un echec
+  explicite `fallback_empty_response` et libere le circuit breaker si l'appel
+  etait une sonde `HALF_OPEN`.
+- **Phase 1A observabilite pipeline** : realisee.
+  Les generations de defis portent un `generation_status` runtime :
+  `accepted`, `repaired`, `repaired_by_ai` ou `rejected`. Ces statuts sont
+  exposes dans `generation_metrics.get_summary()` via `generation_status_counts`
+  global et par type.
+- **Phase 1B codes d'erreur structures** : realisee.
+  Les erreurs de validation sont mappees vers des codes stables dans
+  `challenge_validation_error_codes.py`, en observabilite seulement. Les codes
+  sont dedupliques, comptes dans `error_code_counts`, et loggues au niveau
+  orchestration avec le statut pipeline et le type de repair.
 - **Contrats backend/frontend** :
   la validation puzzle s'aligne desormais sur des cles d'ordre stables
   (`id` / `piece_id`) tout en conservant les labels visibles pour les explications.
@@ -67,20 +82,23 @@ Points unanimes :
 ### Partiellement fait
 
 - **Solidification validator/solver** :
-  plusieurs gaps critiques ont ete fermes, mais l'observabilite structuree,
-  le `generation_confidence`, les golden tests et le shadow mode restent a faire.
+  plusieurs gaps critiques ont ete fermes et l'observabilite Phase 1 existe.
+  Le `generation_confidence`, les golden tests, les tests de perf deduction et
+  le shadow mode restent a faire.
 - **Repair chess** :
-  la logique existe et reste pertinente, mais les metriques de declenchement /
-  succes prevues par le plan ne sont pas encore en place.
+  la logique existe et les succes apparaissent indirectement via
+  `generation_status=repaired_by_ai`. Il manque encore des compteurs explicites
+  de tentative / echec / succes par type pour calculer un vrai `repair_success_rate`.
 
 ### Pas fait
 
 - **Structured Outputs stricts OpenAI (`json_schema`)** :
   les defis utilisent encore `response_format={"type": "json_object"}` ;
   aucune migration globale vers `json_schema` strict n'est faite a ce stade.
-- **Observabilite Phase 1/2** :
-  pas encore de statut pipeline type global, ni de codes d'erreur normalises
-  exploites comme dashboard.
+- **Mesure Phase 2 complete** :
+  les bases runtime existent, mais il manque encore les ratios derives
+  `repair_success_rate`, `fallback_rate`, les percentiles de latence et une
+  surface dashboard exploitable.
 - **Architecture legere Phase 4** :
   pas encore de `ValidatorResult` type ni de dispatch generique des repair handlers.
 
@@ -152,10 +170,11 @@ Raison :
 ### Phase 1 - Semaine 1-2 : Filets de securite immediats
 
 #### 1A. Statuts pipeline structures
+**Statut : realise**
 **Fichier :** `app/services/challenges/challenge_ai_service.py`  
 **Fonction :** `generate_challenge_stream()`
 
-Introduire un statut interne explicite apres validation :
+Un statut interne explicite est maintenant defini apres validation :
 ```python
 # Valeurs possibles
 GENERATION_STATUS = Literal[
@@ -163,7 +182,6 @@ GENERATION_STATUS = Literal[
     "repaired",
     "repaired_by_ai",
     "rejected",
-    "fallback_served",
 ]
 ```
 
@@ -171,51 +189,67 @@ GENERATION_STATUS = Literal[
 - `repaired` : auto_correct_challenge() a corrige + validation pass
 - `repaired_by_ai` : repair OpenAI chess declenche + validation pass
 - `rejected` : echec apres toutes les tentatives -> SSE propre "defi indisponible"
-- `fallback_served` : defi pre-valide servi depuis cache (future)
+- `fallback_served` : non implemente ; a reserver a un futur cache de defis prevalides
 
-Un defi `rejected` ne part **jamais** au frontend silencieusement.
+Un defi `rejected` ne part **jamais** au frontend silencieusement. Les statuts
+sont enregistres dans `generation_metrics.record_generation()` et exposes via
+`generation_status_counts`.
 
 #### 1B. Codes d'erreur structures, logs au niveau orchestration
-**Fichiers :** `app/services/challenges/challenge_validator.py`,
-`app/services/challenges/challenge_ai_service.py`  
-**Principe :** les validateurs produisent des codes stables ; le service de generation loggue
-une seule fois par tentative pour eviter le bruit et garder les validateurs proches de fonctions pures.
+**Statut : realise**
+**Fichiers :** `app/services/challenges/challenge_validation_error_codes.py`,
+`app/services/challenges/challenge_ai_service.py`, `app/utils/generation_metrics.py`
+**Principe realise :** les validateurs gardent leur contrat historique
+`list[str]`. Une couche d'observabilite centralisee transforme ces messages en
+codes stables sans modifier les regles metier.
 
 ```python
 logger.info(
-    "[ChallengeGeneration] status={} type={} error_codes={} repair={} latency_ms={}",
-    status, challenge_type, error_codes, repair_kind, latency_ms
+    "Challenge pipeline resolved: status={}, type={}, validation_passed={}, "
+    "auto_corrected={}, error_codes={}, repair={}",
+    status, challenge_type, validation_passed, auto_corrected, error_codes, repair_kind
 )
 ```
 
-Codes d'erreur normalises par type :
-- `malformed_choices` / `duplicate_choices` / `missing_correct_answer`
-- `inconsistent_graph_nodes` / `graph_edge_out_of_bounds`
-- `chess_king_in_check` / `chess_board_malformed`
-- `probability_sum_not_one` / `probability_equivalent_choices`
-- `deduction_no_unique_solution` / `deduction_constraint_parse_failed`
+Codes d'erreur normalises couverts :
+- `malformed_choices`, `duplicate_choices`, `missing_correct_answer`,
+  `missing_solution_explanation`
+- `missing_visual_data`, `visual_data_malformed`
+- `graph_nodes_missing`, `graph_edge_out_of_bounds`, `graph_answer_inconsistent`
+- `chess_king_in_check`, `chess_board_malformed`, `chess_invalid_piece`,
+  `chess_missing_kings`
+- `probability_sum_not_one`, `probability_equivalent_choices`,
+  `probability_answer_inconsistent`
+- `deduction_no_unique_solution`, `deduction_no_solution`,
+  `deduction_constraint_parse_failed`, `deduction_answer_mismatch`
+- `pattern_unverifiable`, `pattern_answer_inconsistent`,
+  `sequence_answer_inconsistent`
+- `puzzle_missing_clues`, `puzzle_answer_inconsistent`,
+  `coding_answer_inconsistent`
+- `validation_unknown`
 
-Objectif : dashboard "top 10 erreurs par type" en lisant les logs.
+Les compteurs `error_code_counts` sont disponibles globalement et par type dans
+`generation_metrics.get_summary()`. Le dashboard "top 10 erreurs par type" reste
+a construire cote lecture/admin, mais les donnees runtime existent.
 
 ---
 
 ### Phase 2 - Semaine 3-4 : Mesure
 
 #### 2A. Metriques par type de defi
-**Fichier :** `app/utils/generation_metrics.py` (existant) + extension
+**Statut : TERMINE (sprint beta stabilisation 2026-04-25)**
+**Fichier :** `app/utils/generation_metrics.py`
 
-Ajouter par `challenge_type` :
-- `validation_failure_rate` (%)
-- `repair_success_rate` (%)
-- `chess_repair_triggered` (count)
-- `chess_repair_succeeded` (count)
-- `generation_latency_ms` (P50/P95)
-- `fallback_rate` (%)
-
-Si `chess_repair_triggered / total_chess > 20%` -> signal que le prompt chess doit etre revu,
-pas que le repair doit etre etendu.
+Livre :
+- `repair_success_rate` (repaired_by_ai / total_repaired * 100)
+- `chess_repair_attempted / succeeded / failed` (compteurs explicites via `record_chess_repair()`)
+  - Note : le cas `repaired_challenge is None` sans exception est maintenant aussi compte comme echec (commit 48fb8bf)
+- `latency.p50_ms / p95_ms` (interpolation lineaire sur generaions reussies)
+- `fallback_rate` (%) + `fallback_causes` dict + `fallback_count`
+- `fallback_trigger_reason` instrumente dans `challenge_ai_service.py`
 
 #### 2B. Score de confiance generation (log d'abord, DB ensuite)
+**Statut : TERMINE log-only (sprint beta stabilisation 2026-04-25)**
 **Fichier :** `app/services/challenges/challenge_ai_service.py`  
 **Fonction :** `normalize_generated_challenge()`
 
@@ -228,6 +262,10 @@ Ajouter champ `generation_confidence` (0.0-1.0) calcule a la fin :
 Phase beta : logger ce score avec le statut pipeline, sans migration DB.  
 Phase post-beta : persister dans `challenges.generation_confidence` seulement si le score permet
 vraiment d'identifier les defis douteux dans les metriques Phase 2A.
+
+#### Prochaine action recommandee
+
+Phase 2A et 2B fermees. Prochaine etape : Phase 3 (golden tests, shadow mode deduction, perf solveur) ou ACTIF-04 (couverture frontend Vitest).
 
 ---
 
