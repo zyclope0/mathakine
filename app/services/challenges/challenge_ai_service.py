@@ -1072,3 +1072,4 @@ async def generate_challenge_stream(
                 default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
             )
         )
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
