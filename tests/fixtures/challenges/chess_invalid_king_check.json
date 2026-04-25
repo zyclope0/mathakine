@@ -1,0 +1,28 @@
+{
+  "challenge": {
+    "challenge_type": "CHESS",
+    "title": "Position illégale",
+    "description": "Le roi noir est en échec au départ.",
+    "correct_answer": "Rxh8",
+    "solution_explanation": "La tour capture le roi.",
+    "difficulty_rating": 1,
+    "visual_data": {
+      "board": [
+        [" ", " ", " ", " ", " ", " ", " ", "k"],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", "p", " ", " ", " ", " ", " ", " "],
+        ["K", " ", "R", " ", " ", " ", " ", "R"]
+      ],
+      "turn": "white",
+      "objective": "mat_en_1"
+    },
+    "choices": null,
+    "response_mode": "text"
+  },
+  "expected_valid": false,
+  "expected_error_codes": ["chess_king_in_check"]
+}

@@ -1,0 +1,25 @@
+{
+  "challenge": {
+    "challenge_type": "DEDUCTION",
+    "title": "Qui a quelle couleur ?",
+    "description": "Associe chaque personne à sa couleur.",
+    "correct_answer": "Alice:Rouge,Bob:Bleu",
+    "solution_explanation": "Alice a Rouge d'après le premier indice, Bob a donc Bleu.",
+    "difficulty_rating": 2,
+    "visual_data": {
+      "type": "logic_grid",
+      "entities": {
+        "Personnes": ["Alice", "Bob"],
+        "Couleurs": ["Rouge", "Bleu"]
+      },
+      "clues": [
+        "Alice a la même couleur que Rouge.",
+        "Bob a la même couleur que Bleu."
+      ]
+    },
+    "choices": null,
+    "response_mode": "text"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}

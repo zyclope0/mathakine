@@ -1,0 +1,28 @@
+{
+  "challenge": {
+    "challenge_type": "CHESS",
+    "title": "Mat en un coup",
+    "description": "Trouvez le meilleur coup pour les blancs.",
+    "correct_answer": "Ka2",
+    "solution_explanation": "Le roi avance en a2.",
+    "difficulty_rating": 1,
+    "visual_data": {
+      "board": [
+        [" ", " ", " ", " ", " ", " ", " ", "k"],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", "p", " ", " ", " ", " ", " ", " "],
+        ["K", " ", "R", " ", " ", " ", " ", " "]
+      ],
+      "turn": "white",
+      "objective": "meilleur_coup"
+    },
+    "choices": null,
+    "response_mode": "text"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}

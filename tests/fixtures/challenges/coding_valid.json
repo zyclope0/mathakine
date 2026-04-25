@@ -1,0 +1,19 @@
+{
+  "challenge": {
+    "challenge_type": "CODING",
+    "title": "Message chiffré",
+    "description": "Décrypte ce message utilisant un chiffrement de César.",
+    "correct_answer": "Hello",
+    "solution_explanation": "Chaque lettre est décalée d'un cran (I→H, f→e, m→l, m→l, p→o).",
+    "difficulty_rating": 2,
+    "visual_data": {
+      "type": "caesar",
+      "encoded_message": "Ifmmp",
+      "shift": 1
+    },
+    "choices": null,
+    "response_mode": "text"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}
