@@ -733,6 +733,13 @@ def recover_refresh_token_from_access_token(
         logger.debug("Fallback refresh refusé: access_token invalide")
         return None
 
+    # AUTH-FALLBACK-02: only accept access tokens — reject refresh tokens to
+    # prevent type-confusion bypass (a refresh token would otherwise mint new
+    # tokens without going through the standard refresh_access_token path).
+    if payload.get("type") != "access":
+        logger.warning("Fallback refresh refusé: type de token invalide (%s)", payload.get("type"))
+        return None
+
     exp = payload.get("exp")
     username = payload.get("sub")
     if exp is None or not username:
@@ -740,6 +747,11 @@ def recover_refresh_token_from_access_token(
         return None
 
     age_seconds = datetime.now(timezone.utc).timestamp() - exp
+    # Reject tokens that have not yet expired — they should use the normal
+    # auth flow, not the expired-access-token recovery path.
+    if age_seconds < 0:
+        logger.warning("Fallback refresh refusé: access_token pas encore expiré")
+        return None
     if age_seconds > max_age_seconds:
         logger.warning(
             "Fallback refresh refusé: access_token expiré depuis plus de {} secondes",

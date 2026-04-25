@@ -355,7 +355,7 @@ async def api_login(request: Request) -> JSONResponse:
             return data_or_err
         username = data_or_err["username"]
         password = data_or_err["password"]
-        logger.debug("Tentative de connexion pour l'utilisateur: %s", username)
+        logger.debug("Tentative de connexion pour un utilisateur")
 
         result = await run_db_bound(
             svc_perform_login,
@@ -366,14 +366,14 @@ async def api_login(request: Request) -> JSONResponse:
         )
 
         if not result.is_success:
-            logger.warning("Echec de connexion pour l'utilisateur: {}", username)
+            logger.warning("Echec de connexion pour un utilisateur")
             return api_error_response(
                 401, "Nom d'utilisateur ou mot de passe incorrect"
             )
 
         logger.info(
-            "Connexion reussie pour l'utilisateur: {}",
-            result.user_payload.get("username"),
+            "Connexion reussie user_id={}",
+            result.user_payload.get("id"),
         )
         return _build_login_response(result.user_payload, result.token_data)
 

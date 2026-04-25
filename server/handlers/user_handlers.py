@@ -480,7 +480,7 @@ async def delete_user_me(request: Request) -> JSONResponse:
 
         await run_db_bound(delete_user_account, user_id)
 
-        logger.info("Compte utilisateur supprimé : %s (ID: %s)", username, user_id)
+        logger.info("Compte utilisateur supprimé user_id=%s", user_id)
 
         response = JSONResponse(
             {"success": True, "message": "Votre compte a été supprimé avec succès."}

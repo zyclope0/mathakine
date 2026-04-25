@@ -810,6 +810,7 @@ def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user
 
 
 def test_recover_refresh_token_from_access_token_valid_user(db_session, mock_user):
+    """Non-expired access token is rejected — the fallback is for expired tokens only."""
     user_data = mock_user()
     user = adapted_dict_to_user(user_data, db_session)
     db_session.add(user)
@@ -817,10 +818,10 @@ def test_recover_refresh_token_from_access_token_valid_user(db_session, mock_use
 
     access_token = create_access_token({"sub": user.username})
 
+    # A still-valid (non-expired) access token must NOT yield a refresh token
+    # via the recovery path — the normal auth flow should be used instead.
     refresh_token = recover_refresh_token_from_access_token(db_session, access_token)
-
-    assert isinstance(refresh_token, str)
-    assert len(refresh_token) > 20
+    assert refresh_token is None
 
 
 def test_recover_refresh_token_from_access_token_expired_within_grace(
