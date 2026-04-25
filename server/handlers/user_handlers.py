@@ -476,7 +476,6 @@ async def delete_user_me(request: Request) -> JSONResponse:
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-        username = current_user.get("username")
 
         await run_db_bound(delete_user_account, user_id)
 
