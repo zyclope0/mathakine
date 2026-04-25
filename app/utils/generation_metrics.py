@@ -53,12 +53,14 @@ class GenerationMetrics:
         error_type: Optional[str] = None,
         generation_status: Optional[str] = None,
         error_codes: Optional[List[str]] = None,
+        fallback_trigger_reason: Optional[str] = None,
     ):
         """Record one generation attempt in runtime metrics.
 
         ``generation_status`` (défis) : statut d'orchestration une fois le pipeline
         validation / réparation résolu. Optionnel pour rétrocompatibilité (exercices, chat).
         ``error_codes`` : codes de validation stables (défis) ; optionnel ailleurs.
+        ``fallback_trigger_reason`` : cause du déclenchement fallback o-series (défis).
         """
         record: Dict[str, Any] = {
             "timestamp": datetime.now(),
@@ -71,6 +73,8 @@ class GenerationMetrics:
         }
         if error_codes is not None:
             record["error_codes"] = list(error_codes)
+        if fallback_trigger_reason is not None:
+            record["fallback_trigger_reason"] = fallback_trigger_reason
 
         self._generation_history[challenge_type].append(record)
         self._prune_metric_key_records(challenge_type)
@@ -176,6 +180,8 @@ class GenerationMetrics:
             "average_duration": self.get_average_duration(days=days),
             "latency": self._get_latency_percentiles(days=days),
             "chess_repair": self._get_chess_repair_stats(days),
+            "fallback_stats": self._get_fallback_stats(days),
+            "repair_success_rate": self._get_repair_success_rate(days),
             "error_code_counts": self._get_error_code_counts(days, challenge_type=None),
             "generation_status_counts": self._get_generation_status_counts(
                 days, challenge_type=None
@@ -326,6 +332,40 @@ class GenerationMetrics:
             "chess_repair_succeeded": succeeded,
             "chess_repair_failed": attempted - succeeded,
         }
+
+    def _get_fallback_stats(
+        self, days: int, challenge_type: Optional[str] = None
+    ) -> Dict:
+        """Taux et causes des déclenchements fallback o-series."""
+        records = self._records_in_window(challenge_type, days)
+        total = len(records)
+        fallback_records = [r for r in records if r.get("fallback_trigger_reason")]
+        fallback_count = len(fallback_records)
+        causes: Dict[str, int] = {}
+        for r in fallback_records:
+            cause = r["fallback_trigger_reason"]
+            causes[cause] = causes.get(cause, 0) + 1
+        return {
+            "fallback_rate": round((fallback_count / total * 100), 2) if total else 0.0,
+            "fallback_count": fallback_count,
+            "fallback_causes": causes,
+        }
+
+    def _get_repair_success_rate(
+        self, days: int, challenge_type: Optional[str] = None
+    ) -> float:
+        """% de défis réparés qui ont nécessité le repair IA chess (repaired_by_ai / total repaired)."""
+        records = self._records_in_window(challenge_type, days)
+        total_repaired = sum(
+            1 for r in records
+            if r.get("generation_status") in ("repaired", "repaired_by_ai")
+        )
+        repaired_by_ai = sum(
+            1 for r in records if r.get("generation_status") == "repaired_by_ai"
+        )
+        if total_repaired == 0:
+            return 0.0
+        return round(repaired_by_ai / total_repaired * 100, 1)
 
     def _prune_metric_key_records(self, metric_key: str) -> None:
         """Purge TTL + cap par clé (aligné token_tracker, IA12)."""

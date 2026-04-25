@@ -462,6 +462,7 @@ async def generate_challenge_stream(
             auto_corrected_flag: bool = False,
             generation_status: Optional[ChallengePipelineGenerationStatus] = None,
             error_codes: Optional[list[str]] = None,
+            fallback_trigger_reason: Optional[str] = None,
         ) -> None:
             duration = (datetime.now() - start_time).total_seconds()
             generation_metrics.record_generation(
@@ -473,6 +474,7 @@ async def generate_challenge_stream(
                 error_type=error_type,
                 generation_status=generation_status,
                 error_codes=error_codes,
+                fallback_trigger_reason=fallback_trigger_reason,
             )
 
         try:
@@ -771,6 +773,7 @@ async def generate_challenge_stream(
                     openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
                     _record_generation_failure(
                         error_type="fallback_empty_response",
+                        fallback_trigger_reason=fallback_trigger_reason,
                     )
                     yield sse_error_message(CHALLENGE_AI_GENERIC_ERROR_MESSAGE)
                     return
@@ -1027,6 +1030,7 @@ async def generate_challenge_stream(
                     auto_corrected=auto_corrected,
                     duration_seconds=duration,
                     generation_status=pipeline_generation_status,
+                    fallback_trigger_reason=fallback_trigger_reason or None,
                 )
 
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': challenge_dict})}\n\n"

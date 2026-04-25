@@ -143,6 +143,70 @@ class TestGenerationMetricsSummary:
         assert summary["latency"] == {"p50_ms": 0.0, "p95_ms": 0.0}
 
 
+class TestFallbackAndRepairMetrics:
+    def test_fallback_stats_in_summary(self):
+        metrics = GenerationMetrics()
+        metrics.record_generation(
+            "visual",
+            success=False,
+            validation_passed=False,
+            duration_seconds=0.5,
+            error_type="fallback_empty_response",
+            fallback_trigger_reason="empty_response",
+        )
+        metrics.record_generation(
+            "visual",
+            success=False,
+            validation_passed=False,
+            duration_seconds=0.8,
+            error_type="fallback_empty_response",
+            fallback_trigger_reason="length_truncation",
+        )
+        metrics.record_generation(
+            "visual",
+            success=True,
+            validation_passed=True,
+            duration_seconds=1.2,
+        )
+
+        summary = metrics.get_summary(days=1)
+        assert "fallback_stats" in summary
+        fs = summary["fallback_stats"]
+        assert fs["fallback_count"] == 2
+        assert abs(fs["fallback_rate"] - 66.67) < 0.1
+        assert fs["fallback_causes"]["empty_response"] == 1
+        assert fs["fallback_causes"]["length_truncation"] == 1
+
+    def test_repair_success_rate_in_summary(self):
+        metrics = GenerationMetrics()
+        metrics.record_generation(
+            "chess",
+            success=True,
+            validation_passed=True,
+            duration_seconds=1.0,
+            generation_status="repaired_by_ai",
+        )
+        metrics.record_generation(
+            "chess",
+            success=True,
+            validation_passed=True,
+            duration_seconds=0.9,
+            generation_status="repaired",
+        )
+        metrics.record_generation(
+            "chess",
+            success=True,
+            validation_passed=True,
+            duration_seconds=0.8,
+            generation_status="accepted",
+        )
+
+        summary = metrics.get_summary(days=1)
+        assert "repair_success_rate" in summary
+        # repaired_by_ai=1 / (repaired + repaired_by_ai)=2 → 50.0%
+        assert summary["repair_success_rate"] == 50.0
+
+
 class TestChessRepairMetrics:
     def test_chess_repair_counters_in_summary(self):
         metrics = GenerationMetrics()
