@@ -481,10 +481,12 @@ async def generate_challenge_stream(
             from openai import AsyncOpenAI
         except ImportError:
             yield sse_error_message("Bibliothèque OpenAI non installée")
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         if not settings.OPENAI_API_KEY:
             yield sse_error_message("OpenAI API key non configurée")
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         ai_params = AIConfig.get_openai_params(challenge_type)
@@ -515,6 +517,7 @@ async def generate_challenge_stream(
         if not openai_workload_circuit_breaker.check_allow():
             _record_generation_failure(error_type="openai_circuit_open")
             yield sse_error_message(OPENAI_CIRCUIT_OPEN_USER_MESSAGE)
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         yield sse_status_message("Génération en cours...")
@@ -566,6 +569,7 @@ async def generate_challenge_stream(
                     default=CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
                 )
             )
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
         except Exception as unexpected_error:
             if is_countable_openai_failure(unexpected_error):
@@ -581,6 +585,7 @@ async def generate_challenge_stream(
                     default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
                 )
             )
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         full_response = ""
@@ -667,6 +672,7 @@ async def generate_challenge_stream(
                     default=CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
                 )
             )
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
         except Exception as stream_other:
             if is_countable_openai_failure(stream_other):
@@ -680,6 +686,7 @@ async def generate_challenge_stream(
                     default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
                 )
             )
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         _queue_usage(
@@ -776,6 +783,7 @@ async def generate_challenge_stream(
                         fallback_trigger_reason=fallback_trigger_reason,
                     )
                     yield sse_error_message(CHALLENGE_AI_GENERIC_ERROR_MESSAGE)
+                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
                     return
             except Exception as fb_err:
                 if is_countable_openai_failure(fb_err):
@@ -788,6 +796,7 @@ async def generate_challenge_stream(
                             default=CHALLENGE_AI_TRANSIENT_ERROR_MESSAGE,
                         )
                     )
+                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
                     return
                 openai_workload_circuit_breaker.probe_finished_without_countable_outcome()
                 logger.error("Fallback Ã©chouÃ©: {}", fb_err)
@@ -798,6 +807,7 @@ async def generate_challenge_stream(
                         default=CHALLENGE_AI_GENERIC_ERROR_MESSAGE,
                     )
                 )
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 return
 
         openai_workload_circuit_breaker.record_success()
@@ -847,6 +857,7 @@ async def generate_challenge_stream(
                 )
             )
             yield sse_error_message("Erreur lors du parsing de la réponse JSON")
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         if not challenge_data.get("title") or not challenge_data.get("description"):
@@ -855,6 +866,7 @@ async def generate_challenge_stream(
             yield sse_error_message(
                 "Les données générées sont incomplètes (titre ou description manquant)"
             )
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         challenge_data["challenge_type"] = challenge_type
@@ -880,6 +892,7 @@ async def generate_challenge_stream(
             logger.error("Challenge normalisé invalide: {}", normalized_challenge)
             _record_generation_failure(error_type="normalized_challenge_invalid")
             yield sse_error_message("Erreur lors de la normalisation des données")
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
         prevalidated_challenge = auto_correct_challenge(normalized_challenge)
