@@ -4,9 +4,9 @@
 
 Visible product train:
 
-- `3.6.0-beta.2`
+- `3.6.0-beta.4`
 - source of truth: `CHANGELOG.md` + `frontend/package.json`
-- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.6.0b2`
+- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.6.0b4`
 
 ## Runtime Truth
 
