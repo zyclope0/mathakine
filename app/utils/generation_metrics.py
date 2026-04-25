@@ -29,6 +29,19 @@ class GenerationMetrics:
         self._auto_corrections: Dict[str, int] = defaultdict(int)
         self._success_count: Dict[str, int] = defaultdict(int)
         self._failure_count: Dict[str, int] = defaultdict(int)
+        self._chess_repair_events: List[Dict] = []  # {timestamp: datetime, succeeded: bool}
+
+    def record_chess_repair(self, succeeded: bool) -> None:
+        """Enregistre une tentative de réparation IA chess (tentative et résultat)."""
+        self._chess_repair_events.append(
+            {"timestamp": datetime.now(), "succeeded": succeeded}
+        )
+        cutoff = datetime.now() - timedelta(
+            days=_ai_workload_keys.RUNTIME_AI_METRICS_RETENTION_DAYS
+        )
+        self._chess_repair_events = [
+            e for e in self._chess_repair_events if e["timestamp"] > cutoff
+        ]
 
     def record_generation(
         self,
@@ -162,6 +175,7 @@ class GenerationMetrics:
             "auto_correction_rate": self.get_auto_correction_rate(days=days),
             "average_duration": self.get_average_duration(days=days),
             "latency": self._get_latency_percentiles(days=days),
+            "chess_repair": self._get_chess_repair_stats(days),
             "error_code_counts": self._get_error_code_counts(days, challenge_type=None),
             "generation_status_counts": self._get_generation_status_counts(
                 days, challenge_type=None
@@ -300,6 +314,18 @@ class GenerationMetrics:
             for code in codes:
                 counts[code] = counts.get(code, 0) + 1
         return counts
+
+    def _get_chess_repair_stats(self, days: int) -> Dict[str, int]:
+        """Compteurs de tentatives/succès/échecs du repair IA chess."""
+        cutoff = datetime.now() - timedelta(days=days)
+        events = [e for e in self._chess_repair_events if e["timestamp"] > cutoff]
+        attempted = len(events)
+        succeeded = sum(1 for e in events if e["succeeded"])
+        return {
+            "chess_repair_attempted": attempted,
+            "chess_repair_succeeded": succeeded,
+            "chess_repair_failed": attempted - succeeded,
+        }
 
     def _prune_metric_key_records(self, metric_key: str) -> None:
         """Purge TTL + cap par clé (aligné token_tracker, IA12)."""

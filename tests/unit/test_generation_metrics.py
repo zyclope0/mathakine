@@ -141,3 +141,27 @@ class TestGenerationMetricsSummary:
         metrics = GenerationMetrics()
         summary = metrics.get_summary(days=1)
         assert summary["latency"] == {"p50_ms": 0.0, "p95_ms": 0.0}
+
+
+class TestChessRepairMetrics:
+    def test_chess_repair_counters_in_summary(self):
+        metrics = GenerationMetrics()
+        metrics.record_chess_repair(succeeded=True)
+        metrics.record_chess_repair(succeeded=False)
+        metrics.record_chess_repair(succeeded=True)
+
+        summary = metrics.get_summary(days=1)
+        assert "chess_repair" in summary
+        cr = summary["chess_repair"]
+        assert cr["chess_repair_attempted"] == 3
+        assert cr["chess_repair_succeeded"] == 2
+        assert cr["chess_repair_failed"] == 1
+
+    def test_chess_repair_empty(self):
+        metrics = GenerationMetrics()
+        summary = metrics.get_summary(days=1)
+        assert summary["chess_repair"] == {
+            "chess_repair_attempted": 0,
+            "chess_repair_succeeded": 0,
+            "chess_repair_failed": 0,
+        }

@@ -924,6 +924,7 @@ async def generate_challenge_stream(
 
                 if repair_error is not None:
                     chess_repair = "chess_ai_failed"
+                    generation_metrics.record_chess_repair(succeeded=False)
                 elif repaired_challenge is None:
                     chess_repair = "chess_ai_attempted"
                 else:
@@ -937,9 +938,11 @@ async def generate_challenge_stream(
                         chess_repair_succeeded = True
                         validation_passed = True
                         chess_repair = "chess_ai_succeeded"
+                        generation_metrics.record_chess_repair(succeeded=True)
                     else:
                         remaining_errors = repair_errors
                         chess_repair = "chess_ai_failed"
+                        generation_metrics.record_chess_repair(succeeded=False)
 
             if not validation_passed:
                 logger.error(
