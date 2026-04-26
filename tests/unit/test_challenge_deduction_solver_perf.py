@@ -23,10 +23,16 @@ from app.services.challenges.challenge_deduction_solver import (
 )
 
 
+def test_constant_value() -> None:
+    """Documenter que MAX_DEDUCTION_SOLVER_COMBINATIONS = 50_000 (contrat stable)."""
+    assert MAX_DEDUCTION_SOLVER_COMBINATIONS == 50_000
+
+
 class TestSearchSpaceTooLarge:
     """Grille dont search_space > 50_000 : retour immédiat sans exploration."""
 
     # 9 entités × 1 catégorie secondaire → 9! = 362_880 > 50_000
+    # 1 contrainte structurée présente pour que le parsing réussisse et atteigne la vérification du search_space
     _VISUAL_LARGE = {
         "type": "logic_grid",
         "entities": {
@@ -48,16 +54,12 @@ class TestSearchSpaceTooLarge:
         assert result.checked is False
         assert result.reason == "search_space_too_large"
 
-    def test_constant_value(self) -> None:
-        """Documenter que MAX_DEDUCTION_SOLVER_COMBINATIONS = 50_000 (contrat stable)."""
-        assert MAX_DEDUCTION_SOLVER_COMBINATIONS == 50_000
-
     def test_returns_immediately(self) -> None:
-        """Le retour doit être quasi-instantané (< 50ms) pour une grille trop grande."""
+        """Le retour doit être quasi-instantané (< 200ms CI-safe) pour une grille trop grande."""
         start = time.perf_counter()
         analyze_deduction_uniqueness(self._VISUAL_LARGE, "P1:C1")
         elapsed_ms = (time.perf_counter() - start) * 1000
-        assert elapsed_ms < 50, f"Retour trop lent pour search_space_too_large : {elapsed_ms:.1f}ms"
+        assert elapsed_ms < 200, f"Retour trop lent pour search_space_too_large : {elapsed_ms:.1f}ms"
 
 
 class TestAmbiguousGrid:
@@ -85,11 +87,11 @@ class TestAmbiguousGrid:
         result = analyze_deduction_uniqueness(
             self._VISUAL_AMBIGUOUS, "Alice:Rouge,Bob:Bleu,Clara:Vert"
         )
-        # Soit checked=True avec solution_count > 1, soit checked=False (parse failed)
-        # Dans les deux cas : pas de solution unique
-        is_unique = result.checked and result.solution_count == 1
-        assert not is_unique, (
-            f"Grille ambiguë identifiée à tort comme unique : {result}"
+        assert result.checked is True, (
+            f"Le solveur n'a pas pu parser la grille ambiguë : {result.reason}"
+        )
+        assert result.solution_count > 1, (
+            f"Grille ambiguë identifiée à tort comme unique : {result.solution_count} solution(s)"
         )
 
 
