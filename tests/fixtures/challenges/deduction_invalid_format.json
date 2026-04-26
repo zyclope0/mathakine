@@ -21,5 +21,5 @@
     "response_mode": "text"
   },
   "expected_valid": false,
-  "expected_error_codes": ["deduction_constraint_parse_failed", "validation_unknown"]
+  "expected_error_codes": ["deduction_constraint_parse_failed", "deduction_answer_entities_missing"]
 }

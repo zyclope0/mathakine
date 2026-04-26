@@ -206,6 +206,15 @@ def _build_rules() -> list[tuple[str, Callable[[str, Optional[str]], bool]]]:
     )
     a(
         (
+            "deduction_answer_entities_missing",
+            lambda t, ct: "deduction" in t
+            and "entit" in t
+            and "manquant" in t
+            and "correct_answer" in t,
+        )
+    )
+    a(
+        (
             "deduction_answer_mismatch",
             lambda t, ct: "deduction" in t
             and ("ne correspond" in t or "correspond pas" in t),

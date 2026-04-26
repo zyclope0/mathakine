@@ -30,7 +30,10 @@ _FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "challenges"
 
 
 def _load_fixture_ids() -> list[str]:
-    return [Path(p).stem for p in sorted(glob(str(_FIXTURES_DIR / "*.json")))]
+    ids = [Path(p).stem for p in sorted(glob(str(_FIXTURES_DIR / "*.json")))]
+    if not ids:
+        raise RuntimeError(f"Aucune fixture trouvée dans {_FIXTURES_DIR} — dossier manquant ou vide ?")
+    return ids
 
 
 @pytest.mark.parametrize("fixture_name", _load_fixture_ids())
