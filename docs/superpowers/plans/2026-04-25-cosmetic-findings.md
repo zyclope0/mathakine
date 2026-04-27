@@ -186,6 +186,6 @@ git commit -m "docs(deploy): document ENVIRONMENT=production Render requirement 
 ## Vérification finale
 
 - [ ] `grep -c "yield sse_error_message" app/services/challenges/challenge_ai_service.py` — compter les `sse_error_message` sans `done` immédiatement après
-- [ ] `grep '{}' app/services/auth/auth_service.py` — 0 résultat
+- [ ] `grep -n "'%s'" app/services/auth/auth_service.py` — 0 résultat (convention loguru : `{}` attendu, `%s` interdit)
 - [ ] `grep "ENVIRONMENT=production" README_TECH.md` — 1 résultat
 - [ ] `python -c "from app.services.challenges.challenge_ai_service import generate_challenge_stream; from app.services.auth.auth_service import authenticate_user; print('OK')"` — `OK`
