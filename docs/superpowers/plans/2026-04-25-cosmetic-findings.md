@@ -33,7 +33,7 @@
 | Fichier | Action |
 |---------|--------|
 | `app/services/challenges/challenge_ai_service.py` | Ajouter `done` SSE event sur 13 chemins d'erreur |
-| `app/services/auth/auth_service.py` | Harmoniser `{}` → `%s` dans les appels logger (23 occurrences) |
+| `app/services/auth/auth_service.py` | Harmoniser `%s` → `{}` dans les appels logger — TERMINÉ (commit c5b6e53) |
 | `README_TECH.md` | Ajouter note déploiement `ENVIRONMENT=production` |
 
 ---
@@ -134,9 +134,9 @@ git commit -m "fix(sse): add done event to all early error return paths in gener
 **Files:**
 - Modify: `app/services/auth/auth_service.py`
 
-**Contexte :** `auth_service.py` utilise le format loguru `{}` (ex: `"user_alias={}"`) au lieu de la convention projet `%s` (CLAUDE.md : `logger.error("msg %s", var)`). Les deux fonctionnent avec loguru, mais la convention `%s` est celle du reste du codebase. Il y a 23 occurrences de `{}` dans des chaînes de log. Cette tâche les remplace toutes par `%s`.
+**Contexte :** `auth_service.py` utilisait le format stdlib `%s` au lieu du format loguru `{}`. La convention du projet est `{}` (loguru n'interpole pas `%s` — les variables restent littérales). TERMINÉ dans le commit c5b6e53 : 23 occurrences corrigées.
 
-**Règle simple :** dans une string argument d'un logger call, remplacer chaque `{}` par `%s`. Le nombre d'arguments passés après la string ne change pas (loguru accepte les deux styles avec la même syntaxe d'appel).
+**Règle simple :** dans une string argument d'un logger call loguru, utiliser `{}` et non `%s`.
 
 - [ ] **Step 1 : Confirmer les 23 occurrences**
 

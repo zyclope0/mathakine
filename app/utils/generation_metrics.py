@@ -81,8 +81,8 @@ class GenerationMetrics:
 
         logger.debug(
             "Metrics recorded - "
-            "Type: %s, Success: %s, Validation: %s, "
-            "Auto-corrected: %s, Duration: %.2fs",
+            "Type: {}, Success: {}, Validation: {}, "
+            "Auto-corrected: {}, Duration: {:.2f}s",
             challenge_type,
             success,
             validation_passed,
