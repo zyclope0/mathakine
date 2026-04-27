@@ -29,6 +29,7 @@ from app.services.challenges.challenge_difficulty_policy import (
     validate_title_difficulty_coherence,
 )
 from app.services.challenges.challenge_ordering_utils import (
+    canonical_token,
     is_numeric_sort_solution,
     piece_label,
     piece_order_key,
@@ -238,15 +239,22 @@ def validate_puzzle_challenge(
                 f"Ajoutez plus d'indices pour permettre la résolution."
             )
 
-    # Parser les pièces en liste de strings normalisées
+    # Parser les pièces en liste de strings normalisées.
+    # ``piece_order_values``/``answer_parts`` gardent ``.lower()`` pour
+    # compat des messages (display lisible en cas d'erreur de longueur).
+    # Les comparaisons d'ensemble passent par ``canonical_token`` afin
+    # d'absorber les mismatches LaTeX (``\ln(x)``) ↔ Unicode (``ln(x)``,
+    # ``√x``, ``x²``, ``eˣ``) émis par le LLM (cf. Sentry 115344051).
     piece_order_values = [piece_order_key(p).lower() for p in pieces]
     piece_display_values = [piece_label(p).lower() for p in pieces]
     piece_values = piece_order_values
+    piece_canonical = [canonical_token(p) for p in piece_order_values]
 
     # Pour un puzzle, la réponse devrait être une liste ordonnée
     if correct_answer:
         # Gérer correct_answer comme liste ou string
         answer_parts = [p.lower() for p in split_ordered_answer_parts(correct_answer)]
+        answer_canonical = [canonical_token(p) for p in answer_parts]
 
         if len(answer_parts) != len(piece_order_values):
             errors.append(
@@ -254,8 +262,18 @@ def validate_puzzle_challenge(
                 f"mais pieces contient {len(piece_values)} éléments"
             )
 
-        # Vérifier que tous les éléments de pieces sont dans la réponse
-        missing = set(piece_order_values) - set(answer_parts)
+        # Comparaison set sur la forme canonique (math-aware) — évite les
+        # faux-positifs purement représentationnels.
+        missing_canonical = set(filter(None, piece_canonical)) - set(
+            filter(None, answer_canonical)
+        )
+        # Reporter les libellés d'origine (display) pour rester lisible
+        # côté utilisateur/log.
+        missing = {
+            piece_order_values[i]
+            for i, c in enumerate(piece_canonical)
+            if c and c in missing_canonical
+        }
         trivial_numeric_sort = is_numeric_sort_solution(pieces, correct_answer)
         if trivial_numeric_sort:
             errors.append(
@@ -266,13 +284,20 @@ def validate_puzzle_challenge(
         if missing:
             errors.append(f"Puzzle: éléments manquants dans correct_answer: {missing}")
 
-    # Vérifier que l'explication justifie l'ordre
+    # Vérifier que l'explication justifie l'ordre.
+    # On utilise la forme canonique pour matcher \ln(x) dans pieces et
+    # ln(x) (ou eˣ → e^x) dans une explanation rédigée librement.
     if explanation and piece_display_values:
-        # L'explication devrait mentionner au moins quelques éléments
+        explanation_canonical = canonical_token(str(explanation))
         explanation_lower = str(explanation).lower()
-        mentioned_count = sum(
-            1 for p in piece_display_values if p and p in explanation_lower
-        )
+        mentioned_count = 0
+        for display, canon in zip(piece_display_values, piece_canonical):
+            if not display:
+                continue
+            if display in explanation_lower or (
+                canon and canon in explanation_canonical
+            ):
+                mentioned_count += 1
         if mentioned_count < len(piece_display_values) // 2:
             errors.append(
                 "L'explication ne mentionne pas assez d'éléments du puzzle pour justifier l'ordre."
@@ -1437,8 +1462,14 @@ def validate_deduction_challenge(
         errors.append("DEDUCTION: correct_answer sans association valide")
         return errors
 
+    # Comparaison via ``canonical_token`` (NFKC + lower + math-aware) plutôt
+    # que ``.lower()`` brut : pour des noms ASCII classiques (« Alice »,
+    # « Bob »…) le résultat est identique, mais on devient résilient aux
+    # variantes Unicode (« Café » NFD vs NFC, espaces insécables, etc.).
+    # Toutes les comparaisons cross-source de ce bloc utilisent la même
+    # forme canonique pour rester symétriques.
     n_cat = len(categories)
-    first_cat_allowed = {x.lower() for x in categories[0][1]}
+    first_cat_allowed = {canonical_token(x) for x in categories[0][1]}
     expected_n = len(first_cat_allowed)
 
     if len(parts) != expected_n:
@@ -1459,11 +1490,11 @@ def validate_deduction_challenge(
             )
             continue
         valid_rows.append(segs)
-        first_segments.append(segs[0].lower())
+        first_segments.append(canonical_token(segs[0]))
         for i, (_cat, allowed) in enumerate(categories):
             val = segs[i]
-            allowed_l = {a.lower() for a in allowed}
-            if val.lower() not in allowed_l:
+            allowed_l = {canonical_token(a) for a in allowed}
+            if canonical_token(val) not in allowed_l:
                 errors.append(
                     f"DEDUCTION: la valeur {val!r} n'appartient pas à la catégorie "
                     f"'{category_order[i]}' pour l'association {part!r}"
@@ -1487,7 +1518,7 @@ def validate_deduction_challenge(
     # Bijection structurelle : pas de valeur réutilisée dans une même catégorie (colonnes).
     if valid_rows:
         for j in range(n_cat):
-            col_vals = [row[j].lower() for row in valid_rows]
+            col_vals = [canonical_token(row[j]) for row in valid_rows]
             if len(col_vals) != len(set(col_vals)):
                 errors.append(
                     f"DEDUCTION: la catégorie « {category_order[j]} » impose une assignation "
@@ -1499,8 +1530,8 @@ def validate_deduction_challenge(
     if len(valid_rows) == expected_n:
         for j, (_cat, allowed) in enumerate(categories):
             allowed_l = [str(a).strip() for a in allowed if a is not None]
-            allowed_set = {a.lower() for a in allowed_l}
-            col_set = {row[j].lower() for row in valid_rows}
+            allowed_set = {canonical_token(a) for a in allowed_l}
+            col_set = {canonical_token(row[j]) for row in valid_rows}
             if len(allowed_set) == expected_n and len(col_set) == expected_n:
                 if col_set != allowed_set:
                     errors.append(

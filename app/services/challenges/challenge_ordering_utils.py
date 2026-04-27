@@ -22,10 +22,129 @@ Contrat :
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Any, Dict, Iterable, List, Optional
 
 _ANSWER_PART_SEPARATOR_RE = re.compile(r"\s*(?:,|;|\n)\s*")
 _NUMERIC_TOKEN_RE = re.compile(r"^[+-]?\d+(?:[.,]\d+)?$")
+
+# --- Canonical math-token normalization ---------------------------------
+#
+# LLMs frequently mix LaTeX (``\ln(x)``, ``\sqrt{x}``, ``x^2``) in
+# ``visual_data.pieces`` and Unicode (``ln(x)``, ``√x``, ``x²``) in
+# ``correct_answer`` for the same item. A naive ``set(pieces) - set(answer)``
+# raised false positives like ``"Puzzle: éléments manquants dans
+# correct_answer: {'\\ln(x)', 'e^x', '\\sqrt{x}', ...}"`` (Sentry 115344051)
+# even though every piece was actually present.
+#
+# ``canonical_token`` produces a representation-agnostic key for set/equality
+# matching only — it MUST NOT be used as a display label.
+
+_UNICODE_SUPERSCRIPTS: Dict[str, str] = {
+    "⁰": "^0",
+    "¹": "^1",
+    "²": "^2",
+    "³": "^3",
+    "⁴": "^4",
+    "⁵": "^5",
+    "⁶": "^6",
+    "⁷": "^7",
+    "⁸": "^8",
+    "⁹": "^9",
+    "⁺": "^+",
+    "⁻": "^-",
+    "⁼": "^=",
+    "⁽": "^(",
+    "⁾": "^)",
+    "ⁿ": "^n",
+    "ⁱ": "^i",
+    "ˣ": "^x",
+    "ʸ": "^y",
+    "ᵃ": "^a",
+    "ᵇ": "^b",
+    "ᶜ": "^c",
+    "ᵈ": "^d",
+    "ᵉ": "^e",
+    "ᵏ": "^k",
+}
+
+_UNICODE_SUBSCRIPTS: Dict[str, str] = {
+    "₀": "_0",
+    "₁": "_1",
+    "₂": "_2",
+    "₃": "_3",
+    "₄": "_4",
+    "₅": "_5",
+    "₆": "_6",
+    "₇": "_7",
+    "₈": "_8",
+    "₉": "_9",
+    "ₙ": "_n",
+    "ᵢ": "_i",
+    "ₓ": "_x",
+}
+
+_UNICODE_MATH_OPS: Dict[str, str] = {
+    "√": "sqrt",
+    "×": "*",
+    "·": "*",
+    "÷": "/",
+    "−": "-",  # Unicode minus
+    "≤": "<=",
+    "≥": ">=",
+    "≠": "!=",
+    "≈": "~",
+    "∞": "inf",
+    "π": "pi",
+    "θ": "theta",
+    "α": "alpha",
+    "β": "beta",
+    "γ": "gamma",
+}
+
+_LATEX_KEEP_CHARS = re.compile(r"[\\{}()\[\]\s]+")
+
+
+def canonical_token(text: Any) -> str:
+    """Representation-agnostic canonical key for set/equality matching.
+
+    Idempotent. Designed to make LaTeX (``\\ln(x)``, ``\\sqrt{x}``, ``x^2``)
+    and Unicode (``ln(x)``, ``√x``, ``x²``, ``eˣ``) variants of the same item
+    collapse to the same key. Also folds NFKC-equivalent accents.
+
+    Strips backslashes, braces, parentheses, brackets and whitespace so that
+    ``\\sqrt{x}``, ``sqrt(x)``, ``√x`` all collapse to ``sqrtx``.
+
+    NEVER use as a display label — it is lossy by design.
+    """
+    if text is None:
+        return ""
+    s = str(text)
+    if not s:
+        return ""
+    # IMPORTANT : mapper super/subscripts AVANT NFKC. NFKC applique la
+    # décomposition de compatibilité et fait disparaître l'information
+    # « exposant » (ex. ``ˣ`` U+02E3 → ``x``, ``²`` U+00B2 → ``2``), ce
+    # qui rendrait ``eˣ`` indistinct de ``ex`` après normalisation.
+    for src, dst in _UNICODE_SUPERSCRIPTS.items():
+        if src in s:
+            s = s.replace(src, dst)
+    for src, dst in _UNICODE_SUBSCRIPTS.items():
+        if src in s:
+            s = s.replace(src, dst)
+    s = unicodedata.normalize("NFKC", s)
+    s = s.lower()
+    for src, dst in _UNICODE_MATH_OPS.items():
+        if src in s:
+            s = s.replace(src, dst)
+    s = _LATEX_KEEP_CHARS.sub("", s)
+    return s
+
+
+def canonical_piece_key(piece: Any) -> str:
+    """``piece_order_key`` + ``canonical_token`` for matching against answers."""
+    return canonical_token(piece_order_key(piece))
+
 
 DEFAULT_ITEM_LABEL_FIELDS: tuple = (
     "label",
