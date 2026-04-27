@@ -162,8 +162,8 @@ async def get_all_users(request: Request) -> JSONResponse:
     try:
         current_user = request.state.user
         logger.info(
-            "Accès à la liste de tous les utilisateurs par %s. Fonctionnalité en développement.",
-            current_user.get("username"),
+            "Accès à la liste de tous les utilisateurs par user_id={}. Fonctionnalité en développement.",
+            current_user.get("id"),
         )
         return JSONResponse(
             {
@@ -212,8 +212,8 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
             period=period,
         )
         logger.info(
-            "Classement récupéré par %s: %s utilisateurs",
-            current_user.get("username"),
+            "Classement récupéré par user_id={}: {} utilisateurs",
+            current_user.get("id"),
             len(leaderboard),
         )
         return JSONResponse({"leaderboard": leaderboard}, status_code=200)
