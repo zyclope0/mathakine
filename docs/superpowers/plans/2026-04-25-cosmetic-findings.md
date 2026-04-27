@@ -138,72 +138,10 @@ git commit -m "fix(sse): add done event to all early error return paths in gener
 
 **Règle simple :** dans une string argument d'un logger call loguru, utiliser `{}` et non `%s`.
 
-- [ ] **Step 1 : Confirmer les 23 occurrences**
+- [ ] **Task already completed in commit c5b6e53 — no action required**
 
-```bash
-grep -n '{}' app/services/auth/auth_service.py
-```
+Cette tâche a été menée à terme dans le commit c5b6e53 : 23 occurrences de `%s` ont été remplacées par `{}` pour suivre la convention loguru du projet. Aucune action future n'est nécessaire.
 
-Expected : 23 lignes. Toutes sont des chaînes de format dans des appels `logger.*()`.
-
-- [ ] **Step 2 : Remplacer toutes les occurrences**
-
-Utiliser l'outil Edit avec `replace_all: true` sur le pattern `{}` → `%s` dans le fichier.
-
-**Attention :** certaines strings ont plusieurs `{}` sur la même ligne (ex: `"user_id={} user_alias={}"`) — chaque `{}` devient `%s`, le nombre d'arguments ne change pas.
-
-Résultat attendu — exemples avant/après :
-
-```python
-# AVANT
-logger.debug(
-    "Tentative d'authentification user_alias={}",
-    _mask_username_for_logs(username),
-)
-# APRÈS
-logger.debug(
-    "Tentative d'authentification user_alias=%s",
-    _mask_username_for_logs(username),
-)
-```
-
-```python
-# AVANT
-logger.warning(
-    "Compte désactivé user_id={} user_alias={}",
-    user.id,
-    _mask_username_for_logs(username),
-)
-# APRÈS
-logger.warning(
-    "Compte désactivé user_id=%s user_alias=%s",
-    user.id,
-    _mask_username_for_logs(username),
-)
-```
-
-- [ ] **Step 3 : Vérifier qu'il ne reste aucun `{}` dans les logger calls**
-
-```bash
-grep -n '{}' app/services/auth/auth_service.py
-```
-
-Expected : 0 ligne.
-
-- [ ] **Step 4 : Vérifier que le module importe sans erreur**
-
-```bash
-python -c "from app.services.auth.auth_service import authenticate_user; print('OK')"
-```
-
-Expected : `OK`
-
-- [ ] **Step 5 : Commit**
-
-```bash
-git add app/services/auth/auth_service.py
-git commit -m "style(auth): harmonize loguru format {} to %s in auth_service.py"
-```
 
 ---
 
