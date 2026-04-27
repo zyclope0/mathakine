@@ -336,6 +336,9 @@ if variety_seed and (variety_seed.narrative_context or variety_seed.resolution_m
         "\n  - le type de défi et le groupe d'âge sont prioritaires ;"
         "\n  - la demande personnalisée utilisateur est prioritaire sur l'orientation de variété ;"
         "\n  - l'orientation de variété est une suggestion, jamais une obligation."
+        f"\nIMPORTANT : le contrat visual_data du type {challenge_type} et le schéma JSON"
+        " restent inchangés. Le seed oriente le contexte narratif et le raisonnement,"
+        " pas la structure des données."
         "\nNote : le mécanisme peut être avancé — adapter la formulation, "
         "le vocabulaire et la complexité au groupe d'âge cible."
     )
@@ -378,6 +381,74 @@ user_prompt = build_challenge_user_prompt(
 **Note logging :** utiliser les placeholders `{}` avec arguments positionnels. Ne pas utiliser `%s`.
 Pour du contexte structuré, utiliser `logger.bind(...)`, pas `extra={…}` style stdlib
 (celui-ci crée un champ imbriqué `extra["extra"]` non conforme à la convention projet).
+
+---
+
+## Risques et mitigations
+
+### Risque 1 — Rejet du validateur
+
+**Problème :** un seed pourrait suggérer un mécanisme que l'IA interprète comme nécessitant
+une structure `visual_data` différente de celle attendue par le validator du type.
+Exemple : seed "lecture en grille" pour coding → AI tente d'ajouter une structure grid
+non conforme au schéma coding.
+
+**Mitigation :**
+- Le bloc ORIENTATION DE VARIÉTÉ doit inclure explicitement :
+  `"Le contrat visual_data du type {challenge_type} et le schéma JSON restent inchangés.
+  Le seed oriente le contexte narratif et le raisonnement, pas la structure des données."`
+- Les mécanismes dans `RESOLUTION_MECHANISMS_BY_TYPE` doivent décrire des familles
+  de raisonnement, pas des structures de données. Reformuler tout mécanisme qui
+  implique un format visuel spécifique.
+- Si le taux de rejet validator augmente après déploiement, désactiver le seed
+  pour le type concerné via un flag dans `RESOLUTION_MECHANISMS_BY_TYPE`
+  (liste vide = pas d'injection).
+
+### Risque 2 — Taille du prompt et troncature JSON
+
+**Problème :** le prompt système a été optimisé après des incidents de JSON tronqué.
+Les 4 nouvelles sections ajoutent ~2 000–2 500 caractères (~500–600 tokens estimés).
+Un dépassement de budget peut provoquer latence accrue ou troncature en fin de génération.
+
+**Mitigation — mesure obligatoire avant et après :**
+
+1. **Baseline avant implémentation** : capturer `challenge_system_prompt_stats()` pour
+   tous les types × groupes d'âge avant toute modification.
+
+2. **Budget delta max** : +20 % de caractères par rapport au baseline, ou +600 tokens
+   absolus — le premier seuil atteint déclenche un échec de test.
+
+3. **Test de garde** à ajouter dans `tests/unit/` :
+
+```python
+import pytest
+from app.services.challenges.challenge_prompt_composition import (
+    challenge_system_prompt_stats,
+)
+
+CHALLENGE_TYPES = [
+    "sequence", "pattern", "visual", "puzzle", "graph",
+    "riddle", "deduction", "probability", "coding", "chess",
+]
+AGE_GROUPS = ["6-8", "9-11", "12-14", "15-17", "adulte"]
+
+# Seuil absolu — à recalibrer après mesure baseline
+MAX_PROMPT_CHARS = 8_000
+
+@pytest.mark.parametrize("challenge_type", CHALLENGE_TYPES)
+@pytest.mark.parametrize("age_group", AGE_GROUPS)
+def test_system_prompt_size_budget(challenge_type, age_group):
+    stats = challenge_system_prompt_stats(challenge_type, age_group)
+    assert stats["chars"] <= MAX_PROMPT_CHARS, (
+        f"Prompt trop long pour {challenge_type}/{age_group} : "
+        f"{stats['chars']} chars > {MAX_PROMPT_CHARS} limite. "
+        "Réduire les nouvelles sections ou consolider des sections existantes."
+    )
+```
+
+4. **Si le budget est dépassé** : consolider `TEXT_ACCESSIBILITY_COGNITIVE` et
+   `TEXT_ENGAGEMENT_PRINCIPLES` en une section unique, ou réduire les exemples
+   dans `TEXT_STORYTELLING_PRINCIPLES`. La règle est : qualité > volume de texte.
 
 ---
 
