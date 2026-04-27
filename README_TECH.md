@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 16/04/2026 (lots frontend ciblés fermés jusqu’à ACTIF-04-COVERAGE-03 ; voir puces ci-dessous)
+> Updated: 27/04/2026 (train visible `3.6.0-beta.5` ; stabilisation IA défis, métriques et contrats de régression alignés)
 
 Visible product train:
 

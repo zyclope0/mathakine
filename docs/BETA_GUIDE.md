@@ -1,4 +1,4 @@
-# Guide Beta Fermée — Mathakine v3.6.0-beta.1
+# Guide Beta Fermée — Mathakine v3.6.0-beta.5
 
 > **Version courte dans l'app :** la page [/docs](https://mathakine.fun/docs) sert de guide de démarrage rapide pour l'utilisateur final : commencer, tester, signaler et comprendre les limites de la beta. Ce document reste la référence plus complète pour les parents, enseignants et accompagnants.
 

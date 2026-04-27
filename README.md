@@ -2,16 +2,16 @@
 
 Gamified mathematics learning platform with a Next.js frontend and a Starlette/SQLAlchemy backend.
 
-[![Version](https://img.shields.io/badge/version-3.6.0--beta.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.6.0--beta.5-blue.svg)](CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-beta-orange.svg)](CHANGELOG.md)
 [![Tests](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml/badge.svg)](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 
 ## Product Status
 
-- visible release: `3.6.0-beta.2`
+- visible release: `3.6.0-beta.5`
 - release source of truth: `CHANGELOG.md` and `frontend/package.json`
-- note: `pyproject.toml` now carries the aligned Python package metadata version `3.6.0b2`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
+- note: `pyproject.toml` now carries the aligned Python package metadata version `3.6.0b5`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
 
 ## Key Capabilities
 
@@ -69,7 +69,7 @@ Figures below are **citations** from documented closure runs; **re-run** the sam
 ## Versioning Rule
 
 - visible product releases follow SemVer prerelease stages
-- current visible train: `3.6.0-beta.2`
+- current visible train: `3.6.0-beta.5`
 - moving from `3.5.0-alpha.1` to the `3.6.0` prerelease train opened a new minor product cycle because learner/adult surface routing, canonical roles, neuro-inclusion UX, and the visible theme system changed materially for end users
 - moving directly to `3.2.0` stable would be misleading in the current context
 - while still in a prerelease phase, incrementing `alpha.N` or `beta.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists
