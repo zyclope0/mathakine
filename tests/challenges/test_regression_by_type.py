@@ -21,7 +21,10 @@ from pathlib import Path
 
 import pytest
 
-from app.services.challenges.challenge_contract_policy import RESPONSE_MODES
+from app.services.challenges.challenge_contract_policy import (
+    compute_response_mode,
+    sanitize_choices_for_delivery,
+)
 from app.services.challenges.challenge_validation_error_codes import (
     classify_challenge_validation_errors,
 )
@@ -57,12 +60,24 @@ def test_challenge_regression(fixture_name: str) -> None:
 
     challenge = data["challenge"]
 
-    # P1-0 : response_mode doit être absent ou appartenir au contrat RESPONSE_MODES.
+    # P1-0 : response_mode doit correspondre au contrat calculé par type.
     rm = challenge.get("response_mode")
     if rm is not None:
-        assert rm in RESPONSE_MODES, (
+        choices_after_policy = sanitize_choices_for_delivery(
+            challenge.get("challenge_type", ""),
+            challenge.get("difficulty_rating"),
+            challenge.get("choices"),
+            challenge.get("correct_answer"),
+        )
+        expected_response_mode = compute_response_mode(
+            challenge.get("challenge_type", ""),
+            challenge.get("visual_data"),
+            challenge.get("difficulty_rating"),
+            choices_after_policy,
+        )
+        assert rm == expected_response_mode, (
             f"[{fixture_name}] response_mode={rm!r} invalide — "
-            f"valeurs acceptées : {RESPONSE_MODES}"
+            f"attendu={expected_response_mode!r}"
         )
     is_valid, errors = validate_challenge_logic(challenge)
 

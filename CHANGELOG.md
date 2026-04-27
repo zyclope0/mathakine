@@ -40,6 +40,28 @@ Active references:
 
 ## [Unreleased]
 
+## [3.6.0-beta.5] - 2026-04-27
+
+### Added
+
+- Challenge generation observability now exposes normalized validation error codes, pipeline statuses, latency percentiles, fallback statistics, chess repair counters, repair success metrics, and log-only generation confidence signals.
+- Challenge regression coverage now includes golden fixtures, renderer-shape contract tests, response-mode contract guards, and deduction solver performance tests across the main challenge families.
+- The public changelog now exposes the latest beta train so learner-facing release notes no longer lag behind internal engineering releases.
+
+### Changed
+
+- The challenge generation hardening plan, AI working-memory docs, and beta stabilization docs were refreshed to reflect the current o4-mini, metrics, Phase 3 tests, and remaining structured-output work.
+- Challenge fixture validation now compares persisted `response_mode` values against the runtime contract computed from challenge type, visual data, difficulty, and sanitized choices.
+- Generation metrics logging now uses Loguru `{}` placeholders consistently instead of stdlib `%s` placeholders.
+
+### Fixed
+
+- Empty o-series fallback responses now stop as explicit safe errors, flush observed usage, and close circuit-breaker probes instead of continuing into JSON parsing with empty content.
+- Challenge stream error paths now emit terminal `done` SSE events consistently.
+- Residual username PII was removed from user handler logs in favor of `user_id`.
+- Deduction validation error classification now distinguishes structural answer/entity errors more accurately, reducing `validation_unknown` in golden fixtures.
+- Puzzle and deduction answer matching now normalize canonical math tokens across cross-format inputs.
+
 ## [3.6.0-beta.4] - 2026-04-24
 
 ### Changed

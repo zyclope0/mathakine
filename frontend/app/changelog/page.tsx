@@ -17,6 +17,8 @@ type VersionBlock = {
 };
 
 type ReleaseKey =
+  | "release_3_6_0_beta_5"
+  | "release_3_6_0_beta_4"
   | "release_3_6_0_beta_2"
   | "release_3_6_0_beta_1"
   | "release_3_6_0_alpha_1"
@@ -41,13 +43,15 @@ type ReleaseKey =
   | "release_2_1_0"
   | "release_2_0_0";
 
-const LATEST_RELEASE_KEY: ReleaseKey = "release_3_6_0_beta_2";
+const LATEST_RELEASE_KEY: ReleaseKey = "release_3_6_0_beta_5";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const releaseKeys: readonly ReleaseKey[] = [
+    "release_3_6_0_beta_5",
+    "release_3_6_0_beta_4",
     "release_3_6_0_beta_2",
     "release_3_6_0_beta_1",
     "release_3_6_0_alpha_1",

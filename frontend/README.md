@@ -1,6 +1,6 @@
 # Frontend Mathakine - Next.js
 
-**Version produit visible** : `3.6.0-beta.2`  
+**Version produit visible** : `3.6.0-beta.5`
 **Statut** : beta  
 **Framework** : Next.js `16.2.3` + App Router  
 **Langage** : TypeScript strict

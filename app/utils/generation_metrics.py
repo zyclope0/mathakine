@@ -29,7 +29,9 @@ class GenerationMetrics:
         self._auto_corrections: Dict[str, int] = defaultdict(int)
         self._success_count: Dict[str, int] = defaultdict(int)
         self._failure_count: Dict[str, int] = defaultdict(int)
-        self._chess_repair_events: List[Dict] = []  # {timestamp: datetime, succeeded: bool}
+        self._chess_repair_events: List[Dict] = (
+            []
+        )  # {timestamp: datetime, succeeded: bool}
 
     def record_chess_repair(self, succeeded: bool) -> None:
         """Enregistre une tentative de réparation IA chess (tentative et résultat)."""
@@ -357,7 +359,8 @@ class GenerationMetrics:
         """% de défis réparés qui ont nécessité le repair IA chess (repaired_by_ai / total repaired)."""
         records = self._records_in_window(challenge_type, days)
         total_repaired = sum(
-            1 for r in records
+            1
+            for r in records
             if r.get("generation_status") in ("repaired", "repaired_by_ai")
         )
         repaired_by_ai = sum(

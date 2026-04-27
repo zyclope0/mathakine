@@ -2086,6 +2086,24 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version beta : le produit se stabilise ; quelques fonctions (tableau de bord parent) arrivent encore.",
+    "release_3_6_0_beta_5": {
+      "version": "v3.6.0-beta.5",
+      "date": "27 avril 2026",
+      "items": [
+        "La generation de defis est mieux surveillee : statuts de pipeline, erreurs classees, latences, fallbacks et reparations sont maintenant mesurables.",
+        "Les defis sont mieux proteges contre les regressions : fixtures golden, contrats de rendu et tests de solveur couvrent les formats principaux.",
+        "Les flux d erreur IA sont plus propres : les erreurs se terminent correctement, les usages tokens restent suivis et les logs evitent les donnees personnelles inutiles."
+      ]
+    },
+    "release_3_6_0_beta_4": {
+      "version": "v3.6.0-beta.4",
+      "date": "24 avril 2026",
+      "items": [
+        "La generation IA des exercices et defis utilise maintenant o4-mini par defaut pour reduire les couts tout en gardant un meilleur signal mathematique.",
+        "Les defis echecs, graphes, probabilites, puzzles et grilles visuelles sont mieux valides et moins susceptibles d afficher des donnees incompletes ou illisibles.",
+        "Les aides de notation echecs et les rendus de defis sont plus clairs pour que l apprenant se concentre sur la resolution."
+      ]
+    },
     "release_3_6_0_beta_2": {
       "version": "v3.6.0-beta.2",
       "date": "17 avril 2026",

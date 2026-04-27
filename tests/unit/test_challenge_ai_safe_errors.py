@@ -315,8 +315,9 @@ async def test_o_series_fallback_non_countable_failure_yields_safe_error_and_sto
             events.append(line)
 
     payloads = _parse_sse_payloads(events)
-    assert payloads[-1]["type"] == "error"
-    assert payloads[-1]["message"] == CHALLENGE_AI_GENERIC_ERROR_MESSAGE
+    error_payload = next(payload for payload in payloads if payload["type"] == "error")
+    assert error_payload["message"] == CHALLENGE_AI_GENERIC_ERROR_MESSAGE
+    assert payloads[-1]["type"] == "done"
     assert not any(p.get("type") == "challenge" for p in payloads)
     record_ok.assert_not_called()
     assert len(track_calls) == 1

@@ -9,12 +9,12 @@
 
 | Champ | Valeur |
 |---|---|
-| Version | `3.6.0-beta.4` |
+| Version | `3.6.0-beta.5` |
 | Branche | `master` |
 | Dernière phase livrée | Phase 3 tests défis IA (3A golden, 3B renderer contracts, 3D solveur perf) — commit `3f104b2` |
 | Dernier audit clos | 2026-04-25 (sécurité B1-B3 corrigés en `83e7763`, runtime cosmétiques traités en `48fb8bf`/`ec87c35`/`15ed459`) |
 | Chantier actif | **aucun** — prêt pour next chantier. Définir l'objectif avant toute édition de code. |
-| Commits non poussés | ~29 sur `master` (vérifier avec `git log origin/master..master --oneline`) |
+| Commits non poussés | 0 attendu après publication `3.6.0-beta.5` (vérifier avec `git log origin/master..master --oneline`) |
 
 ---
 
