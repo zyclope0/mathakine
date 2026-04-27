@@ -185,6 +185,20 @@ def _build_rules() -> list[tuple[str, Callable[[str, Optional[str]], bool]]]:
     )
     a(
         (
+            "deduction_duplicate_first_segment",
+            lambda t, ct: "deduction" in t
+            and "meme entit" in t
+            and "plusieurs fois" in t,
+        )
+    )
+    a(
+        (
+            "deduction_bijection_violated",
+            lambda t, ct: "deduction" in t and "one-to-one" in t,
+        )
+    )
+    a(
+        (
             "deduction_no_unique_solution",
             lambda t, ct: "deduction" in t
             and ("solution unique" in t or "plusieurs" in t or "menent" in t),

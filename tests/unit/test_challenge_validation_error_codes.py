@@ -88,6 +88,65 @@ def test_validation_unknown() -> None:
     )
 
 
+def test_deduction_duplicate_first_segment_classified() -> None:
+    """Message structurel `same first-category entity x N` doit être distinct de no_unique_solution."""
+    msg = "DEDUCTION: une même entité (première catégorie) apparaît plusieurs fois"
+    assert (
+        cvec.classify_challenge_validation_error(msg)
+        == "deduction_duplicate_first_segment"
+    )
+
+
+def test_deduction_bijection_violated_classified() -> None:
+    """Message structurel `one-to-one violated` doit être distinct de no_unique_solution."""
+    msg = (
+        "DEDUCTION: la catégorie « Maison » impose une assignation one-to-one : "
+        "une même valeur apparaît pour plusieurs lignes "
+        "(ex. deux personnes avec la même valeur)."
+    )
+    assert (
+        cvec.classify_challenge_validation_error(msg) == "deduction_bijection_violated"
+    )
+
+
+def test_deduction_no_unique_solution_still_classified() -> None:
+    """Régression-guard : les nouvelles règles ne doivent pas voler le code existant."""
+    msg = (
+        "DEDUCTION: les indices reconnus ne mènent pas à une solution unique "
+        "(plusieurs plannings restent possibles). Ajouter un indice discriminant."
+    )
+    assert (
+        cvec.classify_challenge_validation_error(msg) == "deduction_no_unique_solution"
+    )
+
+
+def test_deduction_answer_entities_missing_positive() -> None:
+    """Message validateur : entités manquantes dans correct_answer (première catégorie)."""
+    msg = (
+        "DEDUCTION: entités manquantes dans correct_answer (première catégorie): "
+        "['Alice', 'Bob']"
+    )
+    assert (
+        cvec.classify_challenge_validation_error(msg)
+        == "deduction_answer_entities_missing"
+    )
+
+
+def test_deduction_answer_entities_missing_negative_does_not_match_other() -> None:
+    """Garde-fou : un message d'entité non-DEDUCTION ne doit pas matcher cette règle."""
+    msg = "GRAPH: entités manquantes dans correct_answer"
+    assert (
+        cvec.classify_challenge_validation_error(msg)
+        != "deduction_answer_entities_missing"
+    )
+
+    msg2 = "DEDUCTION: contradiction détectée, aucune solution"
+    assert (
+        cvec.classify_challenge_validation_error(msg2)
+        != "deduction_answer_entities_missing"
+    )
+
+
 def test_challenge_pipeline_resolved_log_uses_loguru_braces() -> None:
     p = (
         Path(__file__).resolve().parent.parent.parent
