@@ -1,5 +1,7 @@
 # Beta Stabilisation v3.6.0 — Implementation Plan
 
+> **Status (2026-04-26):** DONE. Plan livré. Les audits référencés ci-dessous (`.claude/audit-security-findings.md`, `.claude/audit-runtime-findings.md`) ont été archivés vers `.claude/archive/audits/2026-04-25-{security,runtime}-findings.md` après clôture des bloquants/cosmétiques. Voir `AGENTS.md` et `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md`. Les instructions de création d'audits dans ce plan reflètent l'historique d'origine — ne pas les réécrire.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Solidifier la beta v3.6.0 sans feature nouvelle — audit sécurité, audit runtime, fermer Phase 2A métriques, aligner les docs.

@@ -4,7 +4,7 @@
 
 **Goal:** Corriger les 3 findings cosmétiques actionnables issus des audits sécurité et runtime beta stabilisation.
 
-**Architecture:** 3 tâches indépendantes touchant chacune un fichier différent. Aucune migration DB, aucune feature nouvelle. Les 8 autres findings des audits sont documentés comme "no action needed" (voir `.claude/audit-security-findings.md` et `.claude/audit-runtime-findings.md`).
+**Architecture:** 3 tâches indépendantes touchant chacune un fichier différent. Aucune migration DB, aucune feature nouvelle. Les 8 autres findings des audits sont documentés comme "no action needed" (voir `.claude/archive/audits/2026-04-25-security-findings.md` et `.claude/archive/audits/2026-04-25-runtime-findings.md` — déplacés en archive le 2026-04-26, cf. `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md`).
 
 **Tech Stack:** Python 3.12 / Starlette, loguru, SSE async generator
 

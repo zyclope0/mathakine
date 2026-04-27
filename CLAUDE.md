@@ -77,6 +77,20 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 ---
 
+## Tools onboarding
+
+Tout agent IA demarrant une session sur ce repo doit lire `AGENTS.md` a la racine en priorite — il contient l'etat operationnel courant (version, chantier actif, specs/plans en cours, dernier audit clos).
+
+Memoire IA en 3 niveaux (contrat detaille dans `AGENTS.md`) :
+
+- **Canonique** : ce fichier, `docs/03-PROJECT/`, `docs/02-FEATURES/`, `README_TECH.md`, `CHANGELOG.md`. Architecture stable, long terme.
+- **Working-memory commitee** : `docs/superpowers/specs/`, `docs/superpowers/plans/`. Cycle d'un chantier (Define → Develop → Deliver).
+- **Working-memory locale** : `.claude/`, `.cursor/plans/`. Ephemere, non poussee sauf `.claude/session-plan.md`.
+
+Voir `AGENTS.md` pour les regles d'archive (audits clos, session-plans obsoletes, plans Cursor) et l'onboarding par outil.
+
+---
+
 ## Workflow outils IA
 
 | Situation | Outil |
