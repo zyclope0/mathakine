@@ -146,7 +146,7 @@ class Settings(BaseSettings):
     )
     OPENAI_MODEL_REASONING: str = Field(
         default="",
-        description="Legacy défis IA seulement (si OPENAI_MODEL_CHALLENGES_OVERRIDE vide). Non nominal : défaut policy code = o3.",
+        description="Legacy defis IA seulement (si OPENAI_MODEL_CHALLENGES_OVERRIDE vide). Non nominal : defaut policy code = o4-mini.",
     )
     # Override ops du flux SSE exercices IA (prioritaire sur la policy applicative). Voir app.core.ai_generation_policy.
     OPENAI_MODEL_EXERCISES_OVERRIDE: str = Field(

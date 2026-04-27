@@ -1,10 +1,10 @@
 # Plan de solidification - Generation des defis IA
 **Date :** 2026-04-22
-**Revision :** 2026-04-24
+**Revision :** 2026-04-27
 **Contexte :** Post-lot beta.3, puis correctifs successifs de solidification sur la generation, la validation et les contrats backend/frontend
 **Contrainte :** Sans refonte totale, solo founder, 1-3 mois
 
-**Note de revision :** Ce plan est relu apres la migration `o3 -> o4-mini`, le durcissement du flux SSE defis, plusieurs correctifs du solveur deduction, l'alignement puzzle backend/frontend sur des cles d'ordre stables, puis les lots Phase 1A/1B d'observabilite runtime.
+**Note de revision :** Ce plan est relu apres la migration `o3 -> o4-mini`, le durcissement du flux SSE defis, plusieurs correctifs du solveur deduction, l'alignement puzzle backend/frontend sur des cles d'ordre stables, les lots Phase 1A/1B/2A/2B d'observabilite runtime, puis les tests Phase 3A/3B/3D.
 
 ---
 
@@ -47,7 +47,7 @@ Points unanimes :
 
 ---
 
-## Etat reel au 2026-04-24
+## Etat reel au 2026-04-27
 
 ### Deja fait
 
@@ -71,6 +71,18 @@ Points unanimes :
   `challenge_validation_error_codes.py`, en observabilite seulement. Les codes
   sont dedupliques, comptes dans `error_code_counts`, et loggues au niveau
   orchestration avec le statut pipeline et le type de repair.
+- **Phase 2A metriques runtime** : realisee.
+  `generation_metrics` expose latence p50/p95, compteurs chess repair,
+  fallback stats, fallback causes et `repair_success_rate`.
+- **Phase 2B generation_confidence** : realisee en log-only.
+  Le score est calcule/journalise cote orchestration, sans migration DB.
+- **Phase 3A golden tests** : realisee.
+  Les fixtures regression par type valident payload, erreurs attendues et
+  `response_mode` effectif.
+- **Phase 3B contrats renderer/frontend** : realisee.
+  Les formes `visual_data` attendues par les renderers sont couvertes par tests.
+- **Phase 3D perf solveur deduction** : realisee.
+  Les garde-fous de combinatoire et timeout solveur sont couverts.
 - **Contrats backend/frontend** :
   la validation puzzle s'aligne desormais sur des cles d'ordre stables
   (`id` / `piece_id`) tout en conservant les labels visibles pour les explications.
@@ -82,23 +94,17 @@ Points unanimes :
 ### Partiellement fait
 
 - **Solidification validator/solver** :
-  plusieurs gaps critiques ont ete fermes et l'observabilite Phase 1 existe.
-  Le `generation_confidence`, les golden tests, les tests de perf deduction et
-  le shadow mode restent a faire.
-- **Repair chess** :
-  la logique existe et les succes apparaissent indirectement via
-  `generation_status=repaired_by_ai`. Il manque encore des compteurs explicites
-  de tentative / echec / succes par type pour calculer un vrai `repair_success_rate`.
+  plusieurs gaps critiques ont ete fermes et les filets de regression Phase 3A/3B/3D
+  existent. Le shadow mode Phase 3C reste a faire avant de durcir de nouvelles regles.
 
 ### Pas fait
 
 - **Structured Outputs stricts OpenAI (`json_schema`)** :
   les defis utilisent encore `response_format={"type": "json_object"}` ;
   aucune migration globale vers `json_schema` strict n'est faite a ce stade.
-- **Mesure Phase 2 complete** :
-  les bases runtime existent, mais il manque encore les ratios derives
-  `repair_success_rate`, `fallback_rate`, les percentiles de latence et une
-  surface dashboard exploitable.
+- **Shadow mode Phase 3C** :
+  pas encore de mode shadow pour tester de nouvelles regles bloquantes sur un
+  echantillon avant activation stricte.
 - **Architecture legere Phase 4** :
   pas encore de `ValidatorResult` type ni de dispatch generique des repair handlers.
 
@@ -253,7 +259,7 @@ Livre :
 **Fichier :** `app/services/challenges/challenge_ai_service.py`  
 **Fonction :** `normalize_generated_challenge()`
 
-Ajouter champ `generation_confidence` (0.0-1.0) calcule a la fin :
+Champ `generation_confidence` (0.0-1.0) calcule a la fin :
 - -0.3 si repair declenche
 - -0.1 par erreur corrigee par auto_correct
 - -0.2 si difficulty clampee
@@ -265,13 +271,14 @@ vraiment d'identifier les defis douteux dans les metriques Phase 2A.
 
 #### Prochaine action recommandee
 
-Phase 2A et 2B fermees. Prochaine etape : Phase 3 (golden tests, shadow mode deduction, perf solveur) ou ACTIF-04 (couverture frontend Vitest).
+Phase 2A/2B et Phase 3A/3B/3D sont fermees. Prochaine etape si on continue ce plan : Phase 3C shadow mode, puis Phase 4 (`ValidatorResult` / repair handlers) ou migration progressive `json_schema`.
 
 ---
 
 ### Phase 3 - Mois 2 : Tests qui protegent les regles
 
 #### 3A. Golden tests par type
+**Statut : TERMINE (Phase 3A, beta.5)**
 **Fichier :** `tests/challenges/test_regression_by_type.py`
 
 Strategie : snapshots JSON de payloads reels (fixtures DB ou logs SSE captures)
@@ -285,16 +292,17 @@ def test_challenge_regression(fixture_file):
 ```
 
 Couvre : `validate_challenge_logic()`, `auto_correct_challenge()`,
-assert structure + solution + response_mode + erreurs connues.
+assert structure + solution + `response_mode` effectif + erreurs connues.
 
 #### 3B. Tests contrats IA9
+**Statut : TERMINE (Phase 3B, beta.5)**
 **Fichier :** `tests/challenges/test_contract_policy.py`
 
-Verifier coherence `response_mode` vs type, presence/forme `choices`,
+Verifie coherence `response_mode` vs type, presence/forme `choices`,
 `visual_data`, compatibilite avec renderers frontend.
-Ces contrats sont actuellement implicites et cassables sans alerte.
 
 #### 3C. Shadow mode pour regles nouvelles
+**Statut : NON DEMARRE**
 **Principe :** avant de bloquer un defi sur les politiques les plus nouvelles
 (deduction solver, probability QCM equivalences), logger sans bloquer
 pendant N=200 generations.
@@ -311,9 +319,10 @@ else:
 Passer en mode bloquant quand faux-positifs mesures < 2%.
 
 #### 3D. Tests perf solveur deduction
+**Statut : TERMINE (Phase 3D, beta.5)**
 **Fichier :** `tests/unit/test_challenge_deduction_solver.py`
 
-Ajouter :
+Couvert :
 - Test timeout explicite (`MAX_DEDUCTION_SOLVER_COMBINATIONS = 50_000`)
 - Test unicite sur grille ambigue (> 1 solution)
 - Test cas limite (valeurs dupliquees dans une categorie -> `_build_model` retourne None)

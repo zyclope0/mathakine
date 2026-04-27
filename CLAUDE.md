@@ -8,11 +8,12 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 **Mathakine** - plateforme EdTech SaaS d'apprentissage des mathematiques pour enfants.
 
-**Position produit au 2026-04-16 :**
+**Position produit au 2026-04-27 :**
 
 - train visible courant : **`3.6.0-beta.5`**
 - le theme spatial neutre est la direction active ; ne pas reintroduire de nouvelle copie Star Wars/Jedi hors compat legacy explicitement documentee
 - le frontend a ferme **ACTIF-03** (co-localisation des tests) ; le dernier finding frontend actif reste **ACTIF-04** (couverture / seuils Vitest)
+- les defis IA ont ferme la stabilisation beta.5 : `o4-mini` par defaut, statuts pipeline, codes d'erreur, metriques runtime, golden tests, contrats renderer et perf solveur deduction
 - la feuille de route produit active reste `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md`
 - `.claude/session-plan.md` est une note locale de pilotage founder, pas une preuve runtime autonome
 
@@ -53,6 +54,10 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 ## Etat de sante
 
 - backend prod : entree Gunicorn/Starlette stabilisee avec `enhanced_server:app`
+- defis IA :
+  - **Phase 0 / 1A / 1B / 2A / 2B / 3A / 3B / 3D** fermees
+  - **Phase 3C shadow mode** non demarree
+  - **Structured Outputs OpenAI `json_schema`** non demarres
 - frontend quality:
   - **ACTIF-03** ferme
   - **ACTIF-04** encore ouvert
@@ -71,7 +76,8 @@ Contexte projet charge automatiquement a chaque session Claude Code.
 
 | Priorite | Sujet | Probleme |
 | -------- | ----- | -------- |
-| P1 | `ACTIF-04` frontend | couverture Vitest encore en dessous de l'horizon cible ; toute hausse de seuil doit etre appuyee par une nouvelle mesure CI |
+| P1 | Defis IA post-beta | Phase 3C shadow mode et migration `json_schema` restent a faire avant de durcir encore le contrat modele |
+| P2 | `ACTIF-04` frontend | couverture Vitest encore en dessous de l'horizon cible ; toute hausse de seuil doit etre appuyee par une nouvelle mesure CI |
 | P2 | Dette architecture backend IA | dualite `ai_config.py` / `challenge_ai_model_policy.py` encore documentee comme dette |
 | P2 | Dette docs founder/locales | `.claude/session-plan.md` peut diverger du runtime si on le traite comme source de verite au lieu d'une note de pilotage |
 

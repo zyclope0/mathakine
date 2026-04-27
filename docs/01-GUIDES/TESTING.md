@@ -1,7 +1,7 @@
 # TESTING GUIDE - MATHAKINE
 
 > Test strategy and gates
-> Updated: 16/04/2026
+> Updated: 27/04/2026
 > Scope: backend + frontend
 
 ## Principles
@@ -101,6 +101,14 @@ Correct handling:
 - for repeated coverage reruns, use a dedicated `COVERAGE_FILE` per run
 
 ## Current Verified State
+
+**Beta.5 verification (27/04/2026)** - derniere simulation locale proche GitHub Actions :
+
+- backend gate complet avec couverture : `python -m pytest tests/ --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=63 --cov-report=term-missing --cov-report=xml --junitxml=junit.xml -o junit_family=legacy --tb=short -m "not slow"` -> **`1868 passed, 2 skipped, 2 deselected`**, coverage **`80.73 %`**
+- backend static gates : Black, isort, flake8 `E9,F63,F7,F82`, mypy `app/ server/ --ignore-missing-imports` -> green
+- frontend gate : `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run`, `npm run build` -> green
+- deployment smoke : `/ready` -> `200`; `gunicorn enhanced_server:app --check-config` -> green in Linux Docker
+- caveat : local frontend run used Node 24; GitHub Actions remains authoritative on Node 20
 
 **Baseline la plus récente (R7, 21/03/2026)** — citation figée ; relancer le gate après divergence du trunk :
 

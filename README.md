@@ -38,6 +38,13 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 
 Figures below are **citations** from documented closure runs; **re-run** the same commands if your tree has diverged.
 
+**Current beta.5 verification - 2026-04-27**
+
+- backend CI-style gate: `python -m pytest tests/ --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=63 --cov-report=term-missing --cov-report=xml --junitxml=junit.xml -o junit_family=legacy --tb=short -m "not slow"` -> **`1868 passed, 2 skipped, 2 deselected`**, coverage **`80.73 %`**
+- backend static checks: Black, isort, flake8 critical selectors and mypy (`app/ server/ --ignore-missing-imports`) green on the beta.5 tree
+- frontend CI-style gate: TypeScript, ESLint, Prettier check, Vitest coverage and Next build green locally; CI remains authoritative on Node 20 while the local run used Node 24
+- deployment smoke: `/ready` returned `200`; `gunicorn enhanced_server:app --check-config` green in Linux Docker
+
 - backend iteration `exercise/auth/user`: closed
 - backend iteration `challenge/admin/badge`: closed
 - iteration `Runtime Truth`: closed

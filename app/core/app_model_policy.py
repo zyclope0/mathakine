@@ -27,12 +27,12 @@ ModÃ¨le **premium** (abonnement / futur seam, testable mais non activÃ© par 
 
 **IA10b â€” fail-closed** : :data:`ASSISTANT_CHAT_ALLOWED_MODEL_IDS` est volontairement limitÃ©e aux
 modÃ¨les **compatibles avec le runtime chat actuel** (Chat Completions, kwargs dÃ©jÃ  cÃ¢blÃ©s dans
-``chat_service``). Les familles **o1** / **o3** ne sont **pas** autorisÃ©es pour lâ€™assistant : elles
-restent rÃ©servÃ©es aux workloads **exercises_ai** / **challenges_ai** (dÃ©faut **o3** en policy
-dÃ©diÃ©e). Un override ops vers ``o3`` / ``o1`` **Ã©choue tÃ´t** (:func:`assert_assistant_chat_model_allowed`).
+``chat_service``). Les familles **o-series** ne sont **pas** autorisees pour l'assistant : elles
+restent reservees aux workloads **exercises_ai** / **challenges_ai** (defaut **o4-mini** en policy
+dediee). Un override ops vers ``o4-mini`` / ``o3`` / ``o1`` **echoue tot** (:func:`assert_assistant_chat_model_allowed`).
 
-Les workloads pÃ©dagogiques structurÃ©s **exercises_ai** / **challenges_ai** restent sur **o3**
-par dÃ©faut applicatif ; toute promotion vers GPT-5 hors preuve harness reste hors scope.
+Les workloads pedagogiques structures **exercises_ai** / **challenges_ai** restent sur **o4-mini**
+par defaut applicatif ; toute promotion vers GPT-5 hors preuve harness reste hors scope.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ PREMIUM_ASSISTANT_CHAT_MODEL: Final[str] = "gpt-5.4"
 CHEAP_ASSISTANT_CHAT_FALLBACK_MODEL: Final[str] = "gpt-4o-mini"
 
 # Allowlist chat (IA10b fail-closed) : uniquement modÃ¨les alignÃ©s sur le runtime assistant actuel.
-# Pas d'o1/o3 ici â€” rÃ©servÃ©s aux flux exercises_ai / challenges_ai.
+# Pas d'o-series ici - reserves aux flux exercises_ai / challenges_ai.
 ASSISTANT_CHAT_ALLOWED_MODEL_IDS: Final[frozenset[str]] = frozenset(
     {
         "gpt-5-mini",
@@ -86,7 +86,7 @@ def assert_assistant_chat_model_allowed(normalized_id: str) -> None:
     if normalized_id not in ASSISTANT_CHAT_ALLOWED_MODEL_IDS:
         raise ValueError(
             f"ModÃ¨le non autorisÃ© pour assistant_chat (allowlist fail-closed IA10b): {normalized_id!r}. "
-            "Familles o1/o3 rÃ©servÃ©es aux workloads pÃ©dagogiques ; override ops autorisÃ©: "
+            "Familles o-series reservees aux workloads pedagogiques ; override ops autorise: "
             "gpt-5-mini, gpt-5.4, gpt-4o-mini, gpt-4o."
         )
 

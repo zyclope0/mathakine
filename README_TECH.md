@@ -8,6 +8,15 @@ Visible product train:
 - source of truth: `CHANGELOG.md` + `frontend/package.json`
 - `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.6.0b5`
 
+## Beta.5 Challenge AI Stabilization
+
+- Default pedagogical reasoning model is `o4-mini` for exercises and challenges; `gpt-4o-mini` remains the bounded fallback for empty o-series challenge streams.
+- Challenge generation now records pipeline status (`accepted`, `repaired`, `repaired_by_ai`, `rejected`) plus normalized validation error codes in runtime metrics.
+- Runtime metrics now include challenge latency percentiles, fallback rate/causes, chess repair counters and log-only `generation_confidence`.
+- Empty fallback responses are treated as explicit safe SSE failures, with token usage flushed and the OpenAI circuit breaker half-open probe closed out.
+- Phase 3 test coverage is active for challenge golden fixtures, frontend renderer contracts, response-mode guards and deduction solver performance.
+- Not done yet: Phase 3C shadow mode, OpenAI strict `json_schema` structured outputs, and the Phase 4 typed `ValidatorResult` refactor.
+
 ## Runtime Truth
 
 - **Dev** : `python enhanced_server.py` Ã©coute par dÃ©faut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la mÃªme URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
@@ -211,6 +220,7 @@ Limite assumee :
 - **`POST /api/chat`** et **`POST /api/chat/stream`** (Starlette + routes Next `app/api/chat/*`) exigent une session valide (**CHAT-AUTH-01**) : plus de whitelist publique middleware ; le proxy Next refuse sans cookie `access_token` (401 JSON `UNAUTHORIZED`) et relaie `Cookie` + `X-CSRF-Token` lorsque la session est prï¿½sente ; rate-limit chat inchangï¿½ cï¿½tï¿½ backend ; **CHAT-DEFENSE-01**: `require_auth` / `require_auth_sse` on `server/handlers/chat_handlers.py` (defense in depth, same `server.auth` decorators, middleware unchanged).
 - frontend proxy routes (`/api/chat`, `/api/chat/stream`, `/api/exercises/generate-ai-stream`, `/api/challenges/generate-ai-stream`) sont couverts par des tests de handlers Next.js au niveau route ; les deux POST SSE pï¿½dagogiques partagent `lib/api/sseProxyRequest.ts` (`proxySseGenerateAiStreamPost`) et `lib/api/proxyForwardHeaders.ts` pour parse JSON, auth cookie, forward headers, garde `body === null` backend et stream
 - les flux pedagogiques SSE utilisent un circuit breaker process-local partage pour eviter de relancer indefiniment des appels OpenAI manifestement indisponibles
+- les defis IA exposent maintenant des statuts pipeline, codes d'erreur de validation, causes de fallback, compteurs de repair chess, percentiles de latence et `generation_confidence` log-only ; ces metriques restent process-locales et volatiles
 - les erreurs de generation IA cote frontend distinguent maintenant explicitement :
   - CSRF absent
   - session expiree / non authentifiee (`401`)
