@@ -366,8 +366,9 @@ user_prompt = build_challenge_user_prompt(
 )
 ```
 
-**Note logging :** la convention projet loguru utilise `{}` et arguments positionnels,
-pas `extra={}` (incompatible avec loguru).
+**Note logging :** utiliser les placeholders `{}` avec arguments positionnels. Ne pas utiliser `%s`.
+Pour du contexte structuré, utiliser `logger.bind(...)`, pas `extra={…}` style stdlib
+(celui-ci crée un champ imbriqué `extra["extra"]` non conforme à la convention projet).
 
 ---
 
