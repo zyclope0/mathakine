@@ -38,7 +38,7 @@ bcrypt==5.0.0  # Hachage des mots de passe (utilisé directement, sans passlib p
 # Optimisations de performance
 psutil==7.2.2  # Monitoring système pour optimisations
 pillow==12.2.0  # 12.1.1+ pour CVE-2026-25990  # Optimisation d'images
-redis==7.2.1  # Cache en mémoire pour optimisations
+redis==7.4.0  # Cache en mémoire pour optimisations
 gunicorn==25.1.0  # Process manager production pour `enhanced_server:app` via UvicornWorker
 uvloop==0.22.1; sys_platform != 'win32'  # Boucle d'événements optimisée (Unix seulement, non supporté sur Windows)
 
