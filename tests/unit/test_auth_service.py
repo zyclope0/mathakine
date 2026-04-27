@@ -1397,3 +1397,33 @@ def test_build_authenticated_user_payload_f43_progression_rank_alias():
     payload = build_authenticated_user_payload(user)
     assert payload["role"] == "apprenant"
     assert payload["jedi_rank"] == payload["progression_rank"]
+
+
+def test_auth_service_logs_use_loguru_braces_only() -> None:
+    """Sentinel : aucun appel logger.* dans auth_service.py n'utilise %s.
+
+    Loguru n'interpole pas %s : un %s laissé dans un template fait perdre
+    la valeur passée en argument et casse l'observabilité côté auth.
+    """
+    import re
+    from pathlib import Path
+
+    auth_path = (
+        Path(__file__).resolve().parent.parent.parent
+        / "app"
+        / "services"
+        / "auth"
+        / "auth_service.py"
+    )
+    text = auth_path.read_text(encoding="utf-8")
+
+    pattern = re.compile(
+        r"logger\.(?:trace|debug|info|success|warning|error|critical|exception)\s*\("
+        r"[^)]*%s",
+        re.DOTALL,
+    )
+    offenders = pattern.findall(text)
+    assert offenders == [], (
+        f"auth_service.py contient {len(offenders)} appel(s) logger.* "
+        f"avec %s — utiliser {{}} (loguru). Exemple : {offenders[0][:140]!r}"
+    )
