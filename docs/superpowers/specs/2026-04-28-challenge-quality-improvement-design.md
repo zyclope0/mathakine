@@ -79,10 +79,10 @@ Le titre doit donner envie d'ouvrir le défi : question, mission, anomalie, para
 
 La description pose la situation en 1-2 phrases : micro-contexte → données utiles → question.
 Ne pas poser la question principale avant d'avoir donné les données nécessaires.
-Elle doit rendre la question inévitable — l'enfant doit vouloir résoudre.
+Elle doit rendre la question inévitable — l'apprenant doit vouloir résoudre.
 
 La solution_explanation répond à "pourquoi ça marche", pas seulement "comment on calcule".
-L'enfant doit comprendre quelque chose de nouveau après l'avoir lue — même avec la bonne réponse.
+L'apprenant doit comprendre quelque chose de nouveau après l'avoir lue — même avec la bonne réponse.
 ```
 
 ### 1.3 `TEXT_ACCESSIBILITY_COGNITIVE` *(nouveau)*
@@ -93,8 +93,10 @@ ACCESSIBILITÉ COGNITIVE :
 - 9-11 ans : phrases ≤ 20 mots, vocabulaire du quotidien, pas de termes techniques
 - 12+ ans  : vocabulaire précis acceptable, mais une phrase par idée
 
-Ordre universel : micro-contexte → données utiles → question.
-Ne jamais poser la question principale avant d'avoir fourni les données nécessaires.
+Ordre recommandé : micro-contexte → données utiles → question.
+Exceptions valides : une anomalie ou un paradoxe peut ouvrir le défi si ça renforce
+l'engagement sans créer d'ambiguïté. La règle absolue est : ne jamais poser la question
+principale avant d'avoir fourni les données nécessaires pour y répondre.
 
 Test d'ambiguïté : si la question peut être lue de deux façons, réécrire
 jusqu'à ce qu'il n'y ait qu'une seule interprétation possible.
@@ -271,10 +273,11 @@ RESOLUTION_MECHANISMS_BY_TYPE = {
     ],
     "riddle": [
         "contraintes numériques croisées (âge, date, valeur)",
-        "auto-référence (la réponse est cachée dans l'énoncé)",
-        "double sens à démêler",
         "raisonnement par l'absurde (éliminer l'impossible)",
-        "métaphore à interpréter puis résoudre",
+        # Mécanismes avancés/adulte — réservés aux niveaux 12+ ou énigmes explicitement linguistiques
+        "auto-référence (la réponse est cachée dans l'énoncé)",  # adulte / avancé
+        "double sens à démêler",                                  # adulte / avancé
+        "métaphore à interpréter puis résoudre",                  # adulte / avancé
     ],
 }
 ```
@@ -338,15 +341,21 @@ if variety_seed and (variety_seed.narrative_context or variety_seed.resolution_m
     )
 ```
 
-### 3.3 Hiérarchie des contraintes (du plus fort au plus faible)
+### 3.3 Hiérarchie des contraintes
 
+**Garde-fous permanents — non contournables par le seed ni par la demande utilisateur :**
+- Sections qualité du prompt système (storytelling, accessibilité cognitive, distracteurs, engagement)
+- Type de défi (verrou absolu)
+- Groupe d'âge / niveau cible
+
+**Suggestions runtime (du plus fort au plus faible) :**
 ```
-1. Type de défi (verrou absolu)
-2. Groupe d'âge / niveau cible
-3. Demande personnalisée utilisateur (dans les limites de 1 et 2)
-4. Orientation de variété / seed (suggestion faible)
-5. Sections qualité du prompt système
+1. Demande personnalisée utilisateur (dans les limites des garde-fous permanents)
+2. Orientation de variété / seed (suggestion faible, jamais une obligation)
 ```
+
+La demande utilisateur peut orienter le contexte ou le style, mais ne peut pas contourner
+les règles d'accessibilité, de storytelling ou de qualité des distracteurs.
 
 ### 3.4 Appel dans `challenge_ai_service.py`
 
