@@ -1,0 +1,21 @@
+{
+  "challenge": {
+    "challenge_type": "GRAPH",
+    "title": "Chemin le plus court",
+    "description": "Trouvez le chemin le plus court de A à C dans ce graphe.",
+    "correct_answer": "A,B,C",
+    "solution_explanation": "Le chemin A → B → C a un poids total de 2, c'est le plus court.",
+    "difficulty_rating": 1,
+    "visual_data": {
+      "nodes": ["A", "B", "C"],
+      "edges": [
+        {"from": "A", "to": "B", "weight": 1},
+        {"from": "B", "to": "C", "weight": 1}
+      ]
+    },
+    "choices": null,
+    "response_mode": "open_text"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}

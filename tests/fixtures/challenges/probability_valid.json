@@ -1,0 +1,18 @@
+{
+  "challenge": {
+    "challenge_type": "PROBABILITY",
+    "title": "Tirage dans une urne",
+    "description": "Une urne contient 2 boules rouges et 3 boules bleues. Quelle est la probabilité de tirer une boule rouge ?",
+    "correct_answer": "2/5",
+    "solution_explanation": "2 boules rouges sur un total de 5 boules : P(rouge) = 2/5.",
+    "difficulty_rating": 1,
+    "visual_data": {
+      "rouge": 2,
+      "bleu": 3
+    },
+    "choices": null,
+    "response_mode": "open_text"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}

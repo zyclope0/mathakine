@@ -18,7 +18,7 @@
       ]
     },
     "choices": null,
-    "response_mode": "text"
+    "response_mode": "interactive_grid"
   },
   "expected_valid": false,
   "expected_error_codes": ["deduction_constraint_parse_failed", "deduction_answer_entities_missing"]

@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+from app.services.challenges.challenge_contract_policy import RESPONSE_MODES
 from app.services.challenges.challenge_validation_error_codes import (
     classify_challenge_validation_errors,
 )
@@ -55,6 +56,14 @@ def test_challenge_regression(fixture_name: str) -> None:
     )
 
     challenge = data["challenge"]
+
+    # P1-0 : response_mode doit être absent ou appartenir au contrat RESPONSE_MODES.
+    rm = challenge.get("response_mode")
+    if rm is not None:
+        assert rm in RESPONSE_MODES, (
+            f"[{fixture_name}] response_mode={rm!r} invalide — "
+            f"valeurs acceptées : {RESPONSE_MODES}"
+        )
     is_valid, errors = validate_challenge_logic(challenge)
 
     assert is_valid == data["expected_valid"], (

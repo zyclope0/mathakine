@@ -21,7 +21,7 @@
       "objective": "mat_en_1"
     },
     "choices": null,
-    "response_mode": "text"
+    "response_mode": "open_text"
   },
   "expected_valid": false,
   "expected_error_codes": ["chess_king_in_check"]

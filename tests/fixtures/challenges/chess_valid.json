@@ -21,7 +21,7 @@
       "objective": "meilleur_coup"
     },
     "choices": null,
-    "response_mode": "text"
+    "response_mode": "open_text"
   },
   "expected_valid": true,
   "expected_error_codes": []

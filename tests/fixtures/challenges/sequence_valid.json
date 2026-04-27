@@ -1,0 +1,18 @@
+{
+  "challenge": {
+    "challenge_type": "SEQUENCE",
+    "title": "Suite arithmétique",
+    "description": "Trouvez le prochain terme de la suite.",
+    "correct_answer": "13",
+    "solution_explanation": "La suite augmente de 3 à chaque étape : 1, 4, 7, 10, 13.",
+    "difficulty_rating": 1,
+    "visual_data": {
+      "sequence": [1, 4, 7, 10],
+      "answer_position": 4
+    },
+    "choices": null,
+    "response_mode": "interactive_grid"
+  },
+  "expected_valid": true,
+  "expected_error_codes": []
+}
