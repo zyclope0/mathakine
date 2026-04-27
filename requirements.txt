@@ -48,7 +48,7 @@ cssmin==0.2.0  # Minification CSS
 jsmin==3.0.1  # Minification JavaScript
 
 # Monitoring et métriques
-prometheus-client==0.24.1  # Métriques Prometheus
+prometheus-client==0.25.0  # Métriques Prometheus
 sentry-sdk>=2.44.0  # Erreurs + métriques (éviter démultiplication outils)
 
 # Envoi d'emails (optionnel - SendGrid pour production)
