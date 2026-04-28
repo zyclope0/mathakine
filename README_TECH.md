@@ -1,6 +1,6 @@
 # Technical README - Mathakine
 
-> Updated: 27/04/2026 (train visible `3.6.0-beta.5` ; stabilisation IA défis, métriques et contrats de régression alignés)
+> Updated: 28/04/2026 (train visible `3.6.0-beta.5` ; audit documentaire v3.6.0-beta.5 : VarietySeed livré, VALID_CHALLENGE_TYPES dans challenge_prompt_sections.py)
 
 Visible product train:
 
@@ -15,6 +15,8 @@ Visible product train:
 - Runtime metrics now include challenge latency percentiles, fallback rate/causes, chess repair counters and log-only `generation_confidence`.
 - Empty fallback responses are treated as explicit safe SSE failures, with token usage flushed and the OpenAI circuit breaker half-open probe closed out.
 - Phase 3 test coverage is active for challenge golden fixtures, frontend renderer contracts, response-mode guards and deduction solver performance.
+- **VarietySeed (lot Qualité — commits 74ffb14→33bb325)** : dataclass `VarietySeed(narrative_context, resolution_mechanism, cognitive_skill="", min_level="")` injectée dans le prompt de génération défi. Types sans contexte narratif : `chess`, `visual`, `pattern` (`_TYPES_IGNORE_NARRATIVE`). Seed = suggestion faible ; type, âge et contrat `visual_data` restent absolus.
+- `VALID_CHALLENGE_TYPES` est défini dans `challenge_prompt_sections.py` (depuis commit 33bb325) — ne plus le chercher ailleurs.
 - Not done yet: Phase 3C shadow mode, OpenAI strict `json_schema` structured outputs, and the Phase 4 typed `ValidatorResult` refactor.
 
 ## Runtime Truth

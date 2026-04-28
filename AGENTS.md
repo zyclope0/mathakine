@@ -11,9 +11,9 @@
 |---|---|
 | Version | `3.6.0-beta.5` |
 | Branche | `master` |
-| Dernière phase livrée | `3.6.0-beta.5` - stabilisation défis IA + Phase 3 tests (3A golden, 3B renderer contracts, 3D solveur perf) + docs release - commit `7107e58` |
-| Dernier audit clos | 2026-04-25 (sécurité B1-B3 corrigés en `83e7763`, runtime cosmétiques traités en `48fb8bf`/`ec87c35`/`15ed459`) |
-| Chantier actif | **aucun** — prêt pour next chantier. Définir l'objectif avant toute édition de code. |
+| Dernière phase livrée | `3.6.0-beta.5` - stabilisation défis IA + Phase 3 tests (3A golden, 3B renderer contracts, 3D solveur perf) + VarietySeed (lot Qualité, commits 74ffb14→33bb325) + docs release - commit `da794f4` |
+| Dernier audit clos | 2026-04-28 (audit documentaire complet — alignement docs racine sur ground-truth v3.6.0-beta.5) |
+| Chantier actif | **Audit documentaire complet (2026-04-28)** — alignement README_TECH.md / AGENTS.md / CLAUDE.md sur ground-truth snapshot. |
 | Commits non poussés | 0 attendu après publication `3.6.0-beta.5` (vérifier avec `git log origin/master..master --oneline`) |
 
 ---
@@ -37,9 +37,10 @@
 | DONE (commit `5940a8a`) | `docs/superpowers/specs/2026-04-25-phase3-tests-design.md` + `docs/superpowers/plans/2026-04-25-phase3-tests.md` |
 | DONE (commit `442f4f4`) | `docs/superpowers/specs/2026-04-25-beta-stabilisation-design.md` + `docs/superpowers/plans/2026-04-25-beta-stabilisation.md` |
 | DONE (commit `48fb8bf`) | `docs/superpowers/plans/2026-04-25-cosmetic-findings.md` |
-| ACTIVE | `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md` (cette rationalisation mémoire IA) |
+| DONE (commit `da794f4`) | `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md` (rationalisation mémoire IA — intégré dans le cycle 3.6.0-beta.5) |
+| ACTIVE | `docs/superpowers/specs/2026-04-28-ground-truth-snapshot.md` (audit documentaire complet v3.6.0-beta.5) |
 
-Aucun plan d'implémentation associé encore généré pour la spec ACTIVE — si on enchaîne, lancer le skill `writing-plans`.
+Audit documentaire en cours — aligne les docs racine (README_TECH.md, AGENTS.md, CLAUDE.md) et les docs canoniques sur le ground-truth snapshot.
 
 ---
 
@@ -102,6 +103,6 @@ Règle d'or : un finding/audit/note de session **ne doit pas** rester dans la wo
 
 ## Voir aussi
 
-- Spec de cette rationalisation mémoire IA : `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md`
+- Audit documentaire courant : `docs/superpowers/specs/2026-04-28-ground-truth-snapshot.md`
 - Workflow outils IA détaillé : `CLAUDE.md` section "Workflow outils IA"
 - Conventions de code : `CLAUDE.md` section "Conventions du projet"
