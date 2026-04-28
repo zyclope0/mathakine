@@ -9,16 +9,21 @@ Composition modulaire du prompt système pour la génération IA des défis.
 
 from __future__ import annotations
 
-from typing import List
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from app.services.challenges.challenge_variety_seeds import VarietySeed
 
 from app.services.challenges.challenge_prompt_sections import (
     TEXT_DIFFICULTY_RULES,
+    TEXT_DISTRACTOR_COGNITIVE,
+    TEXT_ENGAGEMENT_AND_ACCESSIBILITY,
     TEXT_HINTS_RULES,
     TEXT_JSON_CONTRACT_TEMPLATE,
     TEXT_LATEX_RULES,
-    TEXT_MATHLOG_CONTEXT,
     TEXT_PATTERN_EXAMPLES,
     TEXT_ROLE_HEADER,
+    TEXT_STORYTELLING_PRINCIPLES,
     TEXT_TYPE_LOCK_TEMPLATE,
     TEXT_TYPES_COMPACT,
     TEXT_VAL_FINAL,
@@ -114,8 +119,10 @@ def build_challenge_system_prompt(challenge_type: str, age_group: str) -> str:
         TEXT_TYPE_LOCK_TEMPLATE.format(challenge_type=challenge_type),
         _age_group_block(params),
         TEXT_TYPES_COMPACT,
-        TEXT_MATHLOG_CONTEXT,
+        TEXT_STORYTELLING_PRINCIPLES,          # replaces TEXT_MATHLOG_CONTEXT
+        TEXT_ENGAGEMENT_AND_ACCESSIBILITY,     # merged engagement + accessibility
         TEXT_HINTS_RULES,
+        TEXT_DISTRACTOR_COGNITIVE,
         VISUAL_DATA_SECTION_BY_TYPE.get(ct, TEXT_VISUAL_DATA_FALLBACK),
     ]
     if age_group == "adulte" and ct == "visual":
@@ -150,7 +157,8 @@ def _output_language_from_locale(locale: str) -> str:
 
 
 def build_challenge_user_prompt(
-    challenge_type: str, age_group: str, prompt: str, locale: str = "fr"
+    challenge_type: str, age_group: str, prompt: str, locale: str = "fr",
+    variety_seed: "VarietySeed | None" = None,
 ) -> str:
     """Construit le prompt utilisateur pour la génération de défis."""
     params = AGE_GROUP_PARAMS.get(age_group, AGE_GROUP_PARAMS["9-11"])
@@ -178,6 +186,24 @@ LANGUE DE SORTIE :
 - Langue de l'interface : {locale or "fr"} → rédige les champs visibles en {output_language}.
 - `correct_answer` doit être en {output_language} quand la réponse est un mot, une phrase ou un message décodé ; garde seulement les notations mathématiques/coordonnées/codes dans leur forme standard.
 - Si la locale est ambiguë ou non prise en charge, utilise le français."""
+
+    if variety_seed and (variety_seed.narrative_context or variety_seed.resolution_mechanism):
+        user_prompt += "\n\nORIENTATION DE VARIÉTÉ (suggestions — type et niveau restent absolus) :"
+        if variety_seed.narrative_context:
+            user_prompt += f"\n- Contexte narratif : {variety_seed.narrative_context}"
+        if variety_seed.resolution_mechanism:
+            user_prompt += f"\n- Mécanisme de résolution : {variety_seed.resolution_mechanism}"
+        user_prompt += (
+            "\nEn cas de conflit :"
+            "\n  - le type de défi et le groupe d'âge sont prioritaires ;"
+            "\n  - la demande personnalisée utilisateur est prioritaire sur cette orientation ;"
+            "\n  - cette orientation est une suggestion, jamais une obligation."
+            f"\nIMPORTANT : le contrat visual_data du type {challenge_type} et le schéma JSON"
+            " restent inchangés. Le seed oriente le contexte narratif et le raisonnement,"
+            " pas la structure des données."
+            "\nNote : le mécanisme peut être avancé — adapter la formulation,"
+            " le vocabulaire et la complexité au groupe d'âge cible."
+        )
 
     if prompt:
         user_prompt += f"""

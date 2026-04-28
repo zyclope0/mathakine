@@ -26,46 +26,33 @@ TEXT_STORYTELLING_PRINCIPLES = """STORYTELLING PÉDAGOGIQUE :
 Chaque défi doit donner du sens aux données, pas simplement demander de calculer.
 Le contexte doit rendre le raisonnement nécessaire — pas le décorer.
 
-Formats de situations efficaces :
-- Décision à prendre : quelle option est la plus avantageuse ?
-- Comparaison surprenante : une réalité contre-intuitive à valider ou réfuter
-- Mission concrète : une tâche claire avec un objectif défini
-- Erreur à détecter : un résultat ou un raisonnement incorrect à identifier
-- Stratégie à choisir : plusieurs chemins, un seul optimal
-- Optimisation : comment faire mieux avec les contraintes données
-- Paradoxe ou surprise : une situation qui défie l'intuition première
+Formats efficaces : décision à prendre, erreur à détecter, mission concrète,
+stratégie à choisir, paradoxe ou surprise.
 
-Domaines concrets recommandés : architecture, jeux de société, cuisine, musique,
-sport, cryptographie, transport, bibliothèque, nature, construction, cartographie.
+Domaines recommandés : architecture, jeux de société, cuisine, sport, cartographie,
+cryptographie, transport.
 
-RÈGLE : éviter les contextes purement décoratifs (pirates, dragons, bonbons)
-s'ils ne servent pas directement le raisonnement.
-Si le contexte peut être supprimé sans changer le problème, il ne sert à rien."""
+RÈGLE : si le contexte peut être supprimé sans changer le problème, il ne sert à rien."""
 
-TEXT_ENGAGEMENT_PRINCIPLES = """ENGAGEMENT :
-Le titre doit donner envie d'ouvrir le défi : question, mission, anomalie, paradoxe.
-  ✅ BON  : "Qui a volé le code ?" / "Le pont le plus court" / "Trois couleurs suffisent ?"
-  ❌ MAUVAIS : "Problème de probabilité" / "Suite logique 3" / "Défi de déduction"
+TEXT_ENGAGEMENT_AND_ACCESSIBILITY = """ENGAGEMENT ET ACCESSIBILITÉ :
+Titre : question, mission, anomalie ou paradoxe — pas un libellé générique.
+  ✅ "Qui a volé le code ?" / "Le pont le plus court" / "Trois couleurs suffisent ?"
+  ❌ "Problème de probabilité" / "Suite logique 3" / "Défi de déduction"
 
-La description pose la situation en 1-2 phrases : micro-contexte → données utiles → question.
+Description : micro-contexte → données utiles → question (1-2 phrases).
 Ne pas poser la question principale avant d'avoir donné les données nécessaires.
-Elle doit rendre la question inévitable — l'apprenant doit vouloir résoudre.
+solution_explanation : expliquer "pourquoi ça marche", pas seulement "comment calculer".
 
-La solution_explanation répond à "pourquoi ça marche", pas seulement "comment on calcule".
-L'apprenant doit comprendre quelque chose de nouveau après l'avoir lue — même avec la bonne réponse."""
-
-TEXT_ACCESSIBILITY_COGNITIVE = """ACCESSIBILITÉ COGNITIVE :
+Adaptation par âge :
 - 6-8 ans  : phrases ≤ 12 mots, 1 seule consigne, objets concrets uniquement
 - 9-11 ans : phrases ≤ 20 mots, vocabulaire du quotidien, pas de termes techniques
-- 12+ ans  : vocabulaire précis acceptable, mais une phrase par idée
+- 12+ ans  : vocabulaire précis acceptable, une phrase par idée
 
-Ordre recommandé : micro-contexte → données utiles → question.
-Exceptions valides : une anomalie ou un paradoxe peut ouvrir le défi si ça renforce
-l'engagement sans créer d'ambiguïté. La règle absolue : ne jamais poser la question
-principale avant d'avoir fourni les données nécessaires pour y répondre.
+Test d'ambiguïté : si la question peut être lue de deux façons, réécrire jusqu'à une seule interprétation."""
 
-Test d'ambiguïté : si la question peut être lue de deux façons, réécrire
-jusqu'à ce qu'il n'y ait qu'une seule interprétation possible."""
+# Kept for backward compatibility — no longer injected in build_challenge_system_prompt()
+TEXT_ENGAGEMENT_PRINCIPLES = TEXT_ENGAGEMENT_AND_ACCESSIBILITY
+TEXT_ACCESSIBILITY_COGNITIVE = TEXT_ENGAGEMENT_AND_ACCESSIBILITY
 
 TEXT_DISTRACTOR_COGNITIVE = """QUALITÉ DES DISTRACTEURS :
 Chaque distracteur cible une erreur de raisonnement réelle — pas une valeur arbitraire.
