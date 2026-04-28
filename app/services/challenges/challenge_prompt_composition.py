@@ -158,7 +158,7 @@ def _output_language_from_locale(locale: str) -> str:
 
 def build_challenge_user_prompt(
     challenge_type: str, age_group: str, prompt: str, locale: str = "fr",
-    variety_seed: "VarietySeed | None" = None,
+    variety_seed: VarietySeed | None = None,
 ) -> str:
     """Construit le prompt utilisateur pour la génération de défis."""
     params = AGE_GROUP_PARAMS.get(age_group, AGE_GROUP_PARAMS["9-11"])
@@ -187,7 +187,7 @@ LANGUE DE SORTIE :
 - `correct_answer` doit être en {output_language} quand la réponse est un mot, une phrase ou un message décodé ; garde seulement les notations mathématiques/coordonnées/codes dans leur forme standard.
 - Si la locale est ambiguë ou non prise en charge, utilise le français."""
 
-    if variety_seed and (variety_seed.narrative_context or variety_seed.resolution_mechanism):
+    if variety_seed is not None and (variety_seed.narrative_context or variety_seed.resolution_mechanism):
         user_prompt += "\n\nORIENTATION DE VARIÉTÉ (suggestions — type et niveau restent absolus) :"
         if variety_seed.narrative_context:
             user_prompt += f"\n- Contexte narratif : {variety_seed.narrative_context}"

@@ -19,9 +19,6 @@ TEXT_TYPE_LOCK_TEMPLATE = (
 TEXT_TYPES_COMPACT = """Types valides (référence) : sequence, pattern, visual, puzzle, graph, riddle, deduction, probability, coding, chess.
 Tu ne génères que le type demandé dans ce message (pas d'autre type, pas de mélange)."""
 
-TEXT_MATHLOG_CONTEXT = """CONTEXTE MATHÉLOGIQUE :
-Inspire-toi des exercices de mathélogique qui combinent raisonnement logique, éléments visuels (grilles, formes), patterns, déduction et problèmes résolubles avec une méthode claire."""
-
 TEXT_STORYTELLING_PRINCIPLES = """STORYTELLING PÉDAGOGIQUE :
 Chaque défi doit donner du sens aux données, pas simplement demander de calculer.
 Le contexte doit rendre le raisonnement nécessaire — pas le décorer.
