@@ -55,6 +55,57 @@ References : `app/core/app_model_policy.py:100-187`, `app/core/ai_generation_pol
 | `exercises_ai`   | `o4-mini`         | allowlist `EXERCISES_AI_ALLOWED_MODEL_IDS` ; comportement par famille dans `MODEL_FAMILY_CAPABILITIES`           | `app/core/ai_generation_policy.py:39-64`, `app/core/ai_generation_policy.py:120-203`, `app/core/ai_generation_policy.py:203-262` |
 | `challenges_ai`  | `o4-mini`         | allowlist heritee des exercices ; fallback stream `gpt-4o-mini`                                                  | `app/services/challenges/challenge_ai_model_policy.py:39-59`, `app/services/challenges/challenge_ai_model_policy.py:74-112`      |
 
+### Carte modele par type de defi (CHALLENGE_MODEL_BY_TYPE)
+
+Tous les types utilisent `o4-mini` uniformement : `pattern`, `sequence`, `puzzle`, `graph`, `visual`, `riddle`, `deduction`, `coding`, `chess`, `probability` (10 types).
+
+`VALID_CHALLENGE_TYPES` est defini dans `app/services/challenges/challenge_prompt_sections.py` (depuis commit 33bb325). C'est la source de verite pour les types acceptes.
+
+### Hierarchie de resolution modele defis (du plus prioritaire)
+
+1. `OPENAI_MODEL_CHALLENGES_OVERRIDE` — override ops explicite pipeline defis
+2. `OPENAI_MODEL_REASONING` — **legacy**, conserve pour compatibilite deployements existants ; **danger** : peut influencer le modele defis si `OPENAI_MODEL_CHALLENGES_OVERRIDE` est absent ; ne pas utiliser dans de nouveaux deployements
+3. `CHALLENGE_MODEL_BY_TYPE` — carte par type (actuellement uniforme o4-mini)
+4. `DEFAULT_CHALLENGES_AI_MODEL` — si type inconnu
+
+### Reasoning effort (o-series)
+
+- Effort `medium` : `pattern`, `graph`, `visual`, `deduction`, `coding`
+- Effort `low` : reste des types
+- Effort `high` : non utilise pour les defis (max = medium)
+- `O_SERIES_MAX_TOKENS_MULTIPLIER = 1.4` pour compenser les reasoning tokens caches
+
+### Fallback stream
+
+Declenche uniquement si le stream principal est o-series ET renvoie contenu vide. Override : `OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE` > `DEFAULT_CHALLENGE_STREAM_FALLBACK_MODEL` (`gpt-4o-mini`).
+
+### Etat phases defis IA (au 2026-04-28)
+
+| Phase | Statut |
+|-------|--------|
+| Phase 0 — migration o4-mini | LIVREE (beta.4, 2026-04-24) |
+| Phase 1A — pipeline statuses | LIVREE |
+| Phase 1B — error codes | LIVREE |
+| Phase 2A — metrics observabilite | LIVREE |
+| Phase 2B — generation_confidence | LIVREE |
+| Phase 3A — golden tests | LIVREE |
+| Phase 3B — renderer contracts | LIVREE |
+| Phase 3D — deduction solver perf | LIVREE |
+| Phase 3C — shadow mode | **NON DEMARREE** |
+| Structured outputs json_schema | **NON DEMARRE** (encore json_object) |
+| VarietySeed (lot Qualite) | LIVRE (commits 74ffb14→33bb325) |
+
+### VarietySeed — lot Qualite
+
+Livraison : commits 74ffb14→33bb325, integree post-beta.5.
+
+- Dataclass `VarietySeed(narrative_context, resolution_mechanism, cognitive_skill="", min_level="")`
+- `cognitive_skill` et `min_level` : champs reserves, non actifs
+- Types sans contexte narratif (`_TYPES_IGNORE_NARRATIVE`) : `chess`, `visual`, `pattern`
+- Mecanismes riddle separes : all-ages vs advanced (groupes 12-14, 15-17, adulte)
+- Le seed est une **suggestion faible** ; type, age et contrat `visual_data` restent absolus
+- Source : `app/services/challenges/challenge_variety_seeds.py`, injection dans `challenge_prompt_sections.py`
+
 ## 5. Observabilite runtime
 
 ### Ce qui est trace

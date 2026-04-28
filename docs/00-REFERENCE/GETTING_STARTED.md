@@ -41,6 +41,14 @@ python enhanced_server.py
 
 Use `requirements-dev.txt` for local development and tests. `requirements.txt` remains the production/runtime subset used by Render builds.
 
+Framework: **Starlette** (FastAPI was archived on 2026-02-06). Entrypoint: `enhanced_server:app`.
+
+For **production** (Render / Gunicorn):
+
+```bash
+gunicorn enhanced_server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:10000
+```
+
 Backend default URL: `http://localhost:10000`
 
 Useful backend variables in `.env`:
@@ -51,7 +59,12 @@ SECRET_KEY=<secret>
 FRONTEND_URL=http://localhost:3000
 # optional in local dev, mandatory in production for distributed rate limiting
 REDIS_URL=
+# ENVIRONMENT=production → required to activate security headers (HSTS, CSP, etc.)
+# Leave unset or set to "development" for local dev
+ENVIRONMENT=development
 ```
+
+Note: `ENVIRONMENT=production` is required for security headers (HSTS, CSP, X-Frame-Options, etc.) to be active. In local dev, omit it or set it to `development`. See commit 15ed459 for the implementation.
 
 Notes:
 

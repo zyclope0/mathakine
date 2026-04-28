@@ -48,7 +48,7 @@ Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data b
 - Handlers are `async`; services and facades are `sync`
 - Runtime/data boundary: handlers call DB-bound work via `run_db_bound(...)`; sync code uses `sync_db_session()`
 - `sync_db_session` is imported from `app.core.db_boundary` (G4)
-- Repositories exist **selectively**: `exercise_repository.py`, `exercise_attempt_repository.py` — used for exercise generation and submit validation
+- Repositories exist **selectively**: `ExerciseRepository` (`exercise_repository.py`) and `UserRepository` (`user_repository.py`) — the rest of the stack uses ORM/Session directly
 - Many services import `Session` and use ORM directly (25+ modules; per maturity audit: 40 of 64 service modules)
 
 **What is not true globally:**
@@ -81,7 +81,7 @@ Verified local reference on 19/03/2026 (post-iteration I closure):
 - `models/`: SQLAlchemy ORM (explicit modules, `__init__.py` re-exports)
 - `schemas/`: Pydantic schemas (explicit modules, `__init__.py` re-exports)
 - `services/`: business logic and application boundaries, **organised by DDD domains** (Cible B)
-- `repositories/`: **selective** data access (2 modules: exercise_repository, exercise_attempt_repository); most services still use ORM/Session directly
+- `repositories/`: **selective** data access (active: `ExerciseRepository`, `UserRepository`; `exercise_attempt_repository` is also present); most services still use ORM/Session directly
 - `generators/`: exercise generation source of truth
 - `db/`: engine, sessions, transactions, adapter
 - `utils/`: shared helpers
@@ -125,6 +125,9 @@ Services are grouped by bounded context. No business logic file remains at root 
 - la gouvernance des modèles IA est maintenant explicitement séparée par workload (`assistant_chat`, `exercises_ai`, `challenges_ai`)
 - les métriques runtime IA et les runs persistés du harness sont des lectures distinctes
 - la référence détaillée n'est plus portée par ce document d'architecture généraliste, mais par [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
+- `challenges_ai` utilise `o4-mini` par défaut (10 types), fallback `gpt-4o-mini` sur stream vide
+- **VarietySeed** : lot Qualité livré (commits 74ffb14→33bb325) — dataclass injectée dans le prompt défi pour varier contexte narratif et mécanisme de résolution ; filtre par âge actif ; types sans narratif : `chess`, `visual`, `pattern` (`_TYPES_IGNORE_NARRATIVE`)
+- `VALID_CHALLENGE_TYPES` défini dans `challenge_prompt_sections.py` (depuis commit 33bb325)
 
 ### Diagnostic flow
 

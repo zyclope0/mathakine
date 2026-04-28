@@ -2,7 +2,7 @@
 
 > Scope : `app/models/`
 > Updated : 2026-04-04
-> Source : code ORM SQLAlchemy — 22 entités actives
+> Source : code ORM SQLAlchemy — 22 entités actives (v3.6.0-beta.5)
 
 ---
 
@@ -53,7 +53,7 @@
 | `current_level`             | Integer default=1              | Niveau compte (1–N)                                                                                                                           |
 | `total_points`              | Integer default=0              | Cumul points                                                                                                                                  |
 | `experience_points`         | Integer default=0              | XP pour progression niveau                                                                                                                    |
-| `jedi_rank`                 | String(50) default=`youngling` | Legacy — neutralisation affichage en cours                                                                                                    |
+| `jedi_rank`                 | String(50) default=`youngling` | **Legacy** — conservé pour compat backend uniquement ; pas étendu en UI ; ne pas utiliser comme identifiant de rang dans les nouvelles surfaces |
 | `current_streak`            | Integer default=0              | Jours consécutifs                                                                                                                             |
 | `best_streak`               | Integer default=0              | Record de série                                                                                                                               |
 | `last_activity_date`        | Date nullable                  |                                                                                                                                               |
