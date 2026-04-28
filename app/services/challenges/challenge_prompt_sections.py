@@ -22,6 +22,65 @@ Tu ne génères que le type demandé dans ce message (pas d'autre type, pas de m
 TEXT_MATHLOG_CONTEXT = """CONTEXTE MATHÉLOGIQUE :
 Inspire-toi des exercices de mathélogique qui combinent raisonnement logique, éléments visuels (grilles, formes), patterns, déduction et problèmes résolubles avec une méthode claire."""
 
+TEXT_STORYTELLING_PRINCIPLES = """STORYTELLING PÉDAGOGIQUE :
+Chaque défi doit donner du sens aux données, pas simplement demander de calculer.
+Le contexte doit rendre le raisonnement nécessaire — pas le décorer.
+
+Formats de situations efficaces :
+- Décision à prendre : quelle option est la plus avantageuse ?
+- Comparaison surprenante : une réalité contre-intuitive à valider ou réfuter
+- Mission concrète : une tâche claire avec un objectif défini
+- Erreur à détecter : un résultat ou un raisonnement incorrect à identifier
+- Stratégie à choisir : plusieurs chemins, un seul optimal
+- Optimisation : comment faire mieux avec les contraintes données
+- Paradoxe ou surprise : une situation qui défie l'intuition première
+
+Domaines concrets recommandés : architecture, jeux de société, cuisine, musique,
+sport, cryptographie, transport, bibliothèque, nature, construction, cartographie.
+
+RÈGLE : éviter les contextes purement décoratifs (pirates, dragons, bonbons)
+s'ils ne servent pas directement le raisonnement.
+Si le contexte peut être supprimé sans changer le problème, il ne sert à rien."""
+
+TEXT_ENGAGEMENT_PRINCIPLES = """ENGAGEMENT :
+Le titre doit donner envie d'ouvrir le défi : question, mission, anomalie, paradoxe.
+  ✅ BON  : "Qui a volé le code ?" / "Le pont le plus court" / "Trois couleurs suffisent ?"
+  ❌ MAUVAIS : "Problème de probabilité" / "Suite logique 3" / "Défi de déduction"
+
+La description pose la situation en 1-2 phrases : micro-contexte → données utiles → question.
+Ne pas poser la question principale avant d'avoir donné les données nécessaires.
+Elle doit rendre la question inévitable — l'apprenant doit vouloir résoudre.
+
+La solution_explanation répond à "pourquoi ça marche", pas seulement "comment on calcule".
+L'apprenant doit comprendre quelque chose de nouveau après l'avoir lue — même avec la bonne réponse."""
+
+TEXT_ACCESSIBILITY_COGNITIVE = """ACCESSIBILITÉ COGNITIVE :
+- 6-8 ans  : phrases ≤ 12 mots, 1 seule consigne, objets concrets uniquement
+- 9-11 ans : phrases ≤ 20 mots, vocabulaire du quotidien, pas de termes techniques
+- 12+ ans  : vocabulaire précis acceptable, mais une phrase par idée
+
+Ordre recommandé : micro-contexte → données utiles → question.
+Exceptions valides : une anomalie ou un paradoxe peut ouvrir le défi si ça renforce
+l'engagement sans créer d'ambiguïté. La règle absolue : ne jamais poser la question
+principale avant d'avoir fourni les données nécessaires pour y répondre.
+
+Test d'ambiguïté : si la question peut être lue de deux façons, réécrire
+jusqu'à ce qu'il n'y ait qu'une seule interprétation possible."""
+
+TEXT_DISTRACTOR_COGNITIVE = """QUALITÉ DES DISTRACTEURS :
+Chaque distracteur cible une erreur de raisonnement réelle — pas une valeur arbitraire.
+Les distracteurs doivent provenir d'erreurs différentes, pas de variantes du même mauvais calcul.
+
+Erreurs types à modéliser :
+- Erreur d'opération : bon contexte, mauvaise opération (addition au lieu de ×)
+- Erreur de lecture : données mal interprétées (total au lieu de favorable)
+- Erreur d'étape : raisonnement correct mais incomplet (étape oubliée)
+- Erreur d'intuition : réponse "qui semble juste" mais fausse (piège heuristique)
+
+Contraintes de forme :
+- Longueurs et formats identiques entre toutes les options
+- Aucun distracteur éliminable par évidence de format ou syntaxe"""
+
 TEXT_HINTS_RULES = """RÈGLE IMPORTANTE POUR LES INDICES :
 Les indices (hints) doivent être des PISTES pédagogiques qui guident l'élève vers la solution, MAIS NE DOIVENT JAMAIS donner la réponse directement.
 - ✅ BON : "Regarde la différence entre chaque élément"
