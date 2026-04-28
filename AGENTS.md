@@ -13,7 +13,7 @@
 | Branche | `master` |
 | Dernière phase livrée | `3.6.0-beta.5` - stabilisation défis IA + Phase 3 tests (3A golden, 3B renderer contracts, 3D solveur perf) + VarietySeed (lot Qualité, commits 74ffb14→33bb325) + docs release - commit `da794f4` |
 | Dernier audit clos | 2026-04-28 (audit documentaire complet — alignement docs racine sur ground-truth v3.6.0-beta.5) |
-| Chantier actif | **Audit documentaire complet (2026-04-28)** — alignement README_TECH.md / AGENTS.md / CLAUDE.md sur ground-truth snapshot. |
+| Chantier actif | **Plan qualité génération défis IA (2026-04-28)** — `docs/03-PROJECT/PLAN_CHALLENGE_GENERATION_QUALITY_LLM_BEST_PRACTICES_2026-04-28.md` — audit 10 défis a révélé 3 défis cassés (gen 3 visual auto-contradictoire, gen 4 puzzle insoluble, gen 10 chess invalide). Plan priorité GÉNÉRATION > DÉTECTION : Structured Outputs strict, Responses API, python-chess validator, Self-Consistency 2-sampling. Sprint 1 en attente de démarrage. |
 | Commits non poussés | 0 attendu après publication `3.6.0-beta.5` (vérifier avec `git log origin/master..master --oneline`) |
 
 ---
@@ -23,7 +23,8 @@
 | Document | Rôle |
 |---|---|
 | `CLAUDE.md` | Stack, architecture, conventions projet (canonique) |
-| `docs/03-PROJECT/PLAN_CHALLENGE_GENERATION_SOLIDIFICATION_2026-04-22.md` | Backlog défis IA — référence active |
+| `docs/03-PROJECT/PLAN_CHALLENGE_GENERATION_SOLIDIFICATION_2026-04-22.md` | Backlog défis IA Phase 1-3 (clos avec `3.6.0-beta.5`) |
+| `docs/03-PROJECT/PLAN_CHALLENGE_GENERATION_QUALITY_LLM_BEST_PRACTICES_2026-04-28.md` | **Plan actif** — qualité génération + best practices LLM o-series + non-régression Sentry 115344051 |
 | `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` | Backlog produit — source de vérité |
 | `README_TECH.md` | Référence technique vivante |
 | `CHANGELOG.md` | Source de vérité release/version |
@@ -38,9 +39,8 @@
 | DONE (commit `442f4f4`) | `docs/superpowers/specs/2026-04-25-beta-stabilisation-design.md` + `docs/superpowers/plans/2026-04-25-beta-stabilisation.md` |
 | DONE (commit `48fb8bf`) | `docs/superpowers/plans/2026-04-25-cosmetic-findings.md` |
 | DONE (commit `da794f4`) | `docs/superpowers/specs/2026-04-26-ai-context-rationalization-design.md` (rationalisation mémoire IA — intégré dans le cycle 3.6.0-beta.5) |
-| ACTIVE | `docs/superpowers/specs/2026-04-28-ground-truth-snapshot.md` (audit documentaire complet v3.6.0-beta.5) |
-
-Audit documentaire en cours — aligne les docs racine (README_TECH.md, AGENTS.md, CLAUDE.md) et les docs canoniques sur le ground-truth snapshot.
+| DONE (2026-04-28) | `docs/superpowers/specs/2026-04-28-doc-audit-design.md` + `docs/superpowers/plans/2026-04-28-doc-audit.md` (audit documentaire complet v3.6.0-beta.5 — ~60 fichiers alignés sur ground-truth) |
+| ACTIVE | `docs/03-PROJECT/PLAN_CHALLENGE_GENERATION_QUALITY_LLM_BEST_PRACTICES_2026-04-28.md` (plan qualité génération défis IA — Sprint 1 en attente de démarrage) |
 
 ---
 
