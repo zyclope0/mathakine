@@ -1,5 +1,7 @@
 ﻿# Audit Frontend — Standardisation & Design System
 
+> **[RÉFÉRENCE HISTORIQUE — 2026-03-29]** Audit de standardisation frontend au commit alpha.1. Les findings P0/P1 ont été traités. Voir `AUDIT_FRONTEND_INDUSTRIALISATION_2026-04-09.md` pour l'état actuel (ACTIF-03 fermé, ACTIF-04 ouvert).
+
 > Généré le 2026-03-29 via `/octo:extract` (deep mode)
 > Stack : Next.js 16 + TypeScript + Tailwind v4 + Radix UI
 > Version frontend : 3.6.0-alpha.1

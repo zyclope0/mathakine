@@ -1,4 +1,7 @@
 # Plan de solidification - Generation des defis IA
+
+> **[PARTIELLEMENT CLOS — 2026-04-28]** Phases 0–3D livrées (o4-mini, pipeline statuses, codes d'erreur, métriques runtime, golden tests, contrats renderer, perf solveur déduction). Lot Qualité (VarietySeed, 4 sections pédagogiques) livré le 2026-04-28. Phase 3C shadow mode et structured outputs json_schema restants.
+
 **Date :** 2026-04-22
 **Revision :** 2026-04-27
 **Contexte :** Post-lot beta.3, puis correctifs successifs de solidification sur la generation, la validation et les contrats backend/frontend

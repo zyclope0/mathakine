@@ -44,7 +44,11 @@ Avant de merger du code qui ajoute des `logger.*` :
 
 ---
 
-## 5. Référence
+## 5. Corrections appliquées en production
+
+- **Commit `9cf2504`** (2026-04) : remplacement de `username` par `user_id` (entier) dans les logs de corrélation des handlers auth/user — conformément à la règle §2 ci-dessus. `username` est une PII directement identifiante ; `user_id` suffit pour la corrélation.
+
+## 6. Référence
 
 - OWASP Logging Cheat Sheet : https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
 - RGPD : minimiser les données personnelles dans les logs

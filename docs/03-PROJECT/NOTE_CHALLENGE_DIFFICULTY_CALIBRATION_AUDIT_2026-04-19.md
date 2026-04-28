@@ -1,5 +1,7 @@
 # Note audit — calibration descendante des défis
 
+> **[NOTE PONCTUELLE — 2026-04-19]** Analyse terrain au commit de référence. Les observations restent valides comme documentation de la logique de calibration.
+
 > Lot H — **read-only**. Date : 2026-04-19.
 > Sources : `app/services/challenges/challenge_difficulty_policy.py`,
 > `app/services/challenges/challenge_ai_service.py`,

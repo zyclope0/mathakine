@@ -1,7 +1,7 @@
 ﻿# Cursor Max Effort Backend Protocol
 
 > Date: 11/03/2026
-> Status: evergreen reference protocol
+> Status: evergreen reference protocol — vérifié conforme aux conventions actives (2026-04-28) : settings.X, loguru {}, Starlette, enhanced_server:app
 > Goal: provide one quality-first validation protocol for backend lots.
 
 ## Principle

@@ -1,5 +1,7 @@
 # Analyse Dépendances Et Opportunités 2026-04-13
 
+> **[ANALYSE PONCTUELLE — 2026-04-13]** Certaines recommandations ont pu être appliquées depuis. Vérifier avant d'agir sur les versions suggérées.
+
 > Périmètre: dépendances Python de `requirements.txt`
 > Date: 2026-04-13
 > Source de vérité technique: code du dépôt + versions actuellement pinées + release notes officielles

@@ -1,5 +1,7 @@
 # GAP-generation — Audit policy modèle IA par (type, difficulty)
 
+> **Mise à jour 2026-04-28 :** Recommandations appliquées — défaut exercices et défis migré vers `o4-mini`. VarietySeed (injection variété défis) livré le 2026-04-28 (commits `74ffb14`→`33bb325`). Le contenu ci-dessous décrit l'état terrain au 2026-04-19 — les gaps identifiés ont été traités.
+
 > Lot G — **Phase 1, read-only**. Date : 2026-04-19.
 > Sources : `app/core/ai_generation_policy.py`, `app/core/ai_config.py`,
 > `app/core/app_model_policy.py`, `app/services/challenges/challenge_ai_model_policy.py`,

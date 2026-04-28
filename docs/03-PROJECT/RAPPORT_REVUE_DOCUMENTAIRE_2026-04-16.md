@@ -1,5 +1,7 @@
 ﻿# Rapport De Revue Documentaire - 2026-04-16
 
+> **[REMPLACÉ]** Ce rapport date du 2026-04-16 (~50 commits avant l'état actuel). Un nouvel audit complet a été effectué le 2026-04-28 (ground-truth snapshot : `docs/superpowers/specs/2026-04-28-ground-truth-snapshot.md`).
+
 > Scope: active documentation truth review
 > Reviewer posture: repository-first, code-first, zero-trust toward stale documentation
 

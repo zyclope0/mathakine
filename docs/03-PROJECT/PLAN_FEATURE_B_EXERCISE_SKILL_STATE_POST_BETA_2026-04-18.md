@@ -1,5 +1,7 @@
 # Plan Post-Beta - Feature B Exercise Skill State
 
+> **[REPORTÉ POST-BETA]** Plan non démarré au 2026-04-28 — reporté après fermeture de la beta.
+
 > Plan actif post-beta
 > Updated: 18/04/2026
 > Statut: planifie, non lance
