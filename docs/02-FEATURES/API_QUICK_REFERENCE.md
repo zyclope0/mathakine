@@ -180,6 +180,8 @@ Long reference: `docs/02-FEATURES/GAMIFICATION_LEDGER_AND_ACCOUNT_PROGRESS.md`
 | POST   | `/api/feedback`                 | create feedback                                                                                                                      |
 | GET    | `/api/recommendations`          | recommendations                                                                                                                      |
 | POST   | `/api/recommendations/generate` | generate recommendations                                                                                                             |
+| POST   | `/api/recommendations/open`     | mark recommendation opened                                                                                                           |
+| POST   | `/api/recommendations/clicked`  | mark recommendation clicked (alias stable de /open)                                                                                  |
 | POST   | `/api/recommendations/complete` | mark recommendation complete                                                                                                         |
 | POST   | `/api/chat`                     | authenticated chat ; requires a valid session ; Next proxy also gates `access_token` before forwarding                               |
 | POST   | `/api/chat/stream`              | authenticated chat SSE ; requires a valid session ; Next proxy tests cover auth, invalid backend config, and empty-body SSE fallback |

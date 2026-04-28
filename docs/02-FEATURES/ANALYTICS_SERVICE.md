@@ -21,7 +21,7 @@ app/services/analytics/
 app/models/edtech_event.py  EdTechEvent (table edtech_events)
 ```
 
-**Point d'entrée API** : `POST /api/edtech-events` → handler dans `server/handlers/`
+**Point d'entrée API** : `POST /api/analytics/event` → handler dans `server/handlers/analytics_handlers.py`
 
 ---
 

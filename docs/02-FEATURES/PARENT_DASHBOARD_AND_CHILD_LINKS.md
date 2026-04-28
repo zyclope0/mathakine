@@ -1,5 +1,7 @@
 # Dashboard parent et gestion des enfants
 
+> **[ROADMAP — pas encore implémenté]** Cette doc décrit une feature planifiée, non livrée à ce jour (v3.6.0-beta.5, 2026-04-28). Aucun endpoint parent n'est actif en production.
+
 > Statut : spec active
 > Updated : 2026-04-05
 > Priorite produit : prochain ajout cible apres stabilisation de `3.6.0-alpha.1`
