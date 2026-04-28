@@ -40,6 +40,7 @@ from app.services.challenges.challenge_prompt_composition import (
     build_challenge_system_prompt,
     build_challenge_user_prompt,
 )
+from app.services.challenges.challenge_variety_seeds import pick_variety_seed
 from app.services.challenges.challenge_service import normalize_age_group_for_frontend
 from app.services.challenges.challenge_validation_error_codes import (
     classify_challenge_validation_errors,
@@ -504,11 +505,19 @@ async def generate_challenge_stream(
             system_prompt += "\n\n" + build_personalization_prompt_section_from_meta(
                 personalization
             )
+        _variety_seed = pick_variety_seed(challenge_type)
+        logger.debug(
+            "Challenge variety seed — type={} context={} mechanism={}",
+            challenge_type,
+            _variety_seed.narrative_context,
+            _variety_seed.resolution_mechanism,
+        )
         user_prompt = build_challenge_user_prompt(
             challenge_type,
             age_group,
             prompt,
             locale=locale,
+            variety_seed=_variety_seed,
         )
 
         if AIConfig.is_o1_model(ai_params["model"]):
