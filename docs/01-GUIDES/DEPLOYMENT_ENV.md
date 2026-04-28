@@ -25,7 +25,7 @@ Why `REDIS_URL` is required:
 
 | Variable | Role | Example |
 |---|---|---|
-| `ENVIRONMENT` | runtime environment tag | `production` |
+| `ENVIRONMENT` | runtime environment tag — **requis `production`** pour activer les headers de sécurité HTTP (HSTS, CSP, X-Frame-Options, etc.) | `production` |
 | `MATH_TRAINER_PROFILE` | alternative prod detection | `prod` |
 | `LOG_LEVEL` | logging level | `INFO` |
 | `WEB_CONCURRENCY` | Gunicorn worker count in production | `2` |

@@ -122,6 +122,13 @@ Correct handling:
 
 Contexte produit (inchangé) : exercise/auth/user, challenge/admin/badge, Runtime Truth, Contracts/Hardening, Production Hardening, Security/Boundaries, Typed Contracts, Academic Backend Rigor (F1–F6), Lots G (G1–G4), Architecture Clean, iteration I, puis closure reco R7 — voir aussi `docs/INDEX.md` § Current Documented State.
 
+## Frontend Coverage State (ACTIF-04)
+
+- **ACTIF-03 :** FERMÉ — co-localisation des tests (`*.test.ts` à côté des hooks/composants) livrée 2026-04-14
+- **ACTIF-04 :** OUVERT — seuils Vitest CI actuels : **46 / 38 / 42 / 48** (statements/branches/functions/lines sur ubuntu-latest) ; cible ~55% ; toute hausse de seuil doit s'appuyer sur une mesure CI recourante
+
+Guard test prompt système : `tests/unit/test_challenge_prompt_size_budget.py` (min 5 000 chars, max 11 000 chars par type×groupe).
+
 ## Frontend Standard Gates
 
 Minimum frontend battery:

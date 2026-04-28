@@ -87,6 +87,7 @@ If the app fails at boot, inspect config first before looking for runtime bugs.
 - `DEFAULT_ADMIN_PASSWORD`
 - `REDIS_URL`
 - `FRONTEND_URL`
+- `ENVIRONMENT=production` (requis pour activer les headers de sécurité HTTP : HSTS, CSP, X-Frame-Options, etc.)
 - `OPENAI_API_KEY` if AI features are expected to work
 
 If the failure mentions config validation, do not redeploy blindly until the env mismatch is fixed.

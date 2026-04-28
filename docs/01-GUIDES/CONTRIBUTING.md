@@ -140,6 +140,17 @@ Une PR propre doit expliciter:
 - ce qui n'est pas prouve
 - checks executes
 
+## Conventions de code actives
+
+| Convention | Regle |
+|-----------|-------|
+| Configuration | `settings.X` uniquement (pas `os.getenv()`) |
+| SQLAlchemy | `.is_(True)` / `.is_(False)` (pas `== True`) |
+| Logging | `logger.error("msg {}", var)` — loguru `{}` (pas f-string ni `%s`) |
+| Framework backend | Starlette (FastAPI archivé le 06/02/2026) |
+| Thème | Spatial neutre — pas de nouvelle copie Star Wars/Jedi dans code/UI/prompts |
+| Backlog produit | `docs/02-FEATURES/ROADMAP_FONCTIONNALITES.md` uniquement |
+
 ## Documentation
 
 Si tu modifies un point de runtime, verifie aussi:

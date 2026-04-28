@@ -85,6 +85,26 @@ Verifier dans DevTools:
 - absence de `refresh_token` en `localStorage`
 - comportement CSRF conforme aux flux frontend habituels
 
+## Headers de securite (ENVIRONMENT=production)
+
+Pour tester les headers de securite HTTP (HSTS, CSP, X-Frame-Options, etc.), le backend doit etre lance avec `ENVIRONMENT=production` :
+
+```powershell
+$env:ENVIRONMENT="production"
+python enhanced_server.py
+```
+
+Verifier la presence des headers sur une reponse :
+```bash
+curl -I http://localhost:10000/live
+```
+
+## Politique PII dans les logs
+
+La politique de redaction des PII dans les logs est appliquee depuis le commit `9cf2504` :
+- `user_id` (entier) dans les logs — PAS le `username` ni l'email
+- voir `docs/03-PROJECT/POLITIQUE_REDACTION_LOGS_PII.md`
+
 ## Checks automatiques a relancer
 
 ```powershell

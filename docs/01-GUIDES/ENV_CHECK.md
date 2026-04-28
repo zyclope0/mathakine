@@ -82,7 +82,7 @@ Ces variables ont des valeurs par defaut ; inutile de les mettre dans le `.env` 
 - `RATE_LIMIT_PER_MINUTE`, `ENABLE_QUERY_CACHE`
 - `OPENAI_MODEL` (legacy assistant si non vide et allowlist fail-closed : `gpt-5-mini`, `gpt-5.4`, `gpt-4o-mini`, `gpt-4o` - vide recommande ; defaut assistant = `gpt-5-mini`)
 - `OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE` (override ops assistant ; meme allowlist fail-closed ; vide = defaut produit)
-- `OPENAI_MODEL_EXERCISES_OVERRIDE` (override ops flux SSE exercices IA ; defaut code = `o3`), `OPENAI_MODEL_EXERCISES` (legacy)
+- `OPENAI_MODEL_EXERCISES_OVERRIDE` (override ops flux SSE exercices IA ; defaut code = `o4-mini`), `OPENAI_MODEL_EXERCISES` (legacy)
 - `OPENAI_MODEL_CHALLENGES_OVERRIDE` (override ops flux SSE defis IA, prioritaire), `OPENAI_MODEL_REASONING` (legacy defis ; non nominal, laisser vide), `OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE` (fallback defis ; defaut code = `gpt-4o-mini`)
 
 ## Emails (mot de passe oublie, verification email)
