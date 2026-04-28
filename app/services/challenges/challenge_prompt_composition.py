@@ -9,10 +9,9 @@ Composition modulaire du prompt système pour la génération IA des défis.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import List
 
-if TYPE_CHECKING:
-    from app.services.challenges.challenge_variety_seeds import VarietySeed
+from app.services.challenges.challenge_variety_seeds import VarietySeed
 
 from app.services.challenges.challenge_prompt_sections import (
     TEXT_DIFFICULTY_RULES,

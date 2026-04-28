@@ -3,7 +3,7 @@
 Bibliothèque de seeds de variété pour la génération IA des défis (lot Qualité).
 
 Chaque seed injecte deux suggestions dans le prompt utilisateur :
-- narrative_context : domaine situationnel concret
+- narrative_context : domaine situationnel concret (vide pour les types purement formels)
 - resolution_mechanism : famille de mécanisme cognitif propre au type
 
 Le seed est une suggestion faible — type, âge et contrat visual_data restent absolus.
@@ -16,11 +16,26 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class VarietySeed:
-    narrative_context: str        # domaine situationnel
+    narrative_context: str        # domaine situationnel (vide si type purement formel)
     resolution_mechanism: str     # famille de mécanisme cognitif
-    cognitive_skill: str = ""     # future : déduction, inhibition, séquençage…
-    min_level: str = ""           # future : beginner, intermediate, advanced, adult
+    cognitive_skill: str = ""     # not yet active — réservé : déduction, inhibition, séquençage…
+    min_level: str = ""           # not yet active — réservé : beginner, intermediate, advanced, adult
 
+
+# Types dont le contexte narratif n'apporte rien (mécanique auto-référentielle ou purement spatiale).
+_TYPES_IGNORE_NARRATIVE: frozenset[str] = frozenset({"chess", "visual", "pattern"})
+
+# Mécanismes riddle séparés par niveau cible (P1-01).
+_RIDDLE_MECHANISMS_ALL_AGES: list[str] = [
+    "contraintes numériques croisées (âge, date, valeur)",
+    "raisonnement par l'absurde (éliminer l'impossible)",
+]
+_RIDDLE_MECHANISMS_ADVANCED: list[str] = [  # groupes 12-14, 15-17, adulte uniquement
+    "auto-référence (la réponse est cachée dans l'énoncé)",
+    "double sens à démêler",
+    "métaphore à interpréter puis résoudre",
+]
+_RIDDLE_ADVANCED_AGE_GROUPS: frozenset[str] = frozenset({"12-14", "15-17", "adulte"})
 
 NARRATIVE_CONTEXTS: list[str] = [
     "une bibliothèque où les livres sont classés par code secret",
@@ -120,29 +135,36 @@ RESOLUTION_MECHANISMS_BY_TYPE: dict[str, list[str]] = {
         "ordre logique cause → effet (chaîne de dépendances)",
         "reconstruction par exclusions uniquement",
     ],
-    "riddle": [
-        "contraintes numériques croisées (âge, date, valeur)",
-        "raisonnement par l'absurde (éliminer l'impossible)",
-        # Mécanismes avancés/adulte — réservés aux niveaux 12+ ou énigmes linguistiques
-        "auto-référence (la réponse est cachée dans l'énoncé)",  # adulte / avancé
-        "double sens à démêler",                                  # adulte / avancé
-        "métaphore à interpréter puis résoudre",                  # adulte / avancé
-    ],
+    "riddle": _RIDDLE_MECHANISMS_ALL_AGES + _RIDDLE_MECHANISMS_ADVANCED,
 }
 
 
-def pick_variety_seed(challenge_type: str) -> VarietySeed:
-    """Tire un seed aléatoire pour le type donné.
+def pick_variety_seed(challenge_type: str, age_group: str = "") -> VarietySeed:
+    """Tire un seed aléatoire pour le type et le groupe d'âge donnés.
 
     Retourne un seed entièrement vide si le type n'a pas de mécanismes définis —
     build_challenge_user_prompt() n'injectera alors aucun bloc ORIENTATION.
+
+    Pour le type ``riddle``, les mécanismes linguistiques avancés (auto-référence,
+    double sens, métaphore) sont réservés aux groupes 12-14, 15-17 et adulte.
+    Les types purement formels (chess, visual, pattern) reçoivent un seed sans
+    contexte narratif — seul le mécanisme de résolution est injecté.
     """
-    mechanisms = RESOLUTION_MECHANISMS_BY_TYPE.get(
-        challenge_type.strip().lower(), []
-    )
-    if not mechanisms:
+    ct = challenge_type.strip().lower()
+    mechanisms = RESOLUTION_MECHANISMS_BY_TYPE.get(ct, [])
+
+    if ct == "riddle" and age_group and age_group not in _RIDDLE_ADVANCED_AGE_GROUPS:
+        mechanisms = _RIDDLE_MECHANISMS_ALL_AGES
+
+    if not mechanisms or not NARRATIVE_CONTEXTS:
         return VarietySeed(narrative_context="", resolution_mechanism="")
+
+    narrative = (
+        ""
+        if ct in _TYPES_IGNORE_NARRATIVE
+        else random.choice(NARRATIVE_CONTEXTS)
+    )
     return VarietySeed(
-        narrative_context=random.choice(NARRATIVE_CONTEXTS),
+        narrative_context=narrative,
         resolution_mechanism=random.choice(mechanisms),
     )

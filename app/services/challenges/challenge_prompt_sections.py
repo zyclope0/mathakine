@@ -360,3 +360,17 @@ VALIDATION_SECTION_BY_TYPE: dict[str, str] = {
     "probability": TEXT_VAL_PROBABILITY,
     "graph": TEXT_VAL_GRAPH,
 }
+
+# Canonical list of all supported challenge types (no heavy dependencies — safe for CI import).
+VALID_CHALLENGE_TYPES: list[str] = [
+    "sequence",
+    "pattern",
+    "visual",
+    "puzzle",
+    "graph",
+    "riddle",
+    "deduction",
+    "chess",
+    "coding",
+    "probability",
+]

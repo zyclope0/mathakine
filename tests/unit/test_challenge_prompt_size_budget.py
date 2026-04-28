@@ -11,7 +11,7 @@ from app.services.challenges.challenge_prompt_composition import (
     AGE_GROUP_PARAMS,
     challenge_system_prompt_stats,
 )
-from app.services.challenges.challenge_stream_service import VALID_CHALLENGE_TYPES
+from app.services.challenges.challenge_prompt_sections import VALID_CHALLENGE_TYPES
 
 # Age groups derived from AGE_GROUP_PARAMS to stay in sync automatically.
 AGE_GROUPS = list(AGE_GROUP_PARAMS.keys())

@@ -39,6 +39,7 @@ from app.services.challenges.challenge_prompt_composition import (
     AGE_GROUP_PARAMS,
     build_challenge_system_prompt,
     build_challenge_user_prompt,
+    canonical_challenge_type_for_prompt,
 )
 from app.services.challenges.challenge_variety_seeds import pick_variety_seed
 from app.services.challenges.challenge_service import normalize_age_group_for_frontend
@@ -505,7 +506,9 @@ async def generate_challenge_stream(
             system_prompt += "\n\n" + build_personalization_prompt_section_from_meta(
                 personalization
             )
-        _variety_seed = pick_variety_seed(challenge_type)
+        _variety_seed = pick_variety_seed(
+            canonical_challenge_type_for_prompt(challenge_type), age_group
+        )
         logger.debug(
             "Challenge variety seed — type={} context={} mechanism={}",
             challenge_type,
@@ -972,8 +975,11 @@ async def generate_challenge_stream(
 
             if not validation_passed:
                 logger.error(
-                    "Correction automatique impossible. Erreurs restantes: {}",
+                    "Correction automatique impossible. Erreurs restantes: {}. "
+                    "Seed: context='{}' mechanism='{}'",
                     remaining_errors,
+                    _variety_seed.narrative_context,
+                    _variety_seed.resolution_mechanism,
                 )
                 error_codes = classify_challenge_validation_errors(
                     remaining_errors, challenge_type
