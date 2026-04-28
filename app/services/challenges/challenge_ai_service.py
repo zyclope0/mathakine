@@ -41,7 +41,6 @@ from app.services.challenges.challenge_prompt_composition import (
     build_challenge_user_prompt,
     canonical_challenge_type_for_prompt,
 )
-from app.services.challenges.challenge_variety_seeds import pick_variety_seed
 from app.services.challenges.challenge_service import normalize_age_group_for_frontend
 from app.services.challenges.challenge_validation_error_codes import (
     classify_challenge_validation_errors,
@@ -50,6 +49,7 @@ from app.services.challenges.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
 )
+from app.services.challenges.challenge_variety_seeds import pick_variety_seed
 from app.utils.circuit_breaker import (
     OPENAI_CIRCUIT_OPEN_USER_MESSAGE,
     is_countable_openai_failure,

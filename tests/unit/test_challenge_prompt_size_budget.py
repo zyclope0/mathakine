@@ -5,6 +5,7 @@ Baseline mesuré le 2026-04-28 avant implémentation :
 Budget post-implémentation : 11 000 chars (+25 %).
 Si un type dépasse, consolider les nouvelles sections dans challenge_prompt_sections.py.
 """
+
 import pytest
 
 from app.services.challenges.challenge_prompt_composition import (
@@ -20,11 +21,7 @@ AGE_GROUPS = list(AGE_GROUP_PARAMS.keys())
 MAX_PROMPT_CHARS = 11_000
 
 # Cartesian product expressed as explicit tuples so pytest IDs are readable.
-_PARAMS = [
-    (ct, ag)
-    for ct in VALID_CHALLENGE_TYPES
-    for ag in AGE_GROUPS
-]
+_PARAMS = [(ct, ag) for ct in VALID_CHALLENGE_TYPES for ag in AGE_GROUPS]
 
 
 @pytest.mark.parametrize("challenge_type,age_group", _PARAMS)

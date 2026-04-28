@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from typing import List
 
-from app.services.challenges.challenge_variety_seeds import VarietySeed
-
 from app.services.challenges.challenge_prompt_sections import (
     TEXT_DIFFICULTY_RULES,
     TEXT_DISTRACTOR_COGNITIVE,
@@ -32,6 +30,7 @@ from app.services.challenges.challenge_prompt_sections import (
     VALIDATION_SECTION_BY_TYPE,
     VISUAL_DATA_SECTION_BY_TYPE,
 )
+from app.services.challenges.challenge_variety_seeds import VarietySeed
 
 # Paramètres de difficulté par groupe d'âge (affichage, complexité, etc.)
 AGE_GROUP_PARAMS = {
@@ -118,8 +117,8 @@ def build_challenge_system_prompt(challenge_type: str, age_group: str) -> str:
         TEXT_TYPE_LOCK_TEMPLATE.format(challenge_type=challenge_type),
         _age_group_block(params),
         TEXT_TYPES_COMPACT,
-        TEXT_STORYTELLING_PRINCIPLES,          # replaces TEXT_MATHLOG_CONTEXT
-        TEXT_ENGAGEMENT_AND_ACCESSIBILITY,     # merged engagement + accessibility
+        TEXT_STORYTELLING_PRINCIPLES,  # replaces TEXT_MATHLOG_CONTEXT
+        TEXT_ENGAGEMENT_AND_ACCESSIBILITY,  # merged engagement + accessibility
         TEXT_HINTS_RULES,
         TEXT_DISTRACTOR_COGNITIVE,
         VISUAL_DATA_SECTION_BY_TYPE.get(ct, TEXT_VISUAL_DATA_FALLBACK),
@@ -156,7 +155,10 @@ def _output_language_from_locale(locale: str) -> str:
 
 
 def build_challenge_user_prompt(
-    challenge_type: str, age_group: str, prompt: str, locale: str = "fr",
+    challenge_type: str,
+    age_group: str,
+    prompt: str,
+    locale: str = "fr",
     variety_seed: VarietySeed | None = None,
 ) -> str:
     """Construit le prompt utilisateur pour la génération de défis."""
@@ -186,12 +188,16 @@ LANGUE DE SORTIE :
 - `correct_answer` doit être en {output_language} quand la réponse est un mot, une phrase ou un message décodé ; garde seulement les notations mathématiques/coordonnées/codes dans leur forme standard.
 - Si la locale est ambiguë ou non prise en charge, utilise le français."""
 
-    if variety_seed is not None and (variety_seed.narrative_context or variety_seed.resolution_mechanism):
+    if variety_seed is not None and (
+        variety_seed.narrative_context or variety_seed.resolution_mechanism
+    ):
         user_prompt += "\n\nORIENTATION DE VARIÉTÉ (suggestions — type et niveau restent absolus) :"
         if variety_seed.narrative_context:
             user_prompt += f"\n- Contexte narratif : {variety_seed.narrative_context}"
         if variety_seed.resolution_mechanism:
-            user_prompt += f"\n- Mécanisme de résolution : {variety_seed.resolution_mechanism}"
+            user_prompt += (
+                f"\n- Mécanisme de résolution : {variety_seed.resolution_mechanism}"
+            )
         user_prompt += (
             "\nEn cas de conflit :"
             "\n  - le type de défi et le groupe d'âge sont prioritaires ;"

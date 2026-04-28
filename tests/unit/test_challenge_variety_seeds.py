@@ -6,15 +6,16 @@ Couvre :
 - Guard NARRATIVE_CONTEXTS vide → seed vide (P2-01)
 - Riddle jeune groupe → mécanismes all-ages seulement (P1-01)
 """
+
 from unittest.mock import patch
 
 import pytest
 
 from app.services.challenges.challenge_variety_seeds import (
+    _RIDDLE_MECHANISMS_ADVANCED,
+    _RIDDLE_MECHANISMS_ALL_AGES,
     RESOLUTION_MECHANISMS_BY_TYPE,
     VarietySeed,
-    _RIDDLE_MECHANISMS_ALL_AGES,
-    _RIDDLE_MECHANISMS_ADVANCED,
     pick_variety_seed,
 )
 
@@ -23,9 +24,9 @@ from app.services.challenges.challenge_variety_seeds import (
 def test_all_known_types_return_non_empty_seed(challenge_type: str) -> None:
     """Chaque type connu doit retourner un mécanisme non-vide."""
     seed = pick_variety_seed(challenge_type)
-    assert seed.resolution_mechanism, (
-        f"resolution_mechanism vide pour le type '{challenge_type}'"
-    )
+    assert (
+        seed.resolution_mechanism
+    ), f"resolution_mechanism vide pour le type '{challenge_type}'"
 
 
 def test_unknown_type_returns_empty_seed() -> None:
@@ -83,6 +84,6 @@ def test_riddle_adult_group_can_return_advanced_mechanism(adult_group: str) -> N
         if seed.resolution_mechanism in advanced_set:
             found_advanced = True
             break
-    assert found_advanced, (
-        f"Aucun mécanisme avancé tiré après 200 essais pour le groupe '{adult_group}'"
-    )
+    assert (
+        found_advanced
+    ), f"Aucun mécanisme avancé tiré après 200 essais pour le groupe '{adult_group}'"

@@ -297,18 +297,33 @@ Les 3 nouvelles fixtures (SEQUENCE, PROBABILITY, GRAPH) doivent être validées 
 Dans `tests/challenges/test_regression_by_type.py`, ajouter l'import et l'assertion dans `test_challenge_regression` juste après la lecture de la fixture (avant le bloc `validate_challenge_logic`) :
 
 ```python
-from app.services.challenges.challenge_contract_policy import RESPONSE_MODES
+from app.services.challenges.challenge_contract_policy import (
+    compute_response_mode,
+    sanitize_choices_for_delivery,
+)
 ```
 
 Et dans le corps du test, après `expected_codes: list[str] = list(data["expected_error_codes"])` :
 
 ```python
-    # P1-0 : response_mode doit être absent ou appartenir au contrat RESPONSE_MODES.
+    # P1-0 : response_mode doit correspondre au contrat calculé par type.
     rm = challenge.get("response_mode")
     if rm is not None:
-        assert rm in RESPONSE_MODES, (
+        choices_after_policy = sanitize_choices_for_delivery(
+            challenge.get("challenge_type", ""),
+            challenge.get("difficulty_rating"),
+            challenge.get("choices"),
+            challenge.get("correct_answer"),
+        )
+        expected_response_mode = compute_response_mode(
+            challenge.get("challenge_type", ""),
+            challenge.get("visual_data"),
+            challenge.get("difficulty_rating"),
+            choices_after_policy,
+        )
+        assert rm == expected_response_mode, (
             f"[{fixture_name}] response_mode={rm!r} invalide — "
-            f"valeurs acceptées : {RESPONSE_MODES}"
+            f"attendu={expected_response_mode!r}"
         )
 ```
 

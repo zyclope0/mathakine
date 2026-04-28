@@ -8,6 +8,7 @@ Chaque seed injecte deux suggestions dans le prompt utilisateur :
 
 Le seed est une suggestion faible — type, âge et contrat visual_data restent absolus.
 """
+
 from __future__ import annotations
 
 import random
@@ -16,10 +17,14 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class VarietySeed:
-    narrative_context: str        # domaine situationnel (vide si type purement formel)
-    resolution_mechanism: str     # famille de mécanisme cognitif
-    cognitive_skill: str = ""     # not yet active — réservé : déduction, inhibition, séquençage…
-    min_level: str = ""           # not yet active — réservé : beginner, intermediate, advanced, adult
+    narrative_context: str  # domaine situationnel (vide si type purement formel)
+    resolution_mechanism: str  # famille de mécanisme cognitif
+    cognitive_skill: str = (
+        ""  # not yet active — réservé : déduction, inhibition, séquençage…
+    )
+    min_level: str = (
+        ""  # not yet active — réservé : beginner, intermediate, advanced, adult
+    )
 
 
 # Types dont le contexte narratif n'apporte rien (mécanique auto-référentielle ou purement spatiale).
@@ -160,9 +165,7 @@ def pick_variety_seed(challenge_type: str, age_group: str = "") -> VarietySeed:
         return VarietySeed(narrative_context="", resolution_mechanism="")
 
     narrative = (
-        ""
-        if ct in _TYPES_IGNORE_NARRATIVE
-        else random.choice(NARRATIVE_CONTEXTS)
+        "" if ct in _TYPES_IGNORE_NARRATIVE else random.choice(NARRATIVE_CONTEXTS)
     )
     return VarietySeed(
         narrative_context=narrative,
