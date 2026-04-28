@@ -1,5 +1,7 @@
 # Challenge Quality Improvement — Design Spec
 
+> **[CLOS — livré 2026-04-28]** Toutes les tasks implémentées et vérifiées (commits `74ffb14`→`33bb325`). VarietySeed, 4 sections qualité, filtres âge, guard IndexError, déplacement VALID_CHALLENGE_TYPES.
+
 **Date :** 2026-04-28
 **Statut :** Approuvé par le founder — prêt pour implémentation
 

@@ -1,5 +1,7 @@
 # Phase 3 Tests Implementation Plan
 
+> **[CLOS — livré 2026-04-25]** Toutes les tasks de ce plan ont été implémentées et vérifiées.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Verrouiller les contrats de validation et de rendu des défis IA par des tests déterministes sans DB ni OpenAI (Phase 3A golden tests, 3B renderer contracts, 3D deduction solver perf).

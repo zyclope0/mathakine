@@ -1,5 +1,7 @@
 # Design — Rationalisation du contexte mémoire IA
 
+> **[CLOS — livré 2026-04-26]** AGENTS.md rationalisé, contrat 3 niveaux de mémoire documenté et appliqué.
+
 **Date :** 2026-04-26
 **Scope :** Consolider la mémoire de travail .md utilisée par Codex, Claude Code CLI + superpowers, et Octopus en un contrat clair de 3 niveaux, avec un point d'entrée unifié pour toute nouvelle session.
 **Contrainte :** Solo founder, zéro changement de code applicatif, zéro migration DB, préserver l'historique git (archiver, ne pas supprimer).

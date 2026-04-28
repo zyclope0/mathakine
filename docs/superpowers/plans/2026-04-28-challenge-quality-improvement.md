@@ -1,5 +1,7 @@
 # Challenge Quality Improvement — Implementation Plan
 
+> **[CLOS — livré 2026-04-28]** Toutes les tasks implémentées et vérifiées (commits `74ffb14`→`33bb325`). VarietySeed injecté, 4 sections qualité prompt, filtres âge riddle, guard NARRATIVE_CONTEXTS, VALID_CHALLENGE_TYPES déplacé.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Améliorer la qualité pédagogique et la variété des défis générés par l'IA via enrichissement du prompt système (4 nouvelles sections) et injection dynamique d'un `VarietySeed` (contexte narratif + mécanisme cognitif) au moment de chaque appel.

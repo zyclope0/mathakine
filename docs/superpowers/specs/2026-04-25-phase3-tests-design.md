@@ -1,5 +1,7 @@
 # Phase 3 — Tests qui protègent les règles (3A + 3B + 3D)
 
+> **[CLOS — livré 2026-04-25]** Phases 3A (golden tests), 3B (contrats renderer), 3D (perf solveur déduction) implémentées et vérifiées.
+
 ## Objectif
 
 Verrouiller les contrats de validation et de rendu des défis IA par des tests déterministes, sans DB, sans OpenAI. Trois livrables indépendants :

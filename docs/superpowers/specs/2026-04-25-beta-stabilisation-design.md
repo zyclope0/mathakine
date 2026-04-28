@@ -1,5 +1,7 @@
 # Design — Stabilisation beta v3.6.0
 
+> **[CLOS — livré 2026-04-25]** Toutes les tasks de ce plan ont été implémentées et vérifiées.
+
 **Date :** 2026-04-25  
 **Scope :** Solidification sans feature nouvelle — audit sécurité, audit runtime, métriques Phase 2A, alignement docs  
 **Contrainte :** Solo founder, zéro refonte, zéro migration DB

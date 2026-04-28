@@ -1,5 +1,7 @@
 # Cosmetic Findings — Implementation Plan
 
+> **[CLOS — livré 2026-04-25]** 3 findings cosmétiques corrigés (beta stabilisation).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Corriger les 3 findings cosmétiques actionnables issus des audits sécurité et runtime beta stabilisation.
